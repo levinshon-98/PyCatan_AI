@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catan - Game Simulation</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="game-container">
+        <!-- Header -->
+        <div class="game-header">
+            <h1>🎲 Catan - Game Simulation</h1>
+            <p class="subtitle">Settlers of Catan - Web Visualization</p>
+        </div>
+        
+        <div class="content-wrapper">
+            <!-- Left Sidebar - Game Info -->
+            <aside class="sidebar sidebar-left">
+                <div id="game-info" class="game-info">
+                    <h3>📋 Game Info</h3>
+                    <div class="loading">Loading...</div>
+                </div>
+            </aside>
+            
+            <!-- Center - Board -->
+            <main class="board-wrapper">
+                <!-- Board Container -->
+                <div class="board-container" id="boardContainer">
+                    <!-- Board Controls -->
+                    <div class="board-controls">
+                        <button onclick="zoomIn()" class="control-btn" title="Zoom In">🔍+</button>
+                        <button onclick="zoomOut()" class="control-btn" title="Zoom Out">🔍−</button>
+                        <button onclick="resetZoom()" class="control-btn" title="Reset View">⌂</button>
+                        <button id="toggleVertices" onclick="toggleVertices()" class="control-btn" title="Show Vertices">📍</button>
+                        <button id="toggleInfo" onclick="toggleBuildingCosts()" class="control-btn" title="Building Costs">ℹ️</button>
+                    </div>
+                    
+                    <!-- Game Board -->
+                    <svg id="catan-board" width="100%" height="100%">
+                        <!-- Hexes and game elements will be added here by JavaScript -->
+                    </svg>
+                    
+                    <!-- Building Costs Modal -->
+                    <div id="buildingCostsModal" class="modal hidden">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3>Building Costs</h3>
+                                <button class="modal-close" onclick="toggleBuildingCosts()">✕</button>
+                            </div>
+                            <div class="modal-body">
+                                <table class="costs-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Building</th>
+                                            <th>Resources Required</th>
+                                            <th>VP</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Road</td>
+                                            <td>1 Brick + 1 Lumber</td>
+                                            <td>—</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Settlement</td>
+                                            <td>1 Brick + 1 Lumber + 1 Wheat + 1 Sheep</td>
+                                            <td>1</td>
+                                        </tr>
+                                        <tr>
+                                            <td>City</td>
+                                            <td>3 Ore + 2 Wheat</td>
+                                            <td>2</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Dev Card</td>
+                                            <td>1 Ore + 1 Sheep + 1 Wheat</td>
+                                            <td>1*</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <p class="costs-note">* VP awarded only for Victory Point dev cards</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+            
+            <!-- Right Sidebar - Action Log -->
+            <aside class="sidebar sidebar-right">
+                <div class="log-header">
+                    <h3>📜 Action Log</h3>
+                    <button class="clear-log-btn" onclick="clearActionLog()" title="Clear Log">🗑️</button>
+                </div>
+                <div id="action-log" class="action-log">
+                    <div class="info">Waiting for updates...</div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/gameData.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/board.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
