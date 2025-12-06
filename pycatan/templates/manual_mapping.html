@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PyCatan - Manual Mapping</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .mapping-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            direction: ltr;
+        }
+        .mode-switch {
+            margin-bottom: 15px;
+        }
+        .current-target {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .export-area {
+            margin-top: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+        }
+        .mapped {
+            fill: #2ecc71 !important;
+            stroke: #27ae60 !important;
+        }
+        .mapped-text {
+            fill: white !important;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>Manual Board Mapping</h1>
+        
+        <div class="board-container">
+            <svg id="catan-board" width="100%" height="100%"></svg>
+        </div>
+
+        <div class="mapping-controls">
+            <div class="mode-switch">
+                <label><input type="radio" name="mode" value="hex" checked> Map Hexes (1-19)</label><br>
+                <label><input type="radio" name="mode" value="point"> Map Points (1-54)</label>
+            </div>
+            
+            <div class="current-target">
+                Click to assign ID: <span id="nextId">1</span>
+                <div style="font-size: 0.8em; color: #666; margin-top: 5px;">
+                    Target Game Coords: <span id="coordsHint" style="color: #e74c3c; font-weight: bold;">Row 0, Col 0</span>
+                </div>
+                <div style="font-size: 0.7em; color: #888; margin-top: 5px;">
+                    (Row 0 is top, Col 0 is left)
+                </div>
+            </div>
+
+            <button onclick="undoLast()">Undo Last</button>
+            <button onclick="exportMapping()">Export Mapping</button>
+            
+            <div class="export-area">
+                <textarea id="output" placeholder="Mapping will appear here..."></textarea>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/gameData.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/board.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/manual_mapping.js') }}"></script>
+</body>
+</html>

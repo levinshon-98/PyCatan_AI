@@ -1,0 +1,1563 @@
+"""
+GameManager - Central coordinator for PyCatan game flow
+
+This module contains the GameManager class that orchestrates the entire
+game flow, manages turns, coordinates between users and the game state.
+"""
+
+from typing import List, Optional, Dict, Any
+import uuid
+import random
+from datetime import datetime
+
+from pycatan.actions import Action, ActionResult, GameState, GamePhase, TurnPhase, ActionType
+from pycatan.user import User, UserList, validate_user_list, UserInputError
+from pycatan.game import Game
+from pycatan.statuses import Statuses
+
+
+class GameManager:
+    """
+    Central coordinator for a Catan game session.
+    
+    The GameManager orchestrates the entire game flow:
+    - Manages turn order and game phases
+    - Coordinates between Users and the Game logic
+    - Maintains the current game state
+    - Handles user input and action execution
+    - Manages game-wide events and notifications
+    """
+    
+    def __init__(self, users: UserList, game_config: Optional[Dict[str, Any]] = None, random_seed: Optional[int] = None):
+        """
+        Initialize a new GameManager.
+        
+        Args:
+            users: List of User objects for this game
+            game_config: Optional configuration for the game (board layout, rules, etc.)
+            random_seed: Optional seed for random number generator (for reproducible games)
+            
+        Raises:
+            ValueError: If users list is invalid
+        """
+        # Validate users
+        validate_user_list(users)
+        
+        # Set random seed if provided (for reproducible games)
+        if random_seed is not None:
+            random.seed(random_seed)
+        
+        # Store game metadata
+        self.game_id = str(uuid.uuid4())
+        self.created_at = datetime.now()
+        self.users = users
+        self.num_players = len(users)
+        
+        # Initialize game configuration
+        self.config = game_config or {}
+        
+        # Visualization manager (can be set later)
+        self.visualization_manager = None
+        
+        # Create the underlying game instance
+        self.game = Game(num_of_players=self.num_players)
+        
+        # Initialize game state
+        self._current_game_state = GameState(
+            game_id=self.game_id,
+            turn_number=0,
+            current_player=0,
+            game_phase=GamePhase.SETUP_FIRST_ROUND,
+            turn_phase=TurnPhase.ROLL_DICE
+        )
+        
+        # Game flow control
+        self._is_running = False
+        self._is_paused = False
+        
+        # Action history and pending operations
+        self._action_history: List[Action] = []
+        self._pending_actions: List[Action] = []
+        
+        # Error tracking per player to prevent infinite loops
+        self._player_error_count = [0] * self.num_players
+        
+        # Setup phase progress tracking
+        self._setup_turn_progress = {'settlement': False, 'road': False}
+        
+    @property
+    def is_running(self) -> bool:
+        """Whether the game is currently running."""
+        return self._is_running
+    
+    @property
+    def is_paused(self) -> bool:
+        """Whether the game is currently paused."""
+        return self._is_paused
+    
+    @property
+    def current_player_id(self) -> int:
+        """ID of the current player."""
+        return self._current_game_state.current_player
+    
+    @property
+    def current_user(self) -> User:
+        """The User object for the current player."""
+        return self.users[self.current_player_id]
+    
+    def get_full_state(self) -> GameState:
+        """
+        Get the complete current state of the game.
+        
+        This method extracts state from the Game object and combines it
+        with GameManager state like current player and turn information.
+        
+        Returns:
+            GameState: Complete current game state
+        """
+        # Get the base state from the Game object
+        game_state = self.game.get_full_state()
+        
+        # Update player names with user names
+        for i, user in enumerate(self.users):
+            if i < len(game_state.players_state):
+                game_state.players_state[i].name = getattr(user, 'name', f'Player {i + 1}')
+        
+        # Update with GameManager-specific information
+        game_state.game_id = self.game_id
+        game_state.turn_number = self._current_game_state.turn_number
+        game_state.current_player = self._current_game_state.current_player
+        game_state.game_phase = self._current_game_state.game_phase
+        game_state.turn_phase = self._current_game_state.turn_phase
+        
+        return game_state
+    
+    def get_available_actions(self) -> List[str]:
+        """
+        Get a list of available action types for the current game state.
+        
+        Returns:
+            List[str]: List of allowed ActionType names
+        """
+        actions = []
+        phase = self._current_game_state.game_phase
+        turn_phase = self._current_game_state.turn_phase
+        
+        if phase in [GamePhase.SETUP_FIRST_ROUND, GamePhase.SETUP_SECOND_ROUND]:
+            # In setup phase: settlement first, then road
+            if not self._setup_turn_progress['settlement']:
+                # Can only place settlement when none placed yet
+                actions.append(ActionType.PLACE_STARTING_SETTLEMENT.name)
+            elif not self._setup_turn_progress['road']:
+                # Can only place road after settlement is placed
+                actions.append(ActionType.PLACE_STARTING_ROAD.name)
+            else:
+                # Both built, turn should auto-end but allow manual end
+                actions.append(ActionType.END_TURN.name)
+            
+        elif phase == GamePhase.NORMAL_PLAY:
+            # Check special robber-related phases first
+            if turn_phase == TurnPhase.DISCARD_PHASE:
+                # Only discard action allowed
+                actions.append(ActionType.DISCARD_CARDS.name)
+            elif turn_phase == TurnPhase.ROBBER_MOVE:
+                # Only robber move allowed
+                actions.append(ActionType.ROBBER_MOVE.name)
+            elif turn_phase == TurnPhase.ROBBER_STEAL:
+                # Only steal action allowed
+                actions.append(ActionType.STEAL_CARD.name)
+            elif not self._current_game_state.dice_rolled:
+                # Normal pre-roll phase
+                actions.extend([
+                    ActionType.ROLL_DICE.name,
+                    ActionType.USE_DEV_CARD.name
+                ])
+            else:
+                # Normal post-roll phase - player actions
+                actions.extend([
+                    ActionType.BUILD_SETTLEMENT.name,
+                    ActionType.BUILD_CITY.name,
+                    ActionType.BUILD_ROAD.name,
+                    ActionType.TRADE_PROPOSE.name,
+                    ActionType.TRADE_BANK.name,
+                    ActionType.BUY_DEV_CARD.name,
+                    ActionType.USE_DEV_CARD.name,
+                    ActionType.END_TURN.name
+                ])
+                
+        return actions
+
+    def execute_action(self, action: Action) -> ActionResult:
+        """
+        Execute an action in the game.
+        
+        This is the main entry point for all game actions.
+        Validates the action and delegates to the appropriate handler.
+        
+        Args:
+            action: The action to execute
+            
+        Returns:
+            ActionResult: Result of the action execution
+        """
+        # Basic validation
+        if not self._is_running:
+            return ActionResult.failure_result(
+                "Game is not running",
+                "GAME_NOT_RUNNING"
+            )
+        
+        if action.player_id != self.current_player_id:
+            return ActionResult.failure_result(
+                f"Not player {action.player_id}'s turn",
+                "NOT_YOUR_TURN"
+            )
+        
+        # Log the action attempt
+        self._action_history.append(action)
+        
+        try:
+            # Route to appropriate handler based on action type
+            if action.action_type == ActionType.END_TURN:
+                return self._handle_end_turn(action)
+            elif action.action_type in [ActionType.BUILD_SETTLEMENT, ActionType.BUILD_CITY, ActionType.BUILD_ROAD,
+                                      ActionType.PLACE_STARTING_SETTLEMENT, ActionType.PLACE_STARTING_ROAD]:
+                return self._handle_building_action(action)
+            elif action.action_type == ActionType.ROLL_DICE:
+                return self._handle_roll_dice(action)
+            elif action.action_type in [ActionType.TRADE_PROPOSE, ActionType.TRADE_ACCEPT, ActionType.TRADE_REJECT]:
+                return self._handle_trade_action(action)
+            elif action.action_type == ActionType.DISCARD_CARDS:
+                return self._handle_discard_cards(action)
+            elif action.action_type == ActionType.ROBBER_MOVE:
+                return self._handle_robber_move(action)
+            elif action.action_type == ActionType.STEAL_CARD:
+                return self._handle_steal_card(action)
+            else:
+                # For now, return "not implemented" for other actions
+                return ActionResult.failure_result(
+                    f"Action {action.action_type} not yet implemented",
+                    "NOT_IMPLEMENTED"
+                )
+                
+        except Exception as e:
+            return ActionResult.failure_result(
+                f"Error executing action: {str(e)}",
+                "EXECUTION_ERROR"
+            )
+    
+    def _handle_end_turn(self, action: Action) -> ActionResult:
+        """Handle end turn action."""
+        # In the new architecture, this method just validates and returns success.
+        # The actual turn advancement happens in _advance_to_next_player()
+        # which is called by the game loop when this action returns success.
+        
+        return ActionResult.success_result(
+            self.get_full_state(),
+            affected_players=[action.player_id]
+        )
+    
+    def _handle_building_action(self, action: Action) -> ActionResult:
+        """Handle building actions (settlements, cities, roads)."""
+        try:
+            if action.action_type in [ActionType.BUILD_SETTLEMENT, ActionType.PLACE_STARTING_SETTLEMENT]:
+                return self._execute_build_settlement(action)
+            elif action.action_type == ActionType.BUILD_CITY:
+                return self._execute_build_city(action)
+            elif action.action_type in [ActionType.BUILD_ROAD, ActionType.PLACE_STARTING_ROAD]:
+                return self._execute_build_road(action)
+            else:
+                return ActionResult.failure_result(
+                    f"Unknown building action: {action.action_type}",
+                    "UNKNOWN_ACTION"
+                )
+        except Exception as e:
+            return ActionResult.failure_result(
+                f"Error executing building action: {str(e)}",
+                "BUILDING_ERROR"
+            )
+
+    def _distribute_setup_resources(self, player_id: int, point: Any) -> None:
+        """Distribute initial resources based on the second settlement."""
+        from pycatan.board import Board
+        
+        resources_given = []
+        
+        # Iterate over tiles adjacent to the point
+        # Point object has 'tiles' attribute which is a list of Tile objects
+        if hasattr(point, 'tiles'):
+            for tile in point.tiles:
+                # Get resource type from tile type
+                card_type = Board.get_card_from_tile(tile.type)
+                
+                # If it's a valid resource (not None/Desert)
+                if card_type:
+                    # Add card to player
+                    self.game.players[player_id].add_cards([card_type])
+                    resources_given.append(card_type.name)
+        
+        if resources_given:
+            # Create a dummy action for notification purposes
+            # We use PLACE_STARTING_SETTLEMENT but need to provide dummy point_coords
+            # to satisfy validation, even though they aren't used for the notification
+            dummy_action = Action(
+                ActionType.PLACE_STARTING_SETTLEMENT, 
+                player_id,
+                {'point_coords': [0, 0]}  # Dummy coordinates
+            )
+            
+            self._notify_user(
+                player_id, 
+                dummy_action, 
+                True, 
+                f"Received starting resources: {', '.join(resources_given)}"
+            )
+            
+            # Notify visualization about starting resources
+            if self.visualization_manager:
+                player_name = self.users[player_id].name if hasattr(self.users[player_id], 'name') else f"Player {player_id + 1}"
+                # Create distribution dict format
+                distribution = {player_name: resources_given}
+                self.visualization_manager.display_resource_distribution(distribution)
+
+    def _execute_build_settlement(self, action: Action) -> ActionResult:
+        """Execute settlement building action."""
+        # Extract coordinates from action parameters
+        if 'point_coords' not in action.parameters:
+            return ActionResult.failure_result(
+                "Settlement action missing point_coords parameter",
+                "MISSING_COORDS"
+            )
+        
+        coords = action.parameters['point_coords']
+        
+        # Determine if this is a starting settlement based on game phase
+        # The GameManager is the authority on rules, so we check the phase here
+        in_setup_phase = self._current_game_state.game_phase in [GamePhase.SETUP_FIRST_ROUND, GamePhase.SETUP_SECOND_ROUND]
+        
+        # If in setup phase, force is_starting to True (free building)
+        # Otherwise respect the action parameter (defaulting to False)
+        if in_setup_phase:
+            is_starting = True
+        else:
+            is_starting = action.parameters.get('is_starting', False)
+        
+        # Get the point object from board
+        try:
+            point = self.game.board.points[coords[0]][coords[1]]
+        except (IndexError, TypeError):
+            return ActionResult.failure_result(
+                f"Invalid coordinates: {coords}",
+                "INVALID_COORDS"
+            )
+        
+        # Call the actual Game method
+        status = self.game.add_settlement(action.player_id, point, is_starting)
+        
+        # Update setup progress if successful and in setup phase
+        if status == Statuses.ALL_GOOD and in_setup_phase:
+            self._setup_turn_progress['settlement'] = True
+            
+            # Only distribute resources in the second round of setup
+            if self._current_game_state.game_phase == GamePhase.SETUP_SECOND_ROUND:
+                self._distribute_setup_resources(action.player_id, point)
+        
+        # Convert Status to ActionResult
+        return self._convert_status_to_result(status, self.get_full_state(), [action.player_id])
+
+    def _execute_build_city(self, action: Action) -> ActionResult:
+        """Execute city building action."""
+        # Extract coordinates from action parameters  
+        if 'point_coords' not in action.parameters:
+            return ActionResult.failure_result(
+                "City action missing point_coords parameter", 
+                "MISSING_COORDS"
+            )
+        
+        coords = action.parameters['point_coords']
+        
+        # Get the point object from board
+        try:
+            point = self.game.board.points[coords[0]][coords[1]]
+        except (IndexError, TypeError):
+            return ActionResult.failure_result(
+                f"Invalid coordinates: {coords}",
+                "INVALID_COORDS"
+            )
+        
+        # Call the actual Game method (add_city doesn't exist, need to implement via settlement upgrade)
+        # For now, return not implemented
+        return ActionResult.failure_result(
+            "City building not yet implemented in Game class",
+            "NOT_IMPLEMENTED"
+        )
+
+    def _execute_build_road(self, action: Action) -> ActionResult:
+        """Execute road building action."""
+        # Extract coordinates from action parameters
+        if 'start_coords' not in action.parameters or 'end_coords' not in action.parameters:
+            return ActionResult.failure_result(
+                "Road action missing start_coords or end_coords parameters",
+                "MISSING_COORDS"
+            )
+        
+        start_coords = action.parameters['start_coords']
+        end_coords = action.parameters['end_coords']
+        
+        # Determine if this is a starting road based on game phase
+        # The GameManager is the authority on rules, so we check the phase here
+        in_setup_phase = self._current_game_state.game_phase in [GamePhase.SETUP_FIRST_ROUND, GamePhase.SETUP_SECOND_ROUND]
+        
+        # If in setup phase, force is_starting to True (free building)
+        # Otherwise respect the action parameter (defaulting to False)
+        if in_setup_phase:
+            is_starting = True
+        else:
+            is_starting = action.parameters.get('is_starting', False)
+        
+        # Get point objects from board
+        try:
+            start_point = self.game.board.points[start_coords[0]][start_coords[1]]
+            end_point = self.game.board.points[end_coords[0]][end_coords[1]]
+        except (IndexError, TypeError):
+            return ActionResult.failure_result(
+                f"Invalid coordinates: start={start_coords}, end={end_coords}",
+                "INVALID_COORDS"
+            )
+        
+        # Call the actual Game method
+        status = self.game.add_road(action.player_id, start_point, end_point, is_starting)
+        
+        # Update setup progress if successful and in setup phase
+        if status == Statuses.ALL_GOOD and in_setup_phase:
+            self._setup_turn_progress['road'] = True
+        
+        # Convert Status to ActionResult
+        return self._convert_status_to_result(status, self.get_full_state(), [action.player_id])
+
+    def _convert_status_to_result(self, status, game_state, affected_players):
+        """Convert Game.Statuses to ActionResult."""
+        from pycatan.statuses import Statuses
+        
+        if status == Statuses.ALL_GOOD:
+            return ActionResult.success_result(game_state, affected_players)
+        elif status == Statuses.ERR_CARDS:
+            return ActionResult.failure_result("Not enough cards", "INSUFFICIENT_RESOURCES")
+        elif status == Statuses.ERR_BLOCKED:
+            return ActionResult.failure_result("Location is blocked", "LOCATION_BLOCKED")
+        elif status == Statuses.ERR_INPUT:
+            return ActionResult.failure_result("Invalid input", "INVALID_INPUT")
+        elif status == Statuses.ERR_NOT_CON:
+            return ActionResult.failure_result("Road points are not connected", "NOT_CONNECTED")
+        elif status == Statuses.ERR_ISOLATED:
+            return ActionResult.failure_result("Not connected to existing buildings", "ISOLATED")
+        else:
+            return ActionResult.failure_result(f"Unknown status: {status}", "UNKNOWN_ERROR")
+    
+    def _handle_trade_action(self, action: Action) -> ActionResult:
+        """Handle trade-related actions."""
+        if action.action_type == ActionType.TRADE_PROPOSE:
+            return self._execute_trade_propose(action)
+        elif action.action_type == ActionType.TRADE_BANK:
+            return self._execute_trade_bank(action)
+        else:
+            # TRADE_ACCEPT and TRADE_REJECT should not be called directly
+            # They are handled internally by _execute_trade_propose
+            return ActionResult.failure_result(
+                f"Trade action {action.action_type} cannot be called directly",
+                "INVALID_ACTION"
+            )
+    
+    def _execute_trade_propose(self, action: Action) -> ActionResult:
+        """
+        Execute a trade proposal between players.
+        
+        This function:
+        1. Validates that both players have the required cards
+        2. Requests input from the target player (accept/reject)
+        3. Executes the trade if accepted
+        """
+        try:
+            proposer_id = action.player_id
+            target_id = action.parameters['target_player']
+            offer = action.parameters['offer']  # {resource: amount}
+            request = action.parameters['request']  # {resource: amount}
+            
+            # Get player names for messages
+            proposer_name = self.users[proposer_id].name
+            target_name = self.users[target_id].name
+            
+            # Convert offer/request dicts to card lists for Game.trade()
+            from pycatan.card import ResCard
+            
+            offer_cards = []
+            for resource, amount in offer.items():
+                card_type = self._resource_name_to_card(resource)
+                offer_cards.extend([card_type] * amount)
+            
+            request_cards = []
+            for resource, amount in request.items():
+                card_type = self._resource_name_to_card(resource)
+                request_cards.extend([card_type] * amount)
+            
+            # Validate that both players have the required cards
+            if not self.game.players[proposer_id].has_cards(offer_cards):
+                print(f"    ✗ You don't have the required cards to offer")
+                return ActionResult.failure_result(
+                    f"You don't have the required cards to offer",
+                    "INSUFFICIENT_RESOURCES"
+                )
+            
+            if not self.game.players[target_id].has_cards(request_cards):
+                print(f"    ✗ {target_name} doesn't have the required cards")
+                return ActionResult.failure_result(
+                    f"{target_name} doesn't have the required cards",
+                    "INSUFFICIENT_RESOURCES"
+                )
+            
+            # Format the trade offer message
+            offer_str = ", ".join([f"{amt} {res}" for res, amt in offer.items()])
+            request_str = ", ".join([f"{amt} {res}" for res, amt in request.items()])
+            
+            # Ask the target player to accept or reject
+            print(f"\n📢 Trade Proposal:")
+            print(f"    {proposer_name} offers: {offer_str}")
+            print(f"    {proposer_name} wants: {request_str}")
+            print(f"    {target_name}, do you accept? (yes/no)")
+            
+            # Get response from target player
+            target_user = self.users[target_id]
+            response = target_user.get_input(
+                self.get_full_state(),
+                f"{target_name}, accept trade?",
+                allowed_actions=[ActionType.TRADE_ACCEPT.name, ActionType.TRADE_REJECT.name]
+            )
+            
+            # Handle response
+            if response.action_type == ActionType.TRADE_ACCEPT:
+                # Execute the trade
+                status = self.game.trade(proposer_id, target_id, offer_cards, request_cards)
+                
+                if status == Statuses.ALL_GOOD:
+                    print(f"    ✓ Trade completed between {proposer_name} and {target_name}!")
+                    return ActionResult.success_result(
+                        self.get_full_state(),
+                        affected_players=[proposer_id, target_id]
+                    )
+                else:
+                    return self._map_status_to_result(status)
+            else:
+                # Trade rejected
+                print(f"    ✗ {target_name} rejected the trade")
+                return ActionResult.failure_result(
+                    f"{target_name} rejected your trade offer",
+                    "TRADE_REJECTED"
+                )
+                
+        except Exception as e:
+            return ActionResult.failure_result(
+                f"Error executing trade: {str(e)}",
+                "EXECUTION_ERROR"
+            )
+    
+    def _execute_trade_bank(self, action: Action) -> ActionResult:
+        """Execute a trade with the bank."""
+        try:
+            player_id = action.player_id
+            offer = action.parameters['offer']  # {resource: amount}
+            request = action.parameters['request']  # {resource: amount}
+            
+            # Convert to card lists
+            from pycatan.card import ResCard
+            
+            offer_cards = []
+            for resource, amount in offer.items():
+                card_type = self._resource_name_to_card(resource)
+                offer_cards.extend([card_type] * amount)
+            
+            request_cards = []
+            for resource, amount in request.items():
+                card_type = self._resource_name_to_card(resource)
+                request_cards.extend([card_type] * amount)
+            
+            # Execute bank trade
+            status = self.game.trade_to_bank(player_id, offer_cards, request_cards)
+            
+            if status == Statuses.ALL_GOOD:
+                offer_str = ", ".join([f"{amt} {res}" for res, amt in offer.items()])
+                request_str = ", ".join([f"{amt} {res}" for res, amt in request.items()])
+                print(f"    ✓ Bank trade: gave {offer_str}, received {request_str}")
+                return ActionResult.success_result(
+                    self.get_full_state(),
+                    affected_players=[player_id]
+                )
+            else:
+                return self._map_status_to_result(status)
+                
+        except Exception as e:
+            return ActionResult.failure_result(
+                f"Error executing bank trade: {str(e)}",
+                "EXECUTION_ERROR"
+            )
+    
+    def _resource_name_to_card(self, resource_name: str):
+        """Convert resource name string to ResCard enum."""
+        from pycatan.card import ResCard
+        
+        resource_map = {
+            'wood': ResCard.Wood,
+            'brick': ResCard.Brick,
+            'sheep': ResCard.Sheep,
+            'wheat': ResCard.Wheat,
+            'ore': ResCard.Ore
+        }
+        
+        return resource_map.get(resource_name.lower())
+    
+    def start_game(self) -> bool:
+        """
+        Start the game session.
+        
+        Initializes the game state and begins the main game loop.
+        
+        Returns:
+            bool: True if game started successfully
+        """
+        if self._is_running:
+            return False  # Already running
+        
+        # Initialize game state
+        self._is_running = True
+        self._is_paused = False
+        
+        # Notify all users
+        self._notify_all_users(
+            "game_start",
+            f"Game {self.game_id} has started with {self.num_players} players!"
+        )
+        
+        # Display Turn 0 immediately when game starts
+        self._display_current_turn_start()
+        
+        return True
+    
+    def pause_game(self) -> bool:
+        """Pause the game."""
+        if not self._is_running or self._is_paused:
+            return False
+        
+        self._is_paused = True
+        self._notify_all_users("game_pause", "Game has been paused.")
+        return True
+    
+    def resume_game(self) -> bool:
+        """Resume a paused game."""
+        if not self._is_running or not self._is_paused:
+            return False
+        
+        self._is_paused = False
+        self._notify_all_users("game_resume", "Game has been resumed.")
+        return True
+    
+    def end_game(self) -> bool:
+        """End the game session."""
+        if not self._is_running:
+            return False
+        
+        self._is_running = False
+        self._is_paused = False
+        
+        # TODO: Calculate final scores, determine winner
+        self._notify_all_users("game_end", "Game has ended.")
+        return True
+    
+    def request_user_input(self, user_id: int, prompt: str, 
+                          allowed_actions: Optional[List[str]] = None) -> Action:
+        """
+        Request input from a specific user.
+        
+        Args:
+            user_id: ID of the user to request input from
+            prompt: Message explaining what input is needed
+            allowed_actions: Optional list of allowed action types
+            
+        Returns:
+            Action: The action chosen by the user
+            
+        Raises:
+            UserInputError: If user input fails
+        """
+        if user_id >= len(self.users):
+            raise UserInputError(f"Invalid user ID: {user_id}")
+        
+        user = self.users[user_id]
+        
+        if not user.is_active:
+            raise UserInputError(f"User {user_id} is not active")
+        
+        try:
+            return user.get_input(
+                self.get_full_state(),
+                prompt,
+                allowed_actions
+            )
+        except Exception as e:
+            raise UserInputError(f"Failed to get input from user {user_id}: {e}", user)
+    
+    def _notify_all_users(self, event_type: str, message: str, 
+                         affected_players: Optional[List[int]] = None) -> None:
+        """Notify all users about a game event."""
+        for user in self.users:
+            if user.is_active:
+                user.notify_game_event(event_type, message, affected_players)
+    
+    def _notify_user(self, user_id: int, action: Action, success: bool, message: str = "") -> None:
+        """Notify a specific user about an action result."""
+        if user_id < len(self.users) and self.users[user_id].is_active:
+            self.users[user_id].notify_action(action, success, message)
+    
+    def get_action_history(self) -> List[Action]:
+        """Get the complete action history for this game."""
+        return self._action_history.copy()
+    
+    def get_user_by_id(self, user_id: int) -> Optional[User]:
+        """Get a user by their ID."""
+        if 0 <= user_id < len(self.users):
+            return self.users[user_id]
+        return None
+    
+    def game_loop(self) -> None:
+        """
+        Main game loop that runs the entire game from start to finish.
+        
+        This is the central function that orchestrates the entire game flow.
+        It manages turn order, requests input from users, executes actions,
+        and updates all systems until the game ends.
+        
+        Flow:
+        1. Check if game is running and not paused
+        2. Get input from current player
+        3. Attempt to execute the action
+        4. Update all systems (visualizations, users)
+        5. Check win conditions
+        6. Move to next turn if needed
+        
+        The function runs until the game ends or is explicitly stopped.
+        """
+        # Continue running until game ends or is explicitly stopped
+        while self._is_running and not self._check_game_end_conditions():
+            
+            # If game is paused, wait
+            if self._is_paused:
+                # In paused state, just continue loop without doing anything
+                continue
+            
+            # Run a single turn for the current player
+            try:
+                turn_ended = self._handle_single_turn()
+                
+                # Reset error count on successful turn processing
+                self._player_error_count[self.current_player_id] = 0
+                
+                # Only advance to next player if turn actually ended
+                if turn_ended:
+                    self._advance_to_next_player()
+                    
+            except Exception as e:
+                # Increment error count for current player
+                self._player_error_count[self.current_player_id] += 1
+                
+                # If error occurred, notify current player
+                self._notify_all_users(
+                    "error", 
+                    f"Error during player {self.current_player_id}'s turn: {str(e)}."
+                )
+                
+                # If too many consecutive errors for this player, skip their turn
+                if self._player_error_count[self.current_player_id] >= 3:
+                    self._notify_all_users(
+                        "player_skip",
+                        f"Player {self.current_player_id} had too many errors. Skipping turn."
+                    )
+                    self._advance_to_next_player()
+                else:
+                    self._notify_all_users(
+                        "retry",
+                        f"Player {self.current_player_id} can try again."
+                    )
+        
+        # Game has ended - handle cleanup
+        self._handle_game_end()
+    
+    def _handle_single_turn(self) -> bool:
+        """
+        Handles a single turn of one player.
+        
+        This function manages one complete turn of a single player:
+        1. Requests an action from the current user
+        2. Attempts to execute the action
+        3. Updates all systems about the result
+        4. Determines if the turn should end or continue
+        
+        Special handling for discard phase when 7 is rolled:
+        - During discard phase, each player who needs to discard gets prompted in turn
+        
+        Returns:
+            bool: True if the turn ended, False if player wants to continue
+        """
+        # Special handling for discard phase - ask each player who needs to discard
+        if self._current_game_state.turn_phase == TurnPhase.DISCARD_PHASE:
+            return self._handle_discard_phase_turn()
+        
+        # Get the current player's action
+        action_result = self._process_user_action()
+        
+        # Update all systems about what happened
+        if hasattr(action_result, 'action'):
+            self._update_all_systems(action_result.action, action_result)
+        
+        # Determine if turn should end
+        if action_result.success and hasattr(action_result, 'action'):
+            action = action_result.action
+            
+            # END_TURN action explicitly ends the turn
+            if action.action_type == ActionType.END_TURN:
+                return True
+            
+            # Auto-end turn in setup phase if both actions are done
+            phase = self._current_game_state.game_phase
+            if phase in [GamePhase.SETUP_FIRST_ROUND, GamePhase.SETUP_SECOND_ROUND]:
+                if self._setup_turn_progress['settlement'] and self._setup_turn_progress['road']:
+                    return True
+            
+            # For other successful actions, player can continue
+            return False
+        else:
+            # If action failed, player can try again (don't end turn)
+            return False
+    
+    def _handle_discard_phase_turn(self) -> bool:
+        """
+        Handle the discard phase when 7 is rolled.
+        
+        Each player who needs to discard is prompted in turn order.
+        After all players have discarded, the phase moves to robber move.
+        
+        Returns:
+            bool: Always False (don't advance to next player during discard)
+        """
+        # Find the next player who needs to discard
+        players_needing_discard = self._current_game_state.players_must_discard
+        
+        if not players_needing_discard:
+            # All done discarding - this shouldn't happen but handle it
+            self._current_game_state.turn_phase = TurnPhase.ROBBER_MOVE
+            return False
+        
+        # Get the first player who still needs to discard
+        discard_player_id = min(players_needing_discard.keys())
+        discard_count = players_needing_discard[discard_player_id]
+        
+        # Get the user for this player
+        discard_user = self.users[discard_player_id]
+        player_name = discard_user.name if hasattr(discard_user, 'name') else f"Player {discard_player_id}"
+        
+        # Request discard action from this player
+        allowed_actions = [ActionType.DISCARD_CARDS.name]
+        
+        try:
+            action = discard_user.get_input(
+                self.get_full_state(),
+                f"{player_name}, you must discard {discard_count} cards. Use: drop [amount] [resource] ...",
+                allowed_actions
+            )
+            
+            # Override the player_id to match the discarding player (not current turn player)
+            action.player_id = discard_player_id
+            
+            # Execute the discard action
+            result = self._handle_discard_cards(action)
+            
+            # Update systems
+            self._update_all_systems(action, result)
+            
+        except Exception as e:
+            self._notify_all_users(
+                "error",
+                f"Error during {player_name}'s discard: {str(e)}"
+            )
+        
+        # Don't end the turn - continue with discard phase or move to robber
+        return False
+    
+    def _process_user_action(self) -> ActionResult:
+        """
+        Requests an action from the current user and attempts to execute it.
+        
+        This function:
+        1. Identifies the current player
+        2. Requests them to choose an action via get_input()
+        3. Validates the action
+        4. Attempts to execute the action via execute_action()
+        5. Returns the result
+        
+        Returns:
+            ActionResult: The result of executing the action
+        """
+        try:
+            # Get the current user
+            current_user = self.current_user
+            
+            # Get allowed actions for current state
+            allowed_actions = self.get_available_actions()
+            
+            # Request action from the current user
+            action = current_user.get_input(
+                self.get_full_state(),
+                f"Player {self.current_player_id}, choose your action:",
+                allowed_actions
+            )
+            
+            # Validate that the action is for the current player
+            if action.player_id != self.current_player_id:
+                return ActionResult.failure_result(
+                    f"Action player_id {action.player_id} doesn't match current player {self.current_player_id}",
+                    "INVALID_PLAYER_ID"
+                )
+            
+            # Execute the action
+            result = self.execute_action(action)
+            
+            # Add the action to the result for reference
+            if hasattr(result, 'action'):
+                result.action = action
+            else:
+                # If ActionResult doesn't have action field, add it dynamically
+                setattr(result, 'action', action)
+            
+            return result
+            
+        except Exception as e:
+            # Handle any errors during action processing
+            return ActionResult.failure_result(
+                f"Error processing user action: {str(e)}",
+                "ACTION_PROCESSING_ERROR"
+            )
+    
+    def _update_all_systems(self, action: Action, result: ActionResult) -> None:
+        """
+        Updates all systems after an action has been executed.
+        
+        This function ensures that all parts of the system are informed
+        about what happened and can update their displays accordingly.
+        
+        Updates:
+        1. Notifies all users about the action and its result
+        2. Updates visualizations with new game state
+        3. Logs the action for history/debugging
+        4. Handles any side effects of the action
+        
+        Args:
+            action: The action that was executed
+            result: The result of the action execution
+        """
+        # Notify the specific user who performed the action
+        self._notify_user(
+            action.player_id, 
+            action, 
+            result.success, 
+            result.error_message or ""
+        )
+        
+        # If action was successful, notify all users about the action
+        if result.success:
+            action_description = self._get_action_description(action)
+            self._notify_all_users(
+                "action_performed",
+                f"Player {action.player_id} {action_description}",
+                result.affected_players if hasattr(result, 'affected_players') else [action.player_id]
+            )
+        
+        # Update visualizations if available
+        if self.visualization_manager:
+            try:
+                # Add player name to action parameters for better visualization
+                if not hasattr(action, 'parameters') or action.parameters is None:
+                    action.parameters = {}
+                
+                # Add player name if not already present
+                if 'player_name' not in action.parameters:
+                    player_name = self.users[action.player_id].name if hasattr(self.users[action.player_id], 'name') else f"Player {action.player_id}"
+                    action.parameters['player_name'] = player_name
+                
+                # Display the action result (success or failure)
+                self.visualization_manager.display_action(action, result)
+                
+                current_state = self.get_full_state()
+                # Pass GameState object directly so visualizations can extract what they need
+                self.visualization_manager.display_game_state(current_state)
+            except Exception as e:
+                # Log visualization errors
+                print(f"Error updating visualizations: {e}")
+        
+        # Log the action and result for debugging
+        if self.config.get('debug', False):
+            # Only print if debug config is explicitly enabled
+            pass
+
+    def _gamestate_to_dict(self, game_state) -> Dict[str, Any]:
+        """Convert GameState object to dict format expected by visualizations."""
+        try:
+            return {
+                'game_id': game_state.game_id,
+                'turn_number': game_state.turn_number,
+                'current_player': game_state.current_player,
+                'current_player_name': self.users[game_state.current_player].name if hasattr(self.users[game_state.current_player], 'name') else f"Player {game_state.current_player}",
+                'game_phase': game_state.game_phase.name if hasattr(game_state.game_phase, 'name') else str(game_state.game_phase),
+                'turn_phase': game_state.turn_phase.name if hasattr(game_state.turn_phase, 'name') else str(game_state.turn_phase),
+                'players': [
+                    {
+                        'id': i,
+                        'name': self.users[i].name if hasattr(self.users[i], 'name') else f"Player {i}",
+                        'victory_points': player.victory_points,
+                        'cards': len(player.cards),
+                        'settlements': len(player.settlements),
+                        'cities': len(player.cities),
+                        'roads': len(player.roads),
+                        'longest_road_length': player.longest_road_length,
+                        'has_longest_road': player.has_longest_road,
+                        'has_largest_army': player.has_largest_army,
+                        'knights_played': player.knights_played
+                    }
+                    for i, player in enumerate(game_state.players_state)
+                ],
+                'board': {
+                    'tiles_count': len(game_state.board_state.tiles),
+                    'robber_position': game_state.board_state.robber_position,
+                    'buildings_count': len(game_state.board_state.buildings),
+                    'roads_count': len(game_state.board_state.roads)
+                }
+            }
+        except Exception as e:
+            # Fallback dict if conversion fails
+            return {
+                'turn_number': getattr(game_state, 'turn_number', 0),
+                'current_player': getattr(game_state, 'current_player', 0),
+                'current_player_name': f"Player {getattr(game_state, 'current_player', 0)}",
+                'game_phase': 'UNKNOWN',
+                'players': [],
+                'board': {}
+            }
+    
+    def _get_action_description(self, action: Action) -> str:
+        """
+        Get a human-readable description of an action.
+        
+        Args:
+            action: The action to describe
+            
+        Returns:
+            str: Human-readable description
+        """
+        if action.action_type == ActionType.BUILD_SETTLEMENT:
+            return "built a settlement"
+        elif action.action_type == ActionType.BUILD_CITY:
+            return "built a city"
+        elif action.action_type == ActionType.BUILD_ROAD:
+            return "built a road"
+        elif action.action_type == ActionType.END_TURN:
+            return "ended their turn"
+        elif action.action_type == ActionType.TRADE_PROPOSE:
+            return "proposed a trade"
+        else:
+            return f"performed action: {action.action_type}"
+    
+    def _advance_to_next_player(self) -> None:
+        """
+        Advances the game to the next player's turn.
+        
+        This function handles the transition between players,
+        updating turn counters and notifying all users.
+        It implements the "Snake Draft" order for setup phase:
+        Round 1: 0 -> 1 -> ... -> N-1
+        Round 2: N-1 -> N-2 -> ... -> 0
+        """
+        # Reset setup progress for the new turn
+        self._setup_turn_progress = {'settlement': False, 'road': False}
+        
+        # Reset dice_rolled for the new turn (important for normal play!)
+        self._current_game_state.dice_rolled = None
+
+        # Increment turn number
+        self._current_game_state.turn_number += 1
+        turn = self._current_game_state.turn_number
+        
+        # Handle Setup Phase Logic
+        if self._current_game_state.game_phase == GamePhase.SETUP_FIRST_ROUND:
+            if turn < self.num_players:
+                # Still in first round, standard order
+                self._current_game_state.current_player = turn
+            else:
+                # Switch to second round
+                self._current_game_state.game_phase = GamePhase.SETUP_SECOND_ROUND
+                # The first player of second round is the last player of first round
+                self._current_game_state.current_player = self.num_players - 1
+                self._notify_all_users("phase_change", "First round of setup complete! Starting second round (reverse order).")
+                
+        elif self._current_game_state.game_phase == GamePhase.SETUP_SECOND_ROUND:
+            # Check if setup is done
+            if turn >= self.num_players * 2:
+                self._current_game_state.game_phase = GamePhase.NORMAL_PLAY
+                self._current_game_state.current_player = 0
+                self._notify_all_users("phase_change", "Setup complete! Entering Normal Play phase.")
+            else:
+                # Calculate reverse order for snake draft
+                # Formula: (2 * num_players - 1) - turn
+                self._current_game_state.current_player = (2 * self.num_players - 1) - turn
+        
+        else: # Normal Play
+             self._current_game_state.current_player = (self._current_game_state.current_player + 1) % self.num_players
+        
+        # Display turn start
+        self._display_current_turn_start()
+    
+    def _display_current_turn_start(self) -> None:
+        """Display turn start notification for the current player and turn."""
+        # Notify all users about the turn change
+        self._notify_all_users(
+            "turn_change", 
+            f"Turn {self._current_game_state.turn_number}: Player {self._current_game_state.current_player}'s turn begins."
+        )
+        
+        # Notify visualization
+        if self.visualization_manager:
+            player_id = self._current_game_state.current_player
+            player_name = self.users[player_id].name if hasattr(self.users[player_id], 'name') else f"Player {player_id + 1}"
+            self.visualization_manager.display_turn_start(player_name, self._current_game_state.turn_number)
+    
+    def _handle_game_end(self) -> None:
+        """
+        Handles the end of the game.
+        
+        This function is called when the game loop exits,
+        either due to win conditions or explicit termination.
+        """
+        # Set game as not running
+        self._is_running = False
+        self._is_paused = False
+        
+        # TODO: Calculate final scores and determine winner
+        # For now, just notify that game ended
+        self._notify_all_users("game_end", "Game has ended.")
+        
+        # TODO: Cleanup resources, save game state, etc.
+    
+    def _check_game_end_conditions(self) -> bool:
+        """
+        Checks if the game has ended based on win conditions.
+        
+        This function examines the current game state to determine
+        if any player has achieved victory conditions.
+        
+        Standard Catan win conditions:
+        1. First player to reach 10 victory points wins
+        2. Victory points come from: settlements (1), cities (2), 
+           development cards (1 each), longest road (2), largest army (2)
+        
+        Returns:
+            bool: True if game has ended (someone won), False if game continues
+        """
+        # Check victory points for each player
+        for player_id in range(self.num_players):
+            player = self.game.players[player_id]
+            
+            # Calculate total victory points for this player
+            # We include dev cards because we want to know if they actually won
+            victory_points = player.get_VP(include_dev=True)
+            
+            # Check if this player has won (10+ victory points)
+            if victory_points >= 10:
+                self._announce_winner(player_id, victory_points)
+                return True
+        
+        # No player has won yet
+        return False
+    
+    def _announce_winner(self, player_id: int, victory_points: int) -> None:
+        """
+        Announces the winner of the game.
+        
+        Args:
+            player_id: ID of the winning player
+            victory_points: Number of victory points the winner achieved
+        """
+        winner_name = self.users[player_id].name if hasattr(self.users[player_id], 'name') else f"Player {player_id}"
+        
+        self._notify_all_users(
+            "game_winner",
+            f"🎉 {winner_name} has won the game with {victory_points} victory points! 🎉"
+        )
+        
+        # Log the victory for debugging/statistics
+        print(f"[GAME END] Player {player_id} ({winner_name}) won with {victory_points} victory points")
+    
+    def _handle_roll_dice(self, action: Action) -> ActionResult:
+        """Handle dice rolling."""
+        # Check game phase
+        if self._current_game_state.game_phase != GamePhase.NORMAL_PLAY:
+             return ActionResult.failure_result(
+                 f"Cannot roll dice in {self._current_game_state.game_phase.name} phase.\n"
+                 "💡 Hint: In setup phase, use 'settlement <point> starting' and 'road <p1> <p2> starting'.", 
+                 "INVALID_PHASE"
+             )
+
+        # Check if dice already rolled this turn
+        if self._current_game_state.dice_rolled:
+             return ActionResult.failure_result("Dice already rolled this turn", "ALREADY_ROLLED")
+             
+        # Roll dice
+        die1 = random.randint(1, 6)
+        die2 = random.randint(1, 6)
+        total = die1 + die2
+        
+        # Update state
+        self._current_game_state.dice_rolled = (die1, die2)
+        
+        # Notify visualization about dice roll
+        if self.visualization_manager:
+            player_name = self.users[action.player_id].name if hasattr(self.users[action.player_id], 'name') else f"Player {action.player_id + 1}"
+            self.visualization_manager.display_dice_roll(player_name, [die1, die2], total)
+        
+        # Distribute resources or handle robber
+        if total != 7:
+            distribution = self.game.add_yield_for_roll(total)
+            
+            # Notify visualization about resources (even if empty)
+            if self.visualization_manager:
+                if distribution:
+                    self.visualization_manager.display_resource_distribution(distribution)
+                    message = f"Rolled {total} ({die1}+{die2}). Resources distributed."
+                else:
+                    # No resources were distributed (no settlements on this number)
+                    message = f"Rolled {total} ({die1}+{die2}). No settlements on this number - no resources distributed."
+            else:
+                message = f"Rolled {total} ({die1}+{die2}). Resources distributed."
+        else:
+            # Rolled 7! Handle robber sequence
+            message = f"Rolled 7 ({die1}+{die2})! 🏴‍☠️ Robber activated!"
+            self._handle_rolled_seven()
+            
+        # Notify
+        self._notify_all_users("dice_roll", message)
+        
+        return ActionResult.success_result(
+            self.get_full_state()
+        )
+    
+    def _handle_rolled_seven(self) -> None:
+        """
+        Handle the effects of rolling a 7:
+        1. Check which players have more than 7 cards and need to discard
+        2. Set up the discard phase if needed
+        3. Prepare for robber movement
+        """
+        # Check which players need to discard (more than 7 cards)
+        players_must_discard = {}
+        
+        for player_id, player in enumerate(self.game.players):
+            card_count = len(player.cards)
+            if card_count > 7:
+                # Must discard half, rounded down
+                discard_count = card_count // 2
+                players_must_discard[player_id] = discard_count
+                
+                player_name = self.users[player_id].name if hasattr(self.users[player_id], 'name') else f"Player {player_id}"
+                self._notify_all_users(
+                    "discard_required",
+                    f"⚠️ {player_name} has {card_count} cards and must discard {discard_count}."
+                )
+        
+        # Store the discard requirements in game state
+        self._current_game_state.players_must_discard = players_must_discard
+        self._current_game_state.robber_moved = False
+        self._current_game_state.steal_pending = False
+        
+        # Set the appropriate turn phase
+        if players_must_discard:
+            self._current_game_state.turn_phase = TurnPhase.DISCARD_PHASE
+        else:
+            # No one needs to discard, go straight to robber move
+            self._current_game_state.turn_phase = TurnPhase.ROBBER_MOVE
+            self._notify_all_users(
+                "robber",
+                f"🏴‍☠️ {self.users[self.current_player_id].name} must move the robber!"
+            )
+    
+    def _handle_discard_cards(self, action: Action) -> ActionResult:
+        """
+        Handle a player discarding cards (when 7 is rolled).
+        
+        The action must contain:
+        - cards: List of card names to discard
+        """
+        player_id = action.player_id
+        cards_to_discard = action.parameters.get('cards', [])
+        
+        # Check if this player needs to discard
+        required_discard = self._current_game_state.players_must_discard.get(player_id, 0)
+        
+        if required_discard == 0:
+            return ActionResult.failure_result(
+                "You don't need to discard any cards.",
+                "NO_DISCARD_REQUIRED"
+            )
+        
+        # Check if they're discarding the right amount
+        if len(cards_to_discard) != required_discard:
+            return ActionResult.failure_result(
+                f"You must discard exactly {required_discard} cards, but you're trying to discard {len(cards_to_discard)}.",
+                "WRONG_DISCARD_COUNT"
+            )
+        
+        # Convert card names to ResCard enum and verify player has them
+        from pycatan.card import ResCard
+        
+        player = self.game.players[player_id]
+        cards_enum = []
+        
+        for card_name in cards_to_discard:
+            try:
+                card = ResCard[card_name]
+                cards_enum.append(card)
+            except KeyError:
+                return ActionResult.failure_result(
+                    f"Unknown card type: {card_name}",
+                    "INVALID_CARD"
+                )
+        
+        # Check if player has all these cards
+        if not player.has_cards(cards_enum):
+            return ActionResult.failure_result(
+                "You don't have all the cards you're trying to discard.",
+                "MISSING_CARDS"
+            )
+        
+        # Remove the cards from player
+        player.remove_cards(cards_enum)
+        
+        # Update discard tracking
+        del self._current_game_state.players_must_discard[player_id]
+        
+        player_name = self.users[player_id].name if hasattr(self.users[player_id], 'name') else f"Player {player_id}"
+        self._notify_all_users(
+            "discard_complete",
+            f"✓ {player_name} discarded {len(cards_to_discard)} cards."
+        )
+        
+        # Check if all players have finished discarding
+        if not self._current_game_state.players_must_discard:
+            # All discards complete, move to robber phase
+            self._current_game_state.turn_phase = TurnPhase.ROBBER_MOVE
+            current_player_name = self.users[self.current_player_id].name if hasattr(self.users[self.current_player_id], 'name') else f"Player {self.current_player_id}"
+            self._notify_all_users(
+                "robber",
+                f"🏴‍☠️ {current_player_name} must now move the robber!"
+            )
+        
+        return ActionResult.success_result(self.get_full_state())
+    
+    def _handle_robber_move(self, action: Action) -> ActionResult:
+        """
+        Handle moving the robber to a new tile.
+        
+        The action must contain:
+        - tile_coords: [row, index] of the new robber position
+        """
+        tile_coords = action.parameters.get('tile_coords')
+        
+        if not tile_coords:
+            return ActionResult.failure_result(
+                "Robber move requires tile coordinates.",
+                "MISSING_COORDS"
+            )
+        
+        row, index = tile_coords
+        
+        # Validate the tile exists
+        try:
+            tile = self.game.board.tiles[row][index]
+        except (IndexError, KeyError):
+            return ActionResult.failure_result(
+                f"Invalid tile coordinates: [{row}, {index}]",
+                "INVALID_COORDS"
+            )
+        
+        # Can't place robber on desert (already there) - check if it's the same position
+        current_robber_pos = getattr(self.game.board, 'robber_tile', None)
+        if current_robber_pos and current_robber_pos == (row, index):
+            return ActionResult.failure_result(
+                "You must move the robber to a different tile.",
+                "SAME_POSITION"
+            )
+        
+        # Move the robber
+        # First, remove robber from current position
+        if current_robber_pos:
+            old_row, old_index = current_robber_pos
+            try:
+                self.game.board.tiles[old_row][old_index].has_robber = False
+            except (IndexError, AttributeError):
+                pass
+        
+        # Place robber on new position
+        tile.has_robber = True
+        self.game.board.robber_tile = (row, index)
+        
+        self._current_game_state.robber_moved = True
+        
+        # Find players adjacent to this tile who can be stolen from
+        stealable_players = self._get_stealable_players(row, index)
+        
+        player_name = self.users[action.player_id].name if hasattr(self.users[action.player_id], 'name') else f"Player {action.player_id}"
+        self._notify_all_users(
+            "robber_moved",
+            f"🏴‍☠️ {player_name} moved the robber to [{row}, {index}]."
+        )
+        
+        if stealable_players:
+            # There are players to steal from
+            self._current_game_state.turn_phase = TurnPhase.ROBBER_STEAL
+            self._current_game_state.steal_pending = True
+            
+            stealable_names = [self.users[pid].name for pid in stealable_players]
+            self._notify_all_users(
+                "steal_available",
+                f"🎯 {player_name} can steal from: {', '.join(stealable_names)}"
+            )
+        else:
+            # No one to steal from, proceed to normal play
+            self._current_game_state.turn_phase = TurnPhase.PLAYER_ACTIONS
+            self._notify_all_users(
+                "robber_complete",
+                "No players with cards adjacent to robber. Proceeding with turn."
+            )
+        
+        return ActionResult.success_result(self.get_full_state())
+    
+    def _get_stealable_players(self, tile_row: int, tile_index: int) -> List[int]:
+        """
+        Get list of player IDs who have settlements/cities adjacent to the given tile
+        and have at least 1 card (excluding the current player).
+        """
+        stealable = []
+        current_player = self.current_player_id
+        
+        try:
+            tile = self.game.board.tiles[tile_row][tile_index]
+        except (IndexError, KeyError):
+            return []
+        
+        # Get all points adjacent to this tile
+        adjacent_points = tile.points if hasattr(tile, 'points') else []
+        
+        for point in adjacent_points:
+            if point.building is not None:
+                owner_id = point.building.owner
+                # Don't include current player, and don't include players with no cards
+                if owner_id != current_player and owner_id not in stealable:
+                    if len(self.game.players[owner_id].cards) > 0:
+                        stealable.append(owner_id)
+        
+        return stealable
+    
+    def _handle_steal_card(self, action: Action) -> ActionResult:
+        """
+        Handle stealing a card from a player adjacent to the robber.
+        
+        The action must contain:
+        - target_player: Player ID to steal from (or None if no one to steal from)
+        """
+        target_player = action.parameters.get('target_player')
+        
+        if target_player is None:
+            # No one to steal from
+            self._current_game_state.turn_phase = TurnPhase.PLAYER_ACTIONS
+            self._current_game_state.steal_pending = False
+            return ActionResult.success_result(self.get_full_state())
+        
+        # Validate target player
+        if target_player < 0 or target_player >= self.num_players:
+            return ActionResult.failure_result(
+                f"Invalid player ID: {target_player}",
+                "INVALID_PLAYER"
+            )
+        
+        if target_player == action.player_id:
+            return ActionResult.failure_result(
+                "You cannot steal from yourself!",
+                "STEAL_SELF"
+            )
+        
+        # Check target has cards
+        target = self.game.players[target_player]
+        if len(target.cards) == 0:
+            return ActionResult.failure_result(
+                f"Player {target_player} has no cards to steal.",
+                "NO_CARDS"
+            )
+        
+        # Check target is adjacent to robber
+        robber_pos = getattr(self.game.board, 'robber_tile', None)
+        if robber_pos:
+            stealable = self._get_stealable_players(robber_pos[0], robber_pos[1])
+            if target_player not in stealable:
+                return ActionResult.failure_result(
+                    f"Player {target_player} is not adjacent to the robber.",
+                    "NOT_ADJACENT"
+                )
+        
+        # Steal a random card
+        import random
+        stolen_card = random.choice(target.cards)
+        target.remove_cards([stolen_card])
+        self.game.players[action.player_id].add_cards([stolen_card])
+        
+        # Update state
+        self._current_game_state.turn_phase = TurnPhase.PLAYER_ACTIONS
+        self._current_game_state.steal_pending = False
+        
+        # Notify (don't reveal what card was stolen to everyone)
+        thief_name = self.users[action.player_id].name if hasattr(self.users[action.player_id], 'name') else f"Player {action.player_id}"
+        victim_name = self.users[target_player].name if hasattr(self.users[target_player], 'name') else f"Player {target_player}"
+        
+        self._notify_all_users(
+            "steal_complete",
+            f"🎯 {thief_name} stole a card from {victim_name}!"
+        )
+        
+        # Notify the thief specifically what they got
+        self._notify_user(
+            action.player_id,
+            action,
+            True,
+            f"You stole a {stolen_card.name}!"
+        )
+        
+        return ActionResult.success_result(self.get_full_state())
+    
+    def __str__(self) -> str:
+        """String representation of the GameManager."""
+        status = "running" if self._is_running else "stopped"
+        if self._is_paused:
+            status = "paused"
+        
+        return f"GameManager(id={self.game_id[:8]}, players={self.num_players}, status={status})"
+    
+    def __repr__(self) -> str:
+        """Detailed string representation of the GameManager."""
+        return (f"GameManager(game_id='{self.game_id}', "
+                f"players={self.num_players}, "
+                f"current_player={self.current_player_id}, "
+                f"turn={self._current_game_state.turn_number}, "
+                f"running={self._is_running}, "
+                f"paused={self._is_paused})")

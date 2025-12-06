@@ -1,0 +1,774 @@
+/* Reset and basic styling */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary-color: #2c3e50;
+    --secondary-color: #3498db;
+    --success-color: #27ae60;
+    --danger-color: #e74c3c;
+    --warning-color: #f39c12;
+    --accent-color: #9b59b6;
+    --light-bg: #ecf0f1;
+    --border-radius: 12px;
+    --shadow: 0 8px 24px rgba(0,0,0,0.15);
+    --transition: 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+body {
+    font-family: 'Segoe UI', 'Roboto', 'Arial', sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 0;
+    direction: ltr;
+    overflow: hidden;
+    color: var(--primary-color);
+}
+
+h1 {
+    color: white;
+    text-align: center;
+    margin: 0;
+    font-size: 2.2em;
+    font-weight: 700;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    letter-spacing: 1px;
+}
+
+.subtitle {
+    color: rgba(255,255,255,0.8);
+    font-size: 0.9em;
+    margin: 5px 0 0 0;
+    font-weight: 300;
+}
+
+/* Header */
+.game-header {
+    width: 100%;
+    padding: 20px;
+    background: linear-gradient(135deg, rgba(44, 62, 80, 0.95), rgba(52, 152, 219, 0.9));
+    box-shadow: var(--shadow);
+    border-bottom: 3px solid rgba(255,255,255,0.1);
+}
+
+/* מכולת הלוח */
+.game-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100vh;
+}
+
+.content-wrapper {
+    display: flex;
+    flex: 1;
+    gap: 12px;
+    padding: 12px;
+    overflow: hidden;
+}
+
+.board-wrapper {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 0;
+}
+
+.board-container {
+    background: linear-gradient(135deg, #3498db, #5dade2);
+    border: 3px solid rgba(255,255,255,0.2);
+    border-radius: var(--border-radius);
+    padding: 12px;
+    box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
+    cursor: grab;
+    width: 100%;
+    height: 100%;
+    max-width: 1400px;
+}
+
+.board-container:active {
+    cursor: grabbing;
+}
+
+/* כפתורי בקרה */
+.board-controls {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: rgba(255,255,255,0.1);
+    padding: 8px;
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+}
+
+.control-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    border: 2px solid rgba(255,255,255,0.3);
+    background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.05));
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    font-weight: 600;
+}
+
+.control-btn:hover {
+    background: linear-gradient(135deg, rgba(255,255,255,0.3), rgba(255,255,255,0.15));
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+}
+
+.control-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* SVG הלוח */
+#catan-board {
+    width: 100%;
+    height: 100%;
+    transition: transform 0.1s ease;
+}
+
+/* Sidebars */
+.sidebar {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: var(--border-radius);
+    padding: 16px;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(10px);
+    overflow-y: auto;
+    direction: ltr;
+}
+
+.sidebar-left {
+    width: 300px;
+    flex-shrink: 0;
+}
+
+.sidebar-right {
+    width: 320px;
+    flex-shrink: 0;
+}
+
+/* משושים */
+.hexagon {
+    stroke: #dbc08e;
+    stroke-width: 5;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.hexagon:hover {
+    opacity: 0.1;
+}
+
+/* מספרים על משושים */
+.hex-number {
+    font-size: 18px;
+    font-weight: bold;
+    text-anchor: middle;
+    dominant-baseline: middle;
+    fill: #2c3e50;
+    pointer-events: none;
+    text-shadow: 2px 2px 4px rgba(255,255,255,0.8);
+}
+
+.hex-number.red {
+    fill: #e74c3c;
+    font-weight: 900;
+}
+
+/* שודד */
+.robber {
+    fill: #2c3e50;
+    stroke: #34495e;
+    stroke-width: 3;
+    cursor: pointer;
+    filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.5));
+    transition: opacity 0.3s ease;
+}
+
+.robber:hover {
+    opacity: 0.1;
+}
+
+.robber-text {
+    font-size: 16px;
+    font-weight: bold;
+    text-anchor: middle;
+    dominant-baseline: middle;
+    fill: white;
+    pointer-events: none;
+}
+
+/* יישובים */
+.settlement {
+    stroke: #2c3e50;
+    stroke-width: 2;
+    cursor: pointer;
+    filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.3));
+    transition: opacity 0.3s ease;
+}
+
+.settlement:hover {
+    opacity: 0.1;
+}
+
+.settlement.player1 { fill: #FF4444; }
+.settlement.player2 { fill: #4444FF; }
+.settlement.player3 { fill: #44FF44; }
+.settlement.player4 { fill: #FFAA00; }
+
+/* ערים */
+.city {
+    stroke: #2c3e50;
+    stroke-width: 3;
+    cursor: pointer;
+    filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.3));
+    transition: opacity 0.3s ease;
+}
+
+.city:hover {
+    opacity: 0.1;
+}
+
+.city.player1 { fill: #FF4444; }
+.city.player2 { fill: #4444FF; }
+.city.player3 { fill: #44FF44; }
+.city.player4 { fill: #FFAA00; }
+
+/* דרכים */
+.road {
+    stroke-width: 6;
+    stroke-linecap: round;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.3));
+}
+
+.road:hover {
+    opacity: 0.1;
+}
+
+.road.player1 { stroke: #FF4444; }
+.road.player2 { stroke: #4444FF; }
+.road.player3 { stroke: #44FF44; }
+.road.player4 { stroke: #FFAA00; }
+
+/* קודקודים */
+.vertex {
+    fill: #e74c3c;
+    stroke: #ffffff;
+    stroke-width: 3;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    cursor: pointer;
+}
+
+.vertex:hover {
+    opacity: 0.1;
+}
+
+.vertices-visible .vertex {
+    opacity: 0.9;
+}
+
+.vertex-number {
+    font-size: 14px;
+    font-weight: 900;
+    text-anchor: middle;
+    dominant-baseline: middle;
+    fill: white;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    text-shadow: 
+        -1px -1px 0 #000,  
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000;
+}
+
+.vertices-visible .vertex-number {
+    opacity: 1;
+}
+
+/* רספונסיביות */
+@media (max-width: 1400px) {
+    .sidebar-left,
+    .sidebar-right {
+        width: 280px;
+    }
+}
+
+@media (max-width: 1200px) {
+    .content-wrapper {
+        gap: 8px;
+    }
+    
+    .sidebar-left,
+    .sidebar-right {
+        width: 260px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .content-wrapper {
+        flex-wrap: wrap;
+    }
+    
+    .sidebar-left,
+    .sidebar-right {
+        width: 100%;
+        max-height: 30vh;
+    }
+    
+    .board-wrapper {
+        width: 100%;
+        min-height: 50vh;
+    }
+}
+
+@media (max-width: 768px) {
+    .game-header {
+        padding: 15px;
+    }
+    
+    h1 {
+        font-size: 1.8em;
+    }
+    
+    .subtitle {
+        font-size: 0.8em;
+    }
+    
+    .content-wrapper {
+        padding: 8px;
+    }
+    
+    .sidebar-left,
+    .sidebar-right {
+        width: 100%;
+        max-height: 25vh;
+    }
+    
+    .board-wrapper {
+        width: 100%;
+        min-height: 60vh;
+    }
+    
+    .board-controls {
+        top: 8px;
+        right: 8px;
+        flex-direction: row;
+        gap: 6px;
+    }
+    
+    .control-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 0;
+    }
+    
+    .game-header {
+        padding: 12px;
+    }
+    
+    h1 {
+        font-size: 1.4em;
+    }
+    
+    .subtitle {
+        font-size: 0.7em;
+    }
+    
+    .sidebar-left,
+    .sidebar-right {
+        max-height: 20vh;
+    }
+    
+    .game-info,
+    .action-log {
+        font-size: 0.8em;
+    }
+}
+
+/* Game Info */
+.game-info {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.game-info h3 {
+    margin: 0;
+    color: var(--primary-color);
+    font-size: 1.1em;
+    border-bottom: 2px solid var(--secondary-color);
+    padding-bottom: 8px;
+}
+
+.game-info .loading {
+    text-align: center;
+    color: var(--secondary-color);
+    padding: 20px;
+    font-style: italic;
+}
+
+.player-info {
+    margin-bottom: 8px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border-left: 4px solid transparent;
+    background: var(--light-bg);
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.player-info:hover {
+    background: rgba(52, 152, 219, 0.15);
+    transform: translateX(-4px);
+}
+
+.player-info.active {
+    border-left-color: var(--secondary-color);
+    background: rgba(52, 152, 219, 0.2);
+    font-weight: 600;
+}
+
+.player-info h4 {
+    margin: 0 0 6px 0;
+    font-size: 0.95em;
+    color: var(--primary-color);
+}
+
+.player-resources {
+    font-size: 0.85em;
+    color: #555;
+    line-height: 1.4;
+    margin: 4px 0;
+}
+
+.log-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.log-header h3 {
+    margin: 0;
+    color: var(--primary-color);
+    font-size: 1.1em;
+    border-bottom: 2px solid var(--secondary-color);
+    padding-bottom: 8px;
+    flex: 1;
+}
+
+.clear-log-btn {
+    background: var(--light-bg);
+    border: none;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: all var(--transition);
+}
+
+.clear-log-btn:hover {
+    background: var(--danger-color);
+    color: white;
+}
+
+.action-log {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.85em;
+    direction: ltr;
+    max-height: calc(100vh - 180px);
+    overflow-y: auto;
+}
+
+.action-log::-webkit-scrollbar {
+    width: 6px;
+}
+
+.action-log::-webkit-scrollbar-track {
+    background: rgba(0,0,0,0.05);
+    border-radius: 3px;
+}
+
+.action-log::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.2);
+    border-radius: 3px;
+}
+
+.action-log::-webkit-scrollbar-thumb:hover {
+    background: rgba(0,0,0,0.3);
+}
+
+.action-log div {
+    margin: 0;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border-left: 4px solid var(--secondary-color);
+    background: rgba(52, 152, 219, 0.1);
+    line-height: 1.3;
+    word-break: break-word;
+}
+
+.action-log .success {
+    color: var(--success-color);
+    border-left-color: var(--success-color);
+    background: rgba(39, 174, 96, 0.1);
+}
+
+.action-log .error {
+    color: var(--danger-color);
+    border-left-color: var(--danger-color);
+    background: rgba(231, 76, 60, 0.1);
+    font-weight: 500;
+}
+
+.action-log .info {
+    color: var(--secondary-color);
+    border-left-color: var(--secondary-color);
+    background: rgba(52, 152, 219, 0.1);
+}
+
+.action-log .log-dice {
+    color: var(--warning-color);
+    border-left-color: var(--warning-color);
+    background: rgba(243, 156, 18, 0.1);
+    font-weight: 600;
+}
+
+.action-log .log-turn {
+    color: white;
+    background: linear-gradient(90deg, var(--secondary-color), var(--accent-color));
+    border: none;
+    text-align: center;
+    font-weight: 700;
+    padding: 10px;
+    font-size: 0.9em;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+}
+
+.action-log .log-resource {
+    color: var(--accent-color);
+    border-left-color: var(--accent-color);
+    background: rgba(155, 89, 182, 0.1);
+    font-style: italic;
+}
+
+.action-log .log-build {
+    color: var(--success-color);
+    border-left-color: var(--success-color);
+    background: rgba(39, 174, 96, 0.1);
+    font-weight: 600;
+}
+
+/* Player Cards Display */
+.player-cards {
+    display: none;
+    margin-top: 8px;
+    padding: 8px;
+    background: white;
+    border-radius: 6px;
+    border: 1px solid rgba(52, 152, 219, 0.2);
+    animation: slideDown var(--transition);
+}
+
+.player-info.expanded .player-cards {
+    display: block;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.player-cards div {
+    margin-bottom: 6px;
+}
+
+.player-cards strong {
+    color: var(--primary-color);
+    font-size: 0.85em;
+}
+
+.card-list {
+    list-style: none;
+    padding: 0;
+    margin: 4px 0 0 0;
+    font-size: 0.8em;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.card-list li {
+    display: inline-block;
+    padding: 4px 8px;
+    background: linear-gradient(135deg, var(--secondary-color), var(--secondary-color));
+    color: white;
+    border-radius: 4px;
+    border: 1px solid rgba(52, 152, 219, 0.3);
+    font-weight: 500;
+    white-space: nowrap;
+    transition: all var(--transition);
+}
+
+.card-list li:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 3px 8px rgba(52, 152, 219, 0.3);
+}
+
+/* Modal for Building Costs */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+    animation: fadeIn var(--transition);
+}
+
+.modal.hidden {
+    display: none;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.modal-content {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    animation: slideUp var(--transition);
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 2px solid var(--secondary-color);
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: var(--primary-color);
+    font-size: 1.3em;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--danger-color);
+    transition: all var(--transition);
+}
+
+.modal-close:hover {
+    transform: scale(1.2);
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.costs-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 16px;
+}
+
+.costs-table thead {
+    background: linear-gradient(135deg, var(--secondary-color), var(--accent-color));
+    color: white;
+}
+
+.costs-table th {
+    padding: 12px;
+    text-align: left;
+    font-weight: 600;
+}
+
+.costs-table td {
+    padding: 12px;
+    border-bottom: 1px solid var(--light-bg);
+}
+
+.costs-table tbody tr:hover {
+    background: rgba(52, 152, 219, 0.1);
+}
+
+.costs-note {
+    font-size: 0.85em;
+    color: #666;
+    font-style: italic;
+    margin: 0;
+}
