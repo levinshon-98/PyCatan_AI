@@ -1,396 +1,256 @@
-# DEPRECATED: PyCatan has moved to this respository: https://github.com/josefwaller/PyCatan2
-# PyCatan
+# 🎲 PyCatan AI
 
-A Library for simulating a game of *The Settlers of Catan*
+A Python library for simulating and playing **The Settlers of Catan** with support for multiple interfaces and AI players.
 
-## Run
+> 🚀 **Active Development**: This project extends the original [PyCatan](https://github.com/josefwaller/PyCatan) with a complete simulation framework including GameManager, AI players, and multiple visualization interfaces.
 
-### Download from pip3
-pip3 install pycatan
+## ✨ Features
 
-### Run tests from source
+- **Complete Game Logic** - Full implementation of Settlers of Catan rules
+- **Multiple Interfaces**:
+  - 🖥️ Console/Terminal interface with colored output
+  - 🌐 Web browser interface with interactive board
+- **Game Management** - Turn management, phases, and game flow control
+- **Extensible Architecture** - Easy to add AI players and custom visualizations
+- **Human & AI Players** - Support for multiple player types
 
-#### Easy way
-Run the bash file test.sh
-`.test.sh'
+## 📦 Installation
 
-#### Hard Way
-* Install [virtualenv](https://virtualenv.pypa.io/en/stable/) and [virtualenvwrapper](https://virtualenvwrapper.readthedocs.io/en/latest/)
-* Create a new virtual environment (`mkvirtualenv test`)
-* Install [pytest](https://docs.pytest.org/en/latest/)
-* Run (from root directory) `python -m pytest tests`
-
-## Contents
-* Documentation
-  * `CatanGame`
-  * `CatanBoard`
-  * `CatanPlayer`
-  * Etc
-* Example game
-  * Something
-
-## Documentation
-
-### `CatanGame` module
-
-Represents a game of Catan
-
-#### Atttributes
-
-* `board`
-  * The `CatanBoard` in the game
-* `players`
-  * An array of `CatanPlayer`s (representing the players)
-* `longest\_road\_owner`
-  * The index of the player who has the longest road
-
-#### Functions
-
-##### `CatanGame.__init__(self, num_of_players=3, on_win=None, starting_board=False)`
-
-Creates a new `CatanGame`
-* `num_of_players`: The number of players playing the game
-* `on_win`: Optional function to run when the game is won
-* `starting_board`: Whether or not to use the beginner's board
-
-
-
-##### `CatanGame.add_settlement(self, player, r, i, is_starting=False)`
-
-Builds a new settlement
-
-* `player`: The index of the player who is building the settlement
-* `r`: The row at which to build the settlement
-* `i`: The index at which to build the settlement
-* `is_starting`: Whether or not the settlement is being build during the building phase, and thus should be build for free
-
-Returns a `CatanStatus` value.
-
-
-
-##### `CatanGame.add_road(self, player, start, end, is_starting=False)`
-
-Builds a new road
-
-* `player`: The index of the player building the road
-* `start`: An array with the coordinate of one the the road's points (given `[row, index]`)
-* `end`: An array with the coordinate of the road's other point (given `[row, index]`)
-* `is_starting`: Whether or not the road is being built during the building phase and thus should be build for free
-
-Returns a `CatanStatus` value
-
-##### `CatanGame.add_city(self, r, i, player)`
-
-Builds a city on top of a settlement
-
-* `r`: The row at which to build the city
-* `i`: The index at which to build the city
-* `player`: The index of the player who is building the city
-
-Returns a `CatanStatus` value
-
-##### `CatanGame.build_dev(self, player)`
-
-Builds a new developement card
-
-* `player`: The player who is building the developement card
-
-Returns a `CatanStatus` value
-
-##### `CatanGame.use_dev_card(self, player, card, args)`
-
-Uses a developement card
-
-* `player`: The player who is using the card
-* `card`: The `CatanCard` value representing the type of card
-* `args`: Variable arguments in a dictionary depending on which type of developement card is played
-  * `CatanCards.DEV_ROAD`: `args` contains `'road_one'` and `'road_two'` values, both of which are arrays of arrays coresponding to the point which the roads should be built
-    * `road_one`: An array representing the first road in arrays representing points
-      * Ex: `[[0, 0], [0, 1]]` would represent a road going from `0, 0` to `0, 1`
-    * `road_two`: Same as `road_one`, but for the other road
-  * `CatanCards.DEV_KNIGHT`: `args` contains `'robber_pos'` and `'victim'` values.
-    * `robber_pos`: The position for the robber to be placed as an array, given as `[row, index]`
-    *  `victim`: The index of the player to take the card from. Can be `None` if the player playing the knight card doesn't want to take a card from anybody.
-  * `CatanCards.DEV_MONOPOLY`: `args` contains a `'card_type'` value.
-    * `card_type`: The `CatanCards` value representing the card the player wants to take
-  * `CatanCards.DEV_YOP`: `args` contains `'card_one'` and `'card_two'` values.
-    * `card_one`: The `CatanCards` value of the first card the player wants to take
-    * `card_two`: The `CatanCards` value of the second card
-  * `CatanCards.DEV_VP`: Do not call `CatanGame.use_dev_card` on `CatanCards.DEV_VP`, as players do not play VP cards, but keep them until the end of the game.
-
-##### `CatanGame.add_yield_for_roll(self, roll)`
-
-Distributes cards based on a dice roll
-
-* `roll`: The dice roll
-
-Returns nothing
-
-##### `CatanGame.get_roll(self)`
-
-Optional. Simulates 2 dice rolls added together.
-
-Returns a number
-
-##### `CatanGame.trade(self, player_one, player_two, cards_one, cards_two)`
-
-Trades cards between players
-* `player_one`: The first player in the trade
-* `player_two`: The second player in the trade
-* `cards_one`: The cards the first player is giving
-* `cards_two`: The cards the second player is giving
-
-Returns a `CatanStatus` value
-
-##### `CatanGame.trade_to_bank(self, player, cards, request)`
-
-Trades 4 cards to the bank for 1 card.
-Also will trade only 2 cards if the player is connected to the right harbor
-
-* `player`: The player who is trading the cards
-* `cards`: An array of numbers (`CatanCard` values) to trade from the player to the bank
-* `request`: The `CatanCard` value the player will receive
-
-Returns a `CatanStatus` value
-
-
-### `CatanBoard`
-
-Represents a Catan game board.
-
-#### Static values
-
-* `CatanBoard.HEX_FOREST`
-  * Represents a forest hex
-* `CatanBoard.HEX_Hills`
-  * Represents a hills hex
-* `CatanBoard.HEX_MOUNTAINS`
-  * Represents a mountains hex
-* `CatanBoard.HEX_PASTURE`
-  * Represents a pasture hex
-* `CatanBoard.HEX_FIELDS`
-  * Represents a fields hex
-* `CatanBoard.HEX_DESERT`
-  * Represents a desert hex
-
-#### Attributes
-
-* `hexes`
-  * An array representing the hexes on the board
-* `hex_nums`
-  * An array representing the number tokens on the board
-* `points`
-  * An array representing the intersections between hexes (where settlements are placed)
-* `roads`
-  * An array of `CatanBuildings` representing all the roads in the game
-* `harbors`
-  * An array of `CatanHarbors` representing all the harbors on the board
-* `robber`
-  * An array representing the robber's position (given as `[row, index]`)
-
-#### Functions
-
-##### `CatanBoard.get_card_from_hex(hex)`
-Gets a `CatanCards` value for a corresponding `CatanBoard` Hex value
-* `hex`: The `CatanBoard` hex value to get the card for
-
-Ex: `CatanBoard.get_card_from_hex(CatanBoard.HEX_HILLS)` would return `CatanCards.CARD_BRICK`
-
-Returns a `CatanCards` value
-
-### `CatanBuilding`
-
-Represents a Catan Building
-
-#### Static Values
-
-##### `CatanBuilding.BUILDING_ROAD`
-
-Represents a road
-
-##### `CatanBuilding.BUILDING_SETTLEMENT`
-
-Represents a settlement
-
-##### `CatanBuilding.BUILDING_CITY`
-
-Represents a city
-
-### `CatanCards`
-
-Contains values representing different resource and developement cards
-
-#### Static Values
-
-##### `CatanCards.CARD_WOOD`
-
-Represents a wood resource card.
-
-##### `CatanCards.CARD_BRICK`
-
-Represents a brick resource card.
-
-##### `CatanCards.CARD_SHEEP`
-
-Represents a sheep resource card.
-
-##### `CatanCards.CARD_ORE`
-
-Represents a ore resource card.
-
-##### `CatanCards.CARD_WHEAT`
-
-Represents a wheat resource card.
-
-##### `CatanCards.DEV_ROAD`
-
-Represents a road building developement card.
-
-##### `CatanCards.DEV_VP`
-
-Represents a victory point developement card.
-
-##### `CatanCards.DEV_MONOPOLY`
-
-Represents a monopoly developement card.
-
-##### `CatanCards.DEV_YOP`
-
-Represents a year of plenty developement card.
-
-##### `CatanCards.DEV_KNIGHT`
-
-Represents a knight developement card.
-
-### `CatanHarbor`
-
-Represents a harbor.
-
-#### Static values
-
-##### `CatanHarbor.TYPE_WOOD`
-
-Represents a 2:1 Wood harbor
-
-##### `CatanHarbor.TYPE_BRICK`
-
-Represents a 2:1 Brick harbor
-
-##### `CatanHarbor.TYPE_WHEAT`
-
-Represents a 2:1 Wheat harbor
-
-##### `CatanHarbor.TYPE_ORE`
-
-Represents a 2:1 Ore harbor
-
-##### `CatanHarbor.TYPE_SHEEP`
-
-Represents a 2:1 Sheep harbor
-
-#### Functions
-
-##### `CatanHarbor.get_type(self)`
-
-Returns a string representation of the harbor's type
-
-### `CatanPlayer`
-
-Represents a player in the game.
-
-#### Functions
-
-##### `CatanPlayer.get_VP(self, include_dev=False)`
-
-Returns the number of victory points the player has.
-
-* `include_dev`: Whether to include victory points from developement cards, which are only counted if the player wins and should be hidden otherwise.
-
-### `CatanStatuses`
-
-Interger representation of different statuses returned by functions.
-
-#### Static values
-
-##### `CatanStatuses.ALL_GOOD`
-
-The function ran successfully
-
-##### `CatanStatuses.ERR_CARDS`
-
-The player trying to perform an action lacks the necessary cards.
-
-##### `CatanStatuses.ERR_BLOCKED`
-
-A building is blocking the action.
-
-##### `CatanStatuses.ERR_BAD_POINT`
-
-The point being used does not exist.
-
-##### `CatanStatuses.ERR_NOT_CON`
-
-The player is trying to build a building which is not connected to any of their roads.
-
-##### `CatanStatuses.ERR_HARBOR`
-
-The player is trying to use a harbor which they are not connected to
-
-##### `CatanStatuses.ERR_NOT_EXIST`
-
-The player is trying to use a building which does not exist
-
-##### `CatanStatuses.ERR_BAD_OWNER`
-
-The player is trying to use a building which belongs to another player
-
-##### `CatanStatuses.ERR_UPGRADE_CITY`
-
-The player is trying to build a city on an invalid location
-
-##### `CatanStatuses.ERR_DECK`
-
-There are not enough cards in the deck to perform this action
-
-##### `CatanStatuses.ERR_INPUT`
-
-The input given is missing mandatory information
-
-##### `CatanStatuses.ERR_TEST`
-
-When running the test module, an error was encountered
-
-
-
-## Example game
-
-We're going to make an example text-game of Catan using *PyCatan*
-
-First, create a new file.
-
-
-`game.py`
-
-```
-def main():
-	print("Playing Catan!")
-
-if __name__ == "__main__":
-	main()
+### From Source
+```bash
+git clone https://github.com/levinshon-98/PyCatan_AI.git
+cd PyCatan_AI
+pip install -e .
 ```
 
+### Dependencies
+```bash
+pip install flask  # For web visualization
+```
 
-Now let's set up a new game of Catan
+## 🚀 Quick Start
 
-`game.py`
+### Play a Full Game
+```python
+from pycatan import RealGame
+
+# Start an interactive game with console and web interfaces
+game = RealGame()
+game.run()
+```
+
+### Basic Game Setup
+```python
+from pycatan import Game, Statuses
+
+# Create a new game with 3 players
+game = Game(num_of_players=3)
+
+# Access the board
+board = game.board
+
+# Build a settlement (during setup phase)
+point = board.points[0][0]
+result = game.add_settlement(player=0, point=point, is_starting=True)
+
+if result == Statuses.ALL_GOOD:
+    print("Settlement built successfully!")
+```
+
+### Using the Game Manager
+```python
+from pycatan import GameManager, HumanUser, ConsoleVisualization
+
+# Create players
+users = [
+    HumanUser("Alice", player_num=0),
+    HumanUser("Bob", player_num=1),
+    HumanUser("Charlie", player_num=2)
+]
+
+# Create game manager
+game_manager = GameManager(users)
+
+# Add visualization
+console_viz = ConsoleVisualization()
+game_manager.visualization_manager.add_visualization(console_viz)
+
+# Start the game loop
+game_manager.start_game()
+```
+
+## 🏗️ Architecture
 
 ```
-from PyCatan import CatanGame
+┌─────────────────────────────────────────┐
+│              GameManager                │  ← Manages turns and flow
+├─────────────────────────────────────────┤
+│ • game_loop()                           │
+│ • handle_turn_rules()                   │
+│ • coordinate_interactions()             │
+└───────────────┬─────────────────────────┘
+                │
+    ┌───────────┼───────────┐
+    │           │           │
+    ▼           ▼           ▼
+┌─────────┐ ┌─────────┐ ┌─────────────┐
+│  Game   │ │  Users  │ │Visualizations│
+│ (Core)  │ │(Players)│ │  (Display)   │
+└─────────┘ └─────────┘ └─────────────┘
+```
 
-def main():
+### Core Components
 
-	num_of_players = int(input("How many players are playing? "))
+| Component | Description |
+|-----------|-------------|
+| `Game` | Core game logic - rules, validation, state management |
+| `GameManager` | Turn management, game flow, user coordination |
+| `User` | Abstract base class for players (Human/AI) |
+| `HumanUser` | Human player with CLI input |
+| `Visualization` | Base class for display interfaces |
+| `ConsoleVisualization` | Terminal-based game display |
+| `WebVisualization` | Browser-based interactive board |
 
-	game = CatanGame(num_of_players)
+## 📖 Game Actions
+
+### Building
+```python
+# Build settlement
+game.add_settlement(player=0, point=point, is_starting=False)
+
+# Build road  
+game.add_road(player=0, start=point1, end=point2, is_starting=False)
+
+# Build city (upgrade settlement)
+game.add_city(player=0, point=point)
+```
+
+### Trading
+```python
+# Trade with bank (4:1)
+game.trade_to_bank(player=0, give=ResCard.Wood, get=ResCard.Brick)
+
+# Trade with harbor (3:1 or 2:1)
+game.trade_to_bank(player=0, give=ResCard.Wheat, get=ResCard.Ore)
+```
+
+### Development Cards
+```python
+from pycatan import DevCard
+
+# Buy development card
+game.build_dev(player=0)
+
+# Use Knight card
+game.use_dev_card(player=0, card=DevCard.Knight, args={
+    'robber_pos': [2, 1],
+    'victim': 1
+})
+```
+
+## 🎮 Status-Based Error Handling
+
+All game actions return `Statuses` enum values instead of exceptions:
+
+```python
+from pycatan import Statuses
+
+result = game.add_settlement(player=0, point=point)
+
+match result:
+    case Statuses.ALL_GOOD:
+        print("Success!")
+    case Statuses.ERR_BLOCKED:
+        print("Location blocked by another building")
+    case Statuses.ERR_NOT_ENOUGH_RES:
+        print("Not enough resources")
+    case Statuses.ERR_BAD_LOCATION:
+        print("Invalid building location")
+```
+
+## 🗂️ Project Structure
 
 ```
+pycatan/
+├── game.py              # Core game logic
+├── game_manager.py      # Turn and flow management
+├── board.py             # Board base class
+├── default_board.py     # Standard Catan board
+├── player.py            # Player state management
+├── card.py              # Resource and development cards
+├── actions.py           # Action types and results
+├── user.py              # User base class
+├── human_user.py        # Human player implementation
+├── visualization.py     # Visualization base class
+├── console_visualization.py  # Console display
+├── web_visualization.py      # Web interface
+├── real_game.py         # Complete game orchestration
+└── statuses.py          # Status codes for actions
+
+tests/                   # Unit tests
+examples/                # Usage examples
+```
+
+## 🧪 Running Tests
+
+```bash
+# Run all tests
+python -m pytest tests/
+
+# Run specific test file
+python -m pytest tests/test_game.py
+
+# Run with verbose output
+python -m pytest tests/ -v
+```
+
+## 🌐 Web Visualization
+
+The web visualization provides an interactive board in your browser:
+
+```python
+from pycatan import WebVisualization, create_web_visualization
+
+# Create web visualization
+web_viz = create_web_visualization(port=5000)
+
+# Start server (opens browser automatically)
+web_viz.start()
+
+# Update with game state
+web_viz.update_full_state(game_state)
+```
+
+**Features:**
+- 🗺️ Interactive hexagonal board
+- 🔄 Real-time updates via Server-Sent Events
+- 📊 Player info panel with resources and points
+- 📜 Action log with timestamped events
+
+## 📚 Documentation
+
+- [Architecture Overview](.github/instructions/ARCHITECTURE.md) - Project design and components
+- [Build Plan](.github/instructions/BUILD_PLAN.md) - Development roadmap and progress
+- [Coding Instructions](.github/copilot-instructions.md) - Development guidelines
+
+## 🤝 Contributing
+
+Contributions are welcome! Please:
+
+1. Fork the repository
+2. Create a feature branch
+3. Write tests for new functionality
+4. Submit a pull request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE.txt) file for details.
+
+## 🙏 Acknowledgments
+
+- Original [PyCatan](https://github.com/josefwaller/PyCatan) by Josef Waller
+- The Settlers of Catan® is a trademark of Catan GmbH
+
+---
+
+**Made with ❤️ for Catan enthusiasts and AI developers**
