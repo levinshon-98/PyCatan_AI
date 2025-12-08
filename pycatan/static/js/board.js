@@ -362,6 +362,13 @@ class CatanBoard {
         pathElement.setAttribute('class', `hexagon hex-${hex.type}`);
         pathElement.setAttribute('data-hex-id', hex.id);
         pathElement.style.fill = 'transparent';
+        pathElement.style.cursor = 'pointer';
+        
+        // Add click event to show hex ID
+        pathElement.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.showHexId(hex.id, center.x, center.y);
+        });
         
         hexGroup.appendChild(pathElement);
         this.svg.appendChild(hexGroup);
@@ -377,7 +384,7 @@ class CatanBoard {
         }
         
         // Add robber if present
-        if (hex.robber) {
+        if (hex.has_robber || hex.robber) {  // Support both formats for backward compatibility
             this.createRobber(center.x, center.y, hex.id);
         }
     }
@@ -590,15 +597,19 @@ class CatanBoard {
         }
         
         // Add robber from server data
-        if (gameState.robber_position) {
-            // Find hex with robber position
-            const robberHex = gameState.hexes ? 
-                gameState.hexes.find(h => h.robber === true) : null;
+        if (gameState.hexes) {
+            // Find hex with has_robber set to true
+            const robberHex = gameState.hexes.find(h => h.has_robber === true);
                 
             if (robberHex) {
-                const center = this.hexToPixel(robberHex.q, robberHex.r);
+                // Use axial coordinates from the hex data
+                const q = robberHex.axial_coords ? robberHex.axial_coords[0] : robberHex.q;
+                const r = robberHex.axial_coords ? robberHex.axial_coords[1] : robberHex.r;
+                const center = this.hexToPixel(q, r);
                 this.createRobber(center.x, center.y, robberHex.id);
-                console.log('Robber placed at hex:', robberHex.id);
+                console.log('🏴‍☠️ Robber placed at hex ID:', robberHex.id, 'position:', robberHex.position);
+            } else {
+                console.log('No robber found in game state');
             }
         }
     }
@@ -759,5 +770,64 @@ class CatanBoard {
         // This would need implementation based on hex grid logic
         // For now, return empty array
         return [];
+    }
+    
+    // Show hex ID when clicked
+    showHexId(hexId, centerX, centerY) {
+        // Remove any existing hex ID display
+        const existingDisplay = this.svg.querySelector('.hex-id-display');
+        if (existingDisplay) {
+            existingDisplay.remove();
+        }
+        
+        // Create a group for the display
+        const displayGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        displayGroup.setAttribute('class', 'hex-id-display');
+        
+        // Create background rectangle
+        const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        bg.setAttribute('x', centerX - 40);
+        bg.setAttribute('y', centerY - 25);
+        bg.setAttribute('width', 80);
+        bg.setAttribute('height', 50);
+        bg.setAttribute('rx', 5);
+        bg.setAttribute('fill', 'rgba(0, 0, 0, 0.8)');
+        bg.setAttribute('stroke', '#FFD700');
+        bg.setAttribute('stroke-width', 2);
+        
+        // Create text for "Tile ID:"
+        const labelText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        labelText.setAttribute('x', centerX);
+        labelText.setAttribute('y', centerY - 5);
+        labelText.setAttribute('text-anchor', 'middle');
+        labelText.setAttribute('fill', '#FFD700');
+        labelText.setAttribute('font-size', '12');
+        labelText.setAttribute('font-weight', 'bold');
+        labelText.textContent = 'Tile ID:';
+        
+        // Create text for hex ID
+        const idText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        idText.setAttribute('x', centerX);
+        idText.setAttribute('y', centerY + 15);
+        idText.setAttribute('text-anchor', 'middle');
+        idText.setAttribute('fill', 'white');
+        idText.setAttribute('font-size', '20');
+        idText.setAttribute('font-weight', 'bold');
+        idText.textContent = hexId;
+        
+        displayGroup.appendChild(bg);
+        displayGroup.appendChild(labelText);
+        displayGroup.appendChild(idText);
+        this.svg.appendChild(displayGroup);
+        
+        // Auto-remove after 3 seconds
+        setTimeout(() => {
+            if (displayGroup.parentNode) {
+                displayGroup.remove();
+            }
+        }, 3000);
+        
+        // Log to console as well
+        console.log(`🎯 Clicked on Tile ID: ${hexId}`);
     }
 }

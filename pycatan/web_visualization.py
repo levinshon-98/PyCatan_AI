@@ -377,7 +377,9 @@ class WebVisualization(Visualization):
                     'r': r, 
                     'type': tile_type_map.get(tile.get('type', 'desert'), 'desert'),
                     'number': tile.get('token'),
-                    'robber': tile.get('has_robber', False)
+                    'has_robber': tile.get('has_robber', False),  # Keep consistent with Game
+                    'position': tile.get('position', [0, 0]),  # Add position for debugging
+                    'axial_coords': [q, r]  # Add axial coords explicitly
                 }
                 hexes.append(hex_data)
         
