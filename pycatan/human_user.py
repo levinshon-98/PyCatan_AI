@@ -49,6 +49,10 @@ class HumanUser(User):
                 # Show prompt with clear format
                 print(f"\n>>> {self.name}'s Turn")
                 
+                # Show the prompt message if provided (important for context like "steal from X, Y, Z")
+                if prompt_message and prompt_message.strip():
+                    print(f"    💬 {prompt_message}")
+                
                 # Show allowed actions in a compact format
                 if allowed_actions:
                     # Format actions nicely (e.g., "BUILD_SETTLEMENT" -> "build settlement")
@@ -462,15 +466,28 @@ class HumanUser(User):
     def _parse_robber_move(self, parts: List[str], game_state: GameState) -> Action:
         """Parse robber movement command.
         
-        Format: 'robber [row] [index]' or 'rob [row] [index]'
+        Format: 'robber [tile_id]' or 'robber [row] [index]'
+        Examples: 'robber 5' or 'robber 2 1'
         The steal action is now separate via 'steal [player]' command.
         """
-        if len(parts) < 3:
-            raise UserInputError("Robber command format: 'robber [row] [index]'. Example: 'robber 2 1'")
+        if len(parts) < 2:
+            raise UserInputError("Robber command format: 'robber [tile_id]' or 'robber [row] [index]'. Example: 'robber 5'")
         
         try:
-            row = int(parts[1])
-            index = int(parts[2])
+            # Try single tile ID format first
+            if len(parts) == 2:
+                tile_id = int(parts[1])
+                # Convert tile ID (1-19) to game coordinates using board_definition
+                coords = board_definition.hex_id_to_game_coords(tile_id)
+                if coords is None:
+                    raise UserInputError(f"Invalid tile ID: {tile_id}. Must be between 1 and 19.")
+                row, index = coords
+            # Fall back to [row, index] format
+            elif len(parts) == 3:
+                row = int(parts[1])
+                index = int(parts[2])
+            else:
+                raise UserInputError("Robber command format: 'robber [tile_id]' or 'robber [row] [index]'. Example: 'robber 5'")
             
             params = {
                 'tile_coords': [row, index]
@@ -479,7 +496,7 @@ class HumanUser(User):
             return Action(ActionType.ROBBER_MOVE, self.user_id, params)
             
         except ValueError:
-            raise UserInputError("Robber coordinates must be numbers. Example: 'robber 2 1'")
+            raise UserInputError("Robber coordinates must be numbers. Example: 'robber 5'")
     
     def _parse_steal(self, parts: List[str], game_state: GameState) -> Action:
         """Parse steal card command.
@@ -631,6 +648,15 @@ class HumanUser(User):
         print("🎲 TURN ACTIONS:")
         print("  roll               - Roll dice (short: r, dice)")
         print("  end                - End turn (short: pass, done)")
+        print()
+        print("🎯 ROBBER:")
+        print("  robber <tile_num>  - Move robber to tile (short: rob)")
+        print("  steal <player>     - Steal card from player (after moving robber)")
+        print("  Examples: 'robber 5' then 'steal alice' or 'steal 2'")
+        print()
+        print("⚠️  DISCARD (when 7 is rolled):")
+        print("  drop <amount> <resource> ... - Discard cards")
+        print("  Example: 'drop 2 wood 1 brick' discards 2 wood and 1 brick")
         print()
         print("ℹ️  INFO:")
         print("  help               - Show this help (short: h, ?)")

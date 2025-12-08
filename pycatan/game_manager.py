@@ -911,10 +911,13 @@ class GameManager:
             # Get allowed actions for current state
             allowed_actions = self.get_available_actions()
             
+            # Create context-aware prompt message
+            prompt_message = self._get_prompt_message_for_phase()
+            
             # Request action from the current user
             action = current_user.get_input(
                 self.get_full_state(),
-                f"Player {self.current_player_id}, choose your action:",
+                prompt_message,
                 allowed_actions
             )
             
@@ -1393,8 +1396,8 @@ class GameManager:
             )
         
         # Can't place robber on desert (already there) - check if it's the same position
-        current_robber_pos = getattr(self.game.board, 'robber_tile', None)
-        if current_robber_pos and current_robber_pos == (row, index):
+        current_robber_pos = getattr(self.game.board, 'robber', None)
+        if current_robber_pos and current_robber_pos == [row, index]:
             return ActionResult.failure_result(
                 "You must move the robber to a different tile.",
                 "SAME_POSITION"
@@ -1411,7 +1414,7 @@ class GameManager:
         
         # Place robber on new position
         tile.has_robber = True
-        self.game.board.robber_tile = (row, index)
+        self.game.board.robber = [row, index]  # Use the Board's robber attribute
         
         self._current_game_state.robber_moved = True
         
@@ -1425,15 +1428,48 @@ class GameManager:
         )
         
         if stealable_players:
-            # There are players to steal from
-            self._current_game_state.turn_phase = TurnPhase.ROBBER_STEAL
-            self._current_game_state.steal_pending = True
-            
-            stealable_names = [self.users[pid].name for pid in stealable_players]
-            self._notify_all_users(
-                "steal_available",
-                f"🎯 {player_name} can steal from: {', '.join(stealable_names)}"
-            )
+            # Check if there's only one player to steal from
+            if len(stealable_players) == 1:
+                # Auto-steal from the only available player
+                target_player = stealable_players[0]
+                
+                # Steal a random card
+                import random
+                target = self.game.players[target_player]
+                stolen_card = random.choice(target.cards)
+                target.remove_cards([stolen_card])
+                self.game.players[action.player_id].add_cards([stolen_card])
+                
+                # Notify
+                thief_name = self.users[action.player_id].name if hasattr(self.users[action.player_id], 'name') else f"Player {action.player_id}"
+                victim_name = self.users[target_player].name if hasattr(self.users[target_player], 'name') else f"Player {target_player}"
+                
+                self._notify_all_users(
+                    "steal_complete",
+                    f"🎯 {thief_name} stole a card from {victim_name} (only adjacent player)."
+                )
+                
+                # Notify the thief specifically what they got
+                self._notify_user(
+                    action.player_id,
+                    None,
+                    True,
+                    f"You stole a {stolen_card.name}!"
+                )
+                
+                # Proceed to normal play
+                self._current_game_state.turn_phase = TurnPhase.PLAYER_ACTIONS
+                self._current_game_state.steal_pending = False
+            else:
+                # Multiple players - ask user to choose
+                self._current_game_state.turn_phase = TurnPhase.ROBBER_STEAL
+                self._current_game_state.steal_pending = True
+                
+                stealable_names = [self.users[pid].name for pid in stealable_players]
+                self._notify_all_users(
+                    "steal_available",
+                    f"🎯 {player_name} can steal from: {', '.join(stealable_names)}"
+                )
         else:
             # No one to steal from, proceed to normal play
             self._current_game_state.turn_phase = TurnPhase.PLAYER_ACTIONS
@@ -1507,7 +1543,7 @@ class GameManager:
             )
         
         # Check target is adjacent to robber
-        robber_pos = getattr(self.game.board, 'robber_tile', None)
+        robber_pos = getattr(self.game.board, 'robber', None)
         if robber_pos:
             stealable = self._get_stealable_players(robber_pos[0], robber_pos[1])
             if target_player not in stealable:
@@ -1544,6 +1580,52 @@ class GameManager:
         )
         
         return ActionResult.success_result(self.get_full_state())
+    
+    def _get_prompt_message_for_phase(self) -> str:
+        """
+        Get a context-appropriate prompt message based on current game phase.
+        
+        Returns:
+            str: A helpful message explaining what the player should do
+        """
+        phase = self._current_game_state.turn_phase
+        
+        if phase == TurnPhase.ROBBER_STEAL:
+            # Get the list of stealable players
+            robber_pos = getattr(self.game.board, 'robber', None)
+            if robber_pos:
+                stealable_players = self._get_stealable_players(robber_pos[0], robber_pos[1])
+                if stealable_players:
+                    stealable_names = []
+                    for pid in stealable_players:
+                        name = self.users[pid].name if hasattr(self.users[pid], 'name') else f"Player {pid}"
+                        stealable_names.append(f"{name} (id: {pid})")
+                    
+                    names_str = ", ".join(stealable_names)
+                    return f"Choose a player to steal from: {names_str}. Use: steal <name_or_id>"
+            
+            return "Choose a player to steal from. Use: steal <name_or_id>"
+        
+        elif phase == TurnPhase.DISCARD_PHASE:
+            # Find how many cards this player needs to discard
+            players_must_discard = self._current_game_state.players_must_discard
+            if self.current_player_id in players_must_discard:
+                count = players_must_discard[self.current_player_id]
+                return f"You must discard {count} cards. Use: drop <amount> <resource> ..."
+            return "Waiting for other players to discard cards..."
+        
+        elif phase == TurnPhase.ROBBER_MOVE:
+            return "Move the robber to a tile. Use: robber <tile_id> (click tiles in web view to see IDs)"
+        
+        elif phase == TurnPhase.ROLL_DICE:
+            return "Roll the dice to start your turn. Use: roll"
+        
+        elif phase == TurnPhase.PLAYER_ACTIONS:
+            return "Your turn - build, trade, or end turn. Type 'help' for commands."
+        
+        else:
+            # Default message
+            return f"Choose your action. Type 'help' for available commands."
     
     def __str__(self) -> str:
         """String representation of the GameManager."""
