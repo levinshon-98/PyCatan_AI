@@ -445,21 +445,27 @@ class HumanUser(User):
             raise UserInputError("Use command requires card type. Example: 'use knight' or 'use road'")
         
         card_name = parts[1].lower()
-        params = {'card_type': card_name}
         
-        # Add specific parameters based on card type
-        if card_name == 'knight' and len(parts) >= 5:
-            try:
-                robber_row = int(parts[2])
-                robber_index = int(parts[3])
-                victim_player = int(parts[4]) if parts[4] != 'none' else None
-                
-                params.update({
-                    'tile_coords': [robber_row, robber_index],
-                    'victim': victim_player
-                })
-            except ValueError:
-                raise UserInputError("Knight card format: 'use knight [robber_row] [robber_index] [victim_player_or_none]'")
+        # Map user-friendly names to DevCard enum values
+        card_type_map = {
+            'knight': 'Knight',
+            'road': 'Road',
+            'roadbuilding': 'Road',
+            'monopoly': 'Monopoly',
+            'yearofplenty': 'YearOfPlenty',
+            'plenty': 'YearOfPlenty',
+            'year': 'YearOfPlenty'
+        }
+        
+        if card_name not in card_type_map:
+            raise UserInputError(f"Unknown card type '{card_name}'. Valid: knight, road, monopoly, yearofplenty")
+        
+        dev_card_type = card_type_map[card_name]
+        params = {'card_type': dev_card_type}
+        
+        # Each card type needs specific additional input
+        # For now, we'll create the action with just the card type
+        # The GameManager will request additional input as needed
         
         return Action(ActionType.USE_DEV_CARD, self.user_id, params)
     
@@ -642,8 +648,20 @@ class HumanUser(User):
         print("  Examples: 'trade bank wood 4 sheep 1' or 't player v wood sheep'")
         print()
         print("🃏 DEVELOPMENT CARDS:")
-        print("  buy                 - Buy development card (short: dev)")
+        print("  buy / dev           - Buy dev card (cost: 1 Ore + 1 Sheep + 1 Wheat)")
         print("  use <card_type>     - Use development card")
+        print()
+        print("  📋 Card Types & Effects:")
+        print("     knight         - Move robber + steal card (gives +1 knight count)")
+        print("     road           - Build 2 free roads instantly")
+        print("     monopoly       - Take ALL cards of one resource from all players")
+        print("     yearofplenty   - Take any 2 resource cards from bank")
+        print("     victorypoint   - +1 VP (auto-counted, don't use manually)")
+        print()
+        print("  💡 Tips:")
+        print("     • 3+ knights = Largest Army (2 VP)")
+        print("     • Cards are interactive - game will ask for details after 'use'")
+        print("     • Example: 'use road' then follow prompts")
         print()
         print("🎲 TURN ACTIONS:")
         print("  roll               - Roll dice (short: r, dice)")

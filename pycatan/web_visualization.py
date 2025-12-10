@@ -543,28 +543,31 @@ class WebVisualization(Visualization):
         """Notify web clients of action execution."""
         timestamp = datetime.now().strftime("%H:%M:%S")
         
+        # Get player name from action parameters (added by GameManager)
+        player_name = action.parameters.get('player_name', f'Player {action.player_id + 1}') if hasattr(action, 'parameters') and action.parameters else f'Player {action.player_id + 1}'
+        
         # Generate a better message for the web log
         message = result.error_message
         if result.success:
             action_name = action.action_type.name
             if action_name == 'BUILD_SETTLEMENT':
-                message = f"Player {action.player_id} built a settlement"
+                message = f"{player_name} built a settlement"
             elif action_name == 'BUILD_CITY':
-                message = f"Player {action.player_id} built a city"
+                message = f"{player_name} built a city"
             elif action_name == 'BUILD_ROAD':
-                message = f"Player {action.player_id} built a road"
+                message = f"{player_name} built a road"
             elif action_name == 'BUY_DEV_CARD':
-                message = f"Player {action.player_id} bought a development card"
+                message = f"{player_name} bought a development card"
             elif action_name == 'ROLL_DICE':
-                message = f"Player {action.player_id} rolled dice"
+                message = f"{player_name} rolled dice"
             elif action_name == 'END_TURN':
-                message = f"Player {action.player_id} ended turn"
+                message = f"{player_name} ended turn"
             elif action_name == 'TRADE_BANK':
-                message = f"Player {action.player_id} traded with bank"
+                message = f"{player_name} traded with bank"
             elif action_name == 'TRADE_PLAYER':
-                message = f"Player {action.player_id} traded with player"
+                message = f"{player_name} traded with player"
             else:
-                message = f"Player {action.player_id} performed {action_name}"
+                message = f"{player_name} performed {action_name}"
 
         action_data = {
             'timestamp': timestamp,

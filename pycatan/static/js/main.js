@@ -34,7 +34,7 @@ function toggleVertices() {
 function toggleBuildingCosts() {
     const modal = document.getElementById('buildingCostsModal');
     if (modal) {
-        modal.classList.toggle('show');
+        modal.classList.toggle('hidden');
     }
 }
 
