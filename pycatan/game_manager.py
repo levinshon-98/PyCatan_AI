@@ -227,6 +227,12 @@ class GameManager:
                 return self._handle_roll_dice(action)
             elif action.action_type in [ActionType.TRADE_PROPOSE, ActionType.TRADE_ACCEPT, ActionType.TRADE_REJECT]:
                 return self._handle_trade_action(action)
+            elif action.action_type == ActionType.TRADE_BANK:
+                return self._execute_trade_bank(action)
+            elif action.action_type == ActionType.BUY_DEV_CARD:
+                return self._execute_buy_dev_card(action)
+            elif action.action_type == ActionType.USE_DEV_CARD:
+                return self._execute_use_dev_card(action)
             elif action.action_type == ActionType.DISCARD_CARDS:
                 return self._handle_discard_cards(action)
             elif action.action_type == ActionType.ROBBER_MOVE:
@@ -613,6 +619,129 @@ class GameManager:
         }
         
         return resource_map.get(resource_name.lower())
+    
+    def _execute_buy_dev_card(self, action: Action) -> ActionResult:
+        """Execute buying a development card."""
+        try:
+            player_id = action.player_id
+            
+            # Call the game's build_dev method
+            status = self.game.build_dev(player_id)
+            
+            if status == Statuses.ALL_GOOD:
+                # Get the card that was just added (last card in player's dev_cards list)
+                player = self.game.players[player_id]
+                if player.dev_cards:
+                    card_bought = player.dev_cards[-1]
+                    print(f"    ✓ Bought development card: {card_bought.name}")
+                else:
+                    print(f"    ✓ Bought development card")
+                
+                return ActionResult.success_result(
+                    self.get_full_state(),
+                    affected_players=[player_id]
+                )
+            else:
+                return self._map_status_to_result(status)
+                
+        except Exception as e:
+            return ActionResult.failure_result(
+                f"Error buying development card: {str(e)}",
+                "EXECUTION_ERROR"
+            )
+    
+    def _execute_use_dev_card(self, action: Action) -> ActionResult:
+        """Execute using a development card - interactive multi-step process."""
+        try:
+            player_id = action.player_id
+            card_type_str = action.parameters.get('card_type')
+            
+            if not card_type_str:
+                return ActionResult.failure_result(
+                    "Missing card_type parameter",
+                    "MISSING_PARAMETER"
+                )
+            
+            # Convert string to DevCard enum
+            from pycatan.card import DevCard
+            try:
+                card_type = DevCard[card_type_str]
+            except KeyError:
+                return ActionResult.failure_result(
+                    f"Invalid card type: {card_type_str}",
+                    "INVALID_CARD_TYPE"
+                )
+            
+            # Check if player has the card
+            if not self.game.players[player_id].has_dev_cards([card_type]):
+                return ActionResult.failure_result(
+                    f"You don't have a {card_type.name} card",
+                    "NO_CARD"
+                )
+            
+            # Route to specific card handler
+            if card_type == DevCard.Knight:
+                return self._use_knight_card(player_id, action)
+            elif card_type == DevCard.Road:
+                return self._use_road_building_card(player_id, action)
+            elif card_type == DevCard.Monopoly:
+                return self._use_monopoly_card(player_id, action)
+            elif card_type == DevCard.YearOfPlenty:
+                return self._use_year_of_plenty_card(player_id, action)
+            elif card_type == DevCard.VictoryPoint:
+                return ActionResult.failure_result(
+                    "Victory Point cards are counted automatically - don't use them!",
+                    "CANNOT_USE_VP"
+                )
+            else:
+                return ActionResult.failure_result(
+                    f"Unknown card type: {card_type}",
+                    "UNKNOWN_CARD"
+                )
+                
+        except Exception as e:
+            return ActionResult.failure_result(
+                f"Error using development card: {str(e)}",
+                "EXECUTION_ERROR"
+            )
+    
+    def _use_road_building_card(self, player_id: int, action: Action) -> ActionResult:
+        """Use Road Building card - needs 2 roads."""
+        # For now, return a message asking for input
+        # In the future, this will be an interactive multi-step process
+        return ActionResult.failure_result(
+            "Road Building card usage not yet fully implemented.\n"
+            "    💬 You need to specify 2 roads to build.\n"
+            "    Example format needed: rd [point1] [point2] and rd [point3] [point4]",
+            "NOT_IMPLEMENTED"
+        )
+    
+    def _use_knight_card(self, player_id: int, action: Action) -> ActionResult:
+        """Use Knight card - move robber and steal."""
+        return ActionResult.failure_result(
+            "Knight card usage not yet fully implemented.\n"
+            "    💬 You need to move the robber and optionally steal from a player.\n"
+            "    Use 'robber [tile_id]' first, then this card will work.",
+            "NOT_IMPLEMENTED"
+        )
+    
+    def _use_monopoly_card(self, player_id: int, action: Action) -> ActionResult:
+        """Use Monopoly card - take all of one resource."""
+        return ActionResult.failure_result(
+            "Monopoly card usage not yet fully implemented.\n"
+            "    💬 You need to specify which resource to monopolize.\n"
+            "    Example: All players give you their Wood/Brick/Sheep/Wheat/Ore",
+            "NOT_IMPLEMENTED"
+        )
+    
+    def _use_year_of_plenty_card(self, player_id: int, action: Action) -> ActionResult:
+        """Use Year of Plenty card - take 2 resources from bank."""
+        return ActionResult.failure_result(
+            "Year of Plenty card usage not yet fully implemented.\n"
+            "    💬 You need to specify 2 resource cards to take from the bank.\n"
+            "    Example: Take 1 Wood and 1 Brick (or 2 of the same)",
+            "NOT_IMPLEMENTED"
+        )
     
     def start_game(self) -> bool:
         """

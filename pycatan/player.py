@@ -345,7 +345,7 @@ class Player:
         # adds VPs from developement cards
         if include_dev:
             for d in self.dev_cards:
-                if d == DevCard.VP:
+                if d == DevCard.VictoryPoint:
                     points += 1
 
         return points
