@@ -14,6 +14,7 @@ from pycatan.actions import Action, ActionResult, GameState, GamePhase, TurnPhas
 from pycatan.user import User, UserList, validate_user_list, UserInputError
 from pycatan.game import Game
 from pycatan.statuses import Statuses
+from pycatan.card import DevCard
 
 
 class GameManager:
@@ -707,14 +708,57 @@ class GameManager:
     
     def _use_road_building_card(self, player_id: int, action: Action) -> ActionResult:
         """Use Road Building card - needs 2 roads."""
-        # For now, return a message asking for input
-        # In the future, this will be an interactive multi-step process
-        return ActionResult.failure_result(
-            "Road Building card usage not yet fully implemented.\n"
-            "    💬 You need to specify 2 roads to build.\n"
-            "    Example format needed: rd [point1] [point2] and rd [point3] [point4]",
-            "NOT_IMPLEMENTED"
-        )
+        # Check if the action has the required road parameters
+        if 'road_one_coords' not in action.parameters or 'road_two_coords' not in action.parameters:
+            return ActionResult.failure_result(
+                "Road Building card needs 2 roads in one command.\n"
+                "    Format: use road rd [point1] [point2] rd [point3] [point4]\n"
+                "    Example: use road rd 10 11 rd 12 13",
+                "MISSING_PARAMS"
+            )
+        
+        try:
+            # Convert coordinates to point objects
+            road1_start_coords = action.parameters['road_one_coords']['start']
+            road1_end_coords = action.parameters['road_one_coords']['end']
+            road2_start_coords = action.parameters['road_two_coords']['start']
+            road2_end_coords = action.parameters['road_two_coords']['end']
+            
+            # Get point objects from board
+            road1_start = self.game.board.points[road1_start_coords[0]][road1_start_coords[1]]
+            road1_end = self.game.board.points[road1_end_coords[0]][road1_end_coords[1]]
+            road2_start = self.game.board.points[road2_start_coords[0]][road2_start_coords[1]]
+            road2_end = self.game.board.points[road2_end_coords[0]][road2_end_coords[1]]
+            
+            # Prepare args for game.use_dev_card
+            args = {
+                'road_one': {'start': road1_start, 'end': road1_end},
+                'road_two': {'start': road2_start, 'end': road2_end}
+            }
+            
+            # Use the card
+            result = self.game.use_dev_card(
+                player=player_id,
+                card=DevCard.Road,
+                args=args
+            )
+            
+            if result == Statuses.ALL_GOOD:
+                player_name = self.users[player_id].name if hasattr(self.users[player_id], 'name') else f"Player {player_id}"
+                return ActionResult.success_result(
+                    f"{player_name} used Road Building card and built 2 roads! 🛣️🛣️"
+                )
+            else:
+                return ActionResult.failure_result(
+                    f"Failed to use Road Building card: {result.name}",
+                    result.name
+                )
+                
+        except Exception as e:
+            return ActionResult.failure_result(
+                f"Error using Road Building card: {str(e)}",
+                "EXECUTION_ERROR"
+            )
     
     def _use_knight_card(self, player_id: int, action: Action) -> ActionResult:
         """Use Knight card - move robber and steal."""
