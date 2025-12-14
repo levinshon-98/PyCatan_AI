@@ -463,6 +463,55 @@ class HumanUser(User):
         dev_card_type = card_type_map[card_name]
         params = {'card_type': dev_card_type}
         
+        # Handle Road Building card - needs 2 roads in same command
+        if dev_card_type == 'Road':
+            # Format: use road rd 10 11 rd 12 13
+            # parts = ['use', 'road', 'rd', '10', '11', 'rd', '12', '13']
+            if len(parts) < 8 or parts[2] != 'rd' or parts[5] != 'rd':
+                raise UserInputError(
+                    "Road Building card needs 2 roads in one command.\n"
+                    "    Format: use road rd [point1] [point2] rd [point3] [point4]\n"
+                    "    Example: use road rd 10 11 rd 12 13"
+                )
+            
+            try:
+                # Parse first road
+                road1_point1 = int(parts[3])
+                road1_point2 = int(parts[4])
+                
+                # Parse second road
+                road2_point1 = int(parts[6])
+                road2_point2 = int(parts[7])
+                
+                # Validate road placements
+                if not board_definition.is_valid_road_placement(road1_point1, road1_point2):
+                    raise UserInputError(f"Invalid first road: points {road1_point1} and {road1_point2} are not adjacent")
+                
+                if not board_definition.is_valid_road_placement(road2_point1, road2_point2):
+                    raise UserInputError(f"Invalid second road: points {road2_point1} and {road2_point2} are not adjacent")
+                
+                # Convert to game coordinates
+                road1_start = board_definition.point_id_to_game_coords(road1_point1)
+                road1_end = board_definition.point_id_to_game_coords(road1_point2)
+                road2_start = board_definition.point_id_to_game_coords(road2_point1)
+                road2_end = board_definition.point_id_to_game_coords(road2_point2)
+                
+                if None in [road1_start, road1_end, road2_start, road2_end]:
+                    raise UserInputError("Invalid point numbers. Check your road coordinates.")
+                
+                # Store coordinates - GameManager will convert to point objects
+                params['road_one_coords'] = {
+                    'start': road1_start,
+                    'end': road1_end
+                }
+                params['road_two_coords'] = {
+                    'start': road2_start,
+                    'end': road2_end
+                }
+                
+            except (ValueError, IndexError):
+                raise UserInputError("Invalid road format. Point numbers must be integers.")
+        
         # Each card type needs specific additional input
         # For now, we'll create the action with just the card type
         # The GameManager will request additional input as needed

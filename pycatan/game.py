@@ -270,7 +270,7 @@ class Game:
             for r in road_names:
                 self.board.add_road(Building(point_one=args[r]["start"], point_two=args[r]["end"], owner=player, type=Building.BUILDING_ROAD))
 
-            return Statuses.ALL_GOOD
+            # Don't return here - let it continue to remove the card at the end
 
         elif card == DevCard.Knight:
             # checks there are the right arguments
