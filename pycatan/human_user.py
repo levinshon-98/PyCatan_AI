@@ -278,10 +278,10 @@ class HumanUser(User):
             try:
                 point = int(parts[1])
                 
-                # Convert point to coordinates
-                coords = point_to_coords(point)
+                # Convert point to coordinates using BoardDefinition
+                coords = board_definition.point_id_to_game_coords(point)
                 if coords is None:
-                    raise UserInputError(f"Invalid point number: {point}. Valid points: 1-{len(get_all_points())}")
+                    raise UserInputError(f"Invalid point number: {point}. Valid points: 1-{len(board_definition.get_all_point_ids())}")
                 
                 row, index = coords
                 
@@ -889,9 +889,12 @@ class HumanUser(User):
     
     def notify_action(self, action: Action, success: bool, message: str = "") -> None:
         """Notify the user about an action result."""
-        # Don't print here - the console visualization already displays this
-        # This method is kept for compatibility but doesn't produce output
-        pass
+        # Display success/error messages to the user in their input console
+        if message:
+            if success:
+                print(f"    ✓ {message}")
+            else:
+                print(f"    ✗ {message}")
     
     def notify_game_event(self, event_type: str, message: str, 
                          affected_players: Optional[List[int]] = None) -> None:

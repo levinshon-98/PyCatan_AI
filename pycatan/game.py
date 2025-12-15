@@ -197,11 +197,13 @@ class Game:
 
     # changes a settlement on the board for a city
     def add_city(self, point, player):
-        status = self.board.upgrade_settlement(player, r, i)
+        # Upgrade settlement to city using the point object
+        status = self.board.upgrade_settlement(player, point)
 
         if status == Statuses.ALL_GOOD:
             # checks if the player won
             if self.players[player].get_VP() >= 10:
+                self.has_ended = True
                 self.winner = player
 
         return status
