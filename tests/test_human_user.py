@@ -460,3 +460,151 @@ class TestCommandHistory:
         assert len(self.user.command_history) == len(commands)
         for cmd in commands:
             assert cmd in self.user.command_history
+
+
+class TestAdvancedTrading:
+    """Test advanced trading functionality with flexible amounts."""
+    
+    def setup_method(self):
+        """Set up test fixtures."""
+        self.user = HumanUser("TestUser", 0)
+        self.game_state = GameState()
+    
+    def test_simple_one_to_one_trade(self):
+        """Test simple 1:1 trade (backward compatibility)."""
+        action = self.user._parse_input("trade player 1 wood sheep", self.game_state)
+        
+        assert action.action_type == ActionType.TRADE_PROPOSE
+        assert action.parameters['target_player'] == 1
+        assert action.parameters['offer'] == {'wood': 1}
+        assert action.parameters['request'] == {'sheep': 1}
+    
+    def test_trade_with_amounts(self):
+        """Test trade with explicit amounts."""
+        action = self.user._parse_input("trade player 1 wood 2 sheep 1", self.game_state)
+        
+        assert action.action_type == ActionType.TRADE_PROPOSE
+        assert action.parameters['target_player'] == 1
+        assert action.parameters['offer'] == {'wood': 2}
+        assert action.parameters['request'] == {'sheep': 1}
+    
+    def test_trade_multiple_resources(self):
+        """Test trade with multiple resources on both sides."""
+        action = self.user._parse_input("trade player 1 wood 2 brick 1 for wheat 2 ore 1", self.game_state)
+        
+        assert action.action_type == ActionType.TRADE_PROPOSE
+        assert action.parameters['target_player'] == 1
+        assert action.parameters['offer'] == {'wood': 2, 'brick': 1}
+        assert action.parameters['request'] == {'wheat': 2, 'ore': 1}
+    
+    def test_trade_with_separator_words(self):
+        """Test trade with various separator words."""
+        separators = ['for', 'get', 'want', 'receive']
+        
+        for sep in separators:
+            action = self.user._parse_input(f"trade player 1 wood 2 {sep} sheep 1", self.game_state)
+            
+            assert action.action_type == ActionType.TRADE_PROPOSE
+            assert action.parameters['offer'] == {'wood': 2}
+            assert action.parameters['request'] == {'sheep': 1}
+    
+    def test_gift_receiving(self):
+        """Test receiving a gift (nothing for something)."""
+        action = self.user._parse_input("trade player 1 nothing wheat 1", self.game_state)
+        
+        assert action.action_type == ActionType.TRADE_PROPOSE
+        assert action.parameters['offer'] == {}
+        assert action.parameters['request'] == {'wheat': 1}
+    
+    def test_gift_giving(self):
+        """Test giving a gift (something for nothing)."""
+        action = self.user._parse_input("trade player 1 wood 3 nothing", self.game_state)
+        
+        assert action.action_type == ActionType.TRADE_PROPOSE
+        assert action.parameters['offer'] == {'wood': 3}
+        assert action.parameters['request'] == {}
+    
+    def test_extreme_trade_zero_for_five(self):
+        """Test extreme trade: 0 cards for 5 cards (use separator for clarity)."""
+        action = self.user._parse_input("trade player 1 nothing for wheat 2 ore 2 brick 1", self.game_state)
+        
+        assert action.action_type == ActionType.TRADE_PROPOSE
+        assert action.parameters['offer'] == {}
+        assert action.parameters['request'] == {'wheat': 2, 'ore': 2, 'brick': 1}
+    
+    def test_extreme_trade_five_for_zero(self):
+        """Test extreme trade: 5 cards for 0 cards (use separator for clarity)."""
+        action = self.user._parse_input("trade player 1 wood 2 brick 2 sheep 1 for nothing", self.game_state)
+        
+        assert action.action_type == ActionType.TRADE_PROPOSE
+        assert action.parameters['offer'] == {'wood': 2, 'brick': 2, 'sheep': 1}
+        assert action.parameters['request'] == {}
+    
+    def test_complex_multi_resource_trade(self):
+        """Test complex trade with many resources on both sides."""
+        action = self.user._parse_input("trade player 1 wood 3 brick 2 sheep 1 for wheat 4 ore 2", self.game_state)
+        
+        assert action.action_type == ActionType.TRADE_PROPOSE
+        assert action.parameters['offer'] == {'wood': 3, 'brick': 2, 'sheep': 1}
+        assert action.parameters['request'] == {'wheat': 4, 'ore': 2}
+    
+    def test_trade_with_player_name(self):
+        """Test trading with player name instead of ID."""
+        from pycatan.actions import PlayerState
+        
+        # Create PlayerState objects (it's a dataclass, pass all params)
+        alice = PlayerState(
+            player_id=0,
+            name="Alice",
+            cards=[],
+            dev_cards=[],
+            settlements=[],
+            cities=[],
+            roads=[],
+            victory_points=0,
+            longest_road_length=0,
+            has_longest_road=False,
+            has_largest_army=False,
+            knights_played=0
+        )
+        
+        bob = PlayerState(
+            player_id=1,
+            name="Bob",
+            cards=[],
+            dev_cards=[],
+            settlements=[],
+            cities=[],
+            roads=[],
+            victory_points=0,
+            longest_road_length=0,
+            has_longest_road=False,
+            has_largest_army=False,
+            knights_played=0
+        )
+        
+        # Add player states to game_state
+        self.game_state.players_state = [alice, bob]
+        
+        action = self.user._parse_input("trade player bob wood 2 for sheep 1", self.game_state)
+        
+        assert action.action_type == ActionType.TRADE_PROPOSE
+        assert action.parameters['target_player'] == 1  # Bob's ID
+        assert action.parameters['offer'] == {'wood': 2}
+        assert action.parameters['request'] == {'sheep': 1}
+    
+    def test_trade_accumulates_duplicate_resources(self):
+        """Test that duplicate resources in same offer accumulate."""
+        action = self.user._parse_input("trade player 1 wood 2 wood 1 for sheep 1", self.game_state)
+        
+        assert action.action_type == ActionType.TRADE_PROPOSE
+        assert action.parameters['offer'] == {'wood': 3}  # 2 + 1 = 3
+        assert action.parameters['request'] == {'sheep': 1}
+    
+    def test_short_trade_command(self):
+        """Test short 't' command for trading."""
+        action = self.user._parse_input("t player 1 wood 2 sheep 1", self.game_state)
+        
+        assert action.action_type == ActionType.TRADE_PROPOSE
+        assert action.parameters['offer'] == {'wood': 2}
+        assert action.parameters['request'] == {'sheep': 1}
