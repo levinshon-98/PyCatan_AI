@@ -383,21 +383,54 @@ class GameManager:
         
         coords = action.parameters['point_coords']
         
-        # Get the point object from board
+        # Get the point object from board and convert coords to point ID
         try:
             point = self.game.board.points[coords[0]][coords[1]]
+            # Try to get the point ID for better user messages
+            from pycatan.board_definition import board_definition
+            point_id = board_definition.game_coords_to_point_id(coords[0], coords[1])
+            location_str = f"point {point_id}" if point_id else f"coordinates {coords}"
         except (IndexError, TypeError):
             return ActionResult.failure_result(
                 f"Invalid coordinates: {coords}",
                 "INVALID_COORDS"
             )
         
-        # Call the actual Game method (add_city doesn't exist, need to implement via settlement upgrade)
-        # For now, return not implemented
-        return ActionResult.failure_result(
-            "City building not yet implemented in Game class",
-            "NOT_IMPLEMENTED"
-        )
+        # Upgrade the settlement to a city
+        status = self.game.add_city(point, action.player_id)
+        
+        # Convert status to ActionResult
+        if status == Statuses.ALL_GOOD:
+            player = self.game.players[action.player_id]
+            return ActionResult.success_result(
+                f"City built at {location_str}! Victory Points: {player.get_VP()}",
+                "CITY_BUILT"
+            )
+        elif status == Statuses.ERR_NOT_EXIST:
+            return ActionResult.failure_result(
+                f"No settlement found at {location_str} to upgrade",
+                "NO_SETTLEMENT"
+            )
+        elif status == Statuses.ERR_BAD_OWNER:
+            return ActionResult.failure_result(
+                f"You don't own the settlement at {location_str}",
+                "NOT_YOUR_SETTLEMENT"
+            )
+        elif status == Statuses.ERR_UPGRADE_CITY:
+            return ActionResult.failure_result(
+                f"Already a city at {location_str}",
+                "ALREADY_CITY"
+            )
+        elif status == Statuses.ERR_CARDS:
+            return ActionResult.failure_result(
+                "Not enough resources. Need: 3 Ore, 2 Wheat",
+                "NOT_ENOUGH_RESOURCES"
+            )
+        else:
+            return ActionResult.failure_result(
+                f"Failed to build city: {status.name}",
+                status.name
+            )
 
     def _execute_build_road(self, action: Action) -> ActionResult:
         """Execute road building action."""
