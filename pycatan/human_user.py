@@ -403,12 +403,25 @@ class HumanUser(User):
             raise UserInputError("Invalid trade format or resource names")
     
     def _parse_player_trade(self, parts: List[str], game_state: GameState = None) -> Action:
-        """Parse player trading command."""
-        if len(parts) < 3:
-            raise UserInputError("Player trade format: 'trade player [player_id_or_name] [your_resource] [their_resource]'")
+        """
+        Parse player trading command.
+        
+        Supports flexible trading formats:
+        - Simple 1:1: 'trade player 1 wood sheep'
+        - With amounts: 'trade player 1 wood 2 sheep 1'
+        - Multiple resources: 'trade player 1 wood 2 brick 1 for wheat 2 ore 1'
+        - Gifts: 'trade player 1 nothing wheat 1' or 'trade player 1 wood 2 nothing'
+        """
+        if len(parts) < 2:
+            raise UserInputError("Player trade format: 'trade player [player_id_or_name] [give_resources] [for/get] [receive_resources]'\n"
+                               "Examples:\n"
+                               "  - trade player 1 wood sheep (1:1 simple)\n"
+                               "  - trade player 1 wood 2 sheep 1 (with amounts)\n"
+                               "  - trade player 1 wood 2 brick 1 for wheat 2 (separator word)\n"
+                               "  - trade player 1 nothing wheat 1 (gift from them)")
         
         try:
-            # Try to parse as player ID first
+            # Parse target player
             try:
                 target_player = int(parts[0])
             except ValueError:
@@ -425,19 +438,151 @@ class HumanUser(User):
                 if target_player is None:
                     raise UserInputError(f"Player '{parts[0]}' not found. Use player name or ID (0-{len(game_state.players_state)-1 if game_state else 3})")
             
-            give_resource = self._parse_resource(parts[1])
-            get_resource = self._parse_resource(parts[2])
+            # Find separator word (for/get/want) or split at middle
+            separator_words = ['for', 'get', 'want', 'receive']
+            separator_index = None
+            
+            for i, part in enumerate(parts[1:], start=1):
+                if part.lower() in separator_words:
+                    separator_index = i
+                    break
+            
+            # Parse offer and request based on separator
+            if separator_index:
+                # Has separator word
+                offer_parts = parts[1:separator_index]
+                request_parts = parts[separator_index + 1:]
+            else:
+                # No separator - try to detect format
+                # Check if it's old simple format (2 resources) or new format with amounts
+                remaining = parts[1:]
+                
+                # Try to parse as pairs: [resource amount resource amount...]
+                offer, request = self._split_trade_resources(remaining)
+                offer_parts = offer
+                request_parts = request
+            
+            # Parse offer and request
+            offer_dict = self._parse_resource_list(offer_parts if separator_index else offer_parts)
+            request_dict = self._parse_resource_list(request_parts if separator_index else request_parts)
             
             params = {
                 'target_player': target_player,
-                'offer': {give_resource.name.lower(): 1},
-                'request': {get_resource.name.lower(): 1}
+                'offer': offer_dict,
+                'request': request_dict
             }
             
             return Action(ActionType.TRADE_PROPOSE, self.user_id, params)
             
-        except (ValueError, KeyError):
-            raise UserInputError("Invalid trade format or resource names")
+        except (ValueError, KeyError) as e:
+            raise UserInputError(f"Invalid trade format: {e}")
+    
+    def _split_trade_resources(self, parts: List[str]) -> tuple:
+        """
+        Split trade resources into offer and request when no separator word is present.
+        Handles both simple format (wood sheep) and amount format (wood 2 sheep 1).
+        
+        Strategy: Parse from left, consuming resource-amount pairs.
+        When we've consumed about half the tokens, split there.
+        """
+        if len(parts) == 2:
+            # Simple 1:1 format: [resource1] [resource2]
+            return [parts[0]], [parts[1]]
+        
+        # Parse tokens and identify resource groups
+        # A group is: resource_name [optional_number]
+        groups = []
+        i = 0
+        while i < len(parts):
+            token = parts[i]
+            
+            # Skip standalone numbers (shouldn't happen but safeguard)
+            if token.isdigit():
+                i += 1
+                continue
+            
+            # Check if this is 'nothing' keyword
+            if token.lower() == 'nothing':
+                groups.append([token])
+                i += 1
+                continue
+            
+            # Check if next token is a number
+            if i + 1 < len(parts) and parts[i + 1].isdigit():
+                # Resource with amount: [resource, amount]
+                groups.append([token, parts[i + 1]])
+                i += 2
+            else:
+                # Resource without amount: [resource]
+                groups.append([token])
+                i += 1
+        
+        # Split groups roughly in half
+        mid = len(groups) // 2
+        
+        # Flatten groups back to parts
+        offer_parts = []
+        for group in groups[:mid]:
+            offer_parts.extend(group)
+        
+        request_parts = []
+        for group in groups[mid:]:
+            request_parts.extend(group)
+        
+        return offer_parts, request_parts
+    
+    def _parse_resource_list(self, parts: List[str]) -> dict:
+        """
+        Parse a list of resources with optional amounts.
+        Examples:
+        - ['wood', 'brick'] -> {'wood': 1, 'brick': 1}
+        - ['wood', '2', 'brick', '1'] -> {'wood': 2, 'brick': 1}
+        - ['nothing'] -> {}
+        - [] -> {}
+        """
+        if not parts or (len(parts) == 1 and parts[0].lower() == 'nothing'):
+            return {}
+        
+        result = {}
+        i = 0
+        
+        while i < len(parts):
+            # Skip if this is a number (should have been consumed as amount)
+            if parts[i].isdigit():
+                i += 1
+                continue
+            
+            resource_name = parts[i]
+            
+            # Check for 'nothing' keyword
+            if resource_name.lower() == 'nothing':
+                i += 1
+                continue
+            
+            # Check if next part is a number (amount)
+            amount = 1
+            if i + 1 < len(parts) and parts[i + 1].isdigit():
+                amount = int(parts[i + 1])
+                i += 2
+            else:
+                i += 1
+            
+            # Parse the resource
+            try:
+                resource = self._parse_resource(resource_name)
+                resource_key = resource.name.lower()
+                
+                # Add to result (accumulate if resource appears multiple times)
+                if resource_key in result:
+                    result[resource_key] += amount
+                else:
+                    result[resource_key] = amount
+            except UserInputError:
+                # If we can't parse it as a resource, skip it
+                # This handles edge cases
+                continue
+        
+        return result
     
     def _parse_use_dev_card(self, parts: List[str], game_state: GameState) -> Action:
         """Parse development card usage command."""
@@ -693,8 +838,15 @@ class HumanUser(User):
         print()
         print("💰 TRADING:")
         print("  trade bank <give> <amount> <get> <amount>")
-        print("  trade player <id_or_name> <give> <get>    (short: t)")
-        print("  Examples: 'trade bank wood 4 sheep 1' or 't player v wood sheep'")
+        print("      Example: 'trade bank wood 4 sheep 1'")
+        print()
+        print("  trade player <id_or_name> <resources_offer> [for] <resources_want>")
+        print("      Simple 1:1:     't player 1 wood sheep'")
+        print("      With amounts:   't player bob wood 2 sheep 1'")
+        print("      Multiple:       't player 1 wood 2 brick 1 for wheat 2 ore 1'")
+        print("      Gifts:          't player 2 nothing wheat 1' (receive gift)")
+        print("      Gifts:          't player 2 wood 3 nothing' (give gift)")
+        print("      💡 Use 'for' or 'get' to separate offer from request")
         print()
         print("🃏 DEVELOPMENT CARDS:")
         print("  buy / dev           - Buy dev card (cost: 1 Ore + 1 Sheep + 1 Wheat)")
