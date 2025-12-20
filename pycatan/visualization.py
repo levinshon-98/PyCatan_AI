@@ -8,6 +8,7 @@ Different visualization types (console, web, log) inherit from this class.
 from abc import ABC, abstractmethod
 from typing import Dict, Any, List, Optional
 from .actions import Action, ActionResult
+from .log_events import LogEntry
 
 
 class Visualization(ABC):
@@ -199,6 +200,12 @@ class VisualizationManager:
         for viz in self.visualizations:
             if viz.is_enabled():
                 viz.display_message(message)
+    
+    def log_event(self, log_entry: LogEntry) -> None:
+        """Log a structured event to all enabled visualizations."""
+        for viz in self.visualizations:
+            if viz.is_enabled() and hasattr(viz, 'log_event'):
+                viz.log_event(log_entry)
     
     def get_visualization_count(self) -> int:
         """Get the number of registered visualizations."""

@@ -199,6 +199,8 @@ class LogEntry:
         elif self.event_type == EventType.ROBBER_STEAL:
             victim = self.data.get('victim', '?')
             card = self.data.get('card', 'a card')
+            # Card names come from enum.name which is already capitalized (Wood, Brick, etc.)
+            # Just display as-is
             return f"🦹 {player_str} stole {card} from {victim}"
         
         elif self.event_type == EventType.TURN_START:

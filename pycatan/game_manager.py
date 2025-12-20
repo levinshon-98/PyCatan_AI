@@ -15,6 +15,7 @@ from pycatan.user import User, UserList, validate_user_list, UserInputError
 from pycatan.game import Game
 from pycatan.statuses import Statuses
 from pycatan.card import DevCard
+from pycatan.log_events import EventType, create_log_entry
 
 
 class GameManager:
@@ -878,12 +879,32 @@ class GameManager:
             # Remove the card from player's hand
             self.game.players[player_id].remove_dev_card(DevCard.Knight)
             
+            # Get stolen card info from args (set by game.use_dev_card)
+            stolen_card = args.get('stolen_card')
+            
             # Update visualizations
             player_name = self.users[player_id].name if hasattr(self.users[player_id], 'name') else f"Player {player_id}"
             
             # Print robber move notification immediately
             robber_msg = f"⚔️ {player_name} used a Knight card! Robber moved to {tile_display}."
             print(f"\n    {robber_msg}")
+            
+            # Send Knight card usage log to visualizations
+            knight_log = create_log_entry(
+                event_type=EventType.USE_DEV_CARD,
+                turn=self._current_game_state.turn_number,
+                player_id=player_id,
+                player_name=player_name,
+                data={
+                    'card': 'Knight',
+                    'robber_tile': tile_display,
+                    'message': robber_msg
+                },
+                status="SUCCESS"
+            )
+            
+            if self.visualization_manager:
+                self.visualization_manager.log_event(knight_log)
             
             # Notify about robber move
             self._notify_all_users(
@@ -894,10 +915,43 @@ class GameManager:
             # Notify about card steal if victim exists
             if victim_id is not None:
                 victim_name = self.users[victim_id].name if hasattr(self.users[victim_id], 'name') else f"Player {victim_id}"
-                self._notify_all_users(
-                    "knight_steal",
-                    f"🎯 {player_name} stole a card from {victim_name}!"
+                
+                # stolen_card was already retrieved from args above
+                if stolen_card:
+                    # Map card type to Hebrew/English name
+                    card_names = {
+                        'wood': 'עץ (Wood)',
+                        'brick': 'לבנה (Brick)', 
+                        'sheep': 'כבשה (Sheep)',
+                        'wheat': 'חיטה (Wheat)',
+                        'ore': 'עפרה (Ore)'
+                    }
+                    card_display = card_names.get(stolen_card.value, stolen_card.value)
+                    steal_msg = f"🎯 {player_name} stole {card_display} from {victim_name}!"
+                else:
+                    steal_msg = f"🎯 {player_name} stole a card from {victim_name}!"
+                
+                print(f"\n    {steal_msg}")
+                
+                # Send steal log to visualizations
+                steal_log = create_log_entry(
+                    event_type=EventType.ROBBER_STEAL,
+                    turn=self._current_game_state.turn_number,
+                    player_id=player_id,
+                    player_name=player_name,
+                    data={
+                        'victim_id': victim_id,
+                        'victim': victim_name,
+                        'card': stolen_card.name if stolen_card else 'unknown',  # Use .name to get 'Wood', 'Brick', etc.
+                        'message': steal_msg
+                    },
+                    status="SUCCESS"
                 )
+                
+                if self.visualization_manager:
+                    self.visualization_manager.log_event(steal_log)
+                
+                self._notify_all_users("knight_steal", steal_msg)
             
             # Notify if player got Largest Army
             if self.game.largest_army == player_id:
@@ -1725,9 +1779,8 @@ class GameManager:
                         )
                         
                         # Send to visualizations
-                        for viz in self.visualization_manager.visualizations:
-                            if hasattr(viz, 'log_event'):
-                                viz.log_event(log_entry)
+                        if self.visualization_manager:
+                            self.visualization_manager.log_event(log_entry)
             
             if distribution:
                 message = f"Rolled {total} ({die1}+{die2}). Resources distributed."
