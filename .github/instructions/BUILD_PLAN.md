@@ -179,7 +179,7 @@
 ### משימה 5.3: Development Cards & Special Actions
 **סטטוס:** 🟢 בעבודה פעילה!  
 **תאריך התחלה:** 10 דצמבר 2025  
-**עדכון אחרון:** 14 דצמבר 2025  
+**עדכון אחרון:** 20 דצמבר 2025  
 **זמן משוער:** 3-4 שעות
 
 **התקדמות:**
@@ -192,7 +192,16 @@
 - [x] שיפור parsing של קלפי פיתוח ב-HumanUser
 - [x] הוספת הסבר מפורט ב-help על כל קלפי הפיתוח
 - [x] יצירת פונקציות placeholder לכל סוג קלף עם הודעות מועילות
-- [ ] מימוש מלא של Knight card (move robber + steal)
+- [x] **מימוש מלא של Knight card** ✅ (20 דצמבר 2025)
+  - [x] Parsing פקודה: `use knight tile [tile_id] [steal [player_name]]`
+  - [x] Validation של tile_id והמרה לקואורדינטות משחק
+  - [x] העברת רובר למיקום חדש
+  - [x] Auto-selection של קורבן אם לא צוין
+  - [x] גניבת קלף אקראי משחקן סמוך
+  - [x] ספירת knights ועדכון Largest Army (3+ = 2 VP)
+  - [x] הסרת הקלף מהשחקן אחרי שימוש
+  - [x] **תיקון באג קריטי ב-game.py**: תיקון קריאה ל-`move_robber()` עם פרמטרים שגויים
+  - [x] הודעות user-friendly עם tile IDs במקום קואורדינטות
 - [x] **מימוש מלא של Road Building** ✅ (14 דצמבר 2025)
   - [x] Parsing פקודה: `use road rd [p1] [p2] rd [p3] [p4]`
   - [x] Validation של נקודות סמוכות
@@ -206,10 +215,11 @@
 
 **הערות:**
 - קניית dev cards כבר עובדת מלא! ✅
+- **Knight card עובד מלא!** ✅ (פורמט: `use knight tile 5` או `use knight tile 5 steal Bob`)
 - **Road Building card עובד מלא!** ✅ (פורמט: `use road rd 10 11 rd 12 13`)
 - כל קלף מחזיר הודעה ברורה למשתמש מה הוא צריך לעשות
 - הלוגיקה ב-`game.py` קיימת ועובדת - צריך רק לחבר ל-GameManager
-- תיקנו באג בקוד המקורי שגרם לכך שקלף Road Building לא הוסר
+- תיקנו 2 באגים קריטיים בקוד המקורי (Knight ו-Road Building)
 
 ---
 

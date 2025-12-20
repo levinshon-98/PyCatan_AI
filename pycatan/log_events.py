@@ -134,11 +134,18 @@ class LogEntry:
             return f"🎲 {player_str} rolled {dice} = {total}"
         
         elif self.event_type == EventType.RESOURCE_DIST:
-            resource = self.data.get('resource', '?')
-            recipients = self.data.get('recipients', [])
-            amounts = self.data.get('amounts', [])
-            distrib = ', '.join([f"Player {r}: {a}×{resource}" for r, a in zip(recipients, amounts)])
-            return f"📦 {distrib}"
+            # Check if we have the new format (resources dict)
+            if 'resources' in self.data:
+                resources = self.data['resources']
+                resource_str = ' '.join([f"{count}×{res}" for res, count in resources.items()])
+                return f"📦 {player_str}: {resource_str}"
+            else:
+                # Old format
+                resource = self.data.get('resource', '?')
+                recipients = self.data.get('recipients', [])
+                amounts = self.data.get('amounts', [])
+                distrib = ', '.join([f"Player {r}: {a}×{resource}" for r, a in zip(recipients, amounts)])
+                return f"📦 {distrib}"
         
         elif self.event_type == EventType.BUILD_SETTLEMENT:
             point = self.data.get('point', '?')
