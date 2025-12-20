@@ -10,6 +10,7 @@ from typing import Dict, Any, List, Optional
 from .visualization import Visualization
 from .actions import Action, ActionResult, ActionType, GameState
 from .card import ResCard, DevCard
+from .log_events import EventType, LogEntry, create_log_entry
 
 
 class ConsoleVisualization(Visualization):
@@ -643,3 +644,42 @@ class ConsoleVisualization(Visualization):
         print("  'robber'    - Show robber information")
         print("  'help'      - Show all available commands")
         print()
+    
+    def log_event(self, log_entry: LogEntry):
+        """
+        Log a structured event directly to console.
+        This allows GameManager to send detailed log entries.
+        """
+        if not self.enabled:
+            return
+        
+        # Display human-readable version
+        message = log_entry.to_human_string()
+        
+        # Color based on status
+        if log_entry.status == "SUCCESS":
+            color = 'green'
+            symbol = '✓'
+        elif log_entry.status == "FAIL":
+            color = 'red'
+            symbol = '✗'
+        else:
+            color = 'yellow'
+            symbol = '⏳'
+        
+        self._print(f"{self.colors[color]}{symbol}{self.colors['reset']} {message}")
+        
+        # If there's an error, display it
+        if log_entry.error:
+            self._print(f"  {self.colors['red']}└─ Error: {log_entry.error}{self.colors['reset']}")
+    
+    def log_structured(self, log_entry: LogEntry):
+        """
+        Log a structured event in machine-readable format.
+        Useful for debugging and data analysis.
+        """
+        if not self.enabled:
+            return
+        
+        # Display structured log string
+        self._print(log_entry.to_log_string())
