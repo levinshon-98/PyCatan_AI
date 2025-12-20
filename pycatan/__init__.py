@@ -15,6 +15,7 @@ from pycatan.actions import (
     GamePhase, TurnPhase, create_build_settlement_action, create_build_road_action,
     create_trade_action
 )
+from pycatan.log_events import EventType, LogEntry, create_log_entry
 from pycatan.user import User, UserInputError, validate_user_list, create_test_user
 from pycatan.human_user import HumanUser
 from pycatan.game_manager import GameManager

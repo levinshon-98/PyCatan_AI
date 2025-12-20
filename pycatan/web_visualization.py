@@ -22,6 +22,7 @@ except ImportError:
 from .visualization import Visualization
 from .actions import Action, ActionResult, GameState
 from .board_definition import board_definition
+from .log_events import EventType, LogEntry, create_log_entry
 
 
 class WebVisualization(Visualization):
@@ -65,6 +66,7 @@ class WebVisualization(Visualization):
         self.current_game_state = None
         self.action_history: List[Dict[str, Any]] = []
         self.event_history: List[Dict[str, Any]] = []  # Track all events (turn starts, dice rolls, etc.)
+        self.log_entries: List[LogEntry] = []  # Structured log entries
         
         # SSE (Server-Sent Events) for real-time updates
         self.sse_clients: List[Queue] = []
@@ -539,48 +541,141 @@ class WebVisualization(Visualization):
             if client in self.sse_clients:
                 self.sse_clients.remove(client)
     
+    def _map_action_to_event(self, action: Action, result: ActionResult) -> tuple:
+        """
+        Map ActionType to EventType and extract relevant data.
+        Returns: (EventType, data_dict)
+        """
+        from .actions import ActionType as AT
+        
+        event_data = {}
+        
+        # Extract common parameters
+        params = action.parameters if hasattr(action, 'parameters') else {}
+        
+        if action.action_type == AT.BUILD_SETTLEMENT or action.action_type == AT.PLACE_STARTING_SETTLEMENT:
+            event_type = EventType.BUILD_SETTLEMENT
+            event_data['point'] = params.get('point', '?')
+            event_data['is_starting'] = action.action_type == AT.PLACE_STARTING_SETTLEMENT
+            if result.success and 'cost' in params:
+                event_data['cost'] = params['cost']
+        
+        elif action.action_type == AT.BUILD_CITY:
+            event_type = EventType.BUILD_CITY
+            event_data['point'] = params.get('point', '?')
+            if result.success and 'cost' in params:
+                event_data['cost'] = params['cost']
+        
+        elif action.action_type == AT.BUILD_ROAD or action.action_type == AT.PLACE_STARTING_ROAD:
+            event_type = EventType.BUILD_ROAD
+            event_data['points'] = params.get('points', ['?', '?'])
+            event_data['is_starting'] = action.action_type == AT.PLACE_STARTING_ROAD
+            if result.success and 'cost' in params:
+                event_data['cost'] = params['cost']
+        
+        elif action.action_type == AT.BUY_DEV_CARD:
+            event_type = EventType.BUY_DEV_CARD
+            event_data['card'] = params.get('card', 'Unknown')
+            if result.success:
+                event_data['cost'] = ['ORE', 'SHEEP', 'WHEAT']
+        
+        elif action.action_type == AT.USE_DEV_CARD:
+            event_type = EventType.USE_DEV_CARD
+            event_data['card'] = params.get('card_type', 'Unknown')
+            if 'details' in params:
+                event_data['details'] = params['details']
+        
+        elif action.action_type == AT.ROLL_DICE:
+            event_type = EventType.DICE_ROLL
+            event_data['dice'] = params.get('dice', [0, 0])
+            event_data['total'] = sum(event_data['dice'])
+        
+        elif action.action_type == AT.ROBBER_MOVE:
+            event_type = EventType.ROBBER_MOVE
+            event_data['tile'] = params.get('tile', '?')
+            if 'victim' in params:
+                event_data['victim'] = params['victim']
+        
+        elif action.action_type == AT.TRADE_BANK:
+            event_type = EventType.TRADE_BANK
+            event_data['give'] = params.get('give', {})
+            event_data['receive'] = params.get('receive', {})
+        
+        elif action.action_type == AT.TRADE_PROPOSE:
+            event_type = EventType.TRADE_PROPOSE
+            event_data['to_player'] = params.get('to_player', '?')
+            event_data['offer'] = params.get('offer', {})
+            event_data['request'] = params.get('request', {})
+        
+        elif action.action_type == AT.TRADE_RESPOND:
+            event_type = EventType.TRADE_RESPONSE
+            event_data['response'] = params.get('response', 'UNKNOWN')
+        
+        elif action.action_type == AT.DISCARD_CARDS:
+            event_type = EventType.DISCARD_CARDS
+            event_data['cards'] = params.get('cards', [])
+            event_data['count'] = len(event_data['cards'])
+        
+        elif action.action_type == AT.END_TURN:
+            event_type = EventType.TURN_END
+            # Add player state at end of turn
+            if 'player_state' in params:
+                ps = params['player_state']
+                event_data['vp'] = ps.get('victory_points', 0)
+                event_data['cards'] = ps.get('card_count', 0)
+                event_data['roads'] = ps.get('roads', 0)
+                event_data['settlements'] = ps.get('settlements', 0)
+                event_data['cities'] = ps.get('cities', 0)
+        
+        else:
+            # Generic action
+            event_type = EventType.ACTION_FAILED if not result.success else EventType.TURN_START
+            event_data['action'] = action.action_type.name
+        
+        return event_type, event_data
+    
     def notify_action(self, action: Action, result: ActionResult):
         """Notify web clients of action execution."""
-        timestamp = datetime.now().strftime("%H:%M:%S")
-        
         # Get player name from action parameters (added by GameManager)
         player_name = action.parameters.get('player_name', f'Player {action.player_id + 1}') if hasattr(action, 'parameters') and action.parameters else f'Player {action.player_id + 1}'
         
-        # Generate a better message for the web log
-        message = result.error_message
-        if result.success:
-            action_name = action.action_type.name
-            if action_name == 'BUILD_SETTLEMENT':
-                message = f"{player_name} built a settlement"
-            elif action_name == 'BUILD_CITY':
-                message = f"{player_name} built a city"
-            elif action_name == 'BUILD_ROAD':
-                message = f"{player_name} built a road"
-            elif action_name == 'BUY_DEV_CARD':
-                message = f"{player_name} bought a development card"
-            elif action_name == 'ROLL_DICE':
-                message = f"{player_name} rolled dice"
-            elif action_name == 'END_TURN':
-                message = f"{player_name} ended turn"
-            elif action_name == 'TRADE_BANK':
-                message = f"{player_name} traded with bank"
-            elif action_name == 'TRADE_PLAYER':
-                message = f"{player_name} traded with player"
-            else:
-                message = f"{player_name} performed {action_name}"
-
+        # Map ActionType to EventType and extract relevant data
+        event_type, event_data = self._map_action_to_event(action, result)
+        
+        # Get turn number from action parameters (added by GameManager)
+        turn_number = action.parameters.get('turn_number', 0) if hasattr(action, 'parameters') and action.parameters else 0
+        
+        # Create structured log entry
+        log_entry = create_log_entry(
+            event_type=event_type,
+            turn=turn_number,
+            player_id=action.player_id,
+            player_name=player_name,
+            data=event_data,
+            status="SUCCESS" if result.success else "FAIL",
+            error=result.error_message if not result.success else None
+        )
+        
+        # Store log entry
+        self.log_entries.append(log_entry)
+        if len(self.log_entries) > 100:
+            self.log_entries = self.log_entries[-100:]
+        
+        # Create display data from log entry
         action_data = {
-            'timestamp': timestamp,
+            'timestamp': log_entry.timestamp.strftime("%H:%M:%S.%f")[:-3],
             'action_type': action.action_type.name,
+            'event_type': event_type.value,
             'player': action.player_id,
+            'player_name': player_name,
             'success': result.success,
-            'message': message
+            'message': log_entry.to_human_string(),
+            'structured': log_entry.to_log_string(),
+            'data': event_data
         }
         
         # Add to history
         self.action_history.append(action_data)
-        
-        # Keep only last 100 actions
         if len(self.action_history) > 100:
             self.action_history = self.action_history[-100:]
         
@@ -602,6 +697,42 @@ class WebVisualization(Visualization):
         self._broadcast_to_clients({
             'type': 'game_update',
             'payload': web_state
+        })
+    
+    def log_event(self, log_entry: LogEntry):
+        """
+        Log a structured event directly.
+        This allows GameManager to send detailed log entries.
+        """
+        # Store log entry
+        self.log_entries.append(log_entry)
+        if len(self.log_entries) > 100:
+            self.log_entries = self.log_entries[-100:]
+        
+        # Create display data
+        event_data = {
+            'timestamp': log_entry.timestamp.strftime("%H:%M:%S.%f")[:-3],
+            'event_type': log_entry.event_type.value,
+            'turn': log_entry.turn,
+            'player_id': log_entry.player_id,
+            'player_name': log_entry.player_name,
+            'success': log_entry.status == "SUCCESS",
+            'status': log_entry.status,
+            'message': log_entry.to_human_string(),
+            'structured': log_entry.to_log_string(),
+            'data': log_entry.data,
+            'error': log_entry.error
+        }
+        
+        # Add to history
+        self.event_history.append(event_data)
+        if len(self.event_history) > 100:
+            self.event_history = self.event_history[-100:]
+        
+        # Broadcast to web clients
+        self._broadcast_to_clients({
+            'type': 'log_event',
+            'payload': event_data
         })
 
     # ===== ConsoleVisualization Interface Compatibility =====
@@ -632,62 +763,55 @@ class WebVisualization(Visualization):
     
     def display_turn_start(self, player_name: str, turn_number: int) -> None:
         """Display turn start notification (ConsoleVisualization interface)."""
-        timestamp = datetime.now().strftime("%H:%M:%S")
+        # Create structured log entry
+        log_entry = create_log_entry(
+            event_type=EventType.TURN_START,
+            turn=turn_number,
+            player_name=player_name,
+            data={'phase': 'MAIN'}
+        )
         
-        message_data = {
-            'timestamp': timestamp,
-            'type': 'turn_start',
-            'player_name': player_name,
-            'turn_number': turn_number,
-            'message': f"Turn {turn_number}: {player_name}'s turn begins"
-        }
-        
-        # Add to event history
-        self.event_history.append(message_data)
-        # Keep only last 100 events
-        if len(self.event_history) > 100:
-            self.event_history = self.event_history[-100:]
-        
-        # Broadcast to web clients
-        self._broadcast_to_clients({
-            'type': 'turn_start',
-            'payload': message_data
-        })
+        # Use the log_event method
+        self.log_event(log_entry)
     
     def display_dice_roll(self, player_name: str, dice_values: List[int], total: int) -> None:
         """Display dice roll results (ConsoleVisualization interface)."""
-        timestamp = datetime.now().strftime("%H:%M:%S")
+        # Create structured log entry
+        log_entry = create_log_entry(
+            event_type=EventType.DICE_ROLL,
+            turn=0,  # Turn number will be set by GameManager
+            player_name=player_name,
+            data={
+                'dice': dice_values,
+                'total': total
+            }
+        )
         
-        dice_data = {
-            'timestamp': timestamp,
-            'player_name': player_name,
-            'dice_values': dice_values,
-            'total': total,
-            'message': f"{player_name} rolled {dice_values} = {total}"
-        }
-        
-        # Add to event history
-        self.event_history.append(dice_data)
-        if len(self.event_history) > 100:
-            self.event_history = self.event_history[-100:]
-        
-        # Broadcast to web clients
-        self._broadcast_to_clients({
-            'type': 'dice_roll',
-            'payload': dice_data
-        })
+        # Use the log_event method
+        self.log_event(log_entry)
     
     def display_resource_distribution(self, distributions: Dict[str, List[str]]) -> None:
         """Display resource distribution (ConsoleVisualization interface)."""
-        timestamp = datetime.now().strftime("%H:%M:%S")
+        # Create structured log entry for each resource distribution
+        for resource, players in distributions.items():
+            log_entry = create_log_entry(
+                event_type=EventType.RESOURCE_DIST,
+                turn=0,  # Turn number will be set by GameManager
+                data={
+                    'resource': resource,
+                    'recipients': list(range(len(players))),  # Player IDs
+                    'amounts': [1] * len(players)  # Assuming 1 card each
+                }
+            )
+            self.log_event(log_entry)
         
+        # Keep compatibility with old event history format
+        timestamp = datetime.now().strftime("%H:%M:%S")
         distribution_data = {
             'timestamp': timestamp,
             'distributions': distributions,
             'message': "Resources distributed to players"
         }
-        
-        # Add to event history
         self.event_history.append(distribution_data)
         if len(self.event_history) > 100:
             self.event_history = self.event_history[-100:]

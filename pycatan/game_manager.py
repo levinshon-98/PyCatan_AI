@@ -1153,6 +1153,109 @@ class GameManager:
                 "ACTION_PROCESSING_ERROR"
             )
     
+    def _enrich_action_parameters(self, action: Action, result: ActionResult) -> None:
+        """
+        Enrich action parameters with detailed information for visualization and logging.
+        Adds all relevant details like point numbers, costs, card types, etc.
+        """
+        from .card import ResCard, DevCard
+        from .board_definition import board_definition
+        
+        # Ensure parameters dict exists
+        if not hasattr(action, 'parameters') or action.parameters is None:
+            action.parameters = {}
+        
+        params = action.parameters
+        
+        # Add turn number
+        params['turn_number'] = self._current_game_state.turn_number
+        
+        # Building actions - add point number and costs
+        if action.action_type in [ActionType.BUILD_SETTLEMENT, ActionType.PLACE_STARTING_SETTLEMENT]:
+            if 'point_coords' in params:
+                coords = params['point_coords']
+                try:
+                    point_id = board_definition.game_coords_to_point_id(coords[0], coords[1])
+                    params['point'] = point_id if point_id else f"[{coords[0]},{coords[1]}]"
+                except:
+                    params['point'] = f"[{coords[0]},{coords[1]}]"
+            
+            if result.success and action.action_type == ActionType.BUILD_SETTLEMENT:
+                params['cost'] = ['WOOD', 'BRICK', 'WHEAT', 'SHEEP']
+        
+        elif action.action_type == ActionType.BUILD_CITY:
+            if 'point_coords' in params:
+                coords = params['point_coords']
+                try:
+                    point_id = board_definition.game_coords_to_point_id(coords[0], coords[1])
+                    params['point'] = point_id if point_id else f"[{coords[0]},{coords[1]}]"
+                except:
+                    params['point'] = f"[{coords[0]},{coords[1]}]"
+            
+            if result.success:
+                params['cost'] = ['ORE', 'ORE', 'ORE', 'WHEAT', 'WHEAT']
+        
+        elif action.action_type in [ActionType.BUILD_ROAD, ActionType.PLACE_STARTING_ROAD]:
+            if 'start_coords' in params and 'end_coords' in params:
+                start_coords = params['start_coords']
+                end_coords = params['end_coords']
+                try:
+                    start_id = board_definition.game_coords_to_point_id(start_coords[0], start_coords[1])
+                    end_id = board_definition.game_coords_to_point_id(end_coords[0], end_coords[1])
+                    params['points'] = [start_id, end_id] if (start_id and end_id) else [start_coords, end_coords]
+                except:
+                    params['points'] = [start_coords, end_coords]
+            
+            if result.success and action.action_type == ActionType.BUILD_ROAD:
+                params['cost'] = ['WOOD', 'BRICK']
+        
+        # Dev card actions
+        elif action.action_type == ActionType.BUY_DEV_CARD:
+            if result.success:
+                # Try to get the actual card that was drawn
+                player = self.game.players[action.player_id]
+                if player.dev_cards:
+                    last_card = player.dev_cards[-1]
+                    params['card'] = last_card.name if hasattr(last_card, 'name') else str(last_card)
+                params['cost'] = ['ORE', 'SHEEP', 'WHEAT']
+        
+        elif action.action_type == ActionType.USE_DEV_CARD:
+            if 'card_type' in params:
+                card_type = params['card_type']
+                params['card'] = card_type.name if hasattr(card_type, 'name') else str(card_type)
+        
+        # Dice roll
+        elif action.action_type == ActionType.ROLL_DICE:
+            if 'dice' in params:
+                params['total'] = sum(params['dice'])
+        
+        # Robber actions
+        elif action.action_type == ActionType.ROBBER_MOVE:
+            if 'tile_coords' in params:
+                params['tile'] = str(params['tile_coords'])
+        
+        # Trading
+        elif action.action_type == ActionType.TRADE_BANK:
+            # params should already have 'give' and 'receive'
+            pass
+        
+        elif action.action_type == ActionType.TRADE_PROPOSE:
+            if 'target_player' in params:
+                target_id = params['target_player']
+                target_name = self.users[target_id].name if hasattr(self.users[target_id], 'name') else f"Player {target_id}"
+                params['to_player'] = target_name
+        
+        # End turn - add player state
+        elif action.action_type == ActionType.END_TURN:
+            player = self.game.players[action.player_id]
+            params['player_state'] = {
+                'victory_points': player.victory_points,
+                'card_count': len(player.cards),
+                'roads': len(player.roads),
+                'settlements': len(player.settlements),
+                'cities': len(player.cities)
+            }
+    
     def _update_all_systems(self, action: Action, result: ActionResult) -> None:
         """
         Updates all systems after an action has been executed.
@@ -1198,6 +1301,9 @@ class GameManager:
                 if 'player_name' not in action.parameters:
                     player_name = self.users[action.player_id].name if hasattr(self.users[action.player_id], 'name') else f"Player {action.player_id}"
                     action.parameters['player_name'] = player_name
+                
+                # Enrich action parameters with detailed information for logging
+                self._enrich_action_parameters(action, result)
                 
                 # Display the action result (success or failure)
                 self.visualization_manager.display_action(action, result)
@@ -1429,28 +1535,26 @@ class GameManager:
         die2 = random.randint(1, 6)
         total = die1 + die2
         
+        # Update action parameters for logging/visualization
+        if not hasattr(action, 'parameters') or action.parameters is None:
+            action.parameters = {}
+        action.parameters['dice'] = [die1, die2]
+        action.parameters['total'] = total
+        
         # Update state
         self._current_game_state.dice_rolled = (die1, die2)
-        
-        # Notify visualization about dice roll
-        if self.visualization_manager:
-            player_name = self.users[action.player_id].name if hasattr(self.users[action.player_id], 'name') else f"Player {action.player_id + 1}"
-            self.visualization_manager.display_dice_roll(player_name, [die1, die2], total)
         
         # Distribute resources or handle robber
         if total != 7:
             distribution = self.game.add_yield_for_roll(total)
             
-            # Notify visualization about resources (even if empty)
-            if self.visualization_manager:
-                if distribution:
-                    self.visualization_manager.display_resource_distribution(distribution)
-                    message = f"Rolled {total} ({die1}+{die2}). Resources distributed."
-                else:
-                    # No resources were distributed (no settlements on this number)
-                    message = f"Rolled {total} ({die1}+{die2}). No settlements on this number - no resources distributed."
-            else:
+            # Add distribution to action parameters for logging
+            action.parameters['distribution'] = distribution
+            
+            if distribution:
                 message = f"Rolled {total} ({die1}+{die2}). Resources distributed."
+            else:
+                message = f"Rolled {total} ({die1}+{die2}). No settlements on this number."
         else:
             # Rolled 7! Handle robber sequence
             message = f"Rolled 7 ({die1}+{die2})! 🏴‍☠️ Robber activated!"
