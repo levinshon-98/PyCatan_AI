@@ -607,9 +607,9 @@ class WebVisualization(Visualization):
             event_data['offer'] = params.get('offer', {})
             event_data['request'] = params.get('request', {})
         
-        elif action.action_type == AT.TRADE_RESPOND:
+        elif action.action_type in [AT.TRADE_ACCEPT, AT.TRADE_REJECT]:
             event_type = EventType.TRADE_RESPONSE
-            event_data['response'] = params.get('response', 'UNKNOWN')
+            event_data['response'] = 'ACCEPT' if action.action_type == AT.TRADE_ACCEPT else 'REJECT'
         
         elif action.action_type == AT.DISCARD_CARDS:
             event_type = EventType.DISCARD_CARDS
@@ -724,10 +724,15 @@ class WebVisualization(Visualization):
             'error': log_entry.error
         }
         
-        # Add to history
+        # Add to BOTH histories so it appears in the action log
         self.event_history.append(event_data)
         if len(self.event_history) > 100:
             self.event_history = self.event_history[-100:]
+        
+        # Also add to action_history for display in UI
+        self.action_history.append(event_data)
+        if len(self.action_history) > 100:
+            self.action_history = self.action_history[-100:]
         
         # Broadcast to web clients
         self._broadcast_to_clients({

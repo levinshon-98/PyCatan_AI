@@ -148,6 +148,9 @@ function connectToSSE() {
                     updateGameState(data.payload);
                 } else if (data.type === 'action_executed') {
                     logAction(data.payload);
+                } else if (data.type === 'log_event') {
+                    // Handle structured log events (like resource distribution)
+                    logAction(data.payload);
                 } else if (data.type === 'dice_roll') {
                     logEvent(data.payload, 'log-dice');
                 } else if (data.type === 'resource_distribution') {

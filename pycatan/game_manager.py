@@ -795,12 +795,129 @@ class GameManager:
     
     def _use_knight_card(self, player_id: int, action: Action) -> ActionResult:
         """Use Knight card - move robber and steal."""
-        return ActionResult.failure_result(
-            "Knight card usage not yet fully implemented.\n"
-            "    💬 You need to move the robber and optionally steal from a player.\n"
-            "    Use 'robber [tile_id]' first, then this card will work.",
-            "NOT_IMPLEMENTED"
-        )
+        try:
+            from pycatan.card import DevCard
+            
+            # DEBUG: Check if player has the card
+            player = self.game.players[player_id]
+            player_name = self.users[player_id].name if hasattr(self.users[player_id], 'name') else f"Player {player_id}"
+            
+            if not player.has_dev_cards([DevCard.Knight]):
+                error_msg = f"❌ {player_name}, you don't have a Knight card!"
+                print(f"\n{error_msg}")
+                return ActionResult.failure_result(error_msg, "NO_CARD")
+            
+            # Get parameters from action
+            tile_coords = action.parameters.get('tile_coords')
+            victim_id = action.parameters.get('victim_id')
+            
+            if not tile_coords:
+                error_msg = (
+                    "Knight card requires robber tile location.\n"
+                    "    Format: use knight tile [tile_id] [steal [player_name]]\n"
+                    "    Example: use knight tile 5 steal Bob"
+                )
+                print(f"\n❌ {error_msg}")
+                return ActionResult.failure_result(error_msg, "MISSING_PARAMS")
+            
+            row, index = tile_coords
+            
+            # Validate tile exists
+            try:
+                tile = self.game.board.tiles[row][index]
+            except (IndexError, KeyError):
+                error_msg = f"❌ Invalid tile coordinates: [{row}, {index}]"
+                print(f"\n{error_msg}")
+                return ActionResult.failure_result(error_msg, "INVALID_COORDS")
+            
+            # Check if robber is already there
+            current_robber_pos = getattr(self.game.board, 'robber', None)
+            if current_robber_pos and current_robber_pos == [row, index]:
+                from pycatan.board_definition import board_definition
+                hex_id = board_definition.game_coords_to_hex_id(row, index)
+                tile_display = f"tile {hex_id}" if hex_id else f"[{row}, {index}]"
+                error_msg = f"❌ The robber is already on {tile_display}! Choose a different tile."
+                print(f"\n{error_msg}")
+                return ActionResult.failure_result(error_msg, "SAME_POSITION")
+            
+            # If victim_id is None, we'll let the game automatically select
+            # or use the first stealable player
+            if victim_id is None:
+                # Get stealable players
+                stealable = self._get_stealable_players(row, index)
+                if stealable:
+                    # Auto-select first stealable player
+                    victim_id = stealable[0]
+            
+            # Prepare args for game.use_dev_card()
+            args = {
+                'robber_pos': [row, index],
+                'victim': victim_id
+            }
+            
+            # Convert coordinates to hex ID for user-friendly messages
+            from pycatan.board_definition import board_definition
+            hex_id = board_definition.game_coords_to_hex_id(row, index)
+            tile_display = f"tile {hex_id}" if hex_id else f"[{row}, {index}]"
+            
+            print(f"\n🎴 {player_name} is using Knight card...")
+            
+            # Execute the knight card
+            status = self.game.use_dev_card(player_id, DevCard.Knight, args)
+            
+            if status != Statuses.ALL_GOOD:
+                # Provide more specific error message for Knight card failures
+                error_msg = "Invalid input"
+                if status == Statuses.ERR_INPUT and victim_id is not None:
+                    victim_name = self.users[victim_id].name if hasattr(self.users[victim_id], 'name') else f"Player {victim_id}"
+                    error_msg = f"Cannot steal from {victim_name} - they have no settlements or cities adjacent to {tile_display}"
+                    print(f"\n    ✗ {error_msg}\n")
+                
+                return self._convert_status_to_result(status, self.get_full_state(), [player_id])
+            
+            # Remove the card from player's hand
+            self.game.players[player_id].remove_dev_card(DevCard.Knight)
+            
+            # Update visualizations
+            player_name = self.users[player_id].name if hasattr(self.users[player_id], 'name') else f"Player {player_id}"
+            
+            # Print robber move notification immediately
+            robber_msg = f"⚔️ {player_name} used a Knight card! Robber moved to {tile_display}."
+            print(f"\n    {robber_msg}")
+            
+            # Notify about robber move
+            self._notify_all_users(
+                "knight_used",
+                robber_msg
+            )
+            
+            # Notify about card steal if victim exists
+            if victim_id is not None:
+                victim_name = self.users[victim_id].name if hasattr(self.users[victim_id], 'name') else f"Player {victim_id}"
+                self._notify_all_users(
+                    "knight_steal",
+                    f"🎯 {player_name} stole a card from {victim_name}!"
+                )
+            
+            # Notify if player got Largest Army
+            if self.game.largest_army == player_id:
+                knights_count = self.game.players[player_id].knight_cards
+                if knights_count >= 3:
+                    self._notify_all_users(
+                        "largest_army",
+                        f"🏆 {player_name} now has the Largest Army! ({knights_count} knights = +2 VP)"
+                    )
+            
+            return ActionResult.success_result(
+                self.get_full_state(),
+                affected_players=[player_id] if victim_id is None else [player_id, victim_id]
+            )
+            
+        except Exception as e:
+            return ActionResult.failure_result(
+                f"Error using Knight card: {str(e)}",
+                "EXECUTION_ERROR"
+            )
     
     def _use_monopoly_card(self, player_id: int, action: Action) -> ActionResult:
         """Use Monopoly card - take all of one resource."""
@@ -1251,9 +1368,9 @@ class GameManager:
             params['player_state'] = {
                 'victory_points': player.victory_points,
                 'card_count': len(player.cards),
-                'roads': len(player.roads),
-                'settlements': len(player.settlements),
-                'cities': len(player.cities)
+                'roads': len(player.roads) if hasattr(player, 'roads') and player.roads else 0,
+                'settlements': len(player.settlements) if hasattr(player, 'settlements') and player.settlements else 0,
+                'cities': len(player.cities) if hasattr(player, 'cities') and player.cities else 0
             }
     
     def _update_all_systems(self, action: Action, result: ActionResult) -> None:
@@ -1280,6 +1397,11 @@ class GameManager:
             result.success, 
             result.error_message or ""
         )
+        
+        # If action failed, print error message immediately to console for visibility
+        if not result.success and result.error_message:
+            player_name = self.users[action.player_id].name if hasattr(self.users[action.player_id], 'name') else f"Player {action.player_id}"
+            print(f"\n    ✗ {player_name}: {result.error_message}\n")
         
         # If action was successful, notify all users about the action
         if result.success:
@@ -1313,7 +1435,9 @@ class GameManager:
                 self.visualization_manager.display_game_state(current_state)
             except Exception as e:
                 # Log visualization errors
+                import traceback
                 print(f"Error updating visualizations: {e}")
+                print(f"Traceback: {traceback.format_exc()}")
         
         # Log the action and result for debugging
         if self.config.get('debug', False):
@@ -1550,6 +1674,60 @@ class GameManager:
             
             # Add distribution to action parameters for logging
             action.parameters['distribution'] = distribution
+            
+            # Send individual log events for each resource distribution
+            if distribution and self.visualization_manager:
+                from .log_events import EventType, create_log_entry
+                
+                for player_key, resources in distribution.items():
+                    if resources:  # Only log if player actually got resources
+                        # Extract player ID from "Player X" format or match by name
+                        player_id = None
+                        player_name = None
+                        
+                        # Try to extract player ID from "Player X" format
+                        if player_key.startswith("Player "):
+                            try:
+                                player_id = int(player_key.split()[-1]) - 1  # "Player 1" -> 0
+                                if 0 <= player_id < len(self.users):
+                                    player_name = self.users[player_id].name if hasattr(self.users[player_id], 'name') else player_key
+                            except:
+                                pass
+                        
+                        # Fallback: try to match by name
+                        if player_id is None:
+                            for i, user in enumerate(self.users):
+                                if hasattr(user, 'name') and user.name == player_key:
+                                    player_id = i
+                                    player_name = player_key
+                                    break
+                        
+                        # If still not found, skip this entry
+                        if player_id is None:
+                            continue
+                        
+                        # Count resources by type
+                        resource_counts = {}
+                        for res in resources:
+                            resource_counts[res] = resource_counts.get(res, 0) + 1
+                        
+                        # Create log entry
+                        log_entry = create_log_entry(
+                            event_type=EventType.RESOURCE_DIST,
+                            turn=self._current_game_state.turn_number,
+                            player_id=player_id,
+                            player_name=player_name,
+                            data={
+                                'resources': resource_counts,
+                                'total': len(resources),
+                                'dice_roll': total
+                            }
+                        )
+                        
+                        # Send to visualizations
+                        for viz in self.visualization_manager.visualizations:
+                            if hasattr(viz, 'log_event'):
+                                viz.log_event(log_entry)
             
             if distribution:
                 message = f"Rolled {total} ({die1}+{die2}). Resources distributed."

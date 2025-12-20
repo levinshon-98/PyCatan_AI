@@ -657,6 +657,56 @@ class HumanUser(User):
             except (ValueError, IndexError):
                 raise UserInputError("Invalid road format. Point numbers must be integers.")
         
+        # Handle Knight card - needs tile location and optional victim
+        elif dev_card_type == 'Knight':
+            # Format: use knight tile [tile_id] [steal [player_name]]
+            # parts = ['use', 'knight', 'tile', '5', 'steal', 'Alice']
+            if len(parts) < 4 or parts[2] != 'tile':
+                raise UserInputError(
+                    "Knight card needs tile location.\n"
+                    "    Format: use knight tile [tile_id] [steal [player_name]]\n"
+                    "    Example: use knight tile 5\n"
+                    "    Example: use knight tile 5 steal Bob"
+                )
+            
+            try:
+                # Parse tile ID
+                tile_id = int(parts[3])
+                
+                # Convert tile ID to game coordinates using board_definition
+                tile_coords = board_definition.tile_id_to_game_coords(tile_id)
+                if tile_coords is None:
+                    max_tile = len(board_definition.get_all_tile_ids())
+                    raise UserInputError(f"Invalid tile ID: {tile_id}. Valid tiles: 1-{max_tile}")
+                
+                params['tile_coords'] = tile_coords
+                
+                # Parse optional victim
+                victim_name = None
+                if len(parts) >= 6 and parts[4] == 'steal':
+                    victim_name = parts[5]
+                    
+                    # Find player ID by name
+                    victim_id = None
+                    for pid, user in enumerate(game_state.players):
+                        if user['name'].lower() == victim_name.lower():
+                            victim_id = pid
+                            break
+                    
+                    if victim_id is None:
+                        raise UserInputError(f"Player '{victim_name}' not found")
+                    
+                    # Don't allow stealing from yourself
+                    if victim_id == self.user_id:
+                        raise UserInputError("You cannot steal from yourself!")
+                    
+                    params['victim_id'] = victim_id
+                else:
+                    params['victim_id'] = None
+                
+            except ValueError:
+                raise UserInputError("Tile ID must be a number. Example: 'use knight tile 5'")
+        
         # Each card type needs specific additional input
         # For now, we'll create the action with just the card type
         # The GameManager will request additional input as needed
@@ -854,15 +904,19 @@ class HumanUser(User):
         print()
         print("  📋 Card Types & Effects:")
         print("     knight         - Move robber + steal card (gives +1 knight count)")
+        print("                      Format: use knight tile [tile_id] [steal [player_name]]")
+        print("                      Example: use knight tile 5 steal Bob")
         print("     road           - Build 2 free roads instantly")
+        print("                      Format: use road rd [p1] [p2] rd [p3] [p4]")
+        print("                      Example: use road rd 10 11 rd 12 13")
         print("     monopoly       - Take ALL cards of one resource from all players")
         print("     yearofplenty   - Take any 2 resource cards from bank")
         print("     victorypoint   - +1 VP (auto-counted, don't use manually)")
         print()
         print("  💡 Tips:")
         print("     • 3+ knights = Largest Army (2 VP)")
-        print("     • Cards are interactive - game will ask for details after 'use'")
-        print("     • Example: 'use road' then follow prompts")
+        print("     • Knight steals from random adjacent player if you don't specify")
+        print("     • Example: 'use knight tile 5' (auto-steal) or 'use knight tile 5 steal Bob'")
         print()
         print("🎲 TURN ACTIONS:")
         print("  roll               - Roll dice (short: r, dice)")

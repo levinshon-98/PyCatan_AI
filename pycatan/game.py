@@ -127,8 +127,8 @@ class Game:
             if not has_settlement:
                 return Statuses.ERR_INPUT
 
-        # moves the robber
-        self.board.move_robber(tile)
+        # moves the robber (pass tile position, not tile object)
+        self.board.move_robber(tile.position)
         # takes a random card from the victim
         if victim != None:
             # removes a random card from the victim
@@ -284,8 +284,12 @@ class Game:
                 if args["victim"] < 0 or args["victim"] >= len(self.players) or args["victim"] == player:
                     return Statuses.ERR_INPUT
 
+            # Get the tile object from coordinates
+            r, i = args["robber_pos"]
+            tile = self.board.tiles[r][i]
+            
             # moves the robber
-            result = self.move_robber(r=args["robber_pos"][0], i=args["robber_pos"][1], player=player, victim=args["victim"])
+            result = self.move_robber(tile=tile, player=player, victim=args["victim"])
 
             if result != Statuses.ALL_GOOD:
                 return result
@@ -430,9 +434,14 @@ class Game:
         return roads
 
     def _get_robber_position(self):
-        """Get current robber position."""
+        """Get current robber position as [row, col] list."""
         if hasattr(self.board, 'robber') and self.board.robber:
-            return self.board.robber
+            robber = self.board.robber
+            # Handle case where robber might be a Tile object (old bug)
+            if hasattr(robber, 'position'):
+                return robber.position
+            # Normal case - robber is already a list [row, col]
+            return robber
         return [3, 3]  # Default center position if not found
 
     def _get_tiles_info(self):
