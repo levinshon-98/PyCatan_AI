@@ -906,12 +906,6 @@ class GameManager:
             if self.visualization_manager:
                 self.visualization_manager.log_event(knight_log)
             
-            # Notify about robber move
-            self._notify_all_users(
-                "knight_used",
-                robber_msg
-            )
-            
             # Notify about card steal if victim exists
             if victim_id is not None:
                 victim_name = self.users[victim_id].name if hasattr(self.users[victim_id], 'name') else f"Player {victim_id}"
@@ -950,22 +944,17 @@ class GameManager:
                 
                 if self.visualization_manager:
                     self.visualization_manager.log_event(steal_log)
-                
-                self._notify_all_users("knight_steal", steal_msg)
             
-            # Notify if player got Largest Army
-            if self.game.largest_army == player_id:
-                knights_count = self.game.players[player_id].knight_cards
-                if knights_count >= 3:
-                    self._notify_all_users(
-                        "largest_army",
-                        f"🏆 {player_name} now has the Largest Army! ({knights_count} knights = +2 VP)"
-                    )
-            
-            return ActionResult.success_result(
+            # Create result object with success
+            result = ActionResult.success_result(
                 self.get_full_state(),
                 affected_players=[player_id] if victim_id is None else [player_id, victim_id]
             )
+            
+            # Mark that we already logged this action (to prevent double logging in _update_all_systems)
+            result.already_logged = True
+            
+            return result
             
         except Exception as e:
             return ActionResult.failure_result(
@@ -1537,8 +1526,10 @@ class GameManager:
                 # Enrich action parameters with detailed information for logging
                 self._enrich_action_parameters(action, result)
                 
-                # Display the action result (success or failure)
-                self.visualization_manager.display_action(action, result)
+                # Display the action result ONLY if it wasn't already logged
+                # (some actions like Knight card handle their own logging)
+                if not hasattr(result, 'already_logged') or not result.already_logged:
+                    self.visualization_manager.display_action(action, result)
                 
                 current_state = self.get_full_state()
                 # Pass GameState object directly so visualizations can extract what they need
@@ -1725,7 +1716,7 @@ class GameManager:
             victory_points = player.get_VP(include_dev=True)
             
             # Check if this player has won (10+ victory points)
-            if victory_points >= 10:
+            if victory_points >= 5:
                 self._announce_winner(player_id, victory_points)
                 return True
         
