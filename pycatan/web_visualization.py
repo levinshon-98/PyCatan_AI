@@ -431,7 +431,10 @@ class WebVisualization(Visualization):
                 'cities': len(getattr(player, 'cities', [])),
                 'roads': len(getattr(player, 'roads', [])),
                 'longest_road': getattr(player, 'longest_road_length', 0),
-                'knights': getattr(player, 'knight_cards', 0)
+                'has_longest_road': getattr(player, 'has_longest_road', False),
+                'knights': getattr(player, 'knight_cards', 0),
+                'knights_played': getattr(player, 'knights_played', getattr(player, 'knight_cards', 0)),
+                'has_largest_army': getattr(player, 'has_largest_army', False)
             }
             web_players.append(player_data)
         
