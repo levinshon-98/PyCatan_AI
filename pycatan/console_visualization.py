@@ -701,3 +701,25 @@ class ConsoleVisualization(Visualization):
         
         # Display structured log string
         self._print(log_entry.to_log_string())
+    
+    def display_winner(self, player_name: str, player_id: int, victory_points: int) -> None:
+        """Display game winner announcement."""
+        if not self.enabled:
+            return
+        
+        # Create a celebratory banner
+        banner_line = "=" * 60
+        stars_line = "✨ " * 30
+        
+        self._print()
+        self._print(f"{self.colors['bold']}{self.colors['yellow']}{banner_line}{self.colors['reset']}")
+        self._print(f"{self.colors['bold']}{self.colors['yellow']}{stars_line}{self.colors['reset']}")
+        self._print()
+        self._print(f"{self.colors['bold']}{self.colors['green']}🎉 GAME OVER - WE HAVE A WINNER! 🎉{self.colors['reset']}".center(80))
+        self._print()
+        self._print(f"{self.colors['bold']}{self.colors['cyan']}🏆 {player_name.upper()} (Player {player_id}) 🏆{self.colors['reset']}".center(80))
+        self._print(f"{self.colors['bold']}{self.colors['white']}with {victory_points} victory points!{self.colors['reset']}".center(80))
+        self._print()
+        self._print(f"{self.colors['bold']}{self.colors['yellow']}{stars_line}{self.colors['reset']}")
+        self._print(f"{self.colors['bold']}{self.colors['yellow']}{banner_line}{self.colors['reset']}")
+        self._print()

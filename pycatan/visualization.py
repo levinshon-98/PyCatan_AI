@@ -114,6 +114,18 @@ class Visualization(ABC):
         """
         pass
     
+    @abstractmethod
+    def display_winner(self, player_name: str, player_id: int, victory_points: int) -> None:
+        """
+        Display game winner announcement.
+        
+        Args:
+            player_name: Name of the winning player
+            player_id: ID of the winning player
+            victory_points: Number of victory points the winner achieved
+        """
+        pass
+    
     def enable(self) -> None:
         """Enable this visualization."""
         self.enabled = True
@@ -200,6 +212,12 @@ class VisualizationManager:
         for viz in self.visualizations:
             if viz.is_enabled():
                 viz.display_message(message)
+    
+    def display_winner(self, player_name: str, player_id: int, victory_points: int) -> None:
+        """Update all enabled visualizations with winner announcement."""
+        for viz in self.visualizations:
+            if viz.is_enabled():
+                viz.display_winner(player_name, player_id, victory_points)
     
     def log_event(self, log_entry: LogEntry) -> None:
         """Log a structured event to all enabled visualizations."""

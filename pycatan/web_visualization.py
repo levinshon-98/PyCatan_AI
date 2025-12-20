@@ -862,6 +862,53 @@ class WebVisualization(Visualization):
             'payload': message_data
         })
     
+    def display_winner(self, player_name: str, player_id: int, victory_points: int) -> None:
+        """Display game winner announcement."""
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        
+        winner_data = {
+            'timestamp': timestamp,
+            'player_name': player_name,
+            'player_id': player_id,
+            'victory_points': victory_points,
+            'message': f"🎉 {player_name} has won with {victory_points} victory points! 🎉"
+        }
+        
+        # Get turn number safely (handle both dict and GameState object)
+        turn_number = 0
+        if self.current_game_state:
+            if isinstance(self.current_game_state, dict):
+                turn_number = self.current_game_state.get('turn_number', 0)
+            else:
+                turn_number = getattr(self.current_game_state, 'turn_number', 0)
+        
+        # Create structured log entry
+        log_entry = create_log_entry(
+            event_type=EventType.GAME_END,
+            turn=turn_number,
+            player_id=player_id,
+            player_name=player_name,
+            data={
+                'victory_points': victory_points,
+                'winner': player_name
+            },
+            status="SUCCESS"
+        )
+        self.log_entries.append(log_entry)
+        
+        # Add to event history  
+        self.event_history.append({
+            'type': 'game_end',
+            'timestamp': timestamp,
+            'data': winner_data
+        })
+        
+        # Broadcast to web clients
+        self._broadcast_to_clients({
+            'type': 'game_winner',
+            'payload': winner_data
+        })
+    
     def _convert_dict_to_web_format(self, game_state: Dict[str, Any]) -> Dict[str, Any]:
         """Convert dict game state to web format."""
         web_format = {

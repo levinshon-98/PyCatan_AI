@@ -1716,7 +1716,7 @@ class GameManager:
             victory_points = player.get_VP(include_dev=True)
             
             # Check if this player has won (10+ victory points)
-            if victory_points >= 5:
+            if victory_points >= 10:
                 self._announce_winner(player_id, victory_points)
                 return True
         
@@ -1737,6 +1737,10 @@ class GameManager:
             "game_winner",
             f"🎉 {winner_name} has won the game with {victory_points} victory points! 🎉"
         )
+        
+        # Notify all visualizations
+        if self.visualization_manager:
+            self.visualization_manager.display_winner(winner_name, player_id, victory_points)
         
         # Log the victory for debugging/statistics
         print(f"[GAME END] Player {player_id} ({winner_name}) won with {victory_points} victory points")
