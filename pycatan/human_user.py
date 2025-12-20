@@ -608,8 +608,37 @@ class HumanUser(User):
         dev_card_type = card_type_map[card_name]
         params = {'card_type': dev_card_type}
         
+        # Handle Monopoly card - needs resource type
+        if dev_card_type == 'Monopoly':
+            # Format: use monopoly wood
+            # parts = ['use', 'monopoly', 'wood']
+            if len(parts) < 3:
+                raise UserInputError(
+                    "Monopoly card needs a resource type.\n"
+                    "    Format: use monopoly [resource]\n"
+                    "    Example: use monopoly wood\n"
+                    "    Valid resources: wood, brick, sheep, wheat, ore"
+                )
+            
+            resource_name = parts[2].lower()
+            resource_map = {
+                'wood': 'Wood',
+                'brick': 'Brick',
+                'sheep': 'Sheep',
+                'wheat': 'Wheat',
+                'ore': 'Ore'
+            }
+            
+            if resource_name not in resource_map:
+                raise UserInputError(
+                    f"Invalid resource '{resource_name}'.\n"
+                    "    Valid resources: wood, brick, sheep, wheat, ore"
+                )
+            
+            params['resource_type'] = resource_map[resource_name]
+        
         # Handle Road Building card - needs 2 roads in same command
-        if dev_card_type == 'Road':
+        elif dev_card_type == 'Road':
             # Format: use road rd 10 11 rd 12 13
             # parts = ['use', 'road', 'rd', '10', '11', 'rd', '12', '13']
             if len(parts) < 8 or parts[2] != 'rd' or parts[5] != 'rd':
@@ -912,6 +941,9 @@ class HumanUser(User):
         print("                      Format: use road rd [p1] [p2] rd [p3] [p4]")
         print("                      Example: use road rd 10 11 rd 12 13")
         print("     monopoly       - Take ALL cards of one resource from all players")
+        print("                      Format: use monopoly [resource]")
+        print("                      Example: use monopoly wood")
+        print("                      Valid: wood, brick, sheep, wheat, ore")
         print("     yearofplenty   - Take any 2 resource cards from bank")
         print("     victorypoint   - +1 VP (auto-counted, don't use manually)")
         print()

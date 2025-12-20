@@ -975,12 +975,68 @@ class GameManager:
     
     def _use_monopoly_card(self, player_id: int, action: Action) -> ActionResult:
         """Use Monopoly card - take all of one resource."""
-        return ActionResult.failure_result(
-            "Monopoly card usage not yet fully implemented.\n"
-            "    💬 You need to specify which resource to monopolize.\n"
-            "    Example: All players give you their Wood/Brick/Sheep/Wheat/Ore",
-            "NOT_IMPLEMENTED"
-        )
+        try:
+            # Get resource type from action parameters
+            resource_type = action.parameters.get('resource_type')
+            if not resource_type:
+                return ActionResult.failure_result(
+                    "Resource type not specified.\n"
+                    "    💬 Format: use monopoly [resource]\n"
+                    "    Example: use monopoly wood",
+                    "MISSING_PARAMETER"
+                )
+            
+            # Convert resource name to ResCard enum
+            from pycatan.card import ResCard
+            resource_map = {
+                'Wood': ResCard.Wood,
+                'Brick': ResCard.Brick,
+                'Sheep': ResCard.Sheep,
+                'Wheat': ResCard.Wheat,
+                'Ore': ResCard.Ore
+            }
+            
+            card_type = resource_map.get(resource_type)
+            if not card_type:
+                return ActionResult.failure_result(
+                    f"Invalid resource type: {resource_type}",
+                    "INVALID_PARAMETER"
+                )
+            
+            # Count how many cards will be stolen BEFORE using the card
+            total_stolen = 0
+            player = self.game.players[player_id]
+            for p in self.game.players:
+                if p != player:
+                    stolen = p.cards.count(card_type)
+                    total_stolen += stolen
+            
+            # Use the Monopoly card through game.py
+            from pycatan.card import DevCard
+            status = self.game.use_dev_card(
+                player_id,
+                DevCard.Monopoly,
+                {'card_type': card_type}
+            )
+            
+            if status == Statuses.ALL_GOOD:
+                resource_name = resource_type.lower()
+                player_name = self.users[player_id].name if hasattr(self.users[player_id], 'name') else f"Player {player_id}"
+                
+                print(f"    ✓ {player_name} used Monopoly! Took {total_stolen} {resource_name} cards from other players")
+                
+                return ActionResult.success_result(
+                    self.get_full_state(),
+                    affected_players=list(range(len(self.game.players)))
+                )
+            else:
+                return self._map_status_to_result(status)
+                
+        except Exception as e:
+            return ActionResult.failure_result(
+                f"Error using Monopoly card: {str(e)}",
+                "EXECUTION_ERROR"
+            )
     
     def _use_year_of_plenty_card(self, player_id: int, action: Action) -> ActionResult:
         """Use Year of Plenty card - take 2 resources from bank."""
