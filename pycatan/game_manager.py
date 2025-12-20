@@ -864,6 +864,7 @@ class GameManager:
             print(f"\n🎴 {player_name} is using Knight card...")
             
             # Execute the knight card
+            # NOTE: game.use_dev_card already removes the card at the end - don't remove it again!
             status = self.game.use_dev_card(player_id, DevCard.Knight, args)
             
             if status != Statuses.ALL_GOOD:
@@ -876,8 +877,7 @@ class GameManager:
                 
                 return self._convert_status_to_result(status, self.get_full_state(), [player_id])
             
-            # Remove the card from player's hand
-            self.game.players[player_id].remove_dev_card(DevCard.Knight)
+            # Card already removed by game.use_dev_card() - no need to remove again!
             
             # Get stolen card info from args (set by game.use_dev_card)
             stolen_card = args.get('stolen_card')
