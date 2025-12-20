@@ -123,8 +123,9 @@ class Game:
         if victim != None:
             # checks the victim has a settlement on the tile
             has_settlement = False
-            # Iterate over points and check if there is a settlement/city on any of them
-            points = self.board.get_connected_points(tile.position[0], tile.position[1])
+            # Use tile.points directly - these are the 6 points surrounding the hex tile
+            # (NOT get_connected_points which returns points connected to a point!)
+            points = tile.points
             for p in points:
                 if p != None and p.building != None:
                     # Check the victim owns the settlement/city
