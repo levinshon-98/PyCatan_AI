@@ -1,34 +1,53 @@
-from pycatan.board import Board
-from pycatan.building import Building
-from pycatan.card import ResCard, DevCard
-from pycatan.game import Game
-from pycatan.harbor import Harbor
-from pycatan.player import Player
-from pycatan.statuses import Statuses
+"""
+PyCatan - Settlers of Catan Simulation Library
 
-# Board definition system
-from pycatan.board_definition import board_definition, point_id_to_coords, coords_to_point_id
+A modular Python library for simulating Settlers of Catan games with support
+for multiple player types (human/AI) and visualization interfaces.
 
-# New simulation framework components
-from pycatan.actions import (
-    Action, ActionType, ActionResult, GameState, PlayerState, BoardState,
-    GamePhase, TurnPhase, create_build_settlement_action, create_build_road_action,
-    create_trade_action
+Architecture:
+- core: Game rules and state management
+- management: Turn flow and orchestration  
+- players: Human and AI player implementations
+- visualizations: Console and web display interfaces
+- config: Board definitions and mappings
+"""
+
+# Core game components
+from pycatan.core import (
+    Game, Board, DefaultBoard, Player, Tile, TileType, Point, Building,
+    ResCard, DevCard, Harbor, Statuses
 )
-from pycatan.log_events import EventType, LogEntry, create_log_entry
-from pycatan.user import User, UserInputError, validate_user_list, create_test_user
-from pycatan.human_user import HumanUser
-from pycatan.game_manager import GameManager
-from pycatan.visualization import Visualization, VisualizationManager
-from pycatan.console_visualization import ConsoleVisualization
+
+# Game management
+from pycatan.management import (
+    GameManager, Action, ActionType, ActionResult, GameState, PlayerState,
+    BoardState, GamePhase, TurnPhase, LogEntry, EventType
+)
+
+# Players
+from pycatan.players import (
+    User, UserInputError, validate_user_list, create_test_user, HumanUser
+)
+
+# Visualizations
+from pycatan.visualizations import (
+    Visualization, ConsoleVisualization
+)
 
 # Optional web visualization (requires Flask)
 try:
-    from pycatan.web_visualization import WebVisualization, create_web_visualization
+    from pycatan.visualizations import WebVisualization, create_web_visualization
 except ImportError:
     # Flask not available - web visualization disabled
     WebVisualization = None
     create_web_visualization = None
 
+# Configuration and mappings
+from pycatan.config import (
+    BoardDefinition, PointMapper, board_definition
+)
+
 # Complete game experience
 from pycatan.real_game import RealGame
+
+__version__ = "0.14.0"

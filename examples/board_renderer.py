@@ -1,6 +1,6 @@
-from pycatan.board import Board
+from pycatan.core.board import Board
 from pycatan.hex_type import HexType
-from pycatan.game import Game
+from pycatan.core.game import Game
 from blessings import Terminal
 import math
 

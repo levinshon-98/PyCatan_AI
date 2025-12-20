@@ -171,24 +171,35 @@ match result:
 ## 🗂️ Project Structure
 
 ```
-pycatan/
-├── game.py              # Core game logic
-├── game_manager.py      # Turn and flow management
-├── board.py             # Board base class
-├── default_board.py     # Standard Catan board
-├── player.py            # Player state management
-├── card.py              # Resource and development cards
-├── actions.py           # Action types and results
-├── user.py              # User base class
-├── human_user.py        # Human player implementation
-├── visualization.py     # Visualization base class
-├── console_visualization.py  # Console display
-├── web_visualization.py      # Web interface
-├── real_game.py         # Complete game orchestration
-└── statuses.py          # Status codes for actions
-
-tests/                   # Unit tests
-examples/                # Usage examples
+PyCatan_AI/
+├── pycatan/                    # 📦 Main library code
+│   ├── game.py                 # Core game logic
+│   ├── game_manager.py         # Turn and flow management
+│   ├── board.py                # Board base class
+│   ├── default_board.py        # Standard Catan board
+│   ├── player.py               # Player state management
+│   ├── card.py                 # Resource and development cards
+│   ├── actions.py              # Action types and results
+│   ├── log_events.py           # Event logging system
+│   ├── user.py                 # User base class
+│   ├── human_user.py           # Human player implementation
+│   ├── visualization.py        # Visualization base class
+│   ├── console_visualization.py # Console display
+│   ├── web_visualization.py    # Web interface
+│   ├── real_game.py            # Complete game orchestration
+│   └── statuses.py             # Status codes for actions
+│
+├── tests/                      # 🧪 Test suite
+│   ├── unit/                   # Unit tests for individual modules
+│   ├── integration/            # Integration tests for game scenarios
+│   └── manual/                 # Manual/interactive tests
+│
+├── examples/                   # 📚 Examples and demos
+│   ├── demos/                  # Playable game demonstrations
+│   └── scripts/                # Utility scripts for development
+│
+├── בלוג/                       # 📝 Hebrew blog posts
+└── [Configuration files]       # setup.py, README.md, etc.
 ```
 
 ## 🧪 Running Tests
@@ -197,12 +208,23 @@ examples/                # Usage examples
 # Run all tests
 python -m pytest tests/
 
+# Run only unit tests
+python -m pytest tests/unit/
+
+# Run only integration tests
+python -m pytest tests/integration/
+
 # Run specific test file
-python -m pytest tests/test_game.py
+python -m pytest tests/unit/test_game.py
 
 # Run with verbose output
 python -m pytest tests/ -v
+
+# Run with coverage report
+python -m pytest tests/ --cov=pycatan
 ```
+
+See [tests/README.md](tests/README.md) for detailed information about the test structure.
 
 ## 🌐 Web Visualization
 
