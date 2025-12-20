@@ -122,7 +122,10 @@ class ConsoleVisualization(Visualization):
                 'dev_cards': p.dev_cards,
                 'settlements': len(p.settlements),
                 'cities': len(p.cities),
-                'roads': len(p.roads)
+                'roads': len(p.roads),
+                'has_longest_road': p.has_longest_road,
+                'has_largest_army': p.has_largest_army,
+                'knights_played': p.knights_played
             }
             state_dict['players'].append(player_dict)
             
@@ -201,6 +204,21 @@ class ConsoleVisualization(Visualization):
                 self._print(f"  Buildings: {self._format_building('Settlements', settlements)}, " \
                       f"{self._format_building('Cities', cities)}, " \
                       f"{self._format_building('Roads', roads)}")
+                
+                # Achievements (Longest Road, Largest Army)
+                achievements = []
+                if player.get('has_longest_road', False):
+                    achievements.append(f"{self.colors['yellow']}🛣️ Longest Road (+2 VP){self.colors['reset']}")
+                if player.get('has_largest_army', False):
+                    achievements.append(f"{self.colors['yellow']}⚔️ Largest Army (+2 VP){self.colors['reset']}")
+                
+                # Knights played count
+                knights_played = player.get('knights_played', 0)
+                if knights_played > 0:
+                    achievements.append(f"{self.colors['cyan']}🗡️ Knights: {knights_played}{self.colors['reset']}")
+                
+                if achievements:
+                    self._print(f"  Achievements: {' | '.join(achievements)}")
         
         # Board information (simplified)
         board = game_state.get('board', {})

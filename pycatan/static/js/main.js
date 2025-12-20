@@ -246,6 +246,24 @@ function updateGameInfo(state) {
                 devCardsHtml += '</ul></div>';
             }
             
+            // Build achievements line (Longest Road, Largest Army, Knights)
+            let achievementsHtml = '';
+            const achievements = [];
+            
+            if (player.has_longest_road) {
+                achievements.push('🛣️ Longest Road (+2 VP)');
+            }
+            if (player.has_largest_army) {
+                achievements.push('⚔️ Largest Army (+2 VP)');
+            }
+            if (player.knights_played > 0) {
+                achievements.push(`🗡️ Knights: ${player.knights_played}`);
+            }
+            
+            if (achievements.length > 0) {
+                achievementsHtml = `<div class="player-achievements" style="margin-top: 5px; padding: 5px; background: rgba(255, 215, 0, 0.1); border-radius: 4px; font-size: 0.9em;">${achievements.join(' | ')}</div>`;
+            }
+            
             html += `
                 <div class="player-info ${activeClass} ${isExpanded}" data-player-id="${index}" onclick="togglePlayerInfo(this)" style="border-left-color: ${playerColor};">
                     <h4>👤 ${playerName}</h4>
@@ -258,6 +276,7 @@ function updateGameInfo(state) {
                         <strong>🏛️:</strong> ${player.cities || 0} |
                         <strong>🛣️:</strong> ${player.roads || 0}
                     </div>
+                    ${achievementsHtml}
                     <div class="player-cards">
                         ${cardsHtml}
                         ${devCardsHtml}
