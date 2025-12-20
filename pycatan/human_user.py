@@ -674,7 +674,7 @@ class HumanUser(User):
                 tile_id = int(parts[3])
                 
                 # Convert tile ID to game coordinates using board_definition
-                tile_coords = board_definition.tile_id_to_game_coords(tile_id)
+                tile_coords = board_definition.hex_id_to_game_coords(tile_id)
                 if tile_coords is None:
                     max_tile = len(board_definition.get_all_tile_ids())
                     raise UserInputError(f"Invalid tile ID: {tile_id}. Valid tiles: 1-{max_tile}")
@@ -688,8 +688,10 @@ class HumanUser(User):
                     
                     # Find player ID by name
                     victim_id = None
-                    for pid, user in enumerate(game_state.players):
-                        if user['name'].lower() == victim_name.lower():
+                    for pid, player_state in enumerate(game_state.players_state):
+                        # PlayerState has a 'name' attribute
+                        user_name = player_state.name if hasattr(player_state, 'name') else 'UNKNOWN'
+                        if user_name.lower() == victim_name.lower():
                             victim_id = pid
                             break
                     

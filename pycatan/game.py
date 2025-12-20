@@ -112,7 +112,14 @@ class Game:
     # Note that player is the player moving the robber
     # and victim is the player whose card is being taken
     def move_robber(self, tile, player, victim):
+        """
+        Move robber to a new tile and optionally steal from a player.
+        
+        Returns:
+            tuple: (Statuses, stolen_card) where stolen_card is the ResCard that was stolen (or None)
+        """
         # checks the player wants to take a card from somebody
+        stolen_card = None
         if victim != None:
             # checks the victim has a settlement on the tile
             has_settlement = False
@@ -125,20 +132,20 @@ class Game:
                         has_settlement = True
 
             if not has_settlement:
-                return Statuses.ERR_INPUT
+                return (Statuses.ERR_INPUT, None)
 
         # moves the robber (pass tile position, not tile object)
         self.board.move_robber(tile.position)
         # takes a random card from the victim
-        if victim != None:
+        if victim != None and len(self.players[victim].cards) > 0:
             # removes a random card from the victim
             index = round(random.random() * (len(self.players[victim].cards) - 1))
-            card = self.players[victim].cards[index]
-            self.players[victim].remove_cards([card])
+            stolen_card = self.players[victim].cards[index]
+            self.players[victim].remove_cards([stolen_card])
             # adds it to the player
-            self.players[player].add_cards([card])
+            self.players[player].add_cards([stolen_card])
 
-        return Statuses.ALL_GOOD
+        return (Statuses.ALL_GOOD, stolen_card)
 
     # trades cards from a player to the bank
     # either by 4 for 1 or using a harbor
@@ -288,8 +295,12 @@ class Game:
             r, i = args["robber_pos"]
             tile = self.board.tiles[r][i]
             
-            # moves the robber
-            result = self.move_robber(tile=tile, player=player, victim=args["victim"])
+            # moves the robber and get stolen card info
+            result, stolen_card = self.move_robber(tile=tile, player=player, victim=args["victim"])
+            
+            # Store stolen card info in args for GameManager to use
+            if stolen_card:
+                args["stolen_card"] = stolen_card
 
             if result != Statuses.ALL_GOOD:
                 return result

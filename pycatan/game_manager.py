@@ -798,7 +798,7 @@ class GameManager:
         try:
             from pycatan.card import DevCard
             
-            # DEBUG: Check if player has the card
+            # Check if player has the card
             player = self.game.players[player_id]
             player_name = self.users[player_id].name if hasattr(self.users[player_id], 'name') else f"Player {player_id}"
             
