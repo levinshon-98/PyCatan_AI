@@ -1,1 +1,5 @@
 include readme.md
+include LICENSE.txt
+recursive-include pycatan/config/data *.json
+recursive-include pycatan/templates *.html
+recursive-include pycatan/static *.css *.js *.png *.jpg
