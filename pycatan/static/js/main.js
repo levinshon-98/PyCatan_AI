@@ -148,9 +148,6 @@ function connectToSSE() {
                     updateGameState(data.payload);
                 } else if (data.type === 'action_executed') {
                     logAction(data.payload);
-                } else if (data.type === 'log_event') {
-                    // Handle structured log events (like resource distribution)
-                    logAction(data.payload);
                 } else if (data.type === 'dice_roll') {
                     logEvent(data.payload, 'log-dice');
                 } else if (data.type === 'resource_distribution') {
@@ -161,8 +158,6 @@ function connectToSSE() {
                     logEvent(data.payload, 'info');
                 } else if (data.type === 'error') {
                     logEvent(data.payload, 'error');
-                } else if (data.type === 'game_winner') {
-                    showWinnerAnnouncement(data.payload);
                 }
             };
             
@@ -248,24 +243,6 @@ function updateGameInfo(state) {
                 devCardsHtml += '</ul></div>';
             }
             
-            // Build achievements line (Longest Road, Largest Army, Knights)
-            let achievementsHtml = '';
-            const achievements = [];
-            
-            if (player.has_longest_road) {
-                achievements.push('🛣️ Longest Road (+2 VP)');
-            }
-            if (player.has_largest_army) {
-                achievements.push('⚔️ Largest Army (+2 VP)');
-            }
-            if (player.knights_played > 0) {
-                achievements.push(`🗡️ Knights: ${player.knights_played}`);
-            }
-            
-            if (achievements.length > 0) {
-                achievementsHtml = `<div class="player-achievements" style="margin-top: 5px; padding: 5px; background: rgba(255, 215, 0, 0.1); border-radius: 4px; font-size: 0.9em;">${achievements.join(' | ')}</div>`;
-            }
-            
             html += `
                 <div class="player-info ${activeClass} ${isExpanded}" data-player-id="${index}" onclick="togglePlayerInfo(this)" style="border-left-color: ${playerColor};">
                     <h4>👤 ${playerName}</h4>
@@ -278,7 +255,6 @@ function updateGameInfo(state) {
                         <strong>🏛️:</strong> ${player.cities || 0} |
                         <strong>🛣️:</strong> ${player.roads || 0}
                     </div>
-                    ${achievementsHtml}
                     <div class="player-cards">
                         ${cardsHtml}
                         ${devCardsHtml}
@@ -394,131 +370,6 @@ function appendToLog(container, element) {
     
     // Scroll to bottom
     container.scrollTop = container.scrollHeight;
-}
-
-// Show winner announcement overlay
-function showWinnerAnnouncement(winnerData) {
-    console.log('🎉 GAME WINNER:', winnerData);
-    
-    // Log to action log
-    const logDiv = document.getElementById('action-log');
-    if (logDiv) {
-        const winnerEntry = document.createElement('div');
-        winnerEntry.className = 'log-winner';
-        winnerEntry.innerHTML = `
-            <strong>${winnerData.timestamp}</strong> - 
-            🎉 <strong>${winnerData.player_name}</strong> won with ${winnerData.victory_points} victory points! 🎉
-        `;
-        logDiv.insertBefore(winnerEntry, logDiv.firstChild);
-    }
-    
-    // Create fullscreen overlay
-    const overlay = document.createElement('div');
-    overlay.id = 'winner-overlay';
-    overlay.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.85);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 9999;
-        animation: fadeIn 0.5s ease-in;
-    `;
-    
-    overlay.innerHTML = `
-        <div style="
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 60px;
-            border-radius: 20px;
-            text-align: center;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-            animation: bounceIn 0.8s ease-out;
-            max-width: 600px;
-        ">
-            <div style="font-size: 80px; margin-bottom: 20px;">🎉</div>
-            <h1 style="
-                color: white;
-                font-size: 48px;
-                margin: 20px 0;
-                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-            ">GAME OVER!</h1>
-            <div style="
-                background: rgba(255, 255, 255, 0.2);
-                padding: 30px;
-                border-radius: 15px;
-                margin: 30px 0;
-            ">
-                <div style="font-size: 60px; margin-bottom: 15px;">🏆</div>
-                <h2 style="
-                    color: #ffd700;
-                    font-size: 42px;
-                    margin: 10px 0;
-                    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-                ">${winnerData.player_name.toUpperCase()}</h2>
-                <p style="
-                    color: white;
-                    font-size: 24px;
-                    margin-top: 15px;
-                ">Victory Points: ${winnerData.victory_points}</p>
-            </div>
-            <button onclick="document.getElementById('winner-overlay').remove()" style="
-                background: white;
-                color: #667eea;
-                border: none;
-                padding: 15px 40px;
-                font-size: 20px;
-                font-weight: bold;
-                border-radius: 10px;
-                cursor: pointer;
-                margin-top: 20px;
-                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-                transition: transform 0.2s;
-            " onmouseover="this.style.transform='scale(1.05)'" 
-               onmouseout="this.style.transform='scale(1)'">
-                Close
-            </button>
-        </div>
-    `;
-    
-    // Add CSS animations
-    if (!document.getElementById('winner-animations')) {
-        const style = document.createElement('style');
-        style.id = 'winner-animations';
-        style.textContent = `
-            @keyframes fadeIn {
-                from { opacity: 0; }
-                to { opacity: 1; }
-            }
-            @keyframes bounceIn {
-                0% { transform: scale(0.3); opacity: 0; }
-                50% { transform: scale(1.05); }
-                70% { transform: scale(0.9); }
-                100% { transform: scale(1); opacity: 1; }
-            }
-            .log-winner {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
-                padding: 15px;
-                border-radius: 8px;
-                margin: 10px 0;
-                font-size: 16px;
-                font-weight: bold;
-                text-align: center;
-                animation: slideIn 0.5s ease-out;
-            }
-            @keyframes slideIn {
-                from { transform: translateX(-100%); opacity: 0; }
-                to { transform: translateX(0); opacity: 1; }
-            }
-        `;
-        document.head.appendChild(style);
-    }
-    
-    document.body.appendChild(overlay);
 }
 
 // Game initialization
