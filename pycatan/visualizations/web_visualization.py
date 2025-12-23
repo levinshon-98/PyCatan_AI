@@ -52,10 +52,12 @@ class WebVisualization(Visualization):
         # Get the directory of this file
         import os
         viz_dir = os.path.dirname(os.path.abspath(__file__))
+        pycatan_dir = os.path.dirname(viz_dir)  # Go up one level to pycatan/
         
         # Flask app setup with absolute paths
+        # Static files are in pycatan/static, templates in visualizations/templates
         self.app = Flask(__name__, 
-                        static_folder=os.path.join(viz_dir, 'static'), 
+                        static_folder=os.path.join(pycatan_dir, 'static'), 
                         template_folder=os.path.join(viz_dir, 'templates'))
         
         # Disable Flask logging
