@@ -686,6 +686,45 @@ class HumanUser(User):
             except (ValueError, IndexError):
                 raise UserInputError("Invalid road format. Point numbers must be integers.")
         
+        # Handle Year of Plenty card - needs 2 resources
+        elif dev_card_type == 'YearOfPlenty':
+            # Format: use yearofplenty wood sheep
+            # parts = ['use', 'yearofplenty', 'wood', 'sheep']
+            if len(parts) < 4:
+                raise UserInputError(
+                    "Year of Plenty card needs 2 resource types.\n"
+                    "    Format: use yearofplenty [resource1] [resource2]\n"
+                    "    Example: use yearofplenty wood sheep\n"
+                    "    Example: use yearofplenty brick brick\n"
+                    "    Valid resources: wood, brick, sheep, wheat, ore"
+                )
+            
+            resource1_name = parts[2].lower()
+            resource2_name = parts[3].lower()
+            
+            resource_map = {
+                'wood': 'Wood',
+                'brick': 'Brick',
+                'sheep': 'Sheep',
+                'wheat': 'Wheat',
+                'ore': 'Ore'
+            }
+            
+            if resource1_name not in resource_map:
+                raise UserInputError(
+                    f"Invalid first resource '{resource1_name}'.\n"
+                    "    Valid resources: wood, brick, sheep, wheat, ore"
+                )
+            
+            if resource2_name not in resource_map:
+                raise UserInputError(
+                    f"Invalid second resource '{resource2_name}'.\n"
+                    "    Valid resources: wood, brick, sheep, wheat, ore"
+                )
+            
+            params['resource1'] = resource_map[resource1_name]
+            params['resource2'] = resource_map[resource2_name]
+        
         # Handle Knight card - needs tile location and optional victim
         elif dev_card_type == 'Knight':
             # Format: use knight tile [tile_id] [steal [player_name]]
@@ -944,7 +983,10 @@ class HumanUser(User):
         print("                      Format: use monopoly [resource]")
         print("                      Example: use monopoly wood")
         print("                      Valid: wood, brick, sheep, wheat, ore")
-        print("     yearofplenty   - Take any 2 resource cards from bank")
+        print("     yearofplenty   - Take any 2 resource cards from bank (can be same)")
+        print("                      Format: use yearofplenty [resource1] [resource2]")
+        print("                      Example: use yearofplenty wood sheep")
+        print("                      Example: use yearofplenty brick brick")
         print("     victorypoint   - +1 VP (auto-counted, don't use manually)")
         print()
         print("  💡 Tips:")

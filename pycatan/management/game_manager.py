@@ -1029,12 +1029,72 @@ class GameManager:
     
     def _use_year_of_plenty_card(self, player_id: int, action: Action) -> ActionResult:
         """Use Year of Plenty card - take 2 resources from bank."""
-        return ActionResult.failure_result(
-            "Year of Plenty card usage not yet fully implemented.\n"
-            "    💬 You need to specify 2 resource cards to take from the bank.\n"
-            "    Example: Take 1 Wood and 1 Brick (or 2 of the same)",
-            "NOT_IMPLEMENTED"
-        )
+        try:
+            # Get resource types from action parameters
+            resource1_str = action.parameters.get('resource1')
+            resource2_str = action.parameters.get('resource2')
+            
+            if not resource1_str or not resource2_str:
+                return ActionResult.failure_result(
+                    "Year of Plenty card needs 2 resource types.\n"
+                    "    💬 Format: use yearofplenty [resource1] [resource2]\n"
+                    "    Example: use yearofplenty wood sheep\n"
+                    "    Example: use yearofplenty brick brick",
+                    "MISSING_PARAMETER"
+                )
+            
+            # Convert resource names to ResCard enums
+            from pycatan.core.card import ResCard
+            resource_map = {
+                'Wood': ResCard.Wood,
+                'Brick': ResCard.Brick,
+                'Sheep': ResCard.Sheep,
+                'Wheat': ResCard.Wheat,
+                'Ore': ResCard.Ore
+            }
+            
+            card_one = resource_map.get(resource1_str)
+            card_two = resource_map.get(resource2_str)
+            
+            if not card_one or not card_two:
+                return ActionResult.failure_result(
+                    f"Invalid resource type: {resource1_str} or {resource2_str}",
+                    "INVALID_PARAMETER"
+                )
+            
+            # Use the Year of Plenty card through game.py
+            from pycatan.core.card import DevCard
+            status = self.game.use_dev_card(
+                player_id,
+                DevCard.YearOfPlenty,
+                {'card_one': card_one, 'card_two': card_two}
+            )
+            
+            if status == Statuses.ALL_GOOD:
+                player_name = self.users[player_id].name if hasattr(self.users[player_id], 'name') else f"Player {player_id}"
+                
+                # Create readable message
+                res1_name = resource1_str.lower()
+                res2_name = resource2_str.lower()
+                if res1_name == res2_name:
+                    message = f"    ✓ {player_name} used Year of Plenty! Took 2 {res1_name} from the bank 🎁"
+                else:
+                    message = f"    ✓ {player_name} used Year of Plenty! Took 1 {res1_name} and 1 {res2_name} from the bank 🎁"
+                
+                print(message)
+                
+                return ActionResult.success_result(
+                    self.get_full_state(),
+                    affected_players=[player_id]
+                )
+            else:
+                return self._map_status_to_result(status)
+                
+        except Exception as e:
+            return ActionResult.failure_result(
+                f"Error using Year of Plenty card: {str(e)}",
+                "EXECUTION_ERROR"
+            )
     
     def start_game(self) -> bool:
         """
