@@ -282,7 +282,10 @@ class WebVisualization(Visualization):
             'current_player': getattr(game_state, 'current_player', 0),
             'current_phase': getattr(game_state, 'game_phase', 'ACTION').name if hasattr(getattr(game_state, 'game_phase', None), 'name') else str(getattr(game_state, 'game_phase', 'ACTION')),
             'robber_position': None,
-            'dice_result': getattr(game_state, 'dice_rolled', None)
+            'dice_result': getattr(game_state, 'dice_rolled', None),
+            # Add board structure information - CRITICAL FOR AI!
+            'points': self._get_points_info(),
+            'board_graph': self._get_board_graph()
         }
         
         # Convert board data
@@ -392,6 +395,57 @@ class WebVisualization(Visualization):
                 hexes.append(hex_data)
         
         return hexes
+    
+    def _get_points_info(self) -> List[Dict[str, Any]]:
+        """
+        Get complete information about all points on the board.
+        CRITICAL FOR AI - provides board structure and connectivity.
+        
+        Returns:
+            List of point definitions with adjacency information
+        """
+        points_info = []
+        
+        for point_id in board_definition.get_all_point_ids():
+            point_def = board_definition.points.get(point_id)
+            if point_def:
+                points_info.append({
+                    'point_id': point_id,
+                    'game_coords': list(point_def.game_coords),
+                    'adjacent_points': point_def.adjacent_points,  # Which points connect via roads
+                    'adjacent_hexes': point_def.adjacent_hexes,    # Which hexes touch this point
+                    'pixel_coords': list(point_def.pixel_coords)   # For visualization
+                })
+        
+        return points_info
+    
+    def _get_board_graph(self) -> Dict[str, Any]:
+        """
+        Get the board as a graph structure for AI pathfinding and strategy.
+        
+        Returns:
+            Graph representation with nodes (points) and edges (possible roads)
+        """
+        # Create adjacency list for quick lookup
+        adjacency = {}
+        for point_id in board_definition.get_all_point_ids():
+            point_def = board_definition.points.get(point_id)
+            if point_def:
+                adjacency[point_id] = point_def.adjacent_points
+        
+        # Get hex-to-points mapping for resource strategy
+        hex_to_points = {}
+        for hex_id in board_definition.get_all_hex_ids():
+            hex_def = board_definition.hexes.get(hex_id)
+            if hex_def:
+                hex_to_points[hex_id] = hex_def.adjacent_points
+        
+        return {
+            'adjacency': adjacency,  # point_id -> [connected_point_ids]
+            'hex_to_points': hex_to_points,  # hex_id -> [point_ids_on_hex]
+            'total_points': len(board_definition.points),
+            'total_hexes': len(board_definition.hexes)
+        }
     
     def _find_robber_position(self, board_state) -> Optional[int]:
         """Find which hex has the robber."""

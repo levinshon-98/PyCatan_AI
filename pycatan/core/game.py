@@ -79,12 +79,10 @@ class Game:
             return Statuses.ERR_CARDS
         # removes the cards
         self.players[player].remove_cards(needed_cards)
-        # gives the player a dev card
-        # DEBUG: Force Year of Plenty for testing
-        self.players[player].add_dev_card(DevCard.YearOfPlenty)
-        # self.players[player].add_dev_card(self.dev_deck[0])  # Original: random card
+
+        self.players[player].add_dev_card(self.dev_deck[0]) 
         # removes that dev card from the deck
-        # del self.dev_deck[0]  # Commented out: not removing from deck in debug mode
+        del self.dev_deck[0]  # Commented out: not removing from deck in debug mode
         return Statuses.ALL_GOOD
 
     # gives players the proper cards for a given roll
