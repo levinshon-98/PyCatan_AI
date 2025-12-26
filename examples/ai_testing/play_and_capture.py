@@ -23,21 +23,51 @@ original_update_state = None
 
 
 def capturing_wrapper(original_method):
-    """Wrap the update_full_state method to capture all calls."""
-    def wrapper(self, game_state=None):
-        # Call original
+    """Wrap the display_game_state method to capture all calls."""
+    def wrapper(self, game_state):
+        # Call original (this will update visualizations with converted state)
         result = original_method(self, game_state)
         
-        # Capture from web visualization
+        # Now capture from web visualization's converted state
         for viz in self.visualizations:
             if hasattr(viz, 'current_game_state') and viz.current_game_state:
-                state_copy = json.loads(json.dumps(viz.current_game_state))
-                captured_states.append(state_copy)
-                print(f"[Captured state #{len(captured_states)}]", flush=True)
-                break  # Only capture once per update
+                try:
+                    # current_game_state is already a dict (JSON-serializable)
+                    state_copy = json.loads(json.dumps(viz.current_game_state))
+                    captured_states.append(state_copy)
+                    print(f"[✅ Captured state #{len(captured_states)}]", flush=True)
+                    break  # Only capture once per update
+                except (TypeError, AttributeError) as e:
+                    # Skip if not serializable
+                    pass
         
         return result
     return wrapper
+
+
+def clean_state_for_llm(state):
+    """Remove unnecessary fields that are noise for LLM."""
+    cleaned = json.loads(json.dumps(state))  # Deep copy
+    
+    # Clean hexes: remove pixel_coords, position, axial_coords, q, r
+    if 'hexes' in cleaned:
+        for hex in cleaned['hexes']:
+            hex.pop('pixel_coords', None)
+            hex.pop('position', None)
+            hex.pop('axial_coords', None)
+            hex.pop('q', None)
+            hex.pop('r', None)
+    
+    # Clean points: remove pixel_coords, game_coords
+    if 'points' in cleaned:
+        for point in cleaned['points']:
+            point.pop('pixel_coords', None)
+            point.pop('game_coords', None)
+    
+    # Remove board_graph entirely (redundant with points data)
+    cleaned.pop('board_graph', None)
+    
+    return cleaned
 
 
 def save_all_states():
@@ -46,6 +76,9 @@ def save_all_states():
         print("\n⚠️  No states were captured during this game.")
         return
     
+    # Clean all states for LLM
+    cleaned_states = [clean_state_for_llm(state) for state in captured_states]
+    
     # Create output directory
     output_dir = Path('examples/ai_testing/my_games')
     output_dir.mkdir(exist_ok=True)
@@ -53,25 +86,25 @@ def save_all_states():
     # Generate timestamp
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     
-    # Save full history
+    # Save full history (cleaned)
     history_file = output_dir / f'game_{timestamp}_full.json'
     with open(history_file, 'w', encoding='utf-8') as f:
         json.dump({
-            'total_states': len(captured_states),
+            'total_states': len(cleaned_states),
             'timestamp': timestamp,
-            'states': captured_states
+            'states': cleaned_states
         }, f, indent=2, ensure_ascii=False)
     
-    # Save final state
+    # Save final state (cleaned)
     final_file = output_dir / f'game_{timestamp}_final.json'
     with open(final_file, 'w', encoding='utf-8') as f:
-        json.dump(captured_states[-1], f, indent=2, ensure_ascii=False)
+        json.dump(cleaned_states[-1], f, indent=2, ensure_ascii=False)
     
-    # Also save to standard location
+    # Also save to standard location (cleaned)
     sample_file = Path('examples/ai_testing/sample_states/captured_game.json')
     sample_file.parent.mkdir(exist_ok=True)
     with open(sample_file, 'w', encoding='utf-8') as f:
-        json.dump(captured_states[-1], f, indent=2, ensure_ascii=False)
+        json.dump(cleaned_states[-1], f, indent=2, ensure_ascii=False)
     
     print("\n" + "="*80)
     print("✅ GAME SAVED SUCCESSFULLY!")
@@ -123,11 +156,30 @@ def main():
     print("Press Ctrl+C anytime to stop and save.")
     print("="*80 + "\n")
     
-    # Patch the VisualizationManager's update_full_state
+    # Patch the VisualizationManager's display_game_state
     from pycatan.visualizations.visualization import VisualizationManager
-    VisualizationManager.update_full_state = capturing_wrapper(
-        VisualizationManager.update_full_state
+    VisualizationManager.display_game_state = capturing_wrapper(
+        VisualizationManager.display_game_state
     )
+    
+    # Also patch WebVisualization.update_full_state (called directly by RealGame)
+    from pycatan.visualizations.web_visualization import WebVisualization
+    original_web_update = WebVisualization.update_full_state
+    
+    def web_update_wrapper(self, game_state):
+        """Wrap WebVisualization.update_full_state to capture states."""
+        # Call original FIRST (this updates self.current_game_state)
+        result = original_web_update(self, game_state)
+        
+        # NOW capture from the updated current_game_state
+        if hasattr(self, 'current_game_state') and self.current_game_state:
+            state_copy = json.loads(json.dumps(self.current_game_state))
+            captured_states.append(state_copy)
+            print(f"[✅ Captured state #{len(captured_states)}]", flush=True)
+        
+        return result
+    
+    WebVisualization.update_full_state = web_update_wrapper
     
     try:
         # Start game
