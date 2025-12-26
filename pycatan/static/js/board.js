@@ -527,6 +527,128 @@ class CatanBoard {
         this.svg.appendChild(line);
     }
     
+    createHarbor(harbor) {
+        // Harbor is positioned on an edge between two points
+        // We'll place it at the midpoint between the two vertices
+        
+        // Harbor types: 'wood', 'sheep', 'brick', 'wheat', 'ore', 'any'
+        // Harbor ratios: 2 (for specific resource) or 3 (for any resource)
+        
+        const harborTypeColors = {
+            'wood': '#228B22',     // Forest Green
+            'sheep': '#90EE90',    // Light Green
+            'brick': '#CD5C5C',    // Indian Red
+            'wheat': '#FFD700',    // Gold
+            'ore': '#696969',      // Dim Gray
+            'any': '#4169E1'       // Royal Blue
+        };
+        
+        const harborTypeIcons = {
+            'wood': '🌲',
+            'sheep': '🐑',
+            'brick': '🧱',
+            'wheat': '🌾',
+            'ore': '⛰️',
+            'any': '🏪'
+        };
+        
+        // Find the two vertices for this harbor
+        const pointOne = this.getVertexByPointId(harbor.point_one);
+        const pointTwo = this.getVertexByPointId(harbor.point_two);
+        
+        if (!pointOne || !pointTwo) {
+            console.warn(`Could not find vertices for harbor ${harbor.id}: points ${harbor.point_one} and ${harbor.point_two}`);
+            return;
+        }
+        
+        // Calculate midpoint between the two vertices
+        const midX = (pointOne.x + pointTwo.x) / 2;
+        const midY = (pointOne.y + pointTwo.y) / 2;
+        
+        // Calculate direction vector to push harbor outward from the board
+        const centerX = this.centerX;
+        const centerY = this.centerY;
+        const dx = midX - centerX;
+        const dy = midY - centerY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        
+        // Push harbor 45 pixels outward from the center
+        const offsetDist = 45;
+        const x = midX + (dx / dist) * offsetDist;
+        const y = midY + (dy / dist) * offsetDist;
+        
+        // Create harbor group
+        const harborGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        harborGroup.setAttribute('class', 'harbor');
+        harborGroup.setAttribute('data-harbor-id', harbor.id);
+        harborGroup.setAttribute('data-harbor-type', harbor.type);
+        harborGroup.setAttribute('data-point-one', harbor.point_one);
+        harborGroup.setAttribute('data-point-two', harbor.point_two);
+        
+        // Create harbor circle background
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', x);
+        circle.setAttribute('cy', y);
+        circle.setAttribute('r', 16);
+        circle.setAttribute('fill', harborTypeColors[harbor.type] || '#4169E1');
+        circle.setAttribute('stroke', 'white');
+        circle.setAttribute('stroke-width', 2.5);
+        circle.setAttribute('opacity', '0.95');
+        
+        // Create harbor icon/text
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', x);
+        text.setAttribute('y', y + 5);
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('fill', 'white');
+        text.setAttribute('font-size', '14');
+        text.textContent = harborTypeIcons[harbor.type] || '🏪';
+        
+        // Create harbor ratio text (smaller, below the circle)
+        const ratioText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        ratioText.setAttribute('x', x);
+        ratioText.setAttribute('y', y + 26);
+        ratioText.setAttribute('text-anchor', 'middle');
+        ratioText.setAttribute('fill', 'white');
+        ratioText.setAttribute('font-size', '8');
+        ratioText.setAttribute('font-weight', 'bold');
+        ratioText.textContent = `${harbor.ratio}:1`;
+        
+        // Create lines connecting harbor to both vertices
+        const line1 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line1.setAttribute('x1', pointOne.x);
+        line1.setAttribute('y1', pointOne.y);
+        line1.setAttribute('x2', x);
+        line1.setAttribute('y2', y);
+        line1.setAttribute('stroke', harborTypeColors[harbor.type] || '#4169E1');
+        line1.setAttribute('stroke-width', 2.5);
+        line1.setAttribute('opacity', '0.7');
+        
+        const line2 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line2.setAttribute('x1', pointTwo.x);
+        line2.setAttribute('y1', pointTwo.y);
+        line2.setAttribute('x2', x);
+        line2.setAttribute('y2', y);
+        line2.setAttribute('stroke', harborTypeColors[harbor.type] || '#4169E1');
+        line2.setAttribute('stroke-width', 2.5);
+        line2.setAttribute('opacity', '0.7');
+        
+        // Add tooltip
+        const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+        title.textContent = `Harbor: ${harbor.type} (${harbor.ratio}:1 trade)\nPoints: ${harbor.point_one}-${harbor.point_two}`;
+        harborGroup.appendChild(title);
+        
+        // Add lines first (so they appear behind the circle)
+        harborGroup.appendChild(line1);
+        harborGroup.appendChild(line2);
+        harborGroup.appendChild(circle);
+        harborGroup.appendChild(text);
+        harborGroup.appendChild(ratioText);
+        this.svg.appendChild(harborGroup);
+        
+        console.log(`🏪 Created harbor: ${harbor.type} (${harbor.ratio}:1) at points ${harbor.point_one}-${harbor.point_two}`);
+    }
+    
     // Update board from game state (called when receiving updates from server)
     updateFromGameState(gameState) {
         console.log('Updating board from game state:', gameState);
@@ -550,6 +672,14 @@ class CatanBoard {
         
         // Create vertices
         this.createVertices();
+        
+        // Add harbors from game state (before buildings so they appear behind)
+        if (gameState.harbors && gameState.harbors.length > 0) {
+            console.log(`Creating ${gameState.harbors.length} harbors from server data`);
+            gameState.harbors.forEach(harbor => {
+                this.createHarbor(harbor);
+            });
+        }
         
         // Add buildings from server data
         this.updateBuildings(gameState);

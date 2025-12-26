@@ -278,6 +278,7 @@ class WebVisualization(Visualization):
             'settlements': [],
             'cities': [],
             'roads': [],
+            'harbors': [],
             'players': [],
             'current_player': getattr(game_state, 'current_player', 0),
             'current_phase': getattr(game_state, 'game_phase', 'ACTION').name if hasattr(getattr(game_state, 'game_phase', None), 'name') else str(getattr(game_state, 'game_phase', 'ACTION')),
@@ -293,6 +294,10 @@ class WebVisualization(Visualization):
             # Convert hexes/tiles
             if hasattr(game_state.board_state, 'tiles'):
                 web_state['hexes'] = self._convert_hexes(game_state.board_state.tiles)
+            
+            # Convert harbors
+            if hasattr(game_state.board_state, 'harbors'):
+                web_state['harbors'] = self._convert_harbors(game_state.board_state.harbors)
             
             # Find robber position
             web_state['robber_position'] = self._find_robber_position(game_state.board_state)
@@ -395,6 +400,51 @@ class WebVisualization(Visualization):
                 hexes.append(hex_data)
         
         return hexes
+    
+    def _convert_harbors(self, harbors) -> List[Dict[str, Any]]:
+        """
+        Convert harbors to web format.
+        
+        Args:
+            harbors: List of harbor dictionaries from GameState
+            
+        Returns:
+            List of harbor data for web display
+        """
+        web_harbors = []
+        
+        if not harbors:
+            return web_harbors
+        
+        for i, harbor in enumerate(harbors):
+            if isinstance(harbor, dict):
+                # Harbor from Game._get_ports_info (new format)
+                harbor_data = {
+                    'id': i + 1,
+                    'type': harbor.get('resource', 'any'),  # 'wood', 'sheep', 'brick', 'wheat', 'ore', 'any'
+                    'ratio': harbor.get('ratio', 3),  # 2 or 3
+                    'point_one': harbor.get('point_one', 0),  # Point ID of first vertex
+                    'point_two': harbor.get('point_two', 0),  # Point ID of second vertex
+                }
+                web_harbors.append(harbor_data)
+            else:
+                # Harbor object (fallback for older code)
+                harbor_type = getattr(harbor, 'type', None)
+                if harbor_type:
+                    # Convert HarborType enum to string
+                    type_name = harbor_type.name.lower() if hasattr(harbor_type, 'name') else 'any'
+                    ratio = 2 if type_name != 'any' else 3
+                    
+                    harbor_data = {
+                        'id': i + 1,
+                        'type': type_name,
+                        'ratio': ratio,
+                        'point_one': 0,
+                        'point_two': 0
+                    }
+                    web_harbors.append(harbor_data)
+        
+        return web_harbors
     
     def _get_points_info(self) -> List[Dict[str, Any]]:
         """
