@@ -220,6 +220,20 @@ h1 {
     pointer-events: none;
 }
 
+/* נמלים */
+.harbor {
+    pointer-events: none;
+}
+
+.harbor circle {
+    filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.4));
+}
+
+.harbor text {
+    pointer-events: none;
+    user-select: none;
+}
+
 /* יישובים */
 .settlement {
     stroke: #2c3e50;

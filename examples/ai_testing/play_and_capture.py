@@ -21,6 +21,25 @@ from pycatan.management import game_manager as gm_module
 captured_states = []
 original_update_state = None
 
+# Output directory for states
+OUTPUT_DIR = Path('examples/ai_testing/my_games')
+CURRENT_STATE_FILE = OUTPUT_DIR / 'current_state.json'
+
+
+def save_current_state(state):
+    """Save the current state to a file (updated in real-time)."""
+    try:
+        OUTPUT_DIR.mkdir(exist_ok=True)
+        cleaned = clean_state_for_llm(state)
+        with open(CURRENT_STATE_FILE, 'w', encoding='utf-8') as f:
+            json.dump({
+                'timestamp': datetime.now().isoformat(),
+                'state_number': len(captured_states),
+                'state': cleaned
+            }, f, indent=2, ensure_ascii=False)
+    except Exception as e:
+        print(f"[⚠️ Failed to save current state: {e}]", flush=True)
+
 
 def capturing_wrapper(original_method):
     """Wrap the display_game_state method to capture all calls."""
@@ -36,6 +55,10 @@ def capturing_wrapper(original_method):
                     state_copy = json.loads(json.dumps(viz.current_game_state))
                     captured_states.append(state_copy)
                     print(f"[✅ Captured state #{len(captured_states)}]", flush=True)
+                    
+                    # Save current state to file (real-time update)
+                    save_current_state(state_copy)
+                    
                     break  # Only capture once per update
                 except (TypeError, AttributeError) as e:
                     # Skip if not serializable
@@ -114,6 +137,7 @@ def save_all_states():
     print(f"  📁 Full history: {history_file}")
     print(f"  📄 Final state:  {final_file}")
     print(f"  📌 Quick access: {sample_file}")
+    print(f"  🔄 Real-time:    {CURRENT_STATE_FILE} (updated during game)")
     print("\n" + "="*80)
     
     # Print summary
@@ -152,8 +176,10 @@ def main():
     print("="*80)
     print("🎮 CATAN WITH GUARANTEED STATE CAPTURE")
     print("="*80)
-    print("\nEvery game action will be automatically saved!")
-    print("Press Ctrl+C anytime to stop and save.")
+    print("\n📝 Every game action will be automatically saved!")
+    print(f"🔄 Real-time state: {CURRENT_STATE_FILE}")
+    print("💾 Full history saved at end of game")
+    print("⌨️  Press Ctrl+C anytime to stop and save.")
     print("="*80 + "\n")
     
     # Patch the VisualizationManager's display_game_state
@@ -176,6 +202,9 @@ def main():
             state_copy = json.loads(json.dumps(self.current_game_state))
             captured_states.append(state_copy)
             print(f"[✅ Captured state #{len(captured_states)}]", flush=True)
+            
+            # Save current state to file (real-time update)
+            save_current_state(state_copy)
         
         return result
     

@@ -483,10 +483,23 @@ class Game:
         ports = []
         for harbor in self.board.harbors:
             if harbor:
+                # Get point coordinates for harbor location
+                point_one_coords = harbor.point_one.position if hasattr(harbor.point_one, 'position') else [0, 0]
+                point_two_coords = harbor.point_two.position if hasattr(harbor.point_two, 'position') else [0, 0]
+                
+                # Convert points to point IDs using BoardDefinition
+                from pycatan.config.board_definition import board_definition
+                point_one_id = board_definition.game_coords_to_point_id(point_one_coords[0], point_one_coords[1])
+                point_two_id = board_definition.game_coords_to_point_id(point_two_coords[0], point_two_coords[1])
+                
+                # Determine ratio based on harbor type
+                ratio = 2 if harbor.type.name.lower() != 'any' else 3
+                
                 port_info = {
-                    'position': getattr(harbor, 'position', [0, 0]),
+                    'point_one': point_one_id,
+                    'point_two': point_two_id,
                     'resource': harbor.type.name.lower() if hasattr(harbor.type, 'name') else 'any',
-                    'ratio': getattr(harbor, 'ratio', 3)
+                    'ratio': ratio
                 }
                 ports.append(port_info)
         return ports
