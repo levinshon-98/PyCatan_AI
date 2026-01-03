@@ -33,7 +33,13 @@ def prompt_generator_thread():
     """
     state_file = Path('examples/ai_testing/my_games/current_state_optimized.txt')
     full_state_file = Path('examples/ai_testing/my_games/current_state.json')
+    
+    # Initialize with current file times to avoid triggering on old files
     last_modified = 0
+    if state_file.exists():
+        last_modified = max(last_modified, state_file.stat().st_mtime)
+    if full_state_file.exists():
+        last_modified = max(last_modified, full_state_file.stat().st_mtime)
     
     print("\n[🤖 Prompt Generator Active - will generate prompts on state changes]")
     

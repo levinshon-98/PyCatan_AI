@@ -4,7 +4,7 @@ import sys
 import time
 import os
 
-log_file = r"c:\GIT_new\PyCatan_AI\logs\game_viz.log"
+log_file = r"C:\GIT_new\PyCatan_AI\logs\game_viz.log"
 
 print("PyCatan - Game Visualization Console")
 print("=" * 50)

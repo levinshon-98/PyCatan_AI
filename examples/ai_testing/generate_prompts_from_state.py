@@ -71,6 +71,36 @@ def load_full_state():
         return None
 
 
+def get_current_session_dir():
+    """
+    Get the current active session directory.
+    
+    Returns:
+        Path object to session directory, or None if not found
+    """
+    session_file = Path('examples/ai_testing/my_games/current_session.txt')
+    
+    print(f"  🔍 Looking for session file: {session_file.absolute()}")
+    
+    if session_file.exists():
+        try:
+            with open(session_file, 'r', encoding='utf-8') as f:
+                session_path = f.read().strip()
+                session_dir = Path(session_path)
+                print(f"  📂 Found session path: {session_dir}")
+                if session_dir.exists():
+                    print(f"  ✅ Session directory exists!")
+                    return session_dir
+                else:
+                    print(f"  ⚠️  Session directory doesn't exist yet")
+        except Exception as e:
+            print(f"⚠️ Error reading session file: {e}")
+    else:
+        print(f"  ⚠️  Session file not found")
+    
+    return None
+
+
 def generate_what_happened_message(full_state, optimized_state, current_player, for_spectator=False):
     """
     Generate a contextual message about what just happened in the game.
@@ -510,9 +540,15 @@ def main():
     config = AIConfig()
     prompt_manager = PromptManager(config)
     
-    # Create output directory
-    output_dir = Path('examples/ai_testing/my_games/prompts')
-    output_dir.mkdir(exist_ok=True, parents=True)
+    # Get current session directory and create prompts subdirectory
+    session_dir = get_current_session_dir()
+    if session_dir:
+        output_dir = session_dir / 'prompts'
+        output_dir.mkdir(exist_ok=True, parents=True)
+    else:
+        # Fallback to old location if no session
+        output_dir = Path('examples/ai_testing/my_games/prompts')
+        output_dir.mkdir(exist_ok=True, parents=True)
     
     print("📝 Generating prompts for each player...\n")
     
