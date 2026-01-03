@@ -63,30 +63,9 @@ class LLMConfig:
 
 @dataclass
 class AgentConfig:
-    """Configuration for agent personality and behavior."""
-    
-    # Agent identity
-    personality: str = "balanced"  # "aggressive", "defensive", "balanced", "trading"
-    risk_tolerance: float = 0.5  # 0.0 (conservative) to 1.0 (risky)
-    
-    # Strategic preferences
-    focus_on_settlements: float = 0.6  # Relative priority
-    focus_on_cities: float = 0.7
-    focus_on_roads: float = 0.5
-    focus_on_dev_cards: float = 0.6
-    
-    # Trading behavior
-    trade_willingness: float = 0.5  # 0.0 (never trades) to 1.0 (trades often)
-    trade_fairness: float = 0.7  # How fair are trade offers
-    
-    # Social behavior
-    chat_frequency: float = 0.3  # How often to send chat messages
-    use_emojis: bool = True
-    chattiness: str = "medium"  # "quiet", "medium", "chatty"
-    
-    # Custom instructions
-    custom_instructions: Optional[str] = None  # Additional instructions for this agent
-
+    """Agent configuration - reserved for future use."""
+    # Custom instructions for the agent (optional)
+    custom_instructions: Optional[str] = None
 
 @dataclass
 class MemoryConfig:
@@ -291,10 +270,6 @@ class AIConfig:
         if self.llm.max_tokens < 100:
             raise ValueError(f"max_tokens must be at least 100, got {self.llm.max_tokens}")
         
-        # Validate risk tolerance
-        if not 0.0 <= self.agent.risk_tolerance <= 1.0:
-            raise ValueError(f"risk_tolerance must be between 0.0 and 1.0, got {self.agent.risk_tolerance}")
-        
         # Validate timeouts
         if self.llm.timeout_seconds < 1:
             raise ValueError(f"timeout_seconds must be at least 1, got {self.llm.timeout_seconds}")
@@ -318,7 +293,6 @@ class AIConfig:
             f"  agent_name='{self.agent_name}',\n"
             f"  provider='{self.llm.provider}',\n"
             f"  model='{self.llm.model_name}',\n"
-            f"  personality='{self.agent.personality}',\n"
             f"  debug={self.debug.debug_mode}\n"
             f")"
         )

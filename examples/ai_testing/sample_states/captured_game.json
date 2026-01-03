@@ -117,72 +117,17 @@
   ],
   "settlements": [
     {
-      "id": "b_10",
-      "vertex": 10,
+      "id": "b_20",
+      "vertex": 20,
       "player": 1
-    },
-    {
-      "id": "b_14",
-      "vertex": 14,
-      "player": 2
-    },
-    {
-      "id": "b_31",
-      "vertex": 31,
-      "player": 3
-    },
-    {
-      "id": "b_36",
-      "vertex": 36,
-      "player": 2
-    },
-    {
-      "id": "b_40",
-      "vertex": 40,
-      "player": 1
-    },
-    {
-      "id": "b_44",
-      "vertex": 44,
-      "player": 3
     }
   ],
   "cities": [],
   "roads": [
     {
       "id": 1,
-      "from": 10,
-      "to": 11,
-      "player": 1
-    },
-    {
-      "id": 2,
-      "from": 14,
-      "to": 13,
-      "player": 2
-    },
-    {
-      "id": 3,
-      "from": 31,
-      "to": 30,
-      "player": 3
-    },
-    {
-      "id": 4,
-      "from": 44,
-      "to": 43,
-      "player": 3
-    },
-    {
-      "id": 5,
-      "from": 36,
-      "to": 35,
-      "player": 2
-    },
-    {
-      "id": 6,
-      "from": 40,
-      "to": 41,
+      "from": 20,
+      "to": 10,
       "player": 1
     }
   ],
@@ -255,17 +200,13 @@
     {
       "id": 0,
       "name": "a",
-      "victory_points": 2,
-      "total_cards": 3,
-      "cards_list": [
-        "ore",
-        "brick",
-        "sheep"
-      ],
+      "victory_points": 1,
+      "total_cards": 0,
+      "cards_list": [],
       "dev_cards_list": [],
-      "settlements": 2,
+      "settlements": 1,
       "cities": 0,
-      "roads": 2,
+      "roads": 1,
       "longest_road": 1,
       "has_longest_road": false,
       "knights": 0,
@@ -275,19 +216,14 @@
     {
       "id": 1,
       "name": "b",
-      "victory_points": 2,
-      "total_cards": 4,
-      "cards_list": [
-        "sheep",
-        "sheep",
-        "ore",
-        "wheat"
-      ],
+      "victory_points": 0,
+      "total_cards": 0,
+      "cards_list": [],
       "dev_cards_list": [],
-      "settlements": 2,
+      "settlements": 0,
       "cities": 0,
-      "roads": 2,
-      "longest_road": 1,
+      "roads": 0,
+      "longest_road": 0,
       "has_longest_road": false,
       "knights": 0,
       "knights_played": 0,
@@ -296,18 +232,14 @@
     {
       "id": 2,
       "name": "c",
-      "victory_points": 2,
-      "total_cards": 3,
-      "cards_list": [
-        "ore",
-        "wheat",
-        "wheat"
-      ],
+      "victory_points": 0,
+      "total_cards": 0,
+      "cards_list": [],
       "dev_cards_list": [],
-      "settlements": 2,
+      "settlements": 0,
       "cities": 0,
-      "roads": 2,
-      "longest_road": 1,
+      "roads": 0,
+      "longest_road": 0,
       "has_longest_road": false,
       "knights": 0,
       "knights_played": 0,
@@ -315,7 +247,7 @@
     }
   ],
   "current_player": 1,
-  "current_phase": "NORMAL_PLAY",
+  "current_phase": "SETUP_FIRST_ROUND",
   "robber_position": [
     2,
     2
