@@ -48,9 +48,9 @@ def test_save_and_load():
     # Create custom config
     config = AIConfig()
     config.agent_name = "Test Agent"
-    config.agent.personality = "aggressive"
-    config.agent.risk_tolerance = 0.8
+    config.agent.custom_instructions = "Focus on settlements"
     config.llm.temperature = 0.9
+    config.memory.short_term_turns = 3
     
     # Save to file
     test_file = "test_config.yaml"
@@ -63,9 +63,9 @@ def test_save_and_load():
     
     # Verify values
     assert loaded_config.agent_name == "Test Agent", "Agent name mismatch"
-    assert loaded_config.agent.personality == "aggressive", "Personality mismatch"
-    assert loaded_config.agent.risk_tolerance == 0.8, "Risk tolerance mismatch"
+    assert loaded_config.agent.custom_instructions == "Focus on settlements", "Custom instructions mismatch"
     assert loaded_config.llm.temperature == 0.9, "Temperature mismatch"
+    assert loaded_config.memory.short_term_turns == 3, "Memory setting mismatch"
     
     print("✓ All values match correctly")
     
@@ -77,50 +77,27 @@ def test_save_and_load():
 
 
 def test_personalities():
-    """Test creating configs with different personalities."""
+    """Test creating configs with different custom instructions."""
     print("\n" + "="*80)
-    print("TEST 3: Different Personalities")
+    print("TEST 3: Different Agent Configurations")
     print("="*80)
     
-    personalities = {
-        "aggressive": {
-            "personality": "aggressive",
-            "risk_tolerance": 0.8,
-            "trade_willingness": 0.7,
-            "focus_on_settlements": 0.8
-        },
-        "defensive": {
-            "personality": "defensive",
-            "risk_tolerance": 0.3,
-            "trade_willingness": 0.3,
-            "focus_on_cities": 0.9
-        },
-        "balanced": {
-            "personality": "balanced",
-            "risk_tolerance": 0.5,
-            "trade_willingness": 0.5
-        },
-        "trading": {
-            "personality": "trading",
-            "risk_tolerance": 0.6,
-            "trade_willingness": 0.9,
-            "chat_frequency": 0.7
-        }
+    agents = {
+        "aggressive": "Play aggressively and take risks. Expand quickly.",
+        "defensive": "Play defensively and focus on building cities.",
+        "balanced": "Play a balanced strategy.",
+        "trading": "Focus on trading and negotiations."
     }
     
-    for name, settings in personalities.items():
+    for name, instructions in agents.items():
         config = AIConfig()
         config.agent_name = f"{name.capitalize()} Agent"
-        
-        # Apply settings
-        for key, value in settings.items():
-            setattr(config.agent, key, value)
+        config.agent.custom_instructions = instructions
         
         # Validate
         config.validate()
-        print(f"✓ Created and validated '{name}' personality")
-        print(f"  - Risk tolerance: {config.agent.risk_tolerance}")
-        print(f"  - Trade willingness: {config.agent.trade_willingness}")
+        print(f"✓ Created and validated '{name}' agent")
+        print(f"  - Instructions: {instructions[:50]}...")
     
     return True
 
@@ -142,16 +119,16 @@ def test_validation():
     except ValueError as e:
         print(f"✓ Correctly caught invalid temperature: {e}")
     
-    # Test invalid risk tolerance
+    # Test invalid max_tokens
     config = AIConfig()
-    config.agent.risk_tolerance = 1.5  # Invalid (> 1.0)
+    config.llm.max_tokens = 50  # Invalid (< 100)
     
     try:
         config.validate()
-        print("✗ Should have caught invalid risk_tolerance")
+        print("✗ Should have caught invalid max_tokens")
         return False
     except ValueError as e:
-        print(f"✓ Correctly caught invalid risk_tolerance: {e}")
+        print(f"✓ Correctly caught invalid max_tokens: {e}")
     
     # Test valid config
     config = AIConfig()
@@ -170,8 +147,9 @@ def test_to_dict_and_back():
     # Create config
     config = AIConfig()
     config.agent_name = "Dict Test Agent"
-    config.agent.personality = "trading"
+    config.agent.custom_instructions = "Test instructions"
     config.llm.temperature = 0.8
+    config.memory.short_term_turns = 7
     
     # Convert to dict
     config_dict = config.to_dict()
@@ -183,8 +161,9 @@ def test_to_dict_and_back():
     
     # Verify values
     assert new_config.agent_name == config.agent_name
-    assert new_config.agent.personality == config.agent.personality
+    assert new_config.agent.custom_instructions == config.agent.custom_instructions
     assert new_config.llm.temperature == config.llm.temperature
+    assert new_config.memory.short_term_turns == config.memory.short_term_turns
     print("✓ All values preserved correctly")
     
     return True
@@ -199,7 +178,7 @@ def main():
     tests = [
         ("Default Configuration", test_default_config),
         ("Save and Load", test_save_and_load),
-        ("Different Personalities", test_personalities),
+        ("Different Agent Configurations", test_personalities),
         ("Validation", test_validation),
         ("Dictionary Conversion", test_to_dict_and_back)
     ]
