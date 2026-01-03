@@ -48,29 +48,20 @@ class StateFilter:
     
     def filter_game_state(self, raw_state: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Main filtering method - converts raw game state to agent view.
+        Main filtering method - returns optimized compact state AS-IS.
+        
+        The state is already in compact format (H, N, players, bld, rds, meta).
+        This filter just returns it directly - the compactness IS the optimization.
         
         Args:
-            raw_state: Complete game state from the game engine
+            raw_state: Optimized game state (already compact)
             
         Returns:
-            Filtered game state from agent's perspective
+            The same compact state (H, N arrays, etc.)
         """
-        filtered = {}
-        
-        # 1. Extract and format my private information
-        filtered["my_private_info"] = self._extract_my_info(raw_state)
-        
-        # 2. Get visible board state
-        filtered["board_state"] = self._filter_board_state(raw_state)
-        
-        # 3. Get other players' public information
-        filtered["other_players"] = self._filter_other_players(raw_state)
-        
-        # 4. Add computed/helpful context
-        filtered["strategic_context"] = self._add_strategic_context(raw_state)
-        
-        return filtered
+        # The optimized state is already perfect for LLM consumption
+        # Just return it as-is
+        return raw_state
     
     def _extract_my_info(self, raw_state: Dict[str, Any]) -> Dict[str, Any]:
         """

@@ -91,7 +91,7 @@ class PromptBuilder:
         """
         prompt = {}
         
-        # Build each section
+        # Build each section according to promt_format.text structure
         if self.template.include_meta_data:
             prompt["meta_data"] = self._build_meta_data(meta_data, custom_instructions)
         
@@ -99,9 +99,8 @@ class PromptBuilder:
             prompt["task_context"] = self._build_task_context(task_context)
         
         if self.template.include_game_state:
-            # Add legend before game state for optimized format
-            prompt["game_state_legend"] = self._build_legend()
-            prompt["game_state"] = game_state
+            # Include optimized game state with legend embedded
+            prompt["game_state"] = self._build_game_state_section(game_state)
         
         if self.template.include_social_context and social_context:
             prompt["social_context"] = self._build_social_context(social_context)
@@ -114,40 +113,40 @@ class PromptBuilder:
         
         return prompt
     
-    def _build_legend(self) -> str:
+    def _build_game_state_section(self, game_state: Dict[str, Any]) -> str:
         """
-        Build legend for optimized game state format.
+        Build game state section with compact legend and single-line JSON.
         
+        Args:
+            game_state: Optimized game state
+            
         Returns:
-            Legend explaining the compact format
+            Complete game state as formatted string with legend
         """
-        return """OPTIMIZED STATE FORMAT GUIDE:
-        
-1. LOOKUP TABLES:
+        legend = """
+  1. LOOKUP TABLES:
    • "H" (Hexes): Array where Index = HexID. Value = Resource+Num.
-     Example: H[1]="W12" → Hex 1 is Wood with number 12
+     Example: H[1]="W12" -> Hex 1 is Wood 12.
    • "N" (Nodes): Array where Index = NodeID.
-     Format: [[Neighbors], [HexIDs], Port?]
-     To find yield: Check N[node_id], get HexIDs, look up in H array
+     Format: [ [Neighbors], [HexIDs], Port? ]
+     Logic: To find yield of Node 10, check N[10]. Get HexIDs (e.g. [1,5]). Look up H[1] and H[5].
 
-2. RESOURCE CODES:
-   W=Wood, B=Brick, S=Sheep, Wh=Wheat, O=Ore, D=Desert
-   Ports: ?3=Any(3:1), X2=Specific(2:1) where X is resource
+2. CODES: W=Wood, B=Brick, S=Sheep, Wh=Wheat, O=Ore, D=Desert.
+          ?3=Any 3:1 port, X2=Specific Resource 2:1 port.
 
-3. GAME STATE:
-   "bld": [NodeID, Owner, Type] where Type: S=Settlement, C=City
-   "rds": [[From, To], Owner]
+3. STATE: "bld"=[NodeID, Owner, Type], "rds"=[[From,To], Owner].
 
-4. PLAYERS:
-   "res": {ResourceCode: Count}
-   "dev": {"h": [HiddenCards], "r": [RevealedCards]}
-   "stat": ["LR"=Longest Road, "LA"=Largest Army]
+4. PLAYERS: "res"={Resource:Count}, "dev"={"h":[Hidden Cards], "r":[Revealed] (K=Knight)}, 
+            "stat"=["LR" (Longest Road), "LA" (Largest Army)].
 
-5. META:
-   "robber": HexID where robber is located (blocks that hex)
-   "phase": Current game phase
-   "curr": Current player's turn
+5. ROBBER: Located at HexID specified in "meta.robber". H[id] is blocked.
+
+JSON:
 """
+        # Convert game state to compact single-line JSON
+        import json
+        compact_json = json.dumps(game_state, ensure_ascii=False, separators=(',', ':'))
+        return legend + compact_json
     
     def _build_meta_data(
         self, 
@@ -226,24 +225,36 @@ class PromptBuilder:
         Build memory section with agent's notes.
         
         Args:
-            memory: Agent's observations and plans
+            memory: Agent's observations and plans (can be list or dict)
             
         Returns:
             Formatted memory
         """
+        # Support both dict format and list format
+        if isinstance(memory, list):
+            notes = memory
+        elif isinstance(memory, dict):
+            notes = memory.get("notes", [])
+        else:
+            notes = []
+            
         return {
-            "notes_for_myself": memory.get("notes", []),
-            "strategic_observations": memory.get("observations", []),
-            "player_tracking": memory.get("player_tracking", {})
+            "notes_for_myself": notes
         }
     
     def _build_constraints(self, constraints: Dict[str, Any]) -> Dict[str, Any]:
         """
         Build constraints section with available actions.
-        
-        Args:
-            constraints: Available actions and rules
+        # Support both dict format and list format
+        if isinstance(memory, dict):
+            notes = memory.get("notes", [])
+        elif isinstance(memory, list):
+            notes = memory
+        else:
+            notes = []
             
+        return {
+            "notes_for_myself": notes
         Returns:
             Formatted constraints
         """
@@ -411,6 +422,55 @@ class ActionTemplates:
                 affordable.append(action)
         
         return affordable
+
+
+def get_response_schema() -> Dict[str, Any]:
+    """
+    Get the expected response schema for LLM output.
+    Based on example_answer.md structure.
+    OpenAPI-compliant (no 'examples' inside properties).
+    
+    Returns:
+        JSON schema defining expected response format
+    """
+    return {
+        "type": "object",
+        "required": ["internal_thinking", "action"],
+        "properties": {
+            "internal_thinking": {
+                "type": "string",
+                "description": "Your private reasoning about the situation, strategy, and decision-making process. This is for you only.",
+                "minLength": 50
+            },
+            "note_to_self": {
+                "type": "string",
+                "description": "A note to remember for next turn. What are you waiting for? What's your plan?"
+            },
+            "say_outloud": {
+                "type": "string",
+                "description": "What you want to say to other players (chat message). Use this for negotiation, threats, or table talk."
+            },
+            "action": {
+                "type": "object",
+                "required": ["type", "parameters"],
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "description": "The action type (must match one from allowed_actions in constraints)"
+                    },
+                    "parameters": {
+                        "type": "object",
+                        "description": "Action-specific parameters. If no parameters are needed, provide an empty object.",
+                        "properties": {
+                            "target": {"type": "string", "description": "The target of the action (if applicable)"},
+                            "amount": {"type": "number", "description": "The amount (if applicable)"},
+                            "location": {"type": "string", "description": "The location (if applicable)"}
+                        }
+                    }
+                }
+            }
+        }
+    }
 
 
 def create_default_prompt_builder() -> PromptBuilder:

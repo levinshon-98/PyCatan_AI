@@ -1,0 +1,111 @@
+{
+  "response_schema": {
+    "type": "object",
+    "required": [
+      "internal_thinking",
+      "action"
+    ],
+    "properties": {
+      "internal_thinking": {
+        "type": "string",
+        "description": "Your private reasoning about the situation, strategy, and decision-making process. This is for you only.",
+        "minLength": 50
+      },
+      "note_to_self": {
+        "type": "string",
+        "description": "A note to remember for next turn. What are you waiting for? What's your plan?",
+        "examples": [
+          "Waiting for Red's response on trade",
+          "Focus on building toward ore port next",
+          "Watch Blue's progress on longest road"
+        ]
+      },
+      "say_outloud": {
+        "type": "string",
+        "description": "What you want to say to other players (chat message). Use this for negotiation, threats, or table talk.",
+        "examples": [
+          "Anyone want to trade sheep for wood?",
+          "Red, can you give me 1 Brick for 2 Sheep?",
+          "I'm so behind, don't steal from me!"
+        ]
+      },
+      "action": {
+        "type": "object",
+        "required": [
+          "type",
+          "parameters"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "The action type (must match one from allowed_actions in constraints)",
+            "examples": [
+              "BUILD_SETTLEMENT",
+              "BUILD_ROAD",
+              "OFFER_TRADE",
+              "WAIT_FOR_RESPONSE",
+              "END_TURN"
+            ]
+          },
+          "parameters": {
+            "type": "object",
+            "description": "Action-specific parameters (structure matches allowed_actions examples)"
+          }
+        }
+      }
+    },
+    "example": {
+      "internal_thinking": "I have 3 Sheep and 2 Wheat. I need Wood and Brick to build. I see Red asked for Sheep in the chat. My note says to trade with Red. I will offer him a deal verbally first to see if he accepts, before committing to a formal trade action. I won't pass turn yet.",
+      "note_to_self": "Waiting for Red's response. If he says yes, I will use OFFER_TRADE action next.",
+      "say_outloud": "Red, I have plenty of sheep. Can you give me 1 Wood and 1 Brick for 2 Sheep?",
+      "action": {
+        "type": "WAIT_FOR_RESPONSE",
+        "parameters": {}
+      }
+    }
+  },
+  "system_instruction": "You are an expert Settlers of Catan player. Respond in JSON format.",
+  "prompt": {
+    "meta_data": {
+      "agent_name": "a",
+      "my_color": "Red",
+      "role": "You are player 'a' (Red). Play strategically to win."
+    },
+    "task_context": {
+      "what_just_happened": "You rolled an 8. You received 2 wood.",
+      "instructions": "Choose your action from 'allowed_actions'."
+    },
+    "game_state": "\nFORMAT GUIDE:\n• H array: Index=HexID, Value=Resource+Number (W=Wood, B=Brick, S=Sheep, Wh=Wheat, O=Ore, D=Desert)\n• N array: Index=NodeID, Value=[[Neighbors], [HexIDs], Port?] where Port: ?3=Any(3:1), X2=Specific(2:1)\n• bld: [NodeID, Owner, Type] where Type: S=Settlement, C=City\n• rds: [[From, To], Owner]\n• Players res: {ResourceCode: Count}\n• Players dev: {\"h\": [Hidden], \"r\": [Revealed]} - Cards: K=Knight, M=Monopoly, Y=Year of Plenty, R=Road Building, V=Victory Point\n• Players stat: [\"LR\"=Longest Road, \"LA\"=Largest Army]\n\nGAME STATE:\n{\n  \"H\": [\n    \"\",\n    \"W12\",\n    \"S5\",\n    \"W4\",\n    \"S8\",\n    \"B6\"\n  ],\n  \"N\": [\n    [],\n    [\n      [\n        2,\n        5\n      ],\n      [\n        1,\n        2\n      ],\n      null\n    ],\n    [\n      [\n        1,\n        3\n      ],\n      [\n        1,\n        3\n      ],\n      \"W2\"\n    ]\n  ],\n  \"players\": {\n    \"a\": {\n      \"vp\": 2,\n      \"res\": {\n        \"W\": 3,\n        \"B\": 1\n      },\n      \"dev\": {\n        \"h\": [\n          \"K\"\n        ],\n        \"r\": []\n      },\n      \"stat\": []\n    },\n    \"b\": {\n      \"vp\": 1,\n      \"res\": {\n        \"S\": 2\n      },\n      \"dev\": {\n        \"h\": [],\n        \"r\": []\n      },\n      \"stat\": []\n    }\n  },\n  \"bld\": [\n    [\n      20,\n      \"a\",\n      \"S\"\n    ],\n    [\n      25,\n      \"b\",\n      \"S\"\n    ]\n  ],\n  \"rds\": [\n    [\n      [\n        20,\n        21\n      ],\n      \"a\"\n    ],\n    [\n      [\n        25,\n        26\n      ],\n      \"b\"\n    ]\n  ],\n  \"meta\": {\n    \"robber\": 10,\n    \"phase\": \"MAIN_GAME\",\n    \"curr\": \"a\",\n    \"dice\": 8\n  }\n}",
+    "social_context": {
+      "recent_chat": [
+        {
+          "sender": "b",
+          "content": "Anyone need sheep?"
+        }
+      ]
+    },
+    "memory": {
+      "notes_for_myself": [
+        "b needs ore, I should trade",
+        "Focus on longest road"
+      ]
+    },
+    "constraints": {
+      "usage_instructions": "Choose one action. Use exact parameter structure.",
+      "allowed_actions": [
+        {
+          "action": "build_road",
+          "description": "Build a road on an edge",
+          "example_parameters": {
+            "edge_id": 15
+          }
+        },
+        {
+          "action": "end_turn",
+          "description": "End your turn",
+          "example_parameters": {}
+        }
+      ]
+    }
+  }
+}
