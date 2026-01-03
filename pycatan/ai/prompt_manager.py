@@ -273,14 +273,19 @@ class PromptManager:
             "Analyze the game state and select the optimal move from 'allowed_actions'. "
         )
         
+        wait_info = (
+            "Note: 'wait_for_response' is always available if you want to chat, "
+            "negotiate trades, or observe before taking action."
+        )
+        
         if available_actions:
             num_actions = len(available_actions)
             if num_actions == 1:
                 return base_instructions + "Only one action is currently available."
             else:
-                return base_instructions + f"You have {num_actions} possible actions to choose from."
+                return base_instructions + f"You have {num_actions} possible actions. " + wait_info
         
-        return base_instructions + "Consider all strategic implications before deciding."
+        return base_instructions + wait_info
     
     def clear_cache(self):
         """Clear the filter cache. Useful when starting a new game."""

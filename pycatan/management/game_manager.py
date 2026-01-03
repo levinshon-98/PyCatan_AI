@@ -1735,8 +1735,15 @@ class GameManager:
             player_name = self.users[player_id].name if hasattr(self.users[player_id], 'name') else f"Player {player_id + 1}"
             self.visualization_manager.display_turn_start(player_name, self._current_game_state.turn_number)
             
-            # Display full game state at start of turn (CRITICAL FOR AI!)
+            # 🎯 CRITICAL: Get state BEFORE displaying to user
+            # This ensures AI prompts are generated with correct turn state
             current_state = self.get_full_state()
+            
+            # Trigger state capture for AI prompt generation (if hook is installed)
+            if hasattr(self, '_on_turn_start_callback'):
+                self._on_turn_start_callback(current_state)
+            
+            # Display full game state at start of turn
             self.visualization_manager.display_game_state(current_state)
     
     def _handle_game_end(self) -> None:
