@@ -1,0 +1,86 @@
+{
+    // מידע על זהות השחקן
+  "meta_data": {
+    "agent_name": "Dani",
+    "my_color": "Blue",
+    "role": "You are a pro Catan player.",
+  },
+    // מידע על מה קרה עכשיו בעולם
+  "task_context": {
+    "what_just_happened": "Player 'Red' rolled a 6. You received 1 Wood.",
+    "instructions": "Analyze the game state and select the optimal move from 'allowed_actions'. You may use the provided tools to gather more data (e.g., calculate probabilities), but limit yourself to a maximum of 3 tool executions per decision. If you wish to negotiate or wait for other players, select the 'WAIT_FOR_RESPONSE' action.",
+  },
+    // קונטקסט על הSTATE של העולם מותאם לנקודת המבט של השחקן
+  "game_state": {
+    "my_private_info": {
+      "resources": {"wood": 0, "brick": 0, "sheep": 3, "wheat": 1, "ore": 0},
+      "development_cards": [],
+      "victory_points": 2
+    },....
+  },
+
+  "social_context": {
+    // ההודעות האחרונות בצאט
+    "recent_chat": [
+      {"sender": "Red", "content": "I need sheep desperately."}
+    ],
+
+    "last_summaries": [1: "Dana is off to a quick start with a lucky roll and a trade with Alex to build toward the wood port. I’ve warned the table about her strategy, but she’s already trying to downplay her early advantage.",2: "I’m frustrated by the lack of 8s and Dana’s blatant betrayal after she snubbed my brick trade for a secret deal with Alex. It seems those two are continuing to work together to dominate the game despite my warnings to the table."]
+  },
+
+  "memory": {
+    // דברים שאני רוצה לזכור להמשך
+    "notes_for_myself": [1 : "My plan is to trade Sheep for Wood with Red to build a settlement." , 2: "shani been an ashole to me"]
+  },
+
+"constraints": {
+    "usage_instructions": "Choose one action type from the list below. Populate the 'parameters' field in your response strictly according to the 'example_parameters' structure provided.",
+    
+    "allowed_actions": [
+      {
+        "type": "BUILD_ROAD",
+        "description": "Build a road on a specific edge ID.",
+        "example_parameters": { "edge_id": 12 }
+      },
+      {
+        "type": "BUILD_SETTLEMENT",
+        "description": "Build a settlement on a specific node ID.",
+        "example_parameters": { "node_id": 45 }
+      },
+      {
+        "type": "BUILD_CITY",
+        "description": "Upgrade an existing settlement to a city.",
+        "example_parameters": { "node_id": 45 }
+      },
+      {
+        "type": "OFFER_TRADE",
+        "description": "Propose a trade to all players or a specific one.",
+        "example_parameters": { 
+            "give": {"wood": 1, "sheep": 1}, 
+            "receive": {"ore": 1},
+            "target_player_color": "Red" // Optional, remove key for public offer
+        }
+      },
+      {
+        "type": "PLAY_DEV_CARD",
+        "description": "Play a development card. Specific params depend on the card.",
+        "example_parameters": [
+            { "card": "KNIGHT", "robber_hex": 7, "target_victim": "Red" },
+            { "card": "MONOPOLY", "resource": "sheep" },
+            { "card": "YEAR_OF_PLENTY", "resources": ["wood", "brick"] },
+            { "card": "ROAD_BUILDING", "edges": [12, 13] }
+        ]
+      },
+      {
+        "type": "WAIT_FOR_RESPONSE",
+        "description": "Do nothing on the board, just chat or wait.",
+        "example_parameters": {} 
+      },
+      {
+        "type": "END_TURN",
+        "description": "Pass the dice to the next player.",
+        "example_parameters": {} 
+      }
+    ]
+  }
+}
