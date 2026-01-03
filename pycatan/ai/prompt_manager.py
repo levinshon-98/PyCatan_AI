@@ -89,7 +89,6 @@ class PromptManager:
         # Build meta data section
         meta_data = {
             "agent_name": player_name,
-            "my_color": player_color,
             "role": custom_instructions or self.config.agent.custom_instructions
         }
         
@@ -181,7 +180,6 @@ class PromptManager:
         # Build meta data
         meta_data = {
             "agent_name": player_name,
-            "my_color": player_color,
             "role": self.config.agent.custom_instructions or "You are a Catan player."
         }
         
@@ -274,14 +272,13 @@ class PromptManager:
         )
         
         wait_info = (
-            "Note: 'wait_for_response' is always available if you want to chat, "
-            "negotiate trades, or observe before taking action."
+            "If you wish to negotiate or wait for other players, select the 'wait_for_response' action."
         )
         
         if available_actions:
             num_actions = len(available_actions)
             if num_actions == 1:
-                return base_instructions + "Only one action is currently available."
+                return base_instructions + "Only one action is currently available. " + wait_info
             else:
                 return base_instructions + f"You have {num_actions} possible actions. " + wait_info
         

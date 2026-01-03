@@ -165,7 +165,6 @@ JSON:
         """
         result = {
             "agent_name": meta_data.get("agent_name", "AI Agent"),
-            "my_color": meta_data.get("my_color", "Unknown"),
         }
         
         # Add role/instructions
@@ -439,16 +438,18 @@ def get_response_schema() -> Dict[str, Any]:
         "properties": {
             "internal_thinking": {
                 "type": "string",
-                "description": "Your private reasoning about the situation, strategy, and decision-making process. This is for you only.",
+                "description": "Private strategy. What's your plan and why?",
                 "minLength": 50
             },
             "note_to_self": {
                 "type": "string",
-                "description": "A note to remember for next turn. What are you waiting for? What's your plan?"
+                "description": "Important facts for when it's your turn. Use only if essential for clarity or direct user query. Omit otherwise.",
+                "maxLength": 100
             },
             "say_outloud": {
                 "type": "string",
-                "description": "What you want to say to other players (chat message). Use this for negotiation, threats, or table talk."
+                "description": "A short message to other players (max 100 chars). Use for negotiation, threats, or table talk. Keep in mind you pay for speak outload.",
+                "maxLength": 100
             },
             "action": {
                 "type": "object",
@@ -465,11 +466,46 @@ def get_response_schema() -> Dict[str, Any]:
                             "target": {"type": "string", "description": "The target of the action (if applicable)"},
                             "amount": {"type": "number", "description": "The amount (if applicable)"},
                             "location": {"type": "string", "description": "The location (if applicable)"}
-                        }
+                        },
+                        "propertyOrdering": ["target", "amount", "location"]
                     }
-                }
+                },
+                "propertyOrdering": ["type", "parameters"]
             }
-        }
+        },
+        "propertyOrdering": ["internal_thinking", "note_to_self", "say_outloud", "action"]
+    }
+
+
+def get_spectator_response_schema() -> Dict[str, Any]:
+    """
+    Get the response schema for players who are NOT on their turn (spectators).
+    They can only observe, think, and communicate - no game actions allowed.
+    
+    Returns:
+        Simplified JSON schema for spectators
+    """
+    return {
+        "type": "object",
+        "required": ["internal_thinking"],
+        "properties": {
+            "internal_thinking": {
+                "type": "string",
+                "description": "Track what's happening. What are opponents doing? What's your strategy for next turn?",
+                "minLength": 30
+            },
+            "note_to_self": {
+                "type": "string",
+                "description": "Important facts for when it's your turn. Use only if essential for clarity or direct user query. Omit otherwise.",
+                "maxLength": 100
+            },
+            "say_outloud": {
+                "type": "string",
+                "description": "Optional message to other players (max 100 chars). Propose trades or negotiate. You pay for this.",
+                "maxLength": 100
+            }
+        },
+        "propertyOrdering": ["internal_thinking", "note_to_self", "say_outloud"]
     }
 
 

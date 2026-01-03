@@ -161,6 +161,7 @@ class GameState:
     dice_rolled: Optional[tuple] = None
     pending_trades: List[Dict[str, Any]] = field(default_factory=list)
     pending_actions: List[str] = field(default_factory=list)  # Actions waiting for completion
+    allowed_actions: List[str] = field(default_factory=list)  # Available actions for current player
     
     # Robber/Discard state (when 7 is rolled)
     players_must_discard: Dict[int, int] = field(default_factory=dict)  # player_id -> cards to discard
