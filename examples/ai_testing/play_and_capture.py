@@ -418,24 +418,34 @@ def main():
         # Start game
         game = RealGame()
         
-        # 🎯 CRITICAL: Install turn start callback BEFORE running game
+        # 🎯 CRITICAL: Patch GameManager to install turn start callback
         # This ensures state is saved at the BEGINNING of each turn
-        def on_turn_start(game_state):
-            """Called at the start of each turn, before showing to user."""
-            # Convert GameState object to dict
-            from pycatan.visualizations.web_visualization import WebVisualization
-            web_viz = WebVisualization()
-            web_viz.update_full_state(game_state)
-            
-            if hasattr(web_viz, 'current_game_state') and web_viz.current_game_state:
-                state_copy = json.loads(json.dumps(web_viz.current_game_state))
-                captured_states.append(state_copy)
-                print(f"[🎯 Turn Start - Captured state #{len(captured_states)}]", flush=True)
-                save_current_state(state_copy)
+        from pycatan.management.game_manager import GameManager
+        original_start_game = GameManager.start_game
         
-        # Install the callback
-        if hasattr(game, 'game_manager'):
-            game.game_manager._on_turn_start_callback = on_turn_start
+        def patched_start_game(self):
+            """Patched version that installs the callback."""
+            # Call original start_game
+            result = original_start_game(self)
+            
+            # Now install the callback
+            def on_turn_start(game_state):
+                """Called at the start of each turn, before showing to user."""
+                # Convert GameState object to dict
+                from pycatan.visualizations.web_visualization import WebVisualization
+                web_viz = WebVisualization()
+                web_viz.update_full_state(game_state)
+                
+                if hasattr(web_viz, 'current_game_state') and web_viz.current_game_state:
+                    state_copy = json.loads(json.dumps(web_viz.current_game_state))
+                    captured_states.append(state_copy)
+                    print(f"[🎯 Turn Start - Captured state #{len(captured_states)}]", flush=True)
+                    save_current_state(state_copy)
+            
+            self._on_turn_start_callback = on_turn_start
+            return result
+        
+        GameManager.start_game = patched_start_game
         
         game.run()
         

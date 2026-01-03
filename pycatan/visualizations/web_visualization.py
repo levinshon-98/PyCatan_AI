@@ -284,6 +284,7 @@ class WebVisualization(Visualization):
             'current_phase': getattr(game_state, 'game_phase', 'ACTION').name if hasattr(getattr(game_state, 'game_phase', None), 'name') else str(getattr(game_state, 'game_phase', 'ACTION')),
             'robber_position': None,
             'dice_result': getattr(game_state, 'dice_rolled', None),
+            'allowed_actions': getattr(game_state, 'allowed_actions', []),  # Actions available to current player
             # Add board structure information - CRITICAL FOR AI!
             'points': self._get_points_info(),
             'board_graph': self._get_board_graph()

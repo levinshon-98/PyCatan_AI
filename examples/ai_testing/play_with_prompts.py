@@ -32,21 +32,29 @@ def prompt_generator_thread():
     Background thread that watches for state changes and generates prompts.
     """
     state_file = Path('examples/ai_testing/my_games/current_state_optimized.txt')
+    full_state_file = Path('examples/ai_testing/my_games/current_state.json')
     last_modified = 0
     
     print("\n[🤖 Prompt Generator Active - will generate prompts on state changes]")
     
     while True:
         try:
+            # Check both files - use the most recent modification time
+            current_modified = 0
+            
             if state_file.exists():
-                current_modified = state_file.stat().st_mtime
-                
+                current_modified = max(current_modified, state_file.stat().st_mtime)
+            
+            if full_state_file.exists():
+                current_modified = max(current_modified, full_state_file.stat().st_mtime)
+            
+            if current_modified > 0:
                 # If file was modified, generate prompts
                 if current_modified > last_modified:
                     last_modified = current_modified
                     
-                    # Wait a tiny bit to ensure file is fully written
-                    time.sleep(0.1)
+                    # Wait a bit to ensure BOTH files are fully written (optimized + full state)
+                    time.sleep(0.3)
                     
                     print("\n" + "🔄 " + "-"*70)
                     print("🔄 State changed - generating AI prompts for all players...")

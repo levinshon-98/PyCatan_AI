@@ -132,6 +132,9 @@ class GameManager:
         game_state.game_phase = self._current_game_state.game_phase
         game_state.turn_phase = self._current_game_state.turn_phase
         
+        # Add allowed actions for current player
+        game_state.allowed_actions = self.get_available_actions()
+        
         return game_state
     
     def get_available_actions(self) -> List[str]:
