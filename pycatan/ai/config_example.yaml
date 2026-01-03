@@ -1,0 +1,164 @@
+# ============================================================================
+# AI Agent Configuration Example
+# ============================================================================
+# This is an example configuration file for PyCatan AI agents.
+# Copy this file and customize it for your agent.
+#
+# Usage:
+#   from pycatan.ai.config import AIConfig
+#   config = AIConfig.from_file('my_agent_config.yaml')
+# ============================================================================
+
+config_version: "1.0"
+agent_name: "AI Agent"  # Name of your agent
+
+# ============================================================================
+# LLM Configuration
+# ============================================================================
+llm:
+  # Provider selection
+  # Options: "gemini", "openai", "anthropic", "azure"
+  provider: "gemini"
+  
+  # Model name
+  # Gemini: "gemini-2.0-flash-exp", "gemini-1.5-pro", "gemini-1.5-flash"
+  # OpenAI: "gpt-4-turbo-preview", "gpt-4", "gpt-3.5-turbo"
+  # Anthropic: "claude-3-opus-20240229", "claude-3-sonnet-20240229"
+  model_name: "gemini-2.0-flash-exp"
+  
+  # Generation parameters
+  temperature: 0.7          # 0.0 (deterministic) to 2.0 (creative)
+  max_tokens: 4096          # Maximum tokens in response
+  top_p: 0.95              # Nucleus sampling threshold
+  top_k: 40                # Top-k sampling (for supported models)
+  
+  # API settings
+  # The API key is read from environment variables for security
+  # Set GEMINI_API_KEY, OPENAI_API_KEY, or ANTHROPIC_API_KEY
+  api_key_env_var: "GEMINI_API_KEY"
+  api_base_url: null       # Custom endpoint (if needed)
+  
+  # Performance settings
+  timeout_seconds: 30      # Request timeout
+  max_retries: 3           # Number of retry attempts
+  retry_delay_seconds: 1.0 # Delay between retries
+  
+  # Tracking
+  track_usage: true        # Track token usage and costs
+  log_requests: true       # Log all API requests
+
+# ============================================================================
+# Agent Configuration
+# ============================================================================
+agent:
+  # Personality types affect decision-making style
+  # Options: "aggressive", "defensive", "balanced", "trading"
+  personality: "balanced"
+  
+  # Risk tolerance: 0.0 (conservative) to 1.0 (risky)
+  risk_tolerance: 0.5
+  
+  # Strategic priorities (0.0 to 1.0)
+  # Higher values mean higher priority
+  focus_on_settlements: 0.6
+  focus_on_cities: 0.7
+  focus_on_roads: 0.5
+  focus_on_dev_cards: 0.6
+  
+  # Trading behavior
+  trade_willingness: 0.5   # 0.0 (never) to 1.0 (always)
+  trade_fairness: 0.7      # How fair are trade offers
+  
+  # Social behavior
+  chat_frequency: 0.3      # How often to chat (0.0 to 1.0)
+  use_emojis: true        # Use emojis in chat
+  chattiness: "medium"     # Options: "quiet", "medium", "chatty"
+  
+  # Custom instructions (optional)
+  # Add any additional instructions for this specific agent
+  custom_instructions: null
+  # Example:
+  # custom_instructions: "Focus on building settlements near wheat and ore tiles."
+
+# ============================================================================
+# Memory Configuration
+# ============================================================================
+memory:
+  # Short-term memory
+  short_term_turns: 5      # Remember last N turns
+  
+  # Chat history management
+  chat_history_size: 10              # Keep last N messages
+  enable_chat_summarization: true    # Auto-summarize old chats
+  chat_summary_threshold: 10         # Summarize after N messages
+  
+  # Summarization settings
+  # Use a smaller/cheaper model for summarization
+  summarization_provider: "gemini"
+  summarization_model: "gemini-2.0-flash-exp"
+  summarization_max_tokens: 500
+  
+  # Memory persistence
+  save_memory_to_file: true
+  memory_file_path: "agent_memory.json"
+  
+  # Memory limits
+  max_strategic_notes: 20  # Maximum strategic notes to keep
+  max_observations: 50     # Maximum observations to keep
+
+# ============================================================================
+# Debug Configuration
+# ============================================================================
+debug:
+  # Debug mode - shows detailed information
+  debug_mode: false
+  
+  # Logging options
+  log_prompts: true        # Log prompts sent to LLM
+  log_responses: true      # Log LLM responses
+  log_decisions: true      # Log decision-making process
+  
+  # Log file settings
+  log_to_file: true
+  log_directory: "logs/ai_agents"
+  log_format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  
+  # Performance tracking
+  track_decision_time: true  # Track how long decisions take
+  track_token_usage: true    # Track token consumption
+  
+  # Development helpers
+  save_game_states: false              # Save game states for analysis
+  game_states_directory: "logs/game_states"
+
+# ============================================================================
+# Example Configurations for Different Personalities
+# ============================================================================
+#
+# AGGRESSIVE TRADER:
+# ------------------
+# agent:
+#   personality: "trading"
+#   risk_tolerance: 0.8
+#   trade_willingness: 0.9
+#   focus_on_settlements: 0.8
+#   chat_frequency: 0.6
+#
+# DEFENSIVE BUILDER:
+# ------------------
+# agent:
+#   personality: "defensive"
+#   risk_tolerance: 0.3
+#   trade_willingness: 0.3
+#   focus_on_cities: 0.9
+#   focus_on_roads: 0.7
+#
+# DEVELOPMENT CARD SPECIALIST:
+# ----------------------------
+# agent:
+#   personality: "balanced"
+#   risk_tolerance: 0.6
+#   focus_on_dev_cards: 0.9
+#   trade_willingness: 0.6
+#
+# ============================================================================

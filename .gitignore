@@ -70,8 +70,38 @@ pip-selfcheck.json
 
 # Log files
 *.log
+logs/
 
 # Temporary files
 *.tmp
 *.bak
 *~
+
+# ============================================================================
+# AI Agent - Security and Privacy
+# ============================================================================
+
+# Environment variables with API keys (CRITICAL - NEVER COMMIT!)
+.env
+.env.local
+.env.*.local
+
+# AI Configuration files with sensitive data
+# Note: *_example.yaml files WILL be committed as templates
+pycatan/ai/*.yaml
+!pycatan/ai/*_example.yaml
+!pycatan/ai/*_example.yml
+config.yaml
+config.yml
+*_config.yaml
+*_config.yml
+
+# AI Agent memory and game state files (may contain private data)
+agent_memory.json
+pycatan/ai/memory/*.json
+logs/ai_agents/
+logs/game_states/
+
+# Test configuration files
+test_config.yaml
+test_*.yaml
