@@ -1,6 +1,6 @@
 {
-  "timestamp": "2026-01-03T22:25:16.620950",
-  "state_number": 2,
+  "timestamp": "2026-01-03T22:34:02.690022",
+  "state_number": 3,
   "state": {
     "hexes": [
       {
@@ -118,7 +118,13 @@
         "has_robber": false
       }
     ],
-    "settlements": [],
+    "settlements": [
+      {
+        "id": "b_20",
+        "vertex": 20,
+        "player": 1
+      }
+    ],
     "cities": [],
     "roads": [],
     "harbors": [
@@ -190,11 +196,11 @@
       {
         "id": 0,
         "name": "a",
-        "victory_points": 0,
+        "victory_points": 1,
         "total_cards": 0,
         "cards_list": [],
         "dev_cards_list": [],
-        "settlements": 0,
+        "settlements": 1,
         "cities": 0,
         "roads": 0,
         "longest_road": 0,
@@ -244,7 +250,7 @@
     ],
     "dice_result": null,
     "allowed_actions": [
-      "PLACE_STARTING_SETTLEMENT"
+      "PLACE_STARTING_ROAD"
     ],
     "points": [
       {
