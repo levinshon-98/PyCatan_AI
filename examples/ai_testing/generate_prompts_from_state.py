@@ -531,14 +531,39 @@ def generate_prompt_for_player(player_name, game_state, prompt_manager, full_sta
 def save_prompt_to_file(player_name, prompt, output_dir, is_active_player=True):
     """
     Save a prompt as JSON file with response schema header.
+    Uses sequential numbering so each new prompt gets a unique number.
     
     Args:
         player_name: Name of the player
         prompt: Complete prompt dictionary
         output_dir: Directory to save to
         is_active_player: Whether this player is currently active (affects schema)
+    
+    Returns:
+        Tuple of (json_file, txt_file) paths created
     """
-    output_file = output_dir / f"prompt_player_{player_name}.json"
+    # Create player-specific subdirectory: session_X/player_A/prompts/
+    player_dir = output_dir / player_name / 'prompts'
+    player_dir.mkdir(exist_ok=True, parents=True)
+    
+    # Find the next available prompt number
+    existing_prompts = sorted(player_dir.glob('prompt_*.json'))
+    if existing_prompts:
+        # Extract numbers from existing files (e.g., prompt_1.json -> 1)
+        numbers = []
+        for p in existing_prompts:
+            try:
+                num = int(p.stem.split('_')[1])
+                numbers.append(num)
+            except (IndexError, ValueError):
+                continue
+        next_num = max(numbers) + 1 if numbers else 1
+    else:
+        next_num = 1
+    
+    # Create file paths with sequential numbers
+    output_file = player_dir / f"prompt_{next_num}.json"
+    txt_file = player_dir / f"prompt_{next_num}.txt"
     
     # Select appropriate schema
     schema = get_response_schema() if is_active_player else get_spectator_response_schema()
@@ -554,10 +579,10 @@ def save_prompt_to_file(player_name, prompt, output_dir, is_active_player=True):
         json.dump(llm_request, f, indent=2, ensure_ascii=False)
     
     # Also create a human-readable version
-    txt_file = output_dir / f"prompt_player_{player_name}.txt"
     with open(txt_file, 'w', encoding='utf-8') as f:
         f.write("="*80 + "\n")
         f.write(f"AI AGENT PROMPT - PLAYER {player_name.upper()}\n")
+        f.write(f"Prompt #{next_num}\n")
         f.write(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         f.write("="*80 + "\n\n")
         
@@ -576,6 +601,52 @@ def save_prompt_to_file(player_name, prompt, output_dir, is_active_player=True):
         f.write("="*80 + "\n")
         f.write("END OF PROMPT\n")
         f.write("="*80 + "\n")
+    
+    return output_file, txt_file
+
+
+def get_latest_prompt(player_name, session_dir=None):
+    """
+    Get the most recent prompt file for a specific player.
+    
+    Args:
+        player_name: Name of the player
+        session_dir: Path to session directory, or None to auto-detect
+        
+    Returns:
+        Tuple of (json_file_path, prompt_dict) or (None, None) if not found
+    """
+    if session_dir is None:
+        session_dir = get_current_session_dir()
+    
+    if session_dir is None:
+        print(f"⚠️  No session directory found")
+        return None, None
+    
+    # Look for prompts in player's subdirectory
+    player_dir = session_dir / player_name / 'prompts'
+    
+    if not player_dir.exists():
+        print(f"⚠️  No prompts directory found for player '{player_name}'")
+        return None, None
+    
+    # Find all prompt files and get the latest one
+    prompt_files = sorted(player_dir.glob('prompt_*.json'))
+    
+    if not prompt_files:
+        print(f"⚠️  No prompts found for player '{player_name}'")
+        return None, None
+    
+    # Get the file with the highest number
+    latest_file = prompt_files[-1]  # Already sorted, so last one is highest
+    
+    try:
+        with open(latest_file, 'r', encoding='utf-8') as f:
+            prompt_data = json.load(f)
+        return latest_file, prompt_data
+    except Exception as e:
+        print(f"❌ Error reading prompt file: {e}")
+        return None, None
 
 
 def main():
@@ -614,11 +685,10 @@ def main():
     config = AIConfig()
     prompt_manager = PromptManager(config)
     
-    # Get current session directory and create prompts subdirectory
+    # Get current session directory (prompts will be saved directly under session/player_name/prompts/)
     session_dir = get_current_session_dir()
     if session_dir:
-        output_dir = session_dir / 'prompts'
-        output_dir.mkdir(exist_ok=True, parents=True)
+        output_dir = session_dir  # Don't create 'prompts' subdirectory here
     else:
         # Fallback to old location if no session
         output_dir = Path('examples/ai_testing/my_games/prompts')
@@ -655,10 +725,8 @@ def main():
         try:
             is_active = (player_name == meta.get("curr"))
             prompt = generate_prompt_for_player(player_name, game_state, prompt_manager, full_state, agent_memories, chat_history)
-            save_prompt_to_file(player_name, prompt, output_dir, is_active_player=is_active)
+            json_file, txt_file = save_prompt_to_file(player_name, prompt, output_dir, is_active_player=is_active)
             
-            json_file = output_dir / f"prompt_player_{player_name}.json"
-            txt_file = output_dir / f"prompt_player_{player_name}.txt"
             status = "🎯 ACTIVE" if is_active else "👁️  WATCHING"
             print(f"     {status}")
             print(f"     ✓ JSON: {json_file}")
@@ -674,8 +742,11 @@ def main():
     print("="*80)
     print(f"\n📁 Output location: {output_dir.absolute()}")
     print(f"\n💡 Files created per player:")
-    print(f"   - prompt_player_X.json (Send this to LLM)")
-    print(f"   - prompt_player_X.txt  (Human-readable)")
+    print(f"   Structure: session_X/player_name/prompts/prompt_N.json")
+    print(f"   - prompt_N.json (Send this to LLM)")
+    print(f"   - prompt_N.txt  (Human-readable)")
+    print(f"\n💡 Each new prompt gets a new number (prompt_1, prompt_2, etc.)")
+    print(f"   Always use the highest numbered prompt (most recent)")
     
     print("\n" + "="*80 + "\n")
 

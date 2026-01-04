@@ -313,15 +313,18 @@ class AITester:
         """
         Process a single prompt file.
         
+        The prompt_file is now expected to be a JSON file with path:
+        session_dir/player_name/prompts/prompt_N.json
+        
         Args:
-            prompt_file: Path to prompt file
-            executor: Optional thread pool executor for parallel processing
+            prompt_file: Path to JSON prompt file
+            executor: Optional thread pool executor (not used, kept for compatibility)
             
         Returns:
             Processed response data or None if failed
         """
-        # Extract player name from filename (e.g., "prompt_player_a.txt" -> "a")
-        player_name = prompt_file.stem.replace("prompt_player_", "")
+        # Extract player name from path: session/player_name/prompts/prompt_N.json
+        player_name = prompt_file.parent.parent.name
         
         # Check if player already has an active request
         with self.active_requests_lock:
@@ -340,18 +343,15 @@ class AITester:
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         request_num = len([k for k in self.player_logs.keys() if player_name in str(k)]) + 1
         
-        # Use JSON file instead of TXT for actual prompt
-        json_file = prompt_file.with_suffix('.json')
-        if not json_file.exists():
-            print(f"❌ JSON prompt file not found: {json_file}")
-            return None
-        
-        # Read prompt JSON file directly
+        # Read prompt JSON file directly (it's already a JSON file)
         try:
-            with open(json_file, 'r', encoding='utf-8') as f:
+            with open(prompt_file, 'r', encoding='utf-8') as f:
                 prompt_json = json.load(f)
         except Exception as e:
             print(f"❌ Failed to read JSON prompt file: {e}")
+            # Remove from active requests
+            with self.active_requests_lock:
+                self.active_requests.discard(player_name)
             return None
         
         # Extract the actual prompt (the nested 'prompt' field)
@@ -605,13 +605,9 @@ def monitor_prompts():
     """Monitor for new prompts and process them in parallel."""
     session_dir = get_or_create_session()
     
-    # Create prompts directory inside session
-    prompts_dir = session_dir / 'prompts'
-    prompts_dir.mkdir(exist_ok=True)
-    
     tester = AITester(session_dir)
-    processed_files = {}  # Dictionary: filename -> content hash when processed
-    retry_counts = {}  # Dictionary: filename -> number of retry attempts
+    processed_files = {}  # Dictionary: (player, prompt_num) -> content hash when processed
+    retry_counts = {}  # Dictionary: (player, prompt_num) -> number of retry attempts
     MAX_RETRIES = 3
     
     # Thread pool for parallel processing
@@ -620,7 +616,8 @@ def monitor_prompts():
     print("="*80)
     print("🎮 AI AGENT LIVE TESTER (PARALLEL MODE)")
     print("="*80)
-    print(f"📁 Watching: {prompts_dir}")
+    print(f"📁 Watching: {session_dir}")
+    print(f"   Structure: session/player_name/prompts/prompt_N.json")
     print(f"🤖 Model: {GEMINI_MODEL}")
     print(f"📝 Session logs: {session_dir}")
     print(f"⚡ Parallel processing enabled")
@@ -629,21 +626,34 @@ def monitor_prompts():
     
     try:
         while True:
-            # Check for prompt files in SESSION prompts directory
-            if prompts_dir.exists():
-                prompt_files = sorted(prompts_dir.glob("prompt_player_*.txt"))
-                
-                # Collect new prompts to process
-                new_prompts = []
-                
-                for prompt_file in prompt_files:
-                    filename = prompt_file.name
+            # Find all player directories in session
+            if not session_dir.exists():
+                time.sleep(1)
+                continue
+            
+            # Get all player directories
+            player_dirs = [d for d in session_dir.iterdir() if d.is_dir() and not d.name.startswith('.')]
+            
+            # Collect all prompt files from all players
+            prompt_files = []
+            for player_dir in player_dirs:
+                prompts_subdir = player_dir / 'prompts'
+                if prompts_subdir.exists():
+                    # Get JSON files (not txt) with pattern prompt_N.json
+                    player_prompts = sorted(prompts_subdir.glob("prompt_*.json"))
+                    prompt_files.extend(player_prompts)
+            
+            # Collect new prompts to process
+            new_prompts = []
+            
+            if prompt_files:
+                for json_file in prompt_files:
+                    # Extract player name from path: session/player_name/prompts/prompt_N.json
+                    player_name = json_file.parent.parent.name
+                    prompt_num = json_file.stem  # e.g., "prompt_1"
+                    file_key = (player_name, prompt_num)
                     
                     # Read JSON file to get content hash
-                    json_file = prompt_file.with_suffix('.json')
-                    if not json_file.exists():
-                        continue
-                    
                     try:
                         with open(json_file, 'rb') as f:
                             content = f.read()
@@ -653,89 +663,84 @@ def monitor_prompts():
                         continue
                     
                     # Check if this is a new prompt based on content hash
-                    if filename not in processed_files or processed_files[filename] != content_hash:
-                        new_prompts.append((prompt_file, filename, content_hash))
+                    if file_key not in processed_files or processed_files[file_key] != content_hash:
+                        new_prompts.append((json_file, file_key, content_hash, player_name))
                 
-                # Process all new prompts in parallel
-                if new_prompts:
-                    print(f"\n🆕 Detected {len(new_prompts)} new prompt(s)")
-                    
-                    # Small delay to ensure files are fully written
-                    time.sleep(0.2)
-                    
-                    # Check how many can actually be sent
-                    players_with_active_requests = []
-                    players_to_process = []
-                    
-                    for prompt_file, filename, content_hash in new_prompts:
-                        player_name = prompt_file.stem.replace("prompt_player_", "")
+            # Process all new prompts in parallel
+            if new_prompts:
+                print(f"\n🆕 Detected {len(new_prompts)} new prompt(s)")
+                
+                # Small delay to ensure files are fully written
+                time.sleep(0.2)
+                
+                # Check how many can actually be sent
+                players_with_active_requests = []
+                players_to_process = []
+                
+                for json_file, file_key, content_hash, player_name in new_prompts:
+                    # Check if player already has active request
+                    with tester.active_requests_lock:
+                        if player_name in tester.active_requests:
+                            players_with_active_requests.append(player_name)
+                        else:
+                            players_to_process.append((json_file, file_key, content_hash, player_name))
+                
+                # Report skipped players
+                if players_with_active_requests:
+                    print(f"🚫 Skipping players with active requests: {', '.join(set(players_with_active_requests))}")
+                
+                # Report players being processed
+                if players_to_process:
+                    player_names = [p[3] for p in players_to_process]
+                    print(f"📤 Submitting to queue: {', '.join(player_names)}")
+                
+                # Submit all prompts to thread pool
+                futures = []
+                for json_file, file_key, content_hash, player_name in players_to_process:
+                    future = executor.submit(tester.process_prompt, json_file, executor)
+                    futures.append((future, file_key, content_hash, player_name))
+                
+                # Wait for all to complete
+                for future, file_key, content_hash, player_name in futures:
+                    try:
+                        result = future.result(timeout=120)  # 2 minute timeout
+                        if result:
+                            processed_files[file_key] = content_hash
+                            # Reset retry count on success
+                            if file_key in retry_counts:
+                                del retry_counts[file_key]
+                    except TimeoutError:
+                        print(f"❌ Error processing prompt: TimeoutError")
+                        print(f"   Request for player '{player_name}' timed out after 120 seconds")
                         
-                        # Check if player already has active request
-                        with tester.active_requests_lock:
-                            if player_name in tester.active_requests:
-                                players_with_active_requests.append(player_name)
-                            else:
-                                players_to_process.append((prompt_file, filename, content_hash, player_name))
-                    
-                    # Report skipped players
-                    if players_with_active_requests:
-                        print(f"🚫 Skipping players with active requests: {', '.join(players_with_active_requests)}")
-                    
-                    # Report players being processed
-                    if players_to_process:
-                        player_names = [p[3] for p in players_to_process]
-                        print(f"📤 Submitting to queue: {', '.join(player_names)}")
-                    
-                    # Submit all prompts to thread pool
-                    futures = []
-                    for prompt_file, filename, content_hash, player_name in players_to_process:
-                        future = executor.submit(tester.process_prompt, prompt_file, executor)
-                        futures.append((future, filename, content_hash))
-                    
-                    # Wait for all to complete
-                    for future, filename, content_hash in futures:
-                        player_name = None
-                        try:
-                            # Extract player name from filename for error handling
-                            player_name = filename.replace("prompt_player_", "").replace(".txt", "")
-                            result = future.result(timeout=120)  # 2 minute timeout
-                            if result:
-                                processed_files[filename] = content_hash
-                                # Reset retry count on success
-                                if filename in retry_counts:
-                                    del retry_counts[filename]
-                        except TimeoutError:
-                            print(f"❌ Error processing prompt: TimeoutError")
-                            print(f"   Request for player '{player_name}' timed out after 120 seconds")
-                            
-                            # Track retry attempts
-                            retry_counts[filename] = retry_counts.get(filename, 0) + 1
-                            attempts = retry_counts[filename]
-                            print(f"   ⚠️  Retry attempt {attempts}/{MAX_RETRIES}")
-                            
-                            # Check if max retries reached
-                            if attempts >= MAX_RETRIES:
-                                print(f"\n{'='*80}")
-                                print(f"🛑 CRITICAL: Player '{player_name}' failed after {MAX_RETRIES} timeout attempts")
-                                print(f"{'='*80}")
-                                print(f"Stopping execution to prevent infinite retry loop.")
-                                print(f"Check the prompt or API connection issues.")
-                                print(f"{'='*80}\n")
-                                raise RuntimeError(f"Max retries ({MAX_RETRIES}) exceeded for player '{player_name}'")
-                            
-                            # Remove from active requests so new prompts can be sent
-                            if player_name:
-                                with tester.active_requests_lock:
-                                    tester.active_requests.discard(player_name)
-                                print(f"   🔄 Removed '{player_name}' from active requests - will retry")
-                        except Exception as e:
-                            print(f"❌ Error processing prompt: {e}")
-                            import traceback
-                            traceback.print_exc()
-                            # Also remove from active requests on any other error
-                            if player_name:
-                                with tester.active_requests_lock:
-                                    tester.active_requests.discard(player_name)
+                        # Track retry attempts
+                        retry_counts[file_key] = retry_counts.get(file_key, 0) + 1
+                        attempts = retry_counts[file_key]
+                        print(f"   ⚠️  Retry attempt {attempts}/{MAX_RETRIES}")
+                        
+                        # Check if max retries reached
+                        if attempts >= MAX_RETRIES:
+                            print(f"\n{'='*80}")
+                            print(f"🛑 CRITICAL: Player '{player_name}' failed after {MAX_RETRIES} timeout attempts")
+                            print(f"{'='*80}")
+                            print(f"Stopping execution to prevent infinite retry loop.")
+                            print(f"Check the prompt or API connection issues.")
+                            print(f"{'='*80}\n")
+                            raise RuntimeError(f"Max retries ({MAX_RETRIES}) exceeded for player '{player_name}'")
+                        
+                        # Remove from active requests so new prompts can be sent
+                        if player_name:
+                            with tester.active_requests_lock:
+                                tester.active_requests.discard(player_name)
+                            print(f"   🔄 Removed '{player_name}' from active requests - will retry")
+                    except Exception as e:
+                        print(f"❌ Error processing prompt: {e}")
+                        import traceback
+                        traceback.print_exc()
+                        # Also remove from active requests on any other error
+                        if player_name:
+                            with tester.active_requests_lock:
+                                tester.active_requests.discard(player_name)
                     
                     # Show stats periodically
                     if len(processed_files) % 5 == 0 and len(processed_files) > 0:
