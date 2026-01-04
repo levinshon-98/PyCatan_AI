@@ -1,6 +1,6 @@
 {
-  "timestamp": "2026-01-04T02:33:43.473902",
-  "state_number": 4,
+  "timestamp": "2026-01-04T03:03:55.166631",
+  "state_number": 17,
   "state": {
     "hexes": [
       {
@@ -120,13 +120,42 @@
     ],
     "settlements": [
       {
-        "id": "b_42",
-        "vertex": 42,
+        "id": "b_12",
+        "vertex": 12,
+        "player": 3
+      },
+      {
+        "id": "b_20",
+        "vertex": 20,
         "player": 1
+      },
+      {
+        "id": "b_41",
+        "vertex": 41,
+        "player": 2
       }
     ],
     "cities": [],
-    "roads": [],
+    "roads": [
+      {
+        "id": 1,
+        "from": 21,
+        "to": 20,
+        "player": 1
+      },
+      {
+        "id": 2,
+        "from": 41,
+        "to": 31,
+        "player": 2
+      },
+      {
+        "id": 3,
+        "from": 12,
+        "to": 11,
+        "player": 3
+      }
+    ],
     "harbors": [
       {
         "id": 1,
@@ -195,15 +224,15 @@
     "players": [
       {
         "id": 0,
-        "name": "A",
+        "name": "SH",
         "victory_points": 1,
         "total_cards": 0,
         "cards_list": [],
         "dev_cards_list": [],
         "settlements": 1,
         "cities": 0,
-        "roads": 0,
-        "longest_road": 0,
+        "roads": 1,
+        "longest_road": 1,
         "has_longest_road": false,
         "knights": 0,
         "knights_played": 0,
@@ -211,15 +240,15 @@
       },
       {
         "id": 1,
-        "name": "B",
-        "victory_points": 0,
+        "name": "TH",
+        "victory_points": 1,
         "total_cards": 0,
         "cards_list": [],
         "dev_cards_list": [],
-        "settlements": 0,
+        "settlements": 1,
         "cities": 0,
-        "roads": 0,
-        "longest_road": 0,
+        "roads": 1,
+        "longest_road": 1,
         "has_longest_road": false,
         "knights": 0,
         "knights_played": 0,
@@ -227,30 +256,30 @@
       },
       {
         "id": 2,
-        "name": "C",
-        "victory_points": 0,
+        "name": "NH",
+        "victory_points": 1,
         "total_cards": 0,
         "cards_list": [],
         "dev_cards_list": [],
-        "settlements": 0,
+        "settlements": 1,
         "cities": 0,
-        "roads": 0,
-        "longest_road": 0,
+        "roads": 1,
+        "longest_road": 1,
         "has_longest_road": false,
         "knights": 0,
         "knights_played": 0,
         "has_largest_army": false
       }
     ],
-    "current_player": 0,
-    "current_phase": "SETUP_FIRST_ROUND",
+    "current_player": 2,
+    "current_phase": "SETUP_SECOND_ROUND",
     "robber_position": [
       2,
       2
     ],
     "dice_result": null,
     "allowed_actions": [
-      "PLACE_STARTING_ROAD"
+      "PLACE_STARTING_SETTLEMENT"
     ],
     "points": [
       {
