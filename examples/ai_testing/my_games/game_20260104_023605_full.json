@@ -1,0 +1,3554 @@
+{
+  "total_states": 4,
+  "timestamp": "20260104_023605",
+  "states": [
+    {
+      "hexes": [
+        {
+          "id": 1,
+          "type": "wood",
+          "number": 12,
+          "has_robber": false
+        },
+        {
+          "id": 2,
+          "type": "sheep",
+          "number": 5,
+          "has_robber": false
+        },
+        {
+          "id": 3,
+          "type": "wood",
+          "number": 4,
+          "has_robber": false
+        },
+        {
+          "id": 4,
+          "type": "sheep",
+          "number": 8,
+          "has_robber": false
+        },
+        {
+          "id": 5,
+          "type": "brick",
+          "number": 6,
+          "has_robber": false
+        },
+        {
+          "id": 6,
+          "type": "wood",
+          "number": 3,
+          "has_robber": false
+        },
+        {
+          "id": 7,
+          "type": "wheat",
+          "number": 8,
+          "has_robber": false
+        },
+        {
+          "id": 8,
+          "type": "brick",
+          "number": 10,
+          "has_robber": false
+        },
+        {
+          "id": 9,
+          "type": "wood",
+          "number": 11,
+          "has_robber": false
+        },
+        {
+          "id": 10,
+          "type": "desert",
+          "number": null,
+          "has_robber": true
+        },
+        {
+          "id": 11,
+          "type": "ore",
+          "number": 3,
+          "has_robber": false
+        },
+        {
+          "id": 12,
+          "type": "sheep",
+          "number": 4,
+          "has_robber": false
+        },
+        {
+          "id": 13,
+          "type": "brick",
+          "number": 10,
+          "has_robber": false
+        },
+        {
+          "id": 14,
+          "type": "wheat",
+          "number": 9,
+          "has_robber": false
+        },
+        {
+          "id": 15,
+          "type": "wheat",
+          "number": 6,
+          "has_robber": false
+        },
+        {
+          "id": 16,
+          "type": "sheep",
+          "number": 11,
+          "has_robber": false
+        },
+        {
+          "id": 17,
+          "type": "ore",
+          "number": 5,
+          "has_robber": false
+        },
+        {
+          "id": 18,
+          "type": "wheat",
+          "number": 9,
+          "has_robber": false
+        },
+        {
+          "id": 19,
+          "type": "ore",
+          "number": 2,
+          "has_robber": false
+        }
+      ],
+      "settlements": [],
+      "cities": [],
+      "roads": [],
+      "harbors": [
+        {
+          "id": 1,
+          "type": "any",
+          "ratio": 3,
+          "point_one": 9,
+          "point_two": 8
+        },
+        {
+          "id": 2,
+          "type": "sheep",
+          "ratio": 2,
+          "point_one": 17,
+          "point_two": 28
+        },
+        {
+          "id": 3,
+          "type": "wood",
+          "ratio": 2,
+          "point_one": 40,
+          "point_two": 48
+        },
+        {
+          "id": 4,
+          "type": "any",
+          "ratio": 3,
+          "point_one": 50,
+          "point_two": 51
+        },
+        {
+          "id": 5,
+          "type": "any",
+          "ratio": 3,
+          "point_one": 53,
+          "point_two": 54
+        },
+        {
+          "id": 6,
+          "type": "any",
+          "ratio": 3,
+          "point_one": 37,
+          "point_two": 38
+        },
+        {
+          "id": 7,
+          "type": "ore",
+          "ratio": 2,
+          "point_one": 26,
+          "point_two": 16
+        },
+        {
+          "id": 8,
+          "type": "brick",
+          "ratio": 2,
+          "point_one": 7,
+          "point_two": 6
+        },
+        {
+          "id": 9,
+          "type": "wheat",
+          "ratio": 2,
+          "point_one": 3,
+          "point_two": 2
+        }
+      ],
+      "players": [
+        {
+          "id": 0,
+          "name": "A",
+          "victory_points": 0,
+          "total_cards": 0,
+          "cards_list": [],
+          "dev_cards_list": [],
+          "settlements": 0,
+          "cities": 0,
+          "roads": 0,
+          "longest_road": 0,
+          "has_longest_road": false,
+          "knights": 0,
+          "knights_played": 0,
+          "has_largest_army": false
+        },
+        {
+          "id": 1,
+          "name": "B",
+          "victory_points": 0,
+          "total_cards": 0,
+          "cards_list": [],
+          "dev_cards_list": [],
+          "settlements": 0,
+          "cities": 0,
+          "roads": 0,
+          "longest_road": 0,
+          "has_longest_road": false,
+          "knights": 0,
+          "knights_played": 0,
+          "has_largest_army": false
+        },
+        {
+          "id": 2,
+          "name": "C",
+          "victory_points": 0,
+          "total_cards": 0,
+          "cards_list": [],
+          "dev_cards_list": [],
+          "settlements": 0,
+          "cities": 0,
+          "roads": 0,
+          "longest_road": 0,
+          "has_longest_road": false,
+          "knights": 0,
+          "knights_played": 0,
+          "has_largest_army": false
+        }
+      ],
+      "current_player": 0,
+      "current_phase": "SETUP_FIRST_ROUND",
+      "robber_position": [
+        2,
+        2
+      ],
+      "dice_result": null,
+      "allowed_actions": [
+        "PLACE_STARTING_SETTLEMENT"
+      ],
+      "points": [
+        {
+          "point_id": 1,
+          "adjacent_points": [
+            2,
+            9
+          ],
+          "adjacent_hexes": [
+            1
+          ]
+        },
+        {
+          "point_id": 2,
+          "adjacent_points": [
+            1,
+            3
+          ],
+          "adjacent_hexes": [
+            1
+          ]
+        },
+        {
+          "point_id": 3,
+          "adjacent_points": [
+            2,
+            4,
+            11
+          ],
+          "adjacent_hexes": [
+            2,
+            1
+          ]
+        },
+        {
+          "point_id": 4,
+          "adjacent_points": [
+            3,
+            5
+          ],
+          "adjacent_hexes": [
+            2
+          ]
+        },
+        {
+          "point_id": 5,
+          "adjacent_points": [
+            4,
+            6,
+            13
+          ],
+          "adjacent_hexes": [
+            3,
+            2
+          ]
+        },
+        {
+          "point_id": 6,
+          "adjacent_points": [
+            5,
+            7
+          ],
+          "adjacent_hexes": [
+            3
+          ]
+        },
+        {
+          "point_id": 7,
+          "adjacent_points": [
+            6,
+            15
+          ],
+          "adjacent_hexes": [
+            3
+          ]
+        },
+        {
+          "point_id": 8,
+          "adjacent_points": [
+            9,
+            18
+          ],
+          "adjacent_hexes": [
+            4
+          ]
+        },
+        {
+          "point_id": 9,
+          "adjacent_points": [
+            8,
+            10,
+            1
+          ],
+          "adjacent_hexes": [
+            4,
+            1
+          ]
+        },
+        {
+          "point_id": 10,
+          "adjacent_points": [
+            9,
+            11,
+            20
+          ],
+          "adjacent_hexes": [
+            5,
+            4,
+            1
+          ]
+        },
+        {
+          "point_id": 11,
+          "adjacent_points": [
+            10,
+            12,
+            3
+          ],
+          "adjacent_hexes": [
+            5,
+            2,
+            1
+          ]
+        },
+        {
+          "point_id": 12,
+          "adjacent_points": [
+            11,
+            13,
+            22
+          ],
+          "adjacent_hexes": [
+            6,
+            5,
+            2
+          ]
+        },
+        {
+          "point_id": 13,
+          "adjacent_points": [
+            12,
+            14,
+            5
+          ],
+          "adjacent_hexes": [
+            6,
+            3,
+            2
+          ]
+        },
+        {
+          "point_id": 14,
+          "adjacent_points": [
+            13,
+            15,
+            24
+          ],
+          "adjacent_hexes": [
+            7,
+            6,
+            3
+          ]
+        },
+        {
+          "point_id": 15,
+          "adjacent_points": [
+            14,
+            16,
+            7
+          ],
+          "adjacent_hexes": [
+            7,
+            3
+          ]
+        },
+        {
+          "point_id": 16,
+          "adjacent_points": [
+            15,
+            26
+          ],
+          "adjacent_hexes": [
+            7
+          ]
+        },
+        {
+          "point_id": 17,
+          "adjacent_points": [
+            18,
+            28
+          ],
+          "adjacent_hexes": [
+            8
+          ]
+        },
+        {
+          "point_id": 18,
+          "adjacent_points": [
+            17,
+            19,
+            8
+          ],
+          "adjacent_hexes": [
+            8,
+            4
+          ]
+        },
+        {
+          "point_id": 19,
+          "adjacent_points": [
+            18,
+            20,
+            30
+          ],
+          "adjacent_hexes": [
+            9,
+            8,
+            4
+          ]
+        },
+        {
+          "point_id": 20,
+          "adjacent_points": [
+            19,
+            21,
+            10
+          ],
+          "adjacent_hexes": [
+            9,
+            5,
+            4
+          ]
+        },
+        {
+          "point_id": 21,
+          "adjacent_points": [
+            20,
+            22,
+            32
+          ],
+          "adjacent_hexes": [
+            10,
+            9,
+            5
+          ]
+        },
+        {
+          "point_id": 22,
+          "adjacent_points": [
+            21,
+            23,
+            12
+          ],
+          "adjacent_hexes": [
+            10,
+            6,
+            5
+          ]
+        },
+        {
+          "point_id": 23,
+          "adjacent_points": [
+            22,
+            24,
+            34
+          ],
+          "adjacent_hexes": [
+            11,
+            10,
+            6
+          ]
+        },
+        {
+          "point_id": 24,
+          "adjacent_points": [
+            23,
+            25,
+            14
+          ],
+          "adjacent_hexes": [
+            11,
+            7,
+            6
+          ]
+        },
+        {
+          "point_id": 25,
+          "adjacent_points": [
+            24,
+            26,
+            36
+          ],
+          "adjacent_hexes": [
+            12,
+            11,
+            7
+          ]
+        },
+        {
+          "point_id": 26,
+          "adjacent_points": [
+            25,
+            27,
+            16
+          ],
+          "adjacent_hexes": [
+            12,
+            7
+          ]
+        },
+        {
+          "point_id": 27,
+          "adjacent_points": [
+            26,
+            38
+          ],
+          "adjacent_hexes": [
+            12
+          ]
+        },
+        {
+          "point_id": 28,
+          "adjacent_points": [
+            29,
+            17
+          ],
+          "adjacent_hexes": [
+            8
+          ]
+        },
+        {
+          "point_id": 29,
+          "adjacent_points": [
+            28,
+            30,
+            39
+          ],
+          "adjacent_hexes": [
+            13,
+            8
+          ]
+        },
+        {
+          "point_id": 30,
+          "adjacent_points": [
+            29,
+            31,
+            19
+          ],
+          "adjacent_hexes": [
+            13,
+            9,
+            8
+          ]
+        },
+        {
+          "point_id": 31,
+          "adjacent_points": [
+            30,
+            32,
+            41
+          ],
+          "adjacent_hexes": [
+            14,
+            13,
+            9
+          ]
+        },
+        {
+          "point_id": 32,
+          "adjacent_points": [
+            31,
+            33,
+            21
+          ],
+          "adjacent_hexes": [
+            14,
+            10,
+            9
+          ]
+        },
+        {
+          "point_id": 33,
+          "adjacent_points": [
+            32,
+            34,
+            43
+          ],
+          "adjacent_hexes": [
+            15,
+            14,
+            10
+          ]
+        },
+        {
+          "point_id": 34,
+          "adjacent_points": [
+            33,
+            35,
+            23
+          ],
+          "adjacent_hexes": [
+            15,
+            11,
+            10
+          ]
+        },
+        {
+          "point_id": 35,
+          "adjacent_points": [
+            34,
+            36,
+            45
+          ],
+          "adjacent_hexes": [
+            16,
+            15,
+            11
+          ]
+        },
+        {
+          "point_id": 36,
+          "adjacent_points": [
+            35,
+            37,
+            25
+          ],
+          "adjacent_hexes": [
+            16,
+            12,
+            11
+          ]
+        },
+        {
+          "point_id": 37,
+          "adjacent_points": [
+            36,
+            38,
+            47
+          ],
+          "adjacent_hexes": [
+            16,
+            12
+          ]
+        },
+        {
+          "point_id": 38,
+          "adjacent_points": [
+            37,
+            27
+          ],
+          "adjacent_hexes": [
+            12
+          ]
+        },
+        {
+          "point_id": 39,
+          "adjacent_points": [
+            40,
+            29
+          ],
+          "adjacent_hexes": [
+            13
+          ]
+        },
+        {
+          "point_id": 40,
+          "adjacent_points": [
+            39,
+            41,
+            48
+          ],
+          "adjacent_hexes": [
+            17,
+            13
+          ]
+        },
+        {
+          "point_id": 41,
+          "adjacent_points": [
+            40,
+            42,
+            31
+          ],
+          "adjacent_hexes": [
+            17,
+            14,
+            13
+          ]
+        },
+        {
+          "point_id": 42,
+          "adjacent_points": [
+            41,
+            43,
+            50
+          ],
+          "adjacent_hexes": [
+            18,
+            17,
+            14
+          ]
+        },
+        {
+          "point_id": 43,
+          "adjacent_points": [
+            42,
+            44,
+            33
+          ],
+          "adjacent_hexes": [
+            18,
+            15,
+            14
+          ]
+        },
+        {
+          "point_id": 44,
+          "adjacent_points": [
+            43,
+            45,
+            52
+          ],
+          "adjacent_hexes": [
+            19,
+            18,
+            15
+          ]
+        },
+        {
+          "point_id": 45,
+          "adjacent_points": [
+            44,
+            46,
+            35
+          ],
+          "adjacent_hexes": [
+            19,
+            16,
+            15
+          ]
+        },
+        {
+          "point_id": 46,
+          "adjacent_points": [
+            45,
+            47,
+            54
+          ],
+          "adjacent_hexes": [
+            19,
+            16
+          ]
+        },
+        {
+          "point_id": 47,
+          "adjacent_points": [
+            46,
+            37
+          ],
+          "adjacent_hexes": [
+            16
+          ]
+        },
+        {
+          "point_id": 48,
+          "adjacent_points": [
+            49,
+            40
+          ],
+          "adjacent_hexes": [
+            17
+          ]
+        },
+        {
+          "point_id": 49,
+          "adjacent_points": [
+            48,
+            50
+          ],
+          "adjacent_hexes": [
+            17
+          ]
+        },
+        {
+          "point_id": 50,
+          "adjacent_points": [
+            49,
+            51,
+            42
+          ],
+          "adjacent_hexes": [
+            18,
+            17
+          ]
+        },
+        {
+          "point_id": 51,
+          "adjacent_points": [
+            50,
+            52
+          ],
+          "adjacent_hexes": [
+            18
+          ]
+        },
+        {
+          "point_id": 52,
+          "adjacent_points": [
+            51,
+            53,
+            44
+          ],
+          "adjacent_hexes": [
+            19,
+            18
+          ]
+        },
+        {
+          "point_id": 53,
+          "adjacent_points": [
+            52,
+            54
+          ],
+          "adjacent_hexes": [
+            19
+          ]
+        },
+        {
+          "point_id": 54,
+          "adjacent_points": [
+            53,
+            46
+          ],
+          "adjacent_hexes": [
+            19
+          ]
+        }
+      ]
+    },
+    {
+      "hexes": [
+        {
+          "id": 1,
+          "type": "wood",
+          "number": 12,
+          "has_robber": false
+        },
+        {
+          "id": 2,
+          "type": "sheep",
+          "number": 5,
+          "has_robber": false
+        },
+        {
+          "id": 3,
+          "type": "wood",
+          "number": 4,
+          "has_robber": false
+        },
+        {
+          "id": 4,
+          "type": "sheep",
+          "number": 8,
+          "has_robber": false
+        },
+        {
+          "id": 5,
+          "type": "brick",
+          "number": 6,
+          "has_robber": false
+        },
+        {
+          "id": 6,
+          "type": "wood",
+          "number": 3,
+          "has_robber": false
+        },
+        {
+          "id": 7,
+          "type": "wheat",
+          "number": 8,
+          "has_robber": false
+        },
+        {
+          "id": 8,
+          "type": "brick",
+          "number": 10,
+          "has_robber": false
+        },
+        {
+          "id": 9,
+          "type": "wood",
+          "number": 11,
+          "has_robber": false
+        },
+        {
+          "id": 10,
+          "type": "desert",
+          "number": null,
+          "has_robber": true
+        },
+        {
+          "id": 11,
+          "type": "ore",
+          "number": 3,
+          "has_robber": false
+        },
+        {
+          "id": 12,
+          "type": "sheep",
+          "number": 4,
+          "has_robber": false
+        },
+        {
+          "id": 13,
+          "type": "brick",
+          "number": 10,
+          "has_robber": false
+        },
+        {
+          "id": 14,
+          "type": "wheat",
+          "number": 9,
+          "has_robber": false
+        },
+        {
+          "id": 15,
+          "type": "wheat",
+          "number": 6,
+          "has_robber": false
+        },
+        {
+          "id": 16,
+          "type": "sheep",
+          "number": 11,
+          "has_robber": false
+        },
+        {
+          "id": 17,
+          "type": "ore",
+          "number": 5,
+          "has_robber": false
+        },
+        {
+          "id": 18,
+          "type": "wheat",
+          "number": 9,
+          "has_robber": false
+        },
+        {
+          "id": 19,
+          "type": "ore",
+          "number": 2,
+          "has_robber": false
+        }
+      ],
+      "settlements": [],
+      "cities": [],
+      "roads": [],
+      "harbors": [
+        {
+          "id": 1,
+          "type": "any",
+          "ratio": 3,
+          "point_one": 9,
+          "point_two": 8
+        },
+        {
+          "id": 2,
+          "type": "sheep",
+          "ratio": 2,
+          "point_one": 17,
+          "point_two": 28
+        },
+        {
+          "id": 3,
+          "type": "wood",
+          "ratio": 2,
+          "point_one": 40,
+          "point_two": 48
+        },
+        {
+          "id": 4,
+          "type": "any",
+          "ratio": 3,
+          "point_one": 50,
+          "point_two": 51
+        },
+        {
+          "id": 5,
+          "type": "any",
+          "ratio": 3,
+          "point_one": 53,
+          "point_two": 54
+        },
+        {
+          "id": 6,
+          "type": "any",
+          "ratio": 3,
+          "point_one": 37,
+          "point_two": 38
+        },
+        {
+          "id": 7,
+          "type": "ore",
+          "ratio": 2,
+          "point_one": 26,
+          "point_two": 16
+        },
+        {
+          "id": 8,
+          "type": "brick",
+          "ratio": 2,
+          "point_one": 7,
+          "point_two": 6
+        },
+        {
+          "id": 9,
+          "type": "wheat",
+          "ratio": 2,
+          "point_one": 3,
+          "point_two": 2
+        }
+      ],
+      "players": [
+        {
+          "id": 0,
+          "name": "A",
+          "victory_points": 0,
+          "total_cards": 0,
+          "cards_list": [],
+          "dev_cards_list": [],
+          "settlements": 0,
+          "cities": 0,
+          "roads": 0,
+          "longest_road": 0,
+          "has_longest_road": false,
+          "knights": 0,
+          "knights_played": 0,
+          "has_largest_army": false
+        },
+        {
+          "id": 1,
+          "name": "B",
+          "victory_points": 0,
+          "total_cards": 0,
+          "cards_list": [],
+          "dev_cards_list": [],
+          "settlements": 0,
+          "cities": 0,
+          "roads": 0,
+          "longest_road": 0,
+          "has_longest_road": false,
+          "knights": 0,
+          "knights_played": 0,
+          "has_largest_army": false
+        },
+        {
+          "id": 2,
+          "name": "C",
+          "victory_points": 0,
+          "total_cards": 0,
+          "cards_list": [],
+          "dev_cards_list": [],
+          "settlements": 0,
+          "cities": 0,
+          "roads": 0,
+          "longest_road": 0,
+          "has_longest_road": false,
+          "knights": 0,
+          "knights_played": 0,
+          "has_largest_army": false
+        }
+      ],
+      "current_player": 0,
+      "current_phase": "SETUP_FIRST_ROUND",
+      "robber_position": [
+        2,
+        2
+      ],
+      "dice_result": null,
+      "allowed_actions": [
+        "PLACE_STARTING_SETTLEMENT"
+      ],
+      "points": [
+        {
+          "point_id": 1,
+          "adjacent_points": [
+            2,
+            9
+          ],
+          "adjacent_hexes": [
+            1
+          ]
+        },
+        {
+          "point_id": 2,
+          "adjacent_points": [
+            1,
+            3
+          ],
+          "adjacent_hexes": [
+            1
+          ]
+        },
+        {
+          "point_id": 3,
+          "adjacent_points": [
+            2,
+            4,
+            11
+          ],
+          "adjacent_hexes": [
+            2,
+            1
+          ]
+        },
+        {
+          "point_id": 4,
+          "adjacent_points": [
+            3,
+            5
+          ],
+          "adjacent_hexes": [
+            2
+          ]
+        },
+        {
+          "point_id": 5,
+          "adjacent_points": [
+            4,
+            6,
+            13
+          ],
+          "adjacent_hexes": [
+            3,
+            2
+          ]
+        },
+        {
+          "point_id": 6,
+          "adjacent_points": [
+            5,
+            7
+          ],
+          "adjacent_hexes": [
+            3
+          ]
+        },
+        {
+          "point_id": 7,
+          "adjacent_points": [
+            6,
+            15
+          ],
+          "adjacent_hexes": [
+            3
+          ]
+        },
+        {
+          "point_id": 8,
+          "adjacent_points": [
+            9,
+            18
+          ],
+          "adjacent_hexes": [
+            4
+          ]
+        },
+        {
+          "point_id": 9,
+          "adjacent_points": [
+            8,
+            10,
+            1
+          ],
+          "adjacent_hexes": [
+            4,
+            1
+          ]
+        },
+        {
+          "point_id": 10,
+          "adjacent_points": [
+            9,
+            11,
+            20
+          ],
+          "adjacent_hexes": [
+            5,
+            4,
+            1
+          ]
+        },
+        {
+          "point_id": 11,
+          "adjacent_points": [
+            10,
+            12,
+            3
+          ],
+          "adjacent_hexes": [
+            5,
+            2,
+            1
+          ]
+        },
+        {
+          "point_id": 12,
+          "adjacent_points": [
+            11,
+            13,
+            22
+          ],
+          "adjacent_hexes": [
+            6,
+            5,
+            2
+          ]
+        },
+        {
+          "point_id": 13,
+          "adjacent_points": [
+            12,
+            14,
+            5
+          ],
+          "adjacent_hexes": [
+            6,
+            3,
+            2
+          ]
+        },
+        {
+          "point_id": 14,
+          "adjacent_points": [
+            13,
+            15,
+            24
+          ],
+          "adjacent_hexes": [
+            7,
+            6,
+            3
+          ]
+        },
+        {
+          "point_id": 15,
+          "adjacent_points": [
+            14,
+            16,
+            7
+          ],
+          "adjacent_hexes": [
+            7,
+            3
+          ]
+        },
+        {
+          "point_id": 16,
+          "adjacent_points": [
+            15,
+            26
+          ],
+          "adjacent_hexes": [
+            7
+          ]
+        },
+        {
+          "point_id": 17,
+          "adjacent_points": [
+            18,
+            28
+          ],
+          "adjacent_hexes": [
+            8
+          ]
+        },
+        {
+          "point_id": 18,
+          "adjacent_points": [
+            17,
+            19,
+            8
+          ],
+          "adjacent_hexes": [
+            8,
+            4
+          ]
+        },
+        {
+          "point_id": 19,
+          "adjacent_points": [
+            18,
+            20,
+            30
+          ],
+          "adjacent_hexes": [
+            9,
+            8,
+            4
+          ]
+        },
+        {
+          "point_id": 20,
+          "adjacent_points": [
+            19,
+            21,
+            10
+          ],
+          "adjacent_hexes": [
+            9,
+            5,
+            4
+          ]
+        },
+        {
+          "point_id": 21,
+          "adjacent_points": [
+            20,
+            22,
+            32
+          ],
+          "adjacent_hexes": [
+            10,
+            9,
+            5
+          ]
+        },
+        {
+          "point_id": 22,
+          "adjacent_points": [
+            21,
+            23,
+            12
+          ],
+          "adjacent_hexes": [
+            10,
+            6,
+            5
+          ]
+        },
+        {
+          "point_id": 23,
+          "adjacent_points": [
+            22,
+            24,
+            34
+          ],
+          "adjacent_hexes": [
+            11,
+            10,
+            6
+          ]
+        },
+        {
+          "point_id": 24,
+          "adjacent_points": [
+            23,
+            25,
+            14
+          ],
+          "adjacent_hexes": [
+            11,
+            7,
+            6
+          ]
+        },
+        {
+          "point_id": 25,
+          "adjacent_points": [
+            24,
+            26,
+            36
+          ],
+          "adjacent_hexes": [
+            12,
+            11,
+            7
+          ]
+        },
+        {
+          "point_id": 26,
+          "adjacent_points": [
+            25,
+            27,
+            16
+          ],
+          "adjacent_hexes": [
+            12,
+            7
+          ]
+        },
+        {
+          "point_id": 27,
+          "adjacent_points": [
+            26,
+            38
+          ],
+          "adjacent_hexes": [
+            12
+          ]
+        },
+        {
+          "point_id": 28,
+          "adjacent_points": [
+            29,
+            17
+          ],
+          "adjacent_hexes": [
+            8
+          ]
+        },
+        {
+          "point_id": 29,
+          "adjacent_points": [
+            28,
+            30,
+            39
+          ],
+          "adjacent_hexes": [
+            13,
+            8
+          ]
+        },
+        {
+          "point_id": 30,
+          "adjacent_points": [
+            29,
+            31,
+            19
+          ],
+          "adjacent_hexes": [
+            13,
+            9,
+            8
+          ]
+        },
+        {
+          "point_id": 31,
+          "adjacent_points": [
+            30,
+            32,
+            41
+          ],
+          "adjacent_hexes": [
+            14,
+            13,
+            9
+          ]
+        },
+        {
+          "point_id": 32,
+          "adjacent_points": [
+            31,
+            33,
+            21
+          ],
+          "adjacent_hexes": [
+            14,
+            10,
+            9
+          ]
+        },
+        {
+          "point_id": 33,
+          "adjacent_points": [
+            32,
+            34,
+            43
+          ],
+          "adjacent_hexes": [
+            15,
+            14,
+            10
+          ]
+        },
+        {
+          "point_id": 34,
+          "adjacent_points": [
+            33,
+            35,
+            23
+          ],
+          "adjacent_hexes": [
+            15,
+            11,
+            10
+          ]
+        },
+        {
+          "point_id": 35,
+          "adjacent_points": [
+            34,
+            36,
+            45
+          ],
+          "adjacent_hexes": [
+            16,
+            15,
+            11
+          ]
+        },
+        {
+          "point_id": 36,
+          "adjacent_points": [
+            35,
+            37,
+            25
+          ],
+          "adjacent_hexes": [
+            16,
+            12,
+            11
+          ]
+        },
+        {
+          "point_id": 37,
+          "adjacent_points": [
+            36,
+            38,
+            47
+          ],
+          "adjacent_hexes": [
+            16,
+            12
+          ]
+        },
+        {
+          "point_id": 38,
+          "adjacent_points": [
+            37,
+            27
+          ],
+          "adjacent_hexes": [
+            12
+          ]
+        },
+        {
+          "point_id": 39,
+          "adjacent_points": [
+            40,
+            29
+          ],
+          "adjacent_hexes": [
+            13
+          ]
+        },
+        {
+          "point_id": 40,
+          "adjacent_points": [
+            39,
+            41,
+            48
+          ],
+          "adjacent_hexes": [
+            17,
+            13
+          ]
+        },
+        {
+          "point_id": 41,
+          "adjacent_points": [
+            40,
+            42,
+            31
+          ],
+          "adjacent_hexes": [
+            17,
+            14,
+            13
+          ]
+        },
+        {
+          "point_id": 42,
+          "adjacent_points": [
+            41,
+            43,
+            50
+          ],
+          "adjacent_hexes": [
+            18,
+            17,
+            14
+          ]
+        },
+        {
+          "point_id": 43,
+          "adjacent_points": [
+            42,
+            44,
+            33
+          ],
+          "adjacent_hexes": [
+            18,
+            15,
+            14
+          ]
+        },
+        {
+          "point_id": 44,
+          "adjacent_points": [
+            43,
+            45,
+            52
+          ],
+          "adjacent_hexes": [
+            19,
+            18,
+            15
+          ]
+        },
+        {
+          "point_id": 45,
+          "adjacent_points": [
+            44,
+            46,
+            35
+          ],
+          "adjacent_hexes": [
+            19,
+            16,
+            15
+          ]
+        },
+        {
+          "point_id": 46,
+          "adjacent_points": [
+            45,
+            47,
+            54
+          ],
+          "adjacent_hexes": [
+            19,
+            16
+          ]
+        },
+        {
+          "point_id": 47,
+          "adjacent_points": [
+            46,
+            37
+          ],
+          "adjacent_hexes": [
+            16
+          ]
+        },
+        {
+          "point_id": 48,
+          "adjacent_points": [
+            49,
+            40
+          ],
+          "adjacent_hexes": [
+            17
+          ]
+        },
+        {
+          "point_id": 49,
+          "adjacent_points": [
+            48,
+            50
+          ],
+          "adjacent_hexes": [
+            17
+          ]
+        },
+        {
+          "point_id": 50,
+          "adjacent_points": [
+            49,
+            51,
+            42
+          ],
+          "adjacent_hexes": [
+            18,
+            17
+          ]
+        },
+        {
+          "point_id": 51,
+          "adjacent_points": [
+            50,
+            52
+          ],
+          "adjacent_hexes": [
+            18
+          ]
+        },
+        {
+          "point_id": 52,
+          "adjacent_points": [
+            51,
+            53,
+            44
+          ],
+          "adjacent_hexes": [
+            19,
+            18
+          ]
+        },
+        {
+          "point_id": 53,
+          "adjacent_points": [
+            52,
+            54
+          ],
+          "adjacent_hexes": [
+            19
+          ]
+        },
+        {
+          "point_id": 54,
+          "adjacent_points": [
+            53,
+            46
+          ],
+          "adjacent_hexes": [
+            19
+          ]
+        }
+      ]
+    },
+    {
+      "hexes": [
+        {
+          "id": 1,
+          "type": "wood",
+          "number": 12,
+          "has_robber": false
+        },
+        {
+          "id": 2,
+          "type": "sheep",
+          "number": 5,
+          "has_robber": false
+        },
+        {
+          "id": 3,
+          "type": "wood",
+          "number": 4,
+          "has_robber": false
+        },
+        {
+          "id": 4,
+          "type": "sheep",
+          "number": 8,
+          "has_robber": false
+        },
+        {
+          "id": 5,
+          "type": "brick",
+          "number": 6,
+          "has_robber": false
+        },
+        {
+          "id": 6,
+          "type": "wood",
+          "number": 3,
+          "has_robber": false
+        },
+        {
+          "id": 7,
+          "type": "wheat",
+          "number": 8,
+          "has_robber": false
+        },
+        {
+          "id": 8,
+          "type": "brick",
+          "number": 10,
+          "has_robber": false
+        },
+        {
+          "id": 9,
+          "type": "wood",
+          "number": 11,
+          "has_robber": false
+        },
+        {
+          "id": 10,
+          "type": "desert",
+          "number": null,
+          "has_robber": true
+        },
+        {
+          "id": 11,
+          "type": "ore",
+          "number": 3,
+          "has_robber": false
+        },
+        {
+          "id": 12,
+          "type": "sheep",
+          "number": 4,
+          "has_robber": false
+        },
+        {
+          "id": 13,
+          "type": "brick",
+          "number": 10,
+          "has_robber": false
+        },
+        {
+          "id": 14,
+          "type": "wheat",
+          "number": 9,
+          "has_robber": false
+        },
+        {
+          "id": 15,
+          "type": "wheat",
+          "number": 6,
+          "has_robber": false
+        },
+        {
+          "id": 16,
+          "type": "sheep",
+          "number": 11,
+          "has_robber": false
+        },
+        {
+          "id": 17,
+          "type": "ore",
+          "number": 5,
+          "has_robber": false
+        },
+        {
+          "id": 18,
+          "type": "wheat",
+          "number": 9,
+          "has_robber": false
+        },
+        {
+          "id": 19,
+          "type": "ore",
+          "number": 2,
+          "has_robber": false
+        }
+      ],
+      "settlements": [
+        {
+          "id": "b_42",
+          "vertex": 42,
+          "player": 1
+        }
+      ],
+      "cities": [],
+      "roads": [],
+      "harbors": [
+        {
+          "id": 1,
+          "type": "any",
+          "ratio": 3,
+          "point_one": 9,
+          "point_two": 8
+        },
+        {
+          "id": 2,
+          "type": "sheep",
+          "ratio": 2,
+          "point_one": 17,
+          "point_two": 28
+        },
+        {
+          "id": 3,
+          "type": "wood",
+          "ratio": 2,
+          "point_one": 40,
+          "point_two": 48
+        },
+        {
+          "id": 4,
+          "type": "any",
+          "ratio": 3,
+          "point_one": 50,
+          "point_two": 51
+        },
+        {
+          "id": 5,
+          "type": "any",
+          "ratio": 3,
+          "point_one": 53,
+          "point_two": 54
+        },
+        {
+          "id": 6,
+          "type": "any",
+          "ratio": 3,
+          "point_one": 37,
+          "point_two": 38
+        },
+        {
+          "id": 7,
+          "type": "ore",
+          "ratio": 2,
+          "point_one": 26,
+          "point_two": 16
+        },
+        {
+          "id": 8,
+          "type": "brick",
+          "ratio": 2,
+          "point_one": 7,
+          "point_two": 6
+        },
+        {
+          "id": 9,
+          "type": "wheat",
+          "ratio": 2,
+          "point_one": 3,
+          "point_two": 2
+        }
+      ],
+      "players": [
+        {
+          "id": 0,
+          "name": "A",
+          "victory_points": 1,
+          "total_cards": 0,
+          "cards_list": [],
+          "dev_cards_list": [],
+          "settlements": 1,
+          "cities": 0,
+          "roads": 0,
+          "longest_road": 0,
+          "has_longest_road": false,
+          "knights": 0,
+          "knights_played": 0,
+          "has_largest_army": false
+        },
+        {
+          "id": 1,
+          "name": "B",
+          "victory_points": 0,
+          "total_cards": 0,
+          "cards_list": [],
+          "dev_cards_list": [],
+          "settlements": 0,
+          "cities": 0,
+          "roads": 0,
+          "longest_road": 0,
+          "has_longest_road": false,
+          "knights": 0,
+          "knights_played": 0,
+          "has_largest_army": false
+        },
+        {
+          "id": 2,
+          "name": "C",
+          "victory_points": 0,
+          "total_cards": 0,
+          "cards_list": [],
+          "dev_cards_list": [],
+          "settlements": 0,
+          "cities": 0,
+          "roads": 0,
+          "longest_road": 0,
+          "has_longest_road": false,
+          "knights": 0,
+          "knights_played": 0,
+          "has_largest_army": false
+        }
+      ],
+      "current_player": 0,
+      "current_phase": "SETUP_FIRST_ROUND",
+      "robber_position": [
+        2,
+        2
+      ],
+      "dice_result": null,
+      "allowed_actions": [
+        "PLACE_STARTING_ROAD"
+      ],
+      "points": [
+        {
+          "point_id": 1,
+          "adjacent_points": [
+            2,
+            9
+          ],
+          "adjacent_hexes": [
+            1
+          ]
+        },
+        {
+          "point_id": 2,
+          "adjacent_points": [
+            1,
+            3
+          ],
+          "adjacent_hexes": [
+            1
+          ]
+        },
+        {
+          "point_id": 3,
+          "adjacent_points": [
+            2,
+            4,
+            11
+          ],
+          "adjacent_hexes": [
+            2,
+            1
+          ]
+        },
+        {
+          "point_id": 4,
+          "adjacent_points": [
+            3,
+            5
+          ],
+          "adjacent_hexes": [
+            2
+          ]
+        },
+        {
+          "point_id": 5,
+          "adjacent_points": [
+            4,
+            6,
+            13
+          ],
+          "adjacent_hexes": [
+            3,
+            2
+          ]
+        },
+        {
+          "point_id": 6,
+          "adjacent_points": [
+            5,
+            7
+          ],
+          "adjacent_hexes": [
+            3
+          ]
+        },
+        {
+          "point_id": 7,
+          "adjacent_points": [
+            6,
+            15
+          ],
+          "adjacent_hexes": [
+            3
+          ]
+        },
+        {
+          "point_id": 8,
+          "adjacent_points": [
+            9,
+            18
+          ],
+          "adjacent_hexes": [
+            4
+          ]
+        },
+        {
+          "point_id": 9,
+          "adjacent_points": [
+            8,
+            10,
+            1
+          ],
+          "adjacent_hexes": [
+            4,
+            1
+          ]
+        },
+        {
+          "point_id": 10,
+          "adjacent_points": [
+            9,
+            11,
+            20
+          ],
+          "adjacent_hexes": [
+            5,
+            4,
+            1
+          ]
+        },
+        {
+          "point_id": 11,
+          "adjacent_points": [
+            10,
+            12,
+            3
+          ],
+          "adjacent_hexes": [
+            5,
+            2,
+            1
+          ]
+        },
+        {
+          "point_id": 12,
+          "adjacent_points": [
+            11,
+            13,
+            22
+          ],
+          "adjacent_hexes": [
+            6,
+            5,
+            2
+          ]
+        },
+        {
+          "point_id": 13,
+          "adjacent_points": [
+            12,
+            14,
+            5
+          ],
+          "adjacent_hexes": [
+            6,
+            3,
+            2
+          ]
+        },
+        {
+          "point_id": 14,
+          "adjacent_points": [
+            13,
+            15,
+            24
+          ],
+          "adjacent_hexes": [
+            7,
+            6,
+            3
+          ]
+        },
+        {
+          "point_id": 15,
+          "adjacent_points": [
+            14,
+            16,
+            7
+          ],
+          "adjacent_hexes": [
+            7,
+            3
+          ]
+        },
+        {
+          "point_id": 16,
+          "adjacent_points": [
+            15,
+            26
+          ],
+          "adjacent_hexes": [
+            7
+          ]
+        },
+        {
+          "point_id": 17,
+          "adjacent_points": [
+            18,
+            28
+          ],
+          "adjacent_hexes": [
+            8
+          ]
+        },
+        {
+          "point_id": 18,
+          "adjacent_points": [
+            17,
+            19,
+            8
+          ],
+          "adjacent_hexes": [
+            8,
+            4
+          ]
+        },
+        {
+          "point_id": 19,
+          "adjacent_points": [
+            18,
+            20,
+            30
+          ],
+          "adjacent_hexes": [
+            9,
+            8,
+            4
+          ]
+        },
+        {
+          "point_id": 20,
+          "adjacent_points": [
+            19,
+            21,
+            10
+          ],
+          "adjacent_hexes": [
+            9,
+            5,
+            4
+          ]
+        },
+        {
+          "point_id": 21,
+          "adjacent_points": [
+            20,
+            22,
+            32
+          ],
+          "adjacent_hexes": [
+            10,
+            9,
+            5
+          ]
+        },
+        {
+          "point_id": 22,
+          "adjacent_points": [
+            21,
+            23,
+            12
+          ],
+          "adjacent_hexes": [
+            10,
+            6,
+            5
+          ]
+        },
+        {
+          "point_id": 23,
+          "adjacent_points": [
+            22,
+            24,
+            34
+          ],
+          "adjacent_hexes": [
+            11,
+            10,
+            6
+          ]
+        },
+        {
+          "point_id": 24,
+          "adjacent_points": [
+            23,
+            25,
+            14
+          ],
+          "adjacent_hexes": [
+            11,
+            7,
+            6
+          ]
+        },
+        {
+          "point_id": 25,
+          "adjacent_points": [
+            24,
+            26,
+            36
+          ],
+          "adjacent_hexes": [
+            12,
+            11,
+            7
+          ]
+        },
+        {
+          "point_id": 26,
+          "adjacent_points": [
+            25,
+            27,
+            16
+          ],
+          "adjacent_hexes": [
+            12,
+            7
+          ]
+        },
+        {
+          "point_id": 27,
+          "adjacent_points": [
+            26,
+            38
+          ],
+          "adjacent_hexes": [
+            12
+          ]
+        },
+        {
+          "point_id": 28,
+          "adjacent_points": [
+            29,
+            17
+          ],
+          "adjacent_hexes": [
+            8
+          ]
+        },
+        {
+          "point_id": 29,
+          "adjacent_points": [
+            28,
+            30,
+            39
+          ],
+          "adjacent_hexes": [
+            13,
+            8
+          ]
+        },
+        {
+          "point_id": 30,
+          "adjacent_points": [
+            29,
+            31,
+            19
+          ],
+          "adjacent_hexes": [
+            13,
+            9,
+            8
+          ]
+        },
+        {
+          "point_id": 31,
+          "adjacent_points": [
+            30,
+            32,
+            41
+          ],
+          "adjacent_hexes": [
+            14,
+            13,
+            9
+          ]
+        },
+        {
+          "point_id": 32,
+          "adjacent_points": [
+            31,
+            33,
+            21
+          ],
+          "adjacent_hexes": [
+            14,
+            10,
+            9
+          ]
+        },
+        {
+          "point_id": 33,
+          "adjacent_points": [
+            32,
+            34,
+            43
+          ],
+          "adjacent_hexes": [
+            15,
+            14,
+            10
+          ]
+        },
+        {
+          "point_id": 34,
+          "adjacent_points": [
+            33,
+            35,
+            23
+          ],
+          "adjacent_hexes": [
+            15,
+            11,
+            10
+          ]
+        },
+        {
+          "point_id": 35,
+          "adjacent_points": [
+            34,
+            36,
+            45
+          ],
+          "adjacent_hexes": [
+            16,
+            15,
+            11
+          ]
+        },
+        {
+          "point_id": 36,
+          "adjacent_points": [
+            35,
+            37,
+            25
+          ],
+          "adjacent_hexes": [
+            16,
+            12,
+            11
+          ]
+        },
+        {
+          "point_id": 37,
+          "adjacent_points": [
+            36,
+            38,
+            47
+          ],
+          "adjacent_hexes": [
+            16,
+            12
+          ]
+        },
+        {
+          "point_id": 38,
+          "adjacent_points": [
+            37,
+            27
+          ],
+          "adjacent_hexes": [
+            12
+          ]
+        },
+        {
+          "point_id": 39,
+          "adjacent_points": [
+            40,
+            29
+          ],
+          "adjacent_hexes": [
+            13
+          ]
+        },
+        {
+          "point_id": 40,
+          "adjacent_points": [
+            39,
+            41,
+            48
+          ],
+          "adjacent_hexes": [
+            17,
+            13
+          ]
+        },
+        {
+          "point_id": 41,
+          "adjacent_points": [
+            40,
+            42,
+            31
+          ],
+          "adjacent_hexes": [
+            17,
+            14,
+            13
+          ]
+        },
+        {
+          "point_id": 42,
+          "adjacent_points": [
+            41,
+            43,
+            50
+          ],
+          "adjacent_hexes": [
+            18,
+            17,
+            14
+          ]
+        },
+        {
+          "point_id": 43,
+          "adjacent_points": [
+            42,
+            44,
+            33
+          ],
+          "adjacent_hexes": [
+            18,
+            15,
+            14
+          ]
+        },
+        {
+          "point_id": 44,
+          "adjacent_points": [
+            43,
+            45,
+            52
+          ],
+          "adjacent_hexes": [
+            19,
+            18,
+            15
+          ]
+        },
+        {
+          "point_id": 45,
+          "adjacent_points": [
+            44,
+            46,
+            35
+          ],
+          "adjacent_hexes": [
+            19,
+            16,
+            15
+          ]
+        },
+        {
+          "point_id": 46,
+          "adjacent_points": [
+            45,
+            47,
+            54
+          ],
+          "adjacent_hexes": [
+            19,
+            16
+          ]
+        },
+        {
+          "point_id": 47,
+          "adjacent_points": [
+            46,
+            37
+          ],
+          "adjacent_hexes": [
+            16
+          ]
+        },
+        {
+          "point_id": 48,
+          "adjacent_points": [
+            49,
+            40
+          ],
+          "adjacent_hexes": [
+            17
+          ]
+        },
+        {
+          "point_id": 49,
+          "adjacent_points": [
+            48,
+            50
+          ],
+          "adjacent_hexes": [
+            17
+          ]
+        },
+        {
+          "point_id": 50,
+          "adjacent_points": [
+            49,
+            51,
+            42
+          ],
+          "adjacent_hexes": [
+            18,
+            17
+          ]
+        },
+        {
+          "point_id": 51,
+          "adjacent_points": [
+            50,
+            52
+          ],
+          "adjacent_hexes": [
+            18
+          ]
+        },
+        {
+          "point_id": 52,
+          "adjacent_points": [
+            51,
+            53,
+            44
+          ],
+          "adjacent_hexes": [
+            19,
+            18
+          ]
+        },
+        {
+          "point_id": 53,
+          "adjacent_points": [
+            52,
+            54
+          ],
+          "adjacent_hexes": [
+            19
+          ]
+        },
+        {
+          "point_id": 54,
+          "adjacent_points": [
+            53,
+            46
+          ],
+          "adjacent_hexes": [
+            19
+          ]
+        }
+      ]
+    },
+    {
+      "hexes": [
+        {
+          "id": 1,
+          "type": "wood",
+          "number": 12,
+          "has_robber": false
+        },
+        {
+          "id": 2,
+          "type": "sheep",
+          "number": 5,
+          "has_robber": false
+        },
+        {
+          "id": 3,
+          "type": "wood",
+          "number": 4,
+          "has_robber": false
+        },
+        {
+          "id": 4,
+          "type": "sheep",
+          "number": 8,
+          "has_robber": false
+        },
+        {
+          "id": 5,
+          "type": "brick",
+          "number": 6,
+          "has_robber": false
+        },
+        {
+          "id": 6,
+          "type": "wood",
+          "number": 3,
+          "has_robber": false
+        },
+        {
+          "id": 7,
+          "type": "wheat",
+          "number": 8,
+          "has_robber": false
+        },
+        {
+          "id": 8,
+          "type": "brick",
+          "number": 10,
+          "has_robber": false
+        },
+        {
+          "id": 9,
+          "type": "wood",
+          "number": 11,
+          "has_robber": false
+        },
+        {
+          "id": 10,
+          "type": "desert",
+          "number": null,
+          "has_robber": true
+        },
+        {
+          "id": 11,
+          "type": "ore",
+          "number": 3,
+          "has_robber": false
+        },
+        {
+          "id": 12,
+          "type": "sheep",
+          "number": 4,
+          "has_robber": false
+        },
+        {
+          "id": 13,
+          "type": "brick",
+          "number": 10,
+          "has_robber": false
+        },
+        {
+          "id": 14,
+          "type": "wheat",
+          "number": 9,
+          "has_robber": false
+        },
+        {
+          "id": 15,
+          "type": "wheat",
+          "number": 6,
+          "has_robber": false
+        },
+        {
+          "id": 16,
+          "type": "sheep",
+          "number": 11,
+          "has_robber": false
+        },
+        {
+          "id": 17,
+          "type": "ore",
+          "number": 5,
+          "has_robber": false
+        },
+        {
+          "id": 18,
+          "type": "wheat",
+          "number": 9,
+          "has_robber": false
+        },
+        {
+          "id": 19,
+          "type": "ore",
+          "number": 2,
+          "has_robber": false
+        }
+      ],
+      "settlements": [
+        {
+          "id": "b_42",
+          "vertex": 42,
+          "player": 1
+        }
+      ],
+      "cities": [],
+      "roads": [],
+      "harbors": [
+        {
+          "id": 1,
+          "type": "any",
+          "ratio": 3,
+          "point_one": 9,
+          "point_two": 8
+        },
+        {
+          "id": 2,
+          "type": "sheep",
+          "ratio": 2,
+          "point_one": 17,
+          "point_two": 28
+        },
+        {
+          "id": 3,
+          "type": "wood",
+          "ratio": 2,
+          "point_one": 40,
+          "point_two": 48
+        },
+        {
+          "id": 4,
+          "type": "any",
+          "ratio": 3,
+          "point_one": 50,
+          "point_two": 51
+        },
+        {
+          "id": 5,
+          "type": "any",
+          "ratio": 3,
+          "point_one": 53,
+          "point_two": 54
+        },
+        {
+          "id": 6,
+          "type": "any",
+          "ratio": 3,
+          "point_one": 37,
+          "point_two": 38
+        },
+        {
+          "id": 7,
+          "type": "ore",
+          "ratio": 2,
+          "point_one": 26,
+          "point_two": 16
+        },
+        {
+          "id": 8,
+          "type": "brick",
+          "ratio": 2,
+          "point_one": 7,
+          "point_two": 6
+        },
+        {
+          "id": 9,
+          "type": "wheat",
+          "ratio": 2,
+          "point_one": 3,
+          "point_two": 2
+        }
+      ],
+      "players": [
+        {
+          "id": 0,
+          "name": "A",
+          "victory_points": 1,
+          "total_cards": 0,
+          "cards_list": [],
+          "dev_cards_list": [],
+          "settlements": 1,
+          "cities": 0,
+          "roads": 0,
+          "longest_road": 0,
+          "has_longest_road": false,
+          "knights": 0,
+          "knights_played": 0,
+          "has_largest_army": false
+        },
+        {
+          "id": 1,
+          "name": "B",
+          "victory_points": 0,
+          "total_cards": 0,
+          "cards_list": [],
+          "dev_cards_list": [],
+          "settlements": 0,
+          "cities": 0,
+          "roads": 0,
+          "longest_road": 0,
+          "has_longest_road": false,
+          "knights": 0,
+          "knights_played": 0,
+          "has_largest_army": false
+        },
+        {
+          "id": 2,
+          "name": "C",
+          "victory_points": 0,
+          "total_cards": 0,
+          "cards_list": [],
+          "dev_cards_list": [],
+          "settlements": 0,
+          "cities": 0,
+          "roads": 0,
+          "longest_road": 0,
+          "has_longest_road": false,
+          "knights": 0,
+          "knights_played": 0,
+          "has_largest_army": false
+        }
+      ],
+      "current_player": 0,
+      "current_phase": "SETUP_FIRST_ROUND",
+      "robber_position": [
+        2,
+        2
+      ],
+      "dice_result": null,
+      "allowed_actions": [
+        "PLACE_STARTING_ROAD"
+      ],
+      "points": [
+        {
+          "point_id": 1,
+          "adjacent_points": [
+            2,
+            9
+          ],
+          "adjacent_hexes": [
+            1
+          ]
+        },
+        {
+          "point_id": 2,
+          "adjacent_points": [
+            1,
+            3
+          ],
+          "adjacent_hexes": [
+            1
+          ]
+        },
+        {
+          "point_id": 3,
+          "adjacent_points": [
+            2,
+            4,
+            11
+          ],
+          "adjacent_hexes": [
+            2,
+            1
+          ]
+        },
+        {
+          "point_id": 4,
+          "adjacent_points": [
+            3,
+            5
+          ],
+          "adjacent_hexes": [
+            2
+          ]
+        },
+        {
+          "point_id": 5,
+          "adjacent_points": [
+            4,
+            6,
+            13
+          ],
+          "adjacent_hexes": [
+            3,
+            2
+          ]
+        },
+        {
+          "point_id": 6,
+          "adjacent_points": [
+            5,
+            7
+          ],
+          "adjacent_hexes": [
+            3
+          ]
+        },
+        {
+          "point_id": 7,
+          "adjacent_points": [
+            6,
+            15
+          ],
+          "adjacent_hexes": [
+            3
+          ]
+        },
+        {
+          "point_id": 8,
+          "adjacent_points": [
+            9,
+            18
+          ],
+          "adjacent_hexes": [
+            4
+          ]
+        },
+        {
+          "point_id": 9,
+          "adjacent_points": [
+            8,
+            10,
+            1
+          ],
+          "adjacent_hexes": [
+            4,
+            1
+          ]
+        },
+        {
+          "point_id": 10,
+          "adjacent_points": [
+            9,
+            11,
+            20
+          ],
+          "adjacent_hexes": [
+            5,
+            4,
+            1
+          ]
+        },
+        {
+          "point_id": 11,
+          "adjacent_points": [
+            10,
+            12,
+            3
+          ],
+          "adjacent_hexes": [
+            5,
+            2,
+            1
+          ]
+        },
+        {
+          "point_id": 12,
+          "adjacent_points": [
+            11,
+            13,
+            22
+          ],
+          "adjacent_hexes": [
+            6,
+            5,
+            2
+          ]
+        },
+        {
+          "point_id": 13,
+          "adjacent_points": [
+            12,
+            14,
+            5
+          ],
+          "adjacent_hexes": [
+            6,
+            3,
+            2
+          ]
+        },
+        {
+          "point_id": 14,
+          "adjacent_points": [
+            13,
+            15,
+            24
+          ],
+          "adjacent_hexes": [
+            7,
+            6,
+            3
+          ]
+        },
+        {
+          "point_id": 15,
+          "adjacent_points": [
+            14,
+            16,
+            7
+          ],
+          "adjacent_hexes": [
+            7,
+            3
+          ]
+        },
+        {
+          "point_id": 16,
+          "adjacent_points": [
+            15,
+            26
+          ],
+          "adjacent_hexes": [
+            7
+          ]
+        },
+        {
+          "point_id": 17,
+          "adjacent_points": [
+            18,
+            28
+          ],
+          "adjacent_hexes": [
+            8
+          ]
+        },
+        {
+          "point_id": 18,
+          "adjacent_points": [
+            17,
+            19,
+            8
+          ],
+          "adjacent_hexes": [
+            8,
+            4
+          ]
+        },
+        {
+          "point_id": 19,
+          "adjacent_points": [
+            18,
+            20,
+            30
+          ],
+          "adjacent_hexes": [
+            9,
+            8,
+            4
+          ]
+        },
+        {
+          "point_id": 20,
+          "adjacent_points": [
+            19,
+            21,
+            10
+          ],
+          "adjacent_hexes": [
+            9,
+            5,
+            4
+          ]
+        },
+        {
+          "point_id": 21,
+          "adjacent_points": [
+            20,
+            22,
+            32
+          ],
+          "adjacent_hexes": [
+            10,
+            9,
+            5
+          ]
+        },
+        {
+          "point_id": 22,
+          "adjacent_points": [
+            21,
+            23,
+            12
+          ],
+          "adjacent_hexes": [
+            10,
+            6,
+            5
+          ]
+        },
+        {
+          "point_id": 23,
+          "adjacent_points": [
+            22,
+            24,
+            34
+          ],
+          "adjacent_hexes": [
+            11,
+            10,
+            6
+          ]
+        },
+        {
+          "point_id": 24,
+          "adjacent_points": [
+            23,
+            25,
+            14
+          ],
+          "adjacent_hexes": [
+            11,
+            7,
+            6
+          ]
+        },
+        {
+          "point_id": 25,
+          "adjacent_points": [
+            24,
+            26,
+            36
+          ],
+          "adjacent_hexes": [
+            12,
+            11,
+            7
+          ]
+        },
+        {
+          "point_id": 26,
+          "adjacent_points": [
+            25,
+            27,
+            16
+          ],
+          "adjacent_hexes": [
+            12,
+            7
+          ]
+        },
+        {
+          "point_id": 27,
+          "adjacent_points": [
+            26,
+            38
+          ],
+          "adjacent_hexes": [
+            12
+          ]
+        },
+        {
+          "point_id": 28,
+          "adjacent_points": [
+            29,
+            17
+          ],
+          "adjacent_hexes": [
+            8
+          ]
+        },
+        {
+          "point_id": 29,
+          "adjacent_points": [
+            28,
+            30,
+            39
+          ],
+          "adjacent_hexes": [
+            13,
+            8
+          ]
+        },
+        {
+          "point_id": 30,
+          "adjacent_points": [
+            29,
+            31,
+            19
+          ],
+          "adjacent_hexes": [
+            13,
+            9,
+            8
+          ]
+        },
+        {
+          "point_id": 31,
+          "adjacent_points": [
+            30,
+            32,
+            41
+          ],
+          "adjacent_hexes": [
+            14,
+            13,
+            9
+          ]
+        },
+        {
+          "point_id": 32,
+          "adjacent_points": [
+            31,
+            33,
+            21
+          ],
+          "adjacent_hexes": [
+            14,
+            10,
+            9
+          ]
+        },
+        {
+          "point_id": 33,
+          "adjacent_points": [
+            32,
+            34,
+            43
+          ],
+          "adjacent_hexes": [
+            15,
+            14,
+            10
+          ]
+        },
+        {
+          "point_id": 34,
+          "adjacent_points": [
+            33,
+            35,
+            23
+          ],
+          "adjacent_hexes": [
+            15,
+            11,
+            10
+          ]
+        },
+        {
+          "point_id": 35,
+          "adjacent_points": [
+            34,
+            36,
+            45
+          ],
+          "adjacent_hexes": [
+            16,
+            15,
+            11
+          ]
+        },
+        {
+          "point_id": 36,
+          "adjacent_points": [
+            35,
+            37,
+            25
+          ],
+          "adjacent_hexes": [
+            16,
+            12,
+            11
+          ]
+        },
+        {
+          "point_id": 37,
+          "adjacent_points": [
+            36,
+            38,
+            47
+          ],
+          "adjacent_hexes": [
+            16,
+            12
+          ]
+        },
+        {
+          "point_id": 38,
+          "adjacent_points": [
+            37,
+            27
+          ],
+          "adjacent_hexes": [
+            12
+          ]
+        },
+        {
+          "point_id": 39,
+          "adjacent_points": [
+            40,
+            29
+          ],
+          "adjacent_hexes": [
+            13
+          ]
+        },
+        {
+          "point_id": 40,
+          "adjacent_points": [
+            39,
+            41,
+            48
+          ],
+          "adjacent_hexes": [
+            17,
+            13
+          ]
+        },
+        {
+          "point_id": 41,
+          "adjacent_points": [
+            40,
+            42,
+            31
+          ],
+          "adjacent_hexes": [
+            17,
+            14,
+            13
+          ]
+        },
+        {
+          "point_id": 42,
+          "adjacent_points": [
+            41,
+            43,
+            50
+          ],
+          "adjacent_hexes": [
+            18,
+            17,
+            14
+          ]
+        },
+        {
+          "point_id": 43,
+          "adjacent_points": [
+            42,
+            44,
+            33
+          ],
+          "adjacent_hexes": [
+            18,
+            15,
+            14
+          ]
+        },
+        {
+          "point_id": 44,
+          "adjacent_points": [
+            43,
+            45,
+            52
+          ],
+          "adjacent_hexes": [
+            19,
+            18,
+            15
+          ]
+        },
+        {
+          "point_id": 45,
+          "adjacent_points": [
+            44,
+            46,
+            35
+          ],
+          "adjacent_hexes": [
+            19,
+            16,
+            15
+          ]
+        },
+        {
+          "point_id": 46,
+          "adjacent_points": [
+            45,
+            47,
+            54
+          ],
+          "adjacent_hexes": [
+            19,
+            16
+          ]
+        },
+        {
+          "point_id": 47,
+          "adjacent_points": [
+            46,
+            37
+          ],
+          "adjacent_hexes": [
+            16
+          ]
+        },
+        {
+          "point_id": 48,
+          "adjacent_points": [
+            49,
+            40
+          ],
+          "adjacent_hexes": [
+            17
+          ]
+        },
+        {
+          "point_id": 49,
+          "adjacent_points": [
+            48,
+            50
+          ],
+          "adjacent_hexes": [
+            17
+          ]
+        },
+        {
+          "point_id": 50,
+          "adjacent_points": [
+            49,
+            51,
+            42
+          ],
+          "adjacent_hexes": [
+            18,
+            17
+          ]
+        },
+        {
+          "point_id": 51,
+          "adjacent_points": [
+            50,
+            52
+          ],
+          "adjacent_hexes": [
+            18
+          ]
+        },
+        {
+          "point_id": 52,
+          "adjacent_points": [
+            51,
+            53,
+            44
+          ],
+          "adjacent_hexes": [
+            19,
+            18
+          ]
+        },
+        {
+          "point_id": 53,
+          "adjacent_points": [
+            52,
+            54
+          ],
+          "adjacent_hexes": [
+            19
+          ]
+        },
+        {
+          "point_id": 54,
+          "adjacent_points": [
+            53,
+            46
+          ],
+          "adjacent_hexes": [
+            19
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -169,3 +169,38 @@
 ```
 </details>
 
+
+### ✅ Response Received
+
+- **Latency:** 11.86s
+- **Tokens:** 865 (prompt: 706, completion: 159)
+
+<details>
+<summary><strong>📥 Raw Response from Gemini</strong></summary>
+
+```json
+{"internal_thinking": "Shon just placed their first settlement at node 10, giving them B6, S8, W12. This is a strong start with good building resources and high production numbers. Shon will now place their first road. I anticipate they might connect to a port (Node 9) or diversify their resource numbers (Node 20 for W11 or Node 11 for S5). For my turn, I will focus on securing Wheat and Ore, as Shon has taken prime Wood, Brick, and Sheep. I will be looking for nodes like N[43] (Wh9, Wh6, O5), N[50] (O5, Wh9, ?3 Port), or N[41] (O5, Wh9, B10), or other strong Wheat/Ore combinations, while also considering what player 'z' takes."}
+```
+</details>
+
+
+### ✅ Parse Success
+
+
+### 🎯 AI Response
+
+#### 💭 Internal Thinking
+
+> Shon just placed their first settlement at node 10, giving them B6, S8, W12. This is a strong start with good building resources and high production numbers. Shon will now place their first road. I anticipate they might connect to a port (Node 9) or diversify their resource numbers (Node 20 for W11 or Node 11 for S5). For my turn, I will focus on securing Wheat and Ore, as Shon has taken prime Wood, Brick, and Sheep. I will be looking for nodes like N[43] (Wh9, Wh6, O5), N[50] (O5, Wh9, ?3 Port), or N[41] (O5, Wh9, B10), or other strong Wheat/Ore combinations, while also considering what player 'z' takes.
+
+
+<details>
+<summary><strong>🔍 Raw JSON (Debug)</strong></summary>
+
+```json
+{
+  "internal_thinking": "Shon just placed their first settlement at node 10, giving them B6, S8, W12. This is a strong start with good building resources and high production numbers. Shon will now place their first road. I anticipate they might connect to a port (Node 9) or diversify their resource numbers (Node 20 for W11 or Node 11 for S5). For my turn, I will focus on securing Wheat and Ore, as Shon has taken prime Wood, Brick, and Sheep. I will be looking for nodes like N[43] (Wh9, Wh6, O5), N[50] (O5, Wh9, ?3 Port), or N[41] (O5, Wh9, B10), or other strong Wheat/Ore combinations, while also considering what player 'z' takes."
+}
+```
+</details>
+
