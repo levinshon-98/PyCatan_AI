@@ -91,29 +91,29 @@ class PromptBuilder:
         """
         prompt = {}
         
-        # Build each section in the correct order:
+        # Build each section in the correct order (matching promt_format.text):
         # 1. meta_data (who am I?)
-        # 2. game_state (current board state)
-        # 3. memory (what did I remember?)
-        # 4. task_context (what just happened and what to do?)
-        # 5. social_context (chat/trades)
+        # 2. task_context (what just happened and what to do?)
+        # 3. game_state (current board state)
+        # 4. social_context (chat/trades)
+        # 5. memory (what did I remember?)
         # 6. constraints (allowed actions)
         
         if self.template.include_meta_data:
             prompt["meta_data"] = self._build_meta_data(meta_data, custom_instructions)
         
+        if self.template.include_task_context:
+            prompt["task_context"] = self._build_task_context(task_context)
+        
         if self.template.include_game_state:
             # Include optimized game state with legend embedded
             prompt["game_state"] = self._build_game_state_section(game_state)
         
-        if self.template.include_memory and memory:
-            prompt["memory"] = self._build_memory(memory)
-        
-        if self.template.include_task_context:
-            prompt["task_context"] = self._build_task_context(task_context)
-        
         if self.template.include_social_context and social_context:
             prompt["social_context"] = self._build_social_context(social_context)
+        
+        if self.template.include_memory and memory:
+            prompt["memory"] = self._build_memory(memory)
         
         if self.template.include_constraints and constraints:
             prompt["constraints"] = self._build_constraints(constraints)

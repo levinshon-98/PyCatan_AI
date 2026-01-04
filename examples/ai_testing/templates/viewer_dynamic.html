@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="en" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎮 AI Catan Viewer - Dynamic</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            height: 100vh;
+            overflow: hidden;
+            direction: ltr;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: #252526;
+            border-right: 1px solid #3e3e42;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            background: #007acc;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .sidebar-section {
+            padding: 15px;
+            border-bottom: 1px solid #3e3e42;
+        }
+
+        .sidebar-section h3 {
+            font-size: 12px;
+            color: #858585;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .nav-item {
+            padding: 10px 15px;
+            margin: 5px 0;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+        }
+
+        .nav-item:hover {
+            background: #2a2d2e;
+        }
+
+        .nav-item.active {
+            background: #37373d;
+            border-left: 3px solid #007acc;
+        }
+
+        .nav-item .icon {
+            font-size: 18px;
+        }
+
+        .badge {
+            margin-left: auto;
+            background: #007acc;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            transition: all 0.3s;
+        }
+
+        .badge.new {
+            background: #f48771;
+            animation: pulse-badge 2s infinite;
+        }
+
+        @keyframes pulse-badge {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.05); }
+        }
+
+        /* New item animations */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .highlight-new {
+            animation: highlightFlash 2s ease-in-out;
+        }
+
+        @keyframes highlightFlash {
+            0% { 
+                background: rgba(244, 135, 113, 0.3);
+                box-shadow: 0 0 20px rgba(244, 135, 113, 0.4);
+            }
+            100% { 
+                background: transparent;
+                box-shadow: none;
+            }
+        }
+
+        /* Update notification */
+        .update-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #0e8a0e;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            gap: 10px;
+            z-index: 1001;
+            font-weight: 500;
+        }
+
+        .update-notification.show {
+            display: flex;
+            animation: slideInNotification 0.3s ease-out;
+        }
+
+        @keyframes slideInNotification {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Refreshing indicator */
+        .refreshing-indicator {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #007acc 0%, #4fc1ff 50%, #007acc 100%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .refreshing-indicator.active {
+            opacity: 1;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Main content */
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .content-header {
+            padding: 20px;
+            background: #2d2d30;
+            border-bottom: 1px solid #3e3e42;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .content-header h1 {
+            font-size: 24px;
+            color: #cccccc;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #007acc;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #005a9e;
+        }
+
+        .status-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .status-badge.live {
+            background: #0e8a0e;
+            color: white;
+        }
+
+        .status-badge.manual {
+            background: #858585;
+            color: white;
+        }
+
+        .status-badge:hover {
+            transform: scale(1.05);
+        }
+
+        .status-badge .pulse {
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .content-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        /* Request Cards */
+        .request-card {
+            background: #252526;
+            border: 1px solid #3e3e42;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+
+        .request-card.new {
+            border-left: 4px solid #f48771;
+            box-shadow: 0 0 10px rgba(244, 135, 113, 0.2);
+        }
+
+        .request-header {
+            padding: 15px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: #2d2d30;
+            transition: background 0.2s;
+        }
+
+        .request-header:hover {
+            background: #333336;
+        }
+
+        .request-card.expanded .request-header {
+            background: #37373d;
+            border-bottom: 1px solid #3e3e42;
+        }
+
+        .request-num {
+            font-size: 16px;
+            font-weight: bold;
+            color: #4ec9b0;
+            min-width: 60px;
+        }
+
+        .request-summary {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .request-trigger {
+            font-size: 14px;
+            color: #d4d4d4;
+            font-weight: 500;
+        }
+
+        .request-meta {
+            font-size: 12px;
+            color: #858585;
+            display: flex;
+            gap: 15px;
+        }
+
+        .request-expand-icon {
+            font-size: 20px;
+            color: #858585;
+            transition: transform 0.2s;
+        }
+
+        .request-card.expanded .request-expand-icon {
+            transform: rotate(90deg);
+        }
+
+        .request-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .request-card.expanded .request-body {
+            max-height: 5000px;
+            transition: max-height 0.5s ease-in;
+        }
+
+        .request-content {
+            padding: 20px;
+        }
+
+        .request-section {
+            margin-bottom: 25px;
+        }
+
+        .request-section h4 {
+            color: #4fc1ff;
+            margin-bottom: 12px;
+            font-size: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #3e3e42;
+        }
+
+        .thinking-box, .note-box, .chat-box, .action-box {
+            background: #1e1e1e;
+            padding: 15px;
+            border-radius: 6px;
+            line-height: 1.6;
+        }
+
+        .thinking-box {
+            border-left: 4px solid #007acc;
+            color: #d4d4d4;
+        }
+
+        .note-box {
+            border-left: 4px solid #ce9178;
+            font-style: italic;
+            color: #ce9178;
+        }
+
+        .chat-box {
+            border-left: 4px solid #4ec9b0;
+            color: #4ec9b0;
+            font-weight: 500;
+        }
+
+        .action-box {
+            border-left: 4px solid #dcdcaa;
+        }
+
+        .action-box .action-type {
+            font-size: 18px;
+            color: #dcdcaa;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .action-box .action-params {
+            color: #9cdcfe;
+            font-family: 'Consolas', monospace;
+        }
+
+        /* Statistics */
+        .stats-grid {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .stat-card {
+            flex: 1;
+            background: #2d2d30;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #3e3e42;
+            transition: all 0.3s;
+        }
+
+        .stat-card.updated {
+            animation: statPulse 0.6s ease-out;
+        }
+
+        @keyframes statPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); background: #37373d; }
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4ec9b0;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #858585;
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #858585;
+        }
+
+        .empty-state .icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        /* Filter Bar */
+        .filter-bar {
+            background: #2d2d30;
+            padding: 15px 20px;
+            border-bottom: 1px solid #3e3e42;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .filter-btn {
+            padding: 6px 12px;
+            border-radius: 4px;
+            border: 1px solid #3e3e42;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .filter-btn:hover {
+            background: #2a2d2e;
+            border-color: #007acc;
+        }
+
+        .filter-btn.active {
+            background: #007acc;
+            border-color: #007acc;
+            color: white;
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1e1e1e;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #424242;
+            border-radius: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4e4e4e;
+        }
+
+        /* Loading spinner */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #3e3e42;
+            border-top-color: #007acc;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Details/Summary styling */
+        details {
+            background: #1e1e1e;
+            border: 1px solid #3e3e42;
+            border-radius: 6px;
+            padding: 10px;
+            margin: 15px 0;
+        }
+
+        details summary {
+            cursor: pointer;
+            font-weight: bold;
+            color: #4fc1ff;
+            padding: 8px;
+            user-select: none;
+            transition: color 0.2s, background 0.2s;
+            border-radius: 4px;
+        }
+
+        details summary:hover {
+            color: #9cdcfe;
+            background: #2a2d2e;
+        }
+
+        details[open] summary {
+            margin-bottom: 10px;
+            background: #2a2d2e;
+        }
+
+        details pre {
+            background: #2d2d30;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 12px;
+            line-height: 1.4;
+            margin: 0;
+            border-left: 3px solid #007acc;
+        }
+
+        details pre code {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            color: #d4d4d4;
+        }
+    </style>
+</head>
+<body>
+    <!-- Refreshing Indicator -->
+    <div class="refreshing-indicator" id="refreshing-indicator"></div>
+
+    <!-- Update Notification -->
+    <div class="update-notification" id="update-notification">
+        <span>✨</span>
+        <span id="notification-text">עדכונים חדשים זמינים</span>
+    </div>
+
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                🎮 AI Catan Viewer
+            </div>
+
+            <div class="sidebar-section">
+                <h3>Players</h3>
+                <div id="players-nav"></div>
+            </div>
+
+            <div class="sidebar-section">
+                <h3>Views</h3>
+                <div class="nav-item active" onclick="showView('requests')">
+                    <span class="icon">📊</span>
+                    <span>All Requests</span>
+                    <span class="badge" id="total-requests">0</span>
+                </div>
+                <div class="nav-item" onclick="showView('chat')">
+                    <span class="icon">💬</span>
+                    <span>Chat History</span>
+                    <span class="badge" id="chat-count">0</span>
+                </div>
+                <div class="nav-item" onclick="showView('memories')">
+                    <span class="icon">📝</span>
+                    <span>Agent Memories</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <div class="content-header">
+                <h1 id="content-title">All Requests</h1>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="refreshData()" title="Refresh data manually">🔄 Refresh</button>
+                    <button class="btn btn-primary" onclick="markAllViewed()">Mark All as Read</button>
+                    <div class="status-badge live" id="auto-refresh-badge" onclick="toggleAutoRefresh()" title="Click to toggle auto-refresh">
+                        <div class="pulse"></div>
+                        <span id="refresh-status">AUTO</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="filter-bar" id="filter-bar" style="display: none;">
+                <span style="font-size: 12px; color: #858585;">Filter:</span>
+                <button class="filter-btn active" onclick="filterRequests('all')">All</button>
+                <button class="filter-btn" onclick="filterRequests('new')">New Only</button>
+                <button class="filter-btn" onclick="filterRequests('has_action')">Has Action</button>
+            </div>
+
+            <div class="content-body" id="content-body">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let sessionData = null;
+        let previousData = null;
+        let currentView = 'requests';
+        let currentPlayer = null;
+        let currentFilter = 'all';
+        let expandedRequests = new Set();
+        let expandedDetails = new Map(); // Track which details elements are open: requestId -> Set of detail indices
+        let scrollPosition = 0;
+        let autoRefreshEnabled = true;
+        let refreshInterval = null;
+        let newRequestIds = new Set();
+        let isRefreshing = false;
+
+        async function loadData() {
+            const isInitialLoad = sessionData === null;
+            
+            // Show refreshing indicator
+            if (!isInitialLoad && autoRefreshEnabled) {
+                showRefreshingIndicator();
+            }
+            
+            // Save current scroll position
+            const contentBody = document.getElementById('content-body');
+            if (contentBody && !isInitialLoad) {
+                scrollPosition = contentBody.scrollTop;
+            }
+            
+            try {
+                const response = await fetch('/api/current');
+                if (!response.ok) {
+                    showEmptyState('No Active Session', 'Start a game to see AI activity');
+                    return;
+                }
+                
+                const newData = await response.json();
+                
+                // Detect changes and show notification
+                if (!isInitialLoad && previousData) {
+                    const changes = detectChanges(previousData, newData);
+                    if (changes && changes.hasChanges) {
+                        showNotification(changes);
+                    }
+                }
+                
+                previousData = JSON.parse(JSON.stringify(newData));
+                sessionData = newData;
+                
+                updateSidebar();
+                updateView();
+                
+                // Restore scroll position
+                if (!isInitialLoad) {
+                    setTimeout(() => {
+                        const contentBody = document.getElementById('content-body');
+                        if (contentBody) {
+                            contentBody.scrollTop = scrollPosition;
+                        }
+                    }, 50);
+                }
+            } catch (error) {
+                console.error('Error loading data:', error);
+            } finally {
+                hideRefreshingIndicator();
+            }
+        }
+
+        function detectChanges(oldData, newData) {
+            const changes = {
+                hasChanges: false,
+                newRequestIds: [],
+                description: []
+            };
+            
+            // Check for new requests
+            const oldRequests = oldData.requests || [];
+            const newRequests = newData.requests || [];
+            const oldRequestIds = new Set(oldRequests.map(r => r.request_id));
+            
+            const addedRequests = newRequests.filter(r => !oldRequestIds.has(r.request_id));
+            if (addedRequests.length > 0) {
+                changes.hasChanges = true;
+                changes.newRequestIds = addedRequests.map(r => r.request_id);
+                changes.description.push(`${addedRequests.length} בקשות חדשות`);
+                
+                // Track new request IDs for animation
+                addedRequests.forEach(req => newRequestIds.add(req.request_id));
+            }
+            
+            // Check for new chat messages
+            const oldChatCount = oldData.chat?.length || 0;
+            const newChatCount = newData.chat?.length || 0;
+            if (newChatCount > oldChatCount) {
+                changes.hasChanges = true;
+                const newMessages = newChatCount - oldChatCount;
+                changes.description.push(`${newMessages} הודעות חדשות`);
+            }
+            
+            return changes.hasChanges ? changes : null;
+        }
+
+        function showNotification(changes) {
+            const notification = document.getElementById('update-notification');
+            const notificationText = document.getElementById('notification-text');
+            
+            notificationText.textContent = changes.description.join(', ');
+            notification.classList.add('show');
+            
+            // Hide after 3 seconds
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        function showRefreshingIndicator() {
+            document.getElementById('refreshing-indicator').classList.add('active');
+        }
+
+        function hideRefreshingIndicator() {
+            setTimeout(() => {
+                document.getElementById('refreshing-indicator').classList.remove('active');
+            }, 300);
+        }
+
+        function updateSidebar() {
+            // Update players nav
+            const playersStats = sessionData.players_stats || {};
+            const playersHTML = Object.entries(playersStats).map(([player, stats]) => {
+                const badge = stats.new > 0 
+                    ? `<span class="badge new">${stats.new}</span>`
+                    : `<span class="badge">${stats.total}</span>`;
+                
+                return `
+                    <div class="nav-item ${currentPlayer === player ? 'active' : ''}" onclick="showPlayer('${player}')">
+                        <span class="icon">🤖</span>
+                        <span>${player.toUpperCase()}</span>
+                        ${badge}
+                    </div>
+                `;
+            }).join('');
+            
+            document.getElementById('players-nav').innerHTML = playersHTML || '<p style="color: #858585; font-size: 12px;">No players yet</p>';
+            
+            // Update counts
+            document.getElementById('total-requests').textContent = sessionData.requests ? sessionData.requests.length : 0;
+            document.getElementById('chat-count').textContent = sessionData.chat ? sessionData.chat.length : 0;
+        }
+
+        function updateView() {
+            if (!sessionData) return;
+
+            if (currentView === 'requests') {
+                showRequests();
+            } else if (currentView === 'chat') {
+                showChat();
+            } else if (currentView === 'memories') {
+                showMemories();
+            }
+        }
+
+        function showRequests() {
+            document.getElementById('filter-bar').style.display = 'flex';
+            
+            let requests = sessionData.requests || [];
+            
+            // Apply player filter
+            if (currentPlayer) {
+                requests = requests.filter(r => r.player_name === currentPlayer);
+                document.getElementById('content-title').textContent = `${currentPlayer.toUpperCase()}'s Requests`;
+            } else {
+                document.getElementById('content-title').textContent = 'All Requests';
+            }
+            
+            // Apply status filter
+            if (currentFilter === 'new') {
+                requests = requests.filter(r => r.is_new);
+            } else if (currentFilter === 'has_action') {
+                requests = requests.filter(r => r.response && r.response.action);
+            }
+            
+            if (requests.length === 0) {
+                document.getElementById('content-body').innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">📊</div>
+                        <h3>No Requests Yet</h3>
+                        <p>AI requests will appear here during gameplay</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Show statistics
+            const stats = calculateStats(requests);
+            const statsHTML = `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value">${stats.total}</div>
+                        <div class="stat-label">Total Requests</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${stats.new}</div>
+                        <div class="stat-label">New</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${stats.totalTokens.toLocaleString()}</div>
+                        <div class="stat-label">Total Tokens</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">$${stats.totalCost}</div>
+                        <div class="stat-label">Total Cost</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${stats.avgLatency}s</div>
+                        <div class="stat-label">Avg Response Time</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${stats.avgTokens}</div>
+                        <div class="stat-label">Avg Tokens</div>
+                    </div>
+                </div>
+            `;
+            
+            // Show requests (reverse to show newest first)
+            const requestsHTML = requests.slice().reverse().map(req => generateRequestCard(req)).join('');
+            
+            document.getElementById('content-body').innerHTML = statsHTML + requestsHTML;
+            
+            // Restore expanded state
+            expandedRequests.forEach(requestId => {
+                const card = document.getElementById(requestId);
+                if (card) {
+                    card.classList.add('expanded');
+                    
+                    // Restore details elements state
+                    if (expandedDetails.has(requestId)) {
+                        const detailsElements = card.querySelectorAll('details');
+                        const openIndices = expandedDetails.get(requestId);
+                        detailsElements.forEach((detail, idx) => {
+                            if (openIndices.has(idx)) {
+                                detail.open = true;
+                            }
+                        });
+                    }
+                }
+            });
+            
+            // Add event listeners to all details elements to track their state
+            document.querySelectorAll('.request-card').forEach(card => {
+                const requestId = card.id;
+                const detailsElements = card.querySelectorAll('details');
+                
+                detailsElements.forEach((detail, idx) => {
+                    detail.addEventListener('toggle', () => {
+                        if (card.classList.contains('expanded')) {
+                            saveDetailsState(requestId, card);
+                        }
+                    });
+                });
+            });
+        }
+
+        function generateRequestCard(req) {
+            const isNew = req.is_new ? ' new' : '';
+            const newBadge = req.is_new ? '<span class="badge new">NEW</span>' : '';
+            
+            // Check if this is a freshly added request (for animation)
+            const isJustAdded = newRequestIds.has(req.request_id);
+            const fadeInClass = isJustAdded ? ' fade-in highlight-new' : '';
+            
+            // Remove from newRequestIds set after first render
+            if (isJustAdded) {
+                setTimeout(() => newRequestIds.delete(req.request_id), 2000);
+            }
+            
+            const timestamp = new Date(req.timestamp).toLocaleString();
+            const response = req.response || {};
+            const thinking = response.internal_thinking || '';
+            const note = response.note_to_self || '';
+            const chat = response.say_outloud || '';
+            const action = response.action || null;
+            const metadata = req.metadata || {};
+            const latency = metadata.latency_seconds ? metadata.latency_seconds.toFixed(2) + 's' : 'N/A';
+            
+            // Create content type icons
+            const contentIcons = [];
+            if (thinking) contentIcons.push('<span title="Has Internal Thinking">💭</span>');
+            if (note) contentIcons.push('<span title="Has Note to Self">📝</span>');
+            if (chat) contentIcons.push('<span title="Says Out Loud">💬</span>');
+            if (action) contentIcons.push('<span title="Has Action">🎮</span>');
+            const contentIconsHTML = contentIcons.length > 0 ? `<div style="display: inline-flex; gap: 6px; margin-left: 10px;">${contentIcons.join('')}</div>` : '';
+            
+            return `
+                <div class="request-card${isNew}${fadeInClass}" id="${req.request_id}">
+                    <div class="request-header" onclick="toggleRequest('${req.request_id}')">
+                        <div class="request-num">${req.request_id}</div>
+                        <div class="request-summary">
+                            <div class="request-trigger">
+                                ${newBadge}
+                                <strong>${req.player_name.toUpperCase()}:</strong> ${escapeHtml(req.trigger)}
+                                ${contentIconsHTML}
+                            </div>
+                            <div class="request-meta">
+                                <span>⏱️ ${latency}</span>
+                                <span>🎮 ${req.game_context.phase}</span>
+                                <span>👤 Turn: ${req.game_context.current_player}</span>
+                                <span>📅 ${timestamp}</span>
+                            </div>
+                        </div>
+                        <div class="request-expand-icon">▶</div>
+                    </div>
+                    <div class="request-body">
+                        <div class="request-content">
+                            ${thinking ? `
+                                <div class="request-section">
+                                    <h4>💭 Internal Thinking</h4>
+                                    <div class="thinking-box">${escapeHtml(thinking)}</div>
+                                </div>
+                            ` : ''}
+                            
+                            ${note ? `
+                                <div class="request-section">
+                                    <h4>📝 Note to Self</h4>
+                                    <div class="note-box">${escapeHtml(note)}</div>
+                                </div>
+                            ` : ''}
+                            
+                            ${chat ? `
+                                <div class="request-section">
+                                    <h4>💬 Says Out Loud</h4>
+                                    <div class="chat-box">"${escapeHtml(chat)}"</div>
+                                </div>
+                            ` : ''}
+                            
+                            ${action ? `
+                                <div class="request-section">
+                                    <h4>🎮 Action</h4>
+                                    <div class="action-box">
+                                        <div class="action-type">${action.type || 'N/A'}</div>
+                                        ${action.parameters ? `
+                                            <div class="action-params">Parameters: ${JSON.stringify(action.parameters)}</div>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            ` : ''}
+                            
+                            ${metadata.total_tokens ? `
+                                <div class="request-section">
+                                    <h4>📊 Metadata</h4>
+                                    <div style="font-size: 12px; color: #858585;">
+                                        <div>Total Tokens: ${metadata.total_tokens}</div>
+                                        <div>Prompt Tokens: ${metadata.prompt_tokens || 'N/A'}</div>
+                                        <div>Completion Tokens: ${metadata.completion_tokens || 'N/A'}</div>
+                                        <div>Response Time: ${metadata.latency_seconds ? metadata.latency_seconds.toFixed(3) + 's' : 'N/A'}</div>
+                                    </div>
+                                </div>
+                            ` : ''}
+                            
+                            <div class="request-section">
+                                <details>
+                                    <summary>📤 Original Prompt (JSON)</summary>
+                                    <pre><code>${escapeHtml(JSON.stringify(req.prompt, null, 2))}</code></pre>
+                                </details>
+                            </div>
+                            
+                            ${req.raw_response ? `
+                                <div class="request-section">
+                                    <details>
+                                        <summary style="color: #f48771;">🔴 Raw LLM Response</summary>
+                                        <pre style="border-left: 3px solid #f48771;"><code>${escapeHtml(req.raw_response)}</code></pre>
+                                    </details>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleRequest(requestId) {
+            const card = document.getElementById(requestId);
+            if (!card) return;
+            
+            const isExpanded = card.classList.contains('expanded');
+            
+            if (isExpanded) {
+                // Before collapsing, save which details elements are open
+                saveDetailsState(requestId, card);
+                
+                card.classList.remove('expanded');
+                expandedRequests.delete(requestId);
+            } else {
+                card.classList.add('expanded');
+                expandedRequests.add(requestId);
+                
+                // Mark as viewed
+                if (card.classList.contains('new')) {
+                    markAsViewed(requestId);
+                    card.classList.remove('new');
+                }
+                
+                // Restore details state after a short delay to ensure DOM is ready
+                setTimeout(() => restoreDetailsState(requestId, card), 50);
+            }
+        }
+        
+        function saveDetailsState(requestId, card) {
+            const detailsElements = card.querySelectorAll('details');
+            const openIndices = new Set();
+            
+            detailsElements.forEach((detail, idx) => {
+                if (detail.open) {
+                    openIndices.add(idx);
+                }
+            });
+            
+            if (openIndices.size > 0) {
+                expandedDetails.set(requestId, openIndices);
+            } else {
+                expandedDetails.delete(requestId);
+            }
+        }
+        
+        function restoreDetailsState(requestId, card) {
+            if (expandedDetails.has(requestId)) {
+                const detailsElements = card.querySelectorAll('details');
+                const openIndices = expandedDetails.get(requestId);
+                
+                detailsElements.forEach((detail, idx) => {
+                    if (openIndices.has(idx)) {
+                        detail.open = true;
+                    }
+                });
+            }
+        }
+
+        async function markAsViewed(requestId) {
+            try {
+                await fetch(`/api/mark_viewed/${encodeURIComponent(sessionData.session_path)}/${requestId}`);
+                setTimeout(loadData, 500);
+            } catch (error) {
+                console.error('Error marking as viewed:', error);
+            }
+        }
+
+        async function markAllViewed() {
+            if (!sessionData) return;
+            
+            try {
+                await fetch(`/api/mark_all_viewed/${encodeURIComponent(sessionData.session_path)}`);
+                document.querySelectorAll('.request-card.new').forEach(card => {
+                    card.classList.remove('new');
+                });
+                setTimeout(loadData, 500);
+            } catch (error) {
+                console.error('Error marking all as viewed:', error);
+            }
+        }
+
+        function calculateStats(requests) {
+            const total = requests.length;
+            const newCount = requests.filter(r => r.is_new).length;
+            
+            const latencies = requests
+                .map(r => r.metadata?.latency_seconds)
+                .filter(l => l != null);
+            const avgLatency = latencies.length > 0 
+                ? (latencies.reduce((a, b) => a + b, 0) / latencies.length).toFixed(2)
+                : '0';
+            
+            const tokenCounts = requests
+                .map(r => r.metadata?.total_tokens)
+                .filter(t => t != null);
+            const avgTokens = tokenCounts.length > 0
+                ? Math.round(tokenCounts.reduce((a, b) => a + b, 0) / tokenCounts.length)
+                : 0;
+            
+            const totalTokens = tokenCounts.reduce((a, b) => a + b, 0);
+            
+            const promptTokens = requests
+                .map(r => r.metadata?.prompt_tokens || 0)
+                .reduce((a, b) => a + b, 0);
+            const completionTokens = requests
+                .map(r => r.metadata?.completion_tokens || 0)
+                .reduce((a, b) => a + b, 0);
+            
+            const inputCost = (promptTokens / 1000000) * 0.075;
+            const outputCost = (completionTokens / 1000000) * 0.30;
+            const totalCost = (inputCost + outputCost).toFixed(4);
+            
+            return { 
+                total, 
+                new: newCount, 
+                avgLatency, 
+                avgTokens,
+                totalTokens,
+                totalCost
+            };
+        }
+
+        function showView(view) {
+            currentView = view;
+            currentPlayer = null;
+            expandedRequests.clear();
+            expandedDetails.clear();
+            scrollPosition = 0;
+            updateActiveNav();
+            updateView();
+        }
+
+        function showPlayer(player) {
+            currentPlayer = player;
+            currentView = 'requests';
+            expandedRequests.clear();
+            expandedDetails.clear();
+            scrollPosition = 0;
+            updateActiveNav();
+            updateView();
+        }
+
+        function filterRequests(filter) {
+            currentFilter = filter;
+            
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            updateView();
+        }
+
+        function showChat() {
+            document.getElementById('filter-bar').style.display = 'none';
+            document.getElementById('content-title').textContent = 'Chat History';
+            
+            if (!sessionData.chat || sessionData.chat.length === 0) {
+                document.getElementById('content-body').innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">💬</div>
+                        <h3>No messages yet</h3>
+                        <p>Chat messages will appear here when players communicate</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const chatHTML = sessionData.chat.map(msg => `
+                <div class="chat-box" style="margin-bottom: 10px;">
+                    <strong>${msg.player.toUpperCase()}:</strong> "${escapeHtml(msg.message)}"
+                </div>
+            `).join('');
+
+            document.getElementById('content-body').innerHTML = chatHTML;
+        }
+
+        function showMemories() {
+            document.getElementById('filter-bar').style.display = 'none';
+            document.getElementById('content-title').textContent = 'Agent Memories';
+            
+            if (!sessionData.memories || Object.keys(sessionData.memories).length === 0) {
+                document.getElementById('content-body').innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">📝</div>
+                        <h3>No memories stored</h3>
+                        <p>AI agents haven't saved any notes yet</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const memoriesHTML = Object.entries(sessionData.memories).map(([player, memory]) => `
+                <div class="note-box" style="margin-bottom: 15px;">
+                    <strong>${player.toUpperCase()}:</strong><br>
+                    "${escapeHtml(memory)}"
+                </div>
+            `).join('');
+
+            document.getElementById('content-body').innerHTML = memoriesHTML;
+        }
+
+        function updateActiveNav() {
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+
+            if (currentPlayer) {
+                const items = document.querySelectorAll('.nav-item');
+                items.forEach(item => {
+                    if (item.textContent.includes(currentPlayer.toUpperCase())) {
+                        item.classList.add('active');
+                    }
+                });
+            } else {
+                const viewMap = {
+                    'requests': 'All Requests',
+                    'chat': 'Chat History',
+                    'memories': 'Agent Memories'
+                };
+                
+                const items = document.querySelectorAll('.nav-item');
+                items.forEach(item => {
+                    if (item.textContent.includes(viewMap[currentView])) {
+                        item.classList.add('active');
+                    }
+                });
+            }
+        }
+
+        function showEmptyState(title, message) {
+            document.getElementById('content-title').textContent = 'AI Catan Viewer';
+            document.getElementById('content-body').innerHTML = `
+                <div class="empty-state">
+                    <div class="icon">🎮</div>
+                    <h3>${title}</h3>
+                    <p>${message}</p>
+                </div>
+            `;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function refreshData() {
+            loadData();
+        }
+
+        function toggleAutoRefresh() {
+            autoRefreshEnabled = !autoRefreshEnabled;
+            
+            const badge = document.getElementById('auto-refresh-badge');
+            const statusText = document.getElementById('refresh-status');
+            
+            if (autoRefreshEnabled) {
+                badge.classList.remove('manual');
+                badge.classList.add('live');
+                statusText.textContent = 'AUTO';
+                
+                if (refreshInterval) clearInterval(refreshInterval);
+                refreshInterval = setInterval(loadData, 2000);
+            } else {
+                badge.classList.remove('live');
+                badge.classList.add('manual');
+                statusText.textContent = 'MANUAL';
+                
+                if (refreshInterval) {
+                    clearInterval(refreshInterval);
+                    refreshInterval = null;
+                }
+            }
+        }
+
+        // Initial load
+        loadData();
+        
+        // Start auto-refresh
+        if (autoRefreshEnabled) {
+            refreshInterval = setInterval(loadData, 2000);
+        }
+    </script>
+</body>
+</html>

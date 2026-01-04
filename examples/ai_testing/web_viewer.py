@@ -7,12 +7,16 @@ Web interface to monitor AI agents, chat, and game state in real-time.
 import json
 from pathlib import Path
 from datetime import datetime
-from flask import Flask, render_template, jsonify
+from collections import OrderedDict
+from flask import Flask, render_template, jsonify, Response
 import html
 
 app = Flask(__name__, 
             template_folder='templates',
             static_folder='static')
+
+# Ensure Flask preserves JSON key order
+app.config['JSON_SORT_KEYS'] = False
 
 LOGS_DIR = Path("examples/ai_testing/my_games/ai_logs")
 SESSION_FILE = Path("examples/ai_testing/my_games/current_session.txt")
@@ -74,7 +78,8 @@ def get_session_data(session_path):
     if requests_file.exists():
         try:
             with open(requests_file, 'r', encoding='utf-8') as f:
-                data = json.load(f)
+                # Use object_pairs_hook to preserve key order
+                data = json.load(f, object_pairs_hook=OrderedDict)
                 requests_data = data.get("requests", [])
                 print(f"  ✓ Loaded {len(requests_data)} requests")
         except Exception as e:
@@ -157,7 +162,18 @@ def get_session_data(session_path):
 
 @app.route('/')
 def index():
-    """Main page - use enhanced viewer."""
+    """Main page - use dynamic viewer."""
+    sessions = get_all_sessions()
+    current_session = get_current_session()
+    
+    return render_template('viewer_dynamic.html', 
+                         sessions=sessions,
+                         current_session=str(current_session) if current_session else None)
+
+
+@app.route('/enhanced')
+def enhanced_viewer():
+    """Enhanced viewer (old version)."""
     sessions = get_all_sessions()
     current_session = get_current_session()
     
@@ -217,7 +233,7 @@ def api_mark_viewed(session_path, request_id):
     
     try:
         with open(requests_file, 'r', encoding='utf-8') as f:
-            data = json.load(f)
+            data = json.load(f, object_pairs_hook=OrderedDict)
         
         # Mark request as viewed
         found = False
@@ -230,7 +246,7 @@ def api_mark_viewed(session_path, request_id):
         if not found:
             return jsonify({"error": "Request not found"}), 404
         
-        # Save back
+        # Save back (preserving order)
         with open(requests_file, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
         
@@ -250,13 +266,13 @@ def api_mark_all_viewed(session_path):
     
     try:
         with open(requests_file, 'r', encoding='utf-8') as f:
-            data = json.load(f)
+            data = json.load(f, object_pairs_hook=OrderedDict)
         
         # Mark all as viewed
         for req in data.get("requests", []):
             req["is_new"] = False
         
-        # Save back
+        # Save back (preserving order)
         with open(requests_file, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
         
