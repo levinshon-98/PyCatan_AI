@@ -17,11 +17,14 @@ Setup:
 import sys
 import json
 import time
-import logging
+import hashlib
+import asyncio
 from pathlib import Path
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Set
 from datetime import datetime
 from dataclasses import dataclass
+from concurrent.futures import ThreadPoolExecutor
+import threading
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
@@ -31,8 +34,8 @@ from pycatan.ai.llm_client import GeminiClient, LLMResponse
 from pycatan.ai.response_parser import ResponseParser, ParseResult
 from pycatan.ai.schemas import ResponseType
 
-# Configure logging - will be set up in main with file output
-logger = logging.getLogger(__name__)
+# Import request tracker
+from examples.ai_testing.request_tracker import RequestTracker
 
 
 # ============================================================================
@@ -67,9 +70,9 @@ class ChatManager:
                 with open(self.file_path, 'r', encoding='utf-8') as f:
                     data = json.load(f)
                     self.messages = data.get("messages", [])
-                logger.info(f"Loaded {len(self.messages)} chat messages")
+                print(f"✅ Loaded {len(self.messages)} chat messages")
             except Exception as e:
-                logger.warning(f"Could not load chat history: {e}")
+                print(f"⚠️  Could not load chat history: {e}")
                 self.messages = []
     
     def add_message(self, player: str, message: str):
@@ -82,7 +85,7 @@ class ChatManager:
             "message": message
         })
         self.save()
-        logger.info(f"💬 {player}: {message}")
+        print(f"💬 {player}: {message}")
     
     def save(self):
         """Save chat history to file."""
@@ -90,7 +93,7 @@ class ChatManager:
             with open(self.file_path, 'w', encoding='utf-8') as f:
                 json.dump({"messages": self.messages}, f, indent=2, ensure_ascii=False)
         except Exception as e:
-            logger.error(f"Failed to save chat history: {e}")
+            print(f"❌ Failed to save chat history: {e}")
     
     def get_recent(self, limit: int = 10) -> List[Dict[str, Any]]:
         """Get recent messages."""
@@ -111,16 +114,16 @@ class MemoryManager:
             try:
                 with open(self.file_path, 'r', encoding='utf-8') as f:
                     self.memories = json.load(f)
-                logger.info(f"Loaded memories for {len(self.memories)} agents")
+                print(f"✅ Loaded memories for {len(self.memories)} agents")
             except Exception as e:
-                logger.warning(f"Could not load memories: {e}")
+                print(f"⚠️  Could not load memories: {e}")
                 self.memories = {}
     
     def update_memory(self, player: str, note: str):
         """Update agent's memory."""
         self.memories[player] = note
         self.save()
-        logger.info(f"📝 {player} updated memory: {note[:50]}...")
+        print(f"📝 {player} updated memory: {note[:50]}...")
     
     def get_memory(self, player: str) -> Optional[str]:
         """Get agent's current memory."""
@@ -132,7 +135,7 @@ class MemoryManager:
             with open(self.file_path, 'w', encoding='utf-8') as f:
                 json.dump(self.memories, f, indent=2, ensure_ascii=False)
         except Exception as e:
-            logger.error(f"Failed to save memories: {e}")
+            print(f"❌ Failed to save memories: {e}")
 
 
 # ============================================================================
@@ -157,15 +160,22 @@ class AITester:
         
         self.chat_manager = ChatManager(session_chat_file)
         self.memory_manager = MemoryManager(session_memory_file)
+        self.request_tracker = RequestTracker(session_dir)
         self.session_dir = session_dir
         self.player_logs = {}  # Will store file handles per player
         self.consecutive_failures = 0  # Track consecutive failures
         self.max_consecutive_failures = 5  # Stop after 5 failures in a row
         
-        logger.info(f"🤖 AI Tester initialized with model: {GEMINI_MODEL}")
-        logger.info(f"📁 Session logs: {session_dir}")
-        logger.info(f"💬 Chat history: {session_chat_file}")
-        logger.info(f"📝 Agent memories: {session_memory_file}")
+        # NEW: Track active requests and previous game state
+        self.active_requests: Set[str] = set()  # Player names with active requests
+        self.active_requests_lock = threading.Lock()
+        self.previous_game_state: Optional[Dict[str, Any]] = None
+        self.previous_chat_count: int = 0
+        
+        print(f"🤖 AI Tester initialized with model: {GEMINI_MODEL}")
+        print(f"📁 Session logs: {session_dir}")
+        print(f"💬 Chat history: {session_chat_file}")
+        print(f"📝 Agent memories: {session_memory_file}")
     
     def _get_player_log_file(self, player_name: str) -> Path:
         """Get or create log file for specific player."""
@@ -228,12 +238,84 @@ class AITester:
         self._log_to_player_file(player_name, "```")
         self._log_to_player_file(player_name, "</details>\n")
     
-    def process_prompt(self, prompt_file: Path) -> Optional[Dict[str, Any]]:
+    def _check_for_changes(self, response_data: Dict[str, Any]):
+        """
+        Check if the response caused changes in game state or chat.
+        If yes, trigger prompt regeneration with updated context.
+        """
+        try:
+            # Load current game state
+            state_file = Path('examples/ai_testing/my_games/current_state.json')
+            if not state_file.exists():
+                return
+            
+            with open(state_file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                current_state = data.get('state', {})
+            
+            # Check for game state changes
+            game_changed = False
+            chat_changed = False
+            
+            if self.previous_game_state:
+                # Compare relevant fields that indicate game changes
+                prev_phase = self.previous_game_state.get('current_phase', '')
+                curr_phase = current_state.get('current_phase', '')
+                
+                prev_player = self.previous_game_state.get('current_player', '')
+                curr_player = current_state.get('current_player', '')
+                
+                prev_settlements = len(self.previous_game_state.get('settlements', []))
+                curr_settlements = len(current_state.get('settlements', []))
+                
+                prev_roads = len(self.previous_game_state.get('roads', []))
+                curr_roads = len(current_state.get('roads', []))
+                
+                prev_dice = self.previous_game_state.get('dice_result', '')
+                curr_dice = current_state.get('dice_result', '')
+                
+                # Detect game changes
+                if (prev_phase != curr_phase or prev_player != curr_player or 
+                    prev_settlements != curr_settlements or prev_roads != curr_roads or
+                    prev_dice != curr_dice):
+                    game_changed = True
+                    print("🎲 Game state changed detected!")
+            
+            # Check for chat changes
+            current_chat_count = len(self.chat_manager.messages)
+            if current_chat_count > self.previous_chat_count:
+                chat_changed = True
+                print("💬 New chat message detected!")
+            
+            # Update tracking variables
+            self.previous_game_state = current_state.copy() if current_state else None
+            self.previous_chat_count = current_chat_count
+            
+            # If changes detected, trigger regeneration of prompts
+            if game_changed or chat_changed:
+                change_type = "game state" if game_changed else "chat"
+                print(f"🔄 Detected {change_type} change - regenerating prompts...")
+                print(f"   Note: Only players without active requests will be sent new prompts")
+                self._trigger_prompt_regeneration()
+                
+        except Exception as e:
+            print(f"⚠️  Error checking for changes: {e}")
+    
+    def _trigger_prompt_regeneration(self):
+        """Trigger regeneration of prompts by calling generate_prompts script."""
+        try:
+            from examples.ai_testing.generate_prompts_from_state import main as generate_prompts
+            generate_prompts()
+        except Exception as e:
+            print(f"⚠️  Could not trigger prompt regeneration: {e}")
+    
+    def process_prompt(self, prompt_file: Path, executor: Optional[ThreadPoolExecutor] = None) -> Optional[Dict[str, Any]]:
         """
         Process a single prompt file.
         
         Args:
             prompt_file: Path to prompt file
+            executor: Optional thread pool executor for parallel processing
             
         Returns:
             Processed response data or None if failed
@@ -241,12 +323,19 @@ class AITester:
         # Extract player name from filename (e.g., "prompt_player_a.txt" -> "a")
         player_name = prompt_file.stem.replace("prompt_player_", "")
         
+        # Check if player already has an active request
+        with self.active_requests_lock:
+            if player_name in self.active_requests:
+                print(f"🚫 Skipping {player_name} - already has active request")
+                return None
+            self.active_requests.add(player_name)
+        
         separator = "="*80
         header = f"🤖 PROCESSING AI AGENT - Player {player_name.upper()}"
         
-        logger.info(separator)
-        logger.info(header)
-        logger.info(separator)
+        print(separator)
+        print(header)
+        print(separator)
         
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         request_num = len([k for k in self.player_logs.keys() if player_name in str(k)]) + 1
@@ -254,7 +343,7 @@ class AITester:
         # Use JSON file instead of TXT for actual prompt
         json_file = prompt_file.with_suffix('.json')
         if not json_file.exists():
-            logger.error(f"JSON prompt file not found: {json_file}")
+            print(f"❌ JSON prompt file not found: {json_file}")
             return None
         
         # Read prompt JSON file directly
@@ -262,16 +351,58 @@ class AITester:
             with open(json_file, 'r', encoding='utf-8') as f:
                 prompt_json = json.load(f)
         except Exception as e:
-            logger.error(f"Failed to read JSON prompt file: {e}")
+            print(f"❌ Failed to read JSON prompt file: {e}")
             return None
         
         # Extract the actual prompt (the nested 'prompt' field)
         actual_prompt = prompt_json.get("prompt", prompt_json)
         
+        # Extract game context for tracking
+        task_context = actual_prompt.get("task_context", {})
+        meta_data = actual_prompt.get("meta_data", {})
+        trigger = task_context.get("what_just_happened", "Unknown trigger")
+        
+        # Try to extract game phase from game_state
+        game_state_str = actual_prompt.get("game_state", "")
+        game_phase = "Unknown"
+        current_player_in_game = "Unknown"
+        
+        # Parse meta from game_state if it contains JSON
+        if '"meta"' in game_state_str or '"Meta"' in game_state_str:
+            try:
+                # Try to find and parse the game state JSON
+                import re
+                json_match = re.search(r'\{.*"meta".*\}', game_state_str, re.DOTALL)
+                if json_match:
+                    state_data = json.loads(json_match.group())
+                    meta = state_data.get("meta", {})
+                    game_phase = meta.get("phase", "Unknown")
+                    current_player_in_game = meta.get("curr", "Unknown")
+            except:
+                pass
+        
+        # Create request in tracker
+        request_id = self.request_tracker.add_request(
+            player_name=player_name,
+            trigger=trigger,
+            game_phase=game_phase,
+            current_player=current_player_in_game,
+            prompt_data=actual_prompt,
+            response_data=None,
+            metadata={
+                "request_num": request_num,
+                "timestamp": timestamp,
+                "model": GEMINI_MODEL
+            }
+        )
+        
+        print(f"📋 Request tracked: {request_id}")
+        
         # Display prompt info
-        logger.info(f"📤 Sending prompt to Gemini...")
-        logger.info(f"   Model: {GEMINI_MODEL}")
-        logger.info(f"   Player: {player_name}")
+        print(f"📤 Sending prompt to Gemini...")
+        print(f"   Model: {GEMINI_MODEL}")
+        print(f"   Player: {player_name}")
+        print(f"   Trigger: {trigger[:60]}{'...' if len(trigger) > 60 else ''}")
         
         # Write Markdown formatted log
         self._log_to_player_file(player_name, f"\n## 🔄 Request #{request_num}\n")
@@ -304,7 +435,7 @@ class AITester:
         
         if not llm_response.success:
             error_msg = f"❌ LLM request failed: {llm_response.error}"
-            logger.error(error_msg)
+            print(error_msg)
             self._log_to_player_file(player_name, f"\n{error_msg}")
             
             # Track consecutive failures
@@ -312,13 +443,13 @@ class AITester:
             
             # If it's a schema error, stop immediately to prevent repeated failures
             if "Unknown field for Schema" in str(llm_response.error):
-                logger.critical("\n" + "="*80)
-                logger.critical("🛑 CRITICAL ERROR: Schema validation failed!")
-                logger.critical(f"Error: {llm_response.error}")
-                logger.critical("The response schema contains fields that Gemini doesn't support.")
-                logger.critical("Gemini only supports: type, properties, required, description, items, enum")
-                logger.critical("Stopping to prevent repeated failures.")
-                logger.critical("="*80 + "\n")
+                print("\n" + "="*80)
+                print("🛑 CRITICAL ERROR: Schema validation failed!")
+                print(f"Error: {llm_response.error}")
+                print("The response schema contains fields that Gemini doesn't support.")
+                print("Gemini only supports: type, properties, required, description, items, enum")
+                print("Stopping to prevent repeated failures.")
+                print("="*80 + "\n")
                 raise RuntimeError("Schema validation error - stopping")
             
             return None
@@ -326,8 +457,8 @@ class AITester:
         # Reset failure counter on success
         self.consecutive_failures = 0
         
-        logger.info(f"✅ Response received ({llm_response.latency_seconds:.2f}s)")
-        logger.info(f"   Tokens: {llm_response.total_tokens} (prompt: {llm_response.prompt_tokens}, completion: {llm_response.completion_tokens})")
+        print(f"✅ Response received ({llm_response.latency_seconds:.2f}s)")
+        print(f"   Tokens: {llm_response.total_tokens} (prompt: {llm_response.prompt_tokens}, completion: {llm_response.completion_tokens})")
         
         # Log response metadata
         self._log_to_player_file(player_name, "\n### ✅ Response Received\n")
@@ -342,20 +473,44 @@ class AITester:
         self._log_to_player_file(player_name, "```")
         self._log_to_player_file(player_name, "</details>\n")
         
+        # Determine response type based on whether action is expected
+        constraints = actual_prompt.get("constraints", {})
+        allowed_actions = constraints.get("allowed_actions", [])
+        
+        # If there are allowed actions, expect ACTIVE_TURN response (with action field)
+        # Otherwise, expect OBSERVING response (just thinking)
+        response_type = ResponseType.ACTIVE_TURN if allowed_actions else ResponseType.OBSERVING
+        
+        print(f"📋 Expected response type: {response_type.value}")
+        
         # Parse response
-        parse_result = self.parser.parse(llm_response.content, ResponseType.OBSERVING)
+        parse_result = self.parser.parse(llm_response.content, response_type)
         
         if not parse_result.success:
             error_msg = f"❌ Failed to parse response: {parse_result.error_message}"
-            logger.error(error_msg)
-            logger.error(f"Raw response: {llm_response.content[:500]}...")
+            print(error_msg)
+            print(f"Raw response: {llm_response.content[:500]}...")
             self._log_to_player_file(player_name, f"\n### ❌ Parse Error\n")
             self._log_to_player_file(player_name, f"**Error:** {parse_result.error_message}\n")
             self._log_to_player_file(player_name, f"**Raw response preview:** `{llm_response.content[:500]}...`\n")
             return None
         
-        logger.info("✅ Response parsed successfully")
+        print("✅ Response parsed successfully")
         self._log_to_player_file(player_name, "\n### ✅ Parse Success\n")
+        
+        # Update request tracker with response (including raw response)
+        self.request_tracker.update_response(
+            request_id=request_id,
+            response_data=parse_result.data,
+            raw_response=llm_response.content,  # Save raw response from LLM
+            metadata={
+                "latency_seconds": llm_response.latency_seconds,
+                "total_tokens": llm_response.total_tokens,
+                "prompt_tokens": llm_response.prompt_tokens,
+                "completion_tokens": llm_response.completion_tokens,
+                "parse_success": True
+            }
+        )
         
         # Display structured response
         self._log_structured_response(player_name, parse_result.data)
@@ -369,6 +524,13 @@ class AITester:
         
         if "note_to_self" in parse_result.data and parse_result.data["note_to_self"]:
             self.memory_manager.update_memory(player_name, parse_result.data["note_to_self"])
+        
+        # Remove from active requests when done
+        with self.active_requests_lock:
+            self.active_requests.discard(player_name)
+        
+        # Check for changes and trigger regeneration if needed
+        self._check_for_changes(parse_result.data)
         
         return parse_result.data
     
@@ -418,23 +580,12 @@ class AITester:
 # ============================================================================
 
 def get_or_create_session():
-    """Get existing session or create new one."""
+    """Always create a new session for each run."""
     # Use same path as generate_prompts_from_state.py
     current_session_file = Path("examples/ai_testing/my_games/current_session.txt")
     
-    # Try to use existing session first
-    if current_session_file.exists():
-        try:
-            with open(current_session_file, 'r') as f:
-                session_path = f.read().strip()
-                session_dir = Path(session_path)
-                if session_dir.exists():
-                    logger.info(f"📂 Using existing session: {session_dir.name}")
-                    return session_dir
-        except Exception as e:
-            logger.warning(f"Could not read existing session: {e}")
-    
-    # Create new session if none exists
+    # Always create NEW session - don't reuse old ones
+    # This prevents picking up old prompts as "new"
     session_time = datetime.now().strftime("%Y%m%d_%H%M%S")
     session_dir = LOGS_DIR / f"session_{session_time}"
     session_dir.mkdir(parents=True, exist_ok=True)
@@ -445,13 +596,13 @@ def get_or_create_session():
         f.write(str(session_dir.absolute()))
         f.flush()
     
-    logger.info(f"📂 Created new session: {session_dir.name}")
-    logger.info(f"📄 Session file: {current_session_file.absolute()}")
+    print(f"📂 Created new session: {session_dir.name}")
+    print(f"📄 Session file: {current_session_file.absolute()}")
     return session_dir
 
 
 def monitor_prompts():
-    """Monitor for new prompts and process them."""
+    """Monitor for new prompts and process them in parallel."""
     session_dir = get_or_create_session()
     
     # Create prompts directory inside session
@@ -459,14 +610,18 @@ def monitor_prompts():
     prompts_dir.mkdir(exist_ok=True)
     
     tester = AITester(session_dir)
-    processed_files = {}  # Dictionary: filename -> mtime when processed
+    processed_files = {}  # Dictionary: filename -> content hash when processed
+    
+    # Thread pool for parallel processing
+    executor = ThreadPoolExecutor(max_workers=4)
     
     print("="*80)
-    print("🎮 AI AGENT LIVE TESTER")
+    print("🎮 AI AGENT LIVE TESTER (PARALLEL MODE)")
     print("="*80)
     print(f"📁 Watching: {prompts_dir}")
     print(f"🤖 Model: {GEMINI_MODEL}")
     print(f"📝 Session logs: {session_dir}")
+    print(f"⚡ Parallel processing enabled")
     print(f"⏳ Waiting for NEW prompts to be generated...")
     print("="*80 + "\n")
     
@@ -476,66 +631,90 @@ def monitor_prompts():
             if prompts_dir.exists():
                 prompt_files = sorted(prompts_dir.glob("prompt_player_*.txt"))
                 
+                # Collect new prompts to process
+                new_prompts = []
+                
                 for prompt_file in prompt_files:
-                    # Get current modification time
-                    file_mtime = prompt_file.stat().st_mtime
-                    
-                    # Check if file has been updated or is new
                     filename = prompt_file.name
-                    is_new_or_updated = (
-                        filename not in processed_files or 
-                        file_mtime > processed_files.get(filename, 0)
-                    )
                     
-                    if is_new_or_updated:
-                        # New or updated prompt file
-                        logger.info(f"🆕 Detected new prompt: {prompt_file.name}")
+                    # Read JSON file to get content hash
+                    json_file = prompt_file.with_suffix('.json')
+                    if not json_file.exists():
+                        continue
+                    
+                    try:
+                        with open(json_file, 'rb') as f:
+                            content = f.read()
+                            content_hash = hashlib.md5(content).hexdigest()
+                    except Exception as e:
+                        print(f"⚠️  Could not read {json_file}: {e}")
+                        continue
+                    
+                    # Check if this is a new prompt based on content hash
+                    if filename not in processed_files or processed_files[filename] != content_hash:
+                        new_prompts.append((prompt_file, filename, content_hash))
+                
+                # Process all new prompts in parallel
+                if new_prompts:
+                    print(f"\n🆕 Detected {len(new_prompts)} new prompt(s)")
+                    
+                    # Small delay to ensure files are fully written
+                    time.sleep(0.2)
+                    
+                    # Check how many can actually be sent
+                    players_with_active_requests = []
+                    players_to_process = []
+                    
+                    for prompt_file, filename, content_hash in new_prompts:
+                        player_name = prompt_file.stem.replace("prompt_player_", "")
                         
-                        # Small delay to ensure file is fully written
-                        time.sleep(0.2)
-                        
-                        # Process it (will raise RuntimeError on critical schema errors)
+                        # Check if player already has active request
+                        with tester.active_requests_lock:
+                            if player_name in tester.active_requests:
+                                players_with_active_requests.append(player_name)
+                            else:
+                                players_to_process.append((prompt_file, filename, content_hash, player_name))
+                    
+                    # Report skipped players
+                    if players_with_active_requests:
+                        print(f"🚫 Skipping players with active requests: {', '.join(players_with_active_requests)}")
+                    
+                    # Report players being processed
+                    if players_to_process:
+                        player_names = [p[3] for p in players_to_process]
+                        print(f"📤 Submitting to queue: {', '.join(player_names)}")
+                    
+                    # Submit all prompts to thread pool
+                    futures = []
+                    for prompt_file, filename, content_hash, player_name in players_to_process:
+                        future = executor.submit(tester.process_prompt, prompt_file, executor)
+                        futures.append((future, filename, content_hash))
+                    
+                    # Wait for all to complete
+                    for future, filename, content_hash in futures:
                         try:
-                            result = tester.process_prompt(prompt_file)
-                        except RuntimeError as e:
-                            # Critical error - stop immediately
-                            print("\n" + "="*80)
-                            print("🛑 CRITICAL ERROR DETECTED")
-                            print("="*80)
-                            print(f"Error: {e}")
-                            print("\nStopping AI Tester to prevent repeated failures.")
-                            print("Please fix the schema issue and restart.")
-                            print("="*80 + "\n")
-                            tester.get_stats()
-                            print(f"\n📝 Session logs saved to: {session_dir}")
-                            print(f"   Files: {', '.join([f.name for f in session_dir.glob('*.md')])}")
-                            return  # Exit the function
-                        
-                        if result:
-                            processed_files[filename] = file_mtime
-                        
-                        # Show stats periodically
-                        if len(processed_files) % 5 == 0 and len(processed_files) > 0:
-                            tester.get_stats()
+                            result = future.result(timeout=120)  # 2 minute timeout
+                            if result:
+                                processed_files[filename] = content_hash
+                        except Exception as e:
+                            print(f"❌ Error processing prompt: {e}")
+                            import traceback
+                            traceback.print_exc()
+                    
+                    # Show stats periodically
+                    if len(processed_files) % 5 == 0 and len(processed_files) > 0:
+                        tester.get_stats()
             
             # Sleep before next check
             time.sleep(0.5)
     
     except KeyboardInterrupt:
         print("\n\n✅ AI Tester stopped")
+        executor.shutdown(wait=True)
         tester.get_stats()
         print(f"\n📝 Session logs saved to: {session_dir}")
         print(f"   Files: {', '.join([f.name for f in session_dir.glob('*.md')])}")
 
 
 if __name__ == '__main__':
-    # Setup logging
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(message)s',
-        handlers=[
-            logging.StreamHandler()
-        ]
-    )
-    
     monitor_prompts()

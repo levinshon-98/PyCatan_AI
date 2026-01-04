@@ -131,6 +131,10 @@ class ResponseParser:
         # Step 3: Validate structure
         validation_result = self._validate_structure(data, response_type)
         if not validation_result[0]:
+            print(f"\n🔍 DEBUG - Validation failed: {validation_result[1]}")
+            print(f"📋 Data: {json.dumps(data, indent=2)}")
+            print(f"📋 Response Type: {response_type}")
+            print(f"📋 Schema required fields: {get_schema_for_response_type(response_type).get('required')}\n")
             if self.enable_fallbacks and not self.strict_mode:
                 # Try to repair structure
                 data = self._try_repair_structure(data, response_type)
@@ -193,17 +197,16 @@ class ResponseParser:
         if matches:
             return matches[0]
         
-        # Try to find raw JSON object
-        json_pattern = r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}'
-        matches = re.findall(json_pattern, text, re.DOTALL)
-        if matches:
-            # Return the longest match (most likely to be complete)
-            return max(matches, key=len)
-        
         # If text looks like pure JSON, return as is
         stripped = text.strip()
         if stripped.startswith('{') and stripped.endswith('}'):
             return stripped
+        
+        # Try to find the first '{' and last '}' - simple but effective
+        first_brace = text.find('{')
+        last_brace = text.rfind('}')
+        if first_brace != -1 and last_brace != -1 and last_brace > first_brace:
+            return text[first_brace:last_brace + 1]
         
         return None
     

@@ -418,6 +418,11 @@ def main():
         # Start game
         game = RealGame()
         
+        print("\n🌐 Game board visualization will open automatically...")
+        print("   📊 Game Board: http://localhost:5000")
+        print("   🤖 AI Viewer: http://localhost:5001")
+        print()
+        
         # 🎯 CRITICAL: Patch GameManager to install turn start callback
         # This ensures state is saved at the BEGINNING of each turn
         from pycatan.management.game_manager import GameManager
