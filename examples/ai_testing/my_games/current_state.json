@@ -1,6 +1,6 @@
 {
-  "timestamp": "2026-01-04T01:18:47.917271",
-  "state_number": 8,
+  "timestamp": "2026-01-04T02:17:49.973529",
+  "state_number": 3,
   "state": {
     "hexes": [
       {
@@ -126,14 +126,7 @@
       }
     ],
     "cities": [],
-    "roads": [
-      {
-        "id": 1,
-        "from": 10,
-        "to": 9,
-        "player": 1
-      }
-    ],
+    "roads": [],
     "harbors": [
       {
         "id": 1,
@@ -202,15 +195,15 @@
     "players": [
       {
         "id": 0,
-        "name": "hadar",
+        "name": "shon",
         "victory_points": 1,
         "total_cards": 0,
         "cards_list": [],
         "dev_cards_list": [],
         "settlements": 1,
         "cities": 0,
-        "roads": 1,
-        "longest_road": 1,
+        "roads": 0,
+        "longest_road": 0,
         "has_longest_road": false,
         "knights": 0,
         "knights_played": 0,
@@ -218,7 +211,7 @@
       },
       {
         "id": 1,
-        "name": "shon",
+        "name": "hadar",
         "victory_points": 0,
         "total_cards": 0,
         "cards_list": [],
@@ -234,7 +227,7 @@
       },
       {
         "id": 2,
-        "name": "digeo",
+        "name": "z",
         "victory_points": 0,
         "total_cards": 0,
         "cards_list": [],
@@ -249,7 +242,7 @@
         "has_largest_army": false
       }
     ],
-    "current_player": 1,
+    "current_player": 0,
     "current_phase": "SETUP_FIRST_ROUND",
     "robber_position": [
       2,
@@ -257,7 +250,7 @@
     ],
     "dice_result": null,
     "allowed_actions": [
-      "PLACE_STARTING_SETTLEMENT"
+      "PLACE_STARTING_ROAD"
     ],
     "points": [
       {

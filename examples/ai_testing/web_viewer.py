@@ -68,7 +68,21 @@ def get_session_data(session_path):
     
     print(f"Loading session data from: {session_dir}")
     
-    # Get player logs
+    # Get structured requests data (new format)
+    requests_file = session_dir / "requests.json"
+    requests_data = []
+    if requests_file.exists():
+        try:
+            with open(requests_file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                requests_data = data.get("requests", [])
+                print(f"  ✓ Loaded {len(requests_data)} requests")
+        except Exception as e:
+            print(f"  ✗ Error loading requests: {e}")
+    else:
+        print(f"  ℹ No requests file found")
+    
+    # Get player logs (old format - keep for backwards compatibility)
     players = {}
     for player_file in session_dir.glob("player_*.md"):
         player_name = player_file.stem.replace("player_", "").upper()
@@ -118,9 +132,23 @@ def get_session_data(session_path):
     else:
         print(f"  ℹ No memories file")
     
+    # Calculate statistics
+    new_requests_count = sum(1 for req in requests_data if req.get("is_new", False))
+    players_with_requests = {}
+    for req in requests_data:
+        player = req["player_name"]
+        if player not in players_with_requests:
+            players_with_requests[player] = {"total": 0, "new": 0}
+        players_with_requests[player]["total"] += 1
+        if req.get("is_new", False):
+            players_with_requests[player]["new"] += 1
+    
     return {
         "session_name": session_dir.name,
         "session_path": str(session_dir),
+        "requests": requests_data,
+        "new_requests_count": new_requests_count,
+        "players_stats": players_with_requests,
         "players": players,
         "chat": chat_messages,
         "memories": memories
@@ -129,7 +157,18 @@ def get_session_data(session_path):
 
 @app.route('/')
 def index():
-    """Main page."""
+    """Main page - use enhanced viewer."""
+    sessions = get_all_sessions()
+    current_session = get_current_session()
+    
+    return render_template('viewer_enhanced.html', 
+                         sessions=sessions,
+                         current_session=str(current_session) if current_session else None)
+
+
+@app.route('/old')
+def old_viewer():
+    """Old viewer for backwards compatibility."""
     sessions = get_all_sessions()
     current_session = get_current_session()
     
@@ -167,16 +206,78 @@ def api_current():
     return jsonify(data)
 
 
+@app.route('/api/mark_viewed/<path:session_path>/<request_id>')
+def api_mark_viewed(session_path, request_id):
+    """Mark a specific request as viewed."""
+    session_dir = Path(session_path)
+    requests_file = session_dir / "requests.json"
+    
+    if not requests_file.exists():
+        return jsonify({"error": "Requests file not found"}), 404
+    
+    try:
+        with open(requests_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        
+        # Mark request as viewed
+        found = False
+        for req in data.get("requests", []):
+            if req["request_id"] == request_id:
+                req["is_new"] = False
+                found = True
+                break
+        
+        if not found:
+            return jsonify({"error": "Request not found"}), 404
+        
+        # Save back
+        with open(requests_file, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+        
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/mark_all_viewed/<path:session_path>')
+def api_mark_all_viewed(session_path):
+    """Mark all requests as viewed."""
+    session_dir = Path(session_path)
+    requests_file = session_dir / "requests.json"
+    
+    if not requests_file.exists():
+        return jsonify({"error": "Requests file not found"}), 404
+    
+    try:
+        with open(requests_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        
+        # Mark all as viewed
+        for req in data.get("requests", []):
+            req["is_new"] = False
+        
+        # Save back
+        with open(requests_file, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+        
+        return jsonify({"success": True, "marked_count": len(data.get("requests", []))})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 if __name__ == '__main__':
     print("="*80)
     print("🌐 AI Game Viewer Starting...")
     print("="*80)
     print(f"\n📁 Watching: {LOGS_DIR.absolute()}")
     print(f"📄 Session file: {SESSION_FILE.absolute()}")
-    print(f"\n🔗 Open in browser: http://localhost:5000")
+    print(f"\n🔗 Open in browser: http://localhost:5001")
+    print("\n⚠️  Note: Game board is on http://localhost:5000")
+    print("   This viewer (5001) shows AI requests/responses")
+    print("   Game board (5000) shows the actual Catan board")
     print("\n" + "="*80 + "\n")
     
     # Check current session on startup
     get_current_session()
     
-    app.run(debug=False, host='0.0.0.0', port=5000)
+    app.run(debug=False, host='0.0.0.0', port=5001)
