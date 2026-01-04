@@ -91,22 +91,29 @@ class PromptBuilder:
         """
         prompt = {}
         
-        # Build each section according to promt_format.text structure
+        # Build each section in the correct order:
+        # 1. meta_data (who am I?)
+        # 2. game_state (current board state)
+        # 3. memory (what did I remember?)
+        # 4. task_context (what just happened and what to do?)
+        # 5. social_context (chat/trades)
+        # 6. constraints (allowed actions)
+        
         if self.template.include_meta_data:
             prompt["meta_data"] = self._build_meta_data(meta_data, custom_instructions)
-        
-        if self.template.include_task_context:
-            prompt["task_context"] = self._build_task_context(task_context)
         
         if self.template.include_game_state:
             # Include optimized game state with legend embedded
             prompt["game_state"] = self._build_game_state_section(game_state)
         
-        if self.template.include_social_context and social_context:
-            prompt["social_context"] = self._build_social_context(social_context)
-        
         if self.template.include_memory and memory:
             prompt["memory"] = self._build_memory(memory)
+        
+        if self.template.include_task_context:
+            prompt["task_context"] = self._build_task_context(task_context)
+        
+        if self.template.include_social_context and social_context:
+            prompt["social_context"] = self._build_social_context(social_context)
         
         if self.template.include_constraints and constraints:
             prompt["constraints"] = self._build_constraints(constraints)
@@ -219,27 +226,31 @@ JSON:
         
         return result
     
-    def _build_memory(self, memory: Dict[str, Any]) -> Dict[str, Any]:
+    def _build_memory(self, memory: Any) -> Dict[str, Any]:
         """
         Build memory section with agent's notes.
         
         Args:
-            memory: Agent's observations and plans (can be list or dict)
+            memory: Agent's observations and plans (can be string, list or dict)
             
         Returns:
             Formatted memory
         """
-        # Support both dict format and list format
-        if isinstance(memory, list):
-            notes = memory
+        # Support string format (direct note_to_self from previous response)
+        if isinstance(memory, str):
+            return {
+                "previous_note_to_self": memory
+            }
+        # Support dict format
         elif isinstance(memory, dict):
-            notes = memory.get("notes", [])
+            return memory
+        # Support list format
+        elif isinstance(memory, list):
+            return {
+                "notes_for_myself": memory
+            }
         else:
-            notes = []
-            
-        return {
-            "notes_for_myself": notes
-        }
+            return {}
     
     def _build_constraints(self, constraints: Dict[str, Any]) -> Dict[str, Any]:
         """

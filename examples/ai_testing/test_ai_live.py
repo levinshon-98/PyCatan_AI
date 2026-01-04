@@ -611,6 +611,8 @@ def monitor_prompts():
     
     tester = AITester(session_dir)
     processed_files = {}  # Dictionary: filename -> content hash when processed
+    retry_counts = {}  # Dictionary: filename -> number of retry attempts
+    MAX_RETRIES = 3
     
     # Thread pool for parallel processing
     executor = ThreadPoolExecutor(max_workers=4)
@@ -692,14 +694,48 @@ def monitor_prompts():
                     
                     # Wait for all to complete
                     for future, filename, content_hash in futures:
+                        player_name = None
                         try:
+                            # Extract player name from filename for error handling
+                            player_name = filename.replace("prompt_player_", "").replace(".txt", "")
                             result = future.result(timeout=120)  # 2 minute timeout
                             if result:
                                 processed_files[filename] = content_hash
+                                # Reset retry count on success
+                                if filename in retry_counts:
+                                    del retry_counts[filename]
+                        except TimeoutError:
+                            print(f"❌ Error processing prompt: TimeoutError")
+                            print(f"   Request for player '{player_name}' timed out after 120 seconds")
+                            
+                            # Track retry attempts
+                            retry_counts[filename] = retry_counts.get(filename, 0) + 1
+                            attempts = retry_counts[filename]
+                            print(f"   ⚠️  Retry attempt {attempts}/{MAX_RETRIES}")
+                            
+                            # Check if max retries reached
+                            if attempts >= MAX_RETRIES:
+                                print(f"\n{'='*80}")
+                                print(f"🛑 CRITICAL: Player '{player_name}' failed after {MAX_RETRIES} timeout attempts")
+                                print(f"{'='*80}")
+                                print(f"Stopping execution to prevent infinite retry loop.")
+                                print(f"Check the prompt or API connection issues.")
+                                print(f"{'='*80}\n")
+                                raise RuntimeError(f"Max retries ({MAX_RETRIES}) exceeded for player '{player_name}'")
+                            
+                            # Remove from active requests so new prompts can be sent
+                            if player_name:
+                                with tester.active_requests_lock:
+                                    tester.active_requests.discard(player_name)
+                                print(f"   🔄 Removed '{player_name}' from active requests - will retry")
                         except Exception as e:
                             print(f"❌ Error processing prompt: {e}")
                             import traceback
                             traceback.print_exc()
+                            # Also remove from active requests on any other error
+                            if player_name:
+                                with tester.active_requests_lock:
+                                    tester.active_requests.discard(player_name)
                     
                     # Show stats periodically
                     if len(processed_files) % 5 == 0 and len(processed_files) > 0:

@@ -667,6 +667,14 @@
                         <div class="stat-label">New</div>
                     </div>
                     <div class="stat-card">
+                        <div class="stat-value">${stats.totalTokens.toLocaleString()}</div>
+                        <div class="stat-label">Total Tokens</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">$${stats.totalCost}</div>
+                        <div class="stat-label">Total Cost</div>
+                    </div>
+                    <div class="stat-card">
                         <div class="stat-value">${stats.avgLatency}s</div>
                         <div class="stat-label">Avg Response Time</div>
                     </div>
@@ -711,6 +719,14 @@
             const latency = metadata.latency_seconds ? metadata.latency_seconds.toFixed(2) + 's' : 'N/A';
             const tokens = metadata.total_tokens || 'N/A';
             
+            // Create content type icons
+            const contentIcons = [];
+            if (thinking) contentIcons.push('<span title="Has Internal Thinking">💭</span>');
+            if (note) contentIcons.push('<span title="Has Note to Self">📝</span>');
+            if (chat) contentIcons.push('<span title="Says Out Loud">💬</span>');
+            if (action) contentIcons.push('<span title="Has Action">🎮</span>');
+            const contentIconsHTML = contentIcons.length > 0 ? `<div style="display: inline-flex; gap: 6px; margin-left: 10px;">${contentIcons.join('')}</div>` : '';
+            
             return `
                 <div class="request-card${isNew}" id="${req.request_id}">
                     <div class="request-header" onclick="toggleRequest('${req.request_id}')">
@@ -719,6 +735,7 @@
                             <div class="request-trigger">
                                 ${newBadge}
                                 <strong>${req.player_name.toUpperCase()}:</strong> ${escapeHtml(req.trigger)}
+                                ${contentIconsHTML}
                             </div>
                             <div class="request-meta">
                                 <span>⏱️ ${latency}</span>
@@ -877,7 +894,30 @@
                 ? Math.round(tokenCounts.reduce((a, b) => a + b, 0) / tokenCounts.length)
                 : 0;
             
-            return { total, new: newCount, avgLatency, avgTokens };
+            // Calculate TOTAL tokens and cost
+            const totalTokens = tokenCounts.reduce((a, b) => a + b, 0);
+            
+            // Calculate cost based on Gemini 2.5 Flash pricing
+            // Input: $0.075 per 1M tokens, Output: $0.30 per 1M tokens
+            const promptTokens = requests
+                .map(r => r.metadata?.prompt_tokens || 0)
+                .reduce((a, b) => a + b, 0);
+            const completionTokens = requests
+                .map(r => r.metadata?.completion_tokens || 0)
+                .reduce((a, b) => a + b, 0);
+            
+            const inputCost = (promptTokens / 1000000) * 0.075;
+            const outputCost = (completionTokens / 1000000) * 0.30;
+            const totalCost = (inputCost + outputCost).toFixed(4);
+            
+            return { 
+                total, 
+                new: newCount, 
+                avgLatency, 
+                avgTokens,
+                totalTokens,
+                totalCost
+            };
         }
 
         function showView(view) {

@@ -117,13 +117,20 @@
   ],
   "settlements": [
     {
-      "id": "b_42",
-      "vertex": 42,
+      "id": "b_20",
+      "vertex": 20,
       "player": 1
     }
   ],
   "cities": [],
-  "roads": [],
+  "roads": [
+    {
+      "id": 1,
+      "from": 20,
+      "to": 21,
+      "player": 1
+    }
+  ],
   "harbors": [
     {
       "id": 1,
@@ -192,15 +199,15 @@
   "players": [
     {
       "id": 0,
-      "name": "A",
+      "name": "shon",
       "victory_points": 1,
       "total_cards": 0,
       "cards_list": [],
       "dev_cards_list": [],
       "settlements": 1,
       "cities": 0,
-      "roads": 0,
-      "longest_road": 0,
+      "roads": 1,
+      "longest_road": 1,
       "has_longest_road": false,
       "knights": 0,
       "knights_played": 0,
@@ -208,23 +215,7 @@
     },
     {
       "id": 1,
-      "name": "B",
-      "victory_points": 0,
-      "total_cards": 0,
-      "cards_list": [],
-      "dev_cards_list": [],
-      "settlements": 0,
-      "cities": 0,
-      "roads": 0,
-      "longest_road": 0,
-      "has_longest_road": false,
-      "knights": 0,
-      "knights_played": 0,
-      "has_largest_army": false
-    },
-    {
-      "id": 2,
-      "name": "C",
+      "name": "shelly",
       "victory_points": 0,
       "total_cards": 0,
       "cards_list": [],
@@ -239,7 +230,7 @@
       "has_largest_army": false
     }
   ],
-  "current_player": 0,
+  "current_player": 1,
   "current_phase": "SETUP_FIRST_ROUND",
   "robber_position": [
     2,
@@ -247,7 +238,7 @@
   ],
   "dice_result": null,
   "allowed_actions": [
-    "PLACE_STARTING_ROAD"
+    "PLACE_STARTING_SETTLEMENT"
   ],
   "points": [
     {

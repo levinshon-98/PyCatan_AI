@@ -101,6 +101,71 @@ def get_current_session_dir():
     return None
 
 
+def load_agent_memories(session_dir=None):
+    """
+    Load agent memories (note_to_self) from the current session.
+    
+    Args:
+        session_dir: Path to session directory, or None to auto-detect
+        
+    Returns:
+        Dictionary of {player_name: memory_string} or empty dict if not found
+    """
+    if session_dir is None:
+        session_dir = get_current_session_dir()
+    
+    if session_dir is None:
+        return {}
+    
+    memories_file = session_dir / 'agent_memories.json'
+    
+    if not memories_file.exists():
+        return {}
+    
+    try:
+        with open(memories_file, 'r', encoding='utf-8') as f:
+            memories = json.load(f)
+            print(f"  📝 Loaded memories for {len(memories)} agents")
+            return memories
+    except Exception as e:
+        print(f"  ⚠️  Could not load memories: {e}")
+        return {}
+
+
+def load_chat_history(session_dir=None):
+    """
+    Load chat history from the current session.
+    
+    Args:
+        session_dir: Path to session directory, or None to auto-detect
+        
+    Returns:
+        List of chat messages or empty list if not found
+    """
+    if session_dir is None:
+        session_dir = get_current_session_dir()
+    
+    if session_dir is None:
+        return []
+    
+    chat_file = session_dir / 'chat_history.json'
+    
+    if not chat_file.exists():
+        return []
+    
+    try:
+        with open(chat_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            messages = data.get("messages", [])
+            print(f"  💬 Loaded {len(messages)} chat messages")
+            return messages
+    except Exception as e:
+        print(f"  ⚠️  Could not load chat history: {e}")
+        return []
+    
+    return None
+
+
 def generate_what_happened_message(full_state, optimized_state, current_player, for_spectator=False):
     """
     Generate a contextual message about what just happened in the game.
@@ -386,7 +451,7 @@ def convert_allowed_actions_to_prompt_format(allowed_actions_list):
     return converted_actions
 
 
-def generate_prompt_for_player(player_name, game_state, prompt_manager, full_state=None):
+def generate_prompt_for_player(player_name, game_state, prompt_manager, full_state=None, agent_memories=None, chat_history=None):
     """
     Generate a complete prompt for a specific player.
     
@@ -395,6 +460,8 @@ def generate_prompt_for_player(player_name, game_state, prompt_manager, full_sta
         game_state: Current game state (optimized format)
         prompt_manager: PromptManager instance
         full_state: Full state with allowed_actions (optional)
+        agent_memories: Dictionary of agent memories (optional)
+        chat_history: List of chat messages (optional)
         
     Returns:
         Complete prompt dictionary
@@ -440,6 +507,11 @@ def generate_prompt_for_player(player_name, game_state, prompt_manager, full_sta
         what_happened = generate_what_happened_message(full_state, game_state, player_name, for_spectator=True)
         available_actions = None  # No actions when not your turn
     
+    # Get this player's memory (note_to_self from previous responses)
+    agent_memory = None
+    if agent_memories and player_name in agent_memories:
+        agent_memory = agent_memories[player_name]
+    
     # Generate the prompt
     prompt = prompt_manager.create_prompt(
         player_num=player_num,
@@ -448,6 +520,8 @@ def generate_prompt_for_player(player_name, game_state, prompt_manager, full_sta
         game_state=game_state,
         what_happened=what_happened,
         available_actions=available_actions,
+        chat_history=chat_history,
+        agent_memory=agent_memory,
         custom_instructions=f"You are player '{player_name}'. Play strategically to win."
     )
     
@@ -550,6 +624,28 @@ def main():
         output_dir = Path('examples/ai_testing/my_games/prompts')
         output_dir.mkdir(exist_ok=True, parents=True)
     
+    # Load agent memories (note_to_self from previous responses)
+    print("📝 Loading agent memories...")
+    agent_memories = load_agent_memories(session_dir)
+    if agent_memories:
+        for player, memory in agent_memories.items():
+            print(f"  📝 {player}: {memory[:60]}..." if len(memory) > 60 else f"  📝 {player}: {memory}")
+    else:
+        print("  ℹ️  No memories found (first turn or new session)")
+    print()
+    
+    # Load chat history
+    print("💬 Loading chat history...")
+    chat_history = load_chat_history(session_dir)
+    if chat_history:
+        print(f"  💬 Found {len(chat_history)} messages")
+        # Show last 3 messages as preview
+        for msg in chat_history[-3:]:
+            print(f"     {msg.get('player', '?')}: {msg.get('message', '')[:50]}...")
+    else:
+        print("  ℹ️  No chat history (first turn or new session)")
+    print()
+    
     print("📝 Generating prompts for each player...\n")
     
     # Generate prompt for each player
@@ -558,7 +654,7 @@ def main():
         
         try:
             is_active = (player_name == meta.get("curr"))
-            prompt = generate_prompt_for_player(player_name, game_state, prompt_manager, full_state)
+            prompt = generate_prompt_for_player(player_name, game_state, prompt_manager, full_state, agent_memories, chat_history)
             save_prompt_to_file(player_name, prompt, output_dir, is_active_player=is_active)
             
             json_file = output_dir / f"prompt_player_{player_name}.json"

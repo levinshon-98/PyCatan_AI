@@ -167,3 +167,38 @@
 ```
 </details>
 
+
+### ✅ Response Received
+
+- **Latency:** 10.85s
+- **Tokens:** 835 (prompt: 704, completion: 131)
+
+<details>
+<summary><strong>📥 Raw Response from Gemini</strong></summary>
+
+```json
+{"internal_thinking": "Player 'shon' placed their first settlement at node 10 (Wood 12, Sheep 8, Brick 6). This is a strong start with good numbers and a balanced set of basic resources. I will observe where 'shon' places their road to understand their initial expansion strategy. For my own first settlement, I need to prioritize securing Ore and Wheat, as 'shon' has taken good Wood/Sheep/Brick. I will look for nodes with high-producing Ore and Wheat hexes, possibly paired with a secondary resource like Wood or Sheep."}
+```
+</details>
+
+
+### ✅ Parse Success
+
+
+### 🎯 AI Response
+
+#### 💭 Internal Thinking
+
+> Player 'shon' placed their first settlement at node 10 (Wood 12, Sheep 8, Brick 6). This is a strong start with good numbers and a balanced set of basic resources. I will observe where 'shon' places their road to understand their initial expansion strategy. For my own first settlement, I need to prioritize securing Ore and Wheat, as 'shon' has taken good Wood/Sheep/Brick. I will look for nodes with high-producing Ore and Wheat hexes, possibly paired with a secondary resource like Wood or Sheep.
+
+
+<details>
+<summary><strong>🔍 Raw JSON (Debug)</strong></summary>
+
+```json
+{
+  "internal_thinking": "Player 'shon' placed their first settlement at node 10 (Wood 12, Sheep 8, Brick 6). This is a strong start with good numbers and a balanced set of basic resources. I will observe where 'shon' places their road to understand their initial expansion strategy. For my own first settlement, I need to prioritize securing Ore and Wheat, as 'shon' has taken good Wood/Sheep/Brick. I will look for nodes with high-producing Ore and Wheat hexes, possibly paired with a secondary resource like Wood or Sheep."
+}
+```
+</details>
+
