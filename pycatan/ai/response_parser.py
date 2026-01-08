@@ -131,10 +131,11 @@ class ResponseParser:
         # Step 3: Validate structure
         validation_result = self._validate_structure(data, response_type)
         if not validation_result[0]:
-            print(f"\n🔍 DEBUG - Validation failed: {validation_result[1]}")
-            print(f"📋 Data: {json.dumps(data, indent=2)}")
-            print(f"📋 Response Type: {response_type}")
-            print(f"📋 Schema required fields: {get_schema_for_response_type(response_type).get('required')}\n")
+            # Log validation errors (will appear in LLM Logger Console)
+            logger.warning(f"Validation failed: {validation_result[1]}")
+            logger.debug(f"Data: {json.dumps(data, indent=2)}")
+            logger.debug(f"Response Type: {response_type}")
+            logger.debug(f"Schema required fields: {get_schema_for_response_type(response_type).get('required')}")
             if self.enable_fallbacks and not self.strict_mode:
                 # Try to repair structure
                 data = self._try_repair_structure(data, response_type)

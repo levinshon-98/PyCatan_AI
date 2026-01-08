@@ -25,7 +25,7 @@ ACTIVE_TURN_RESPONSE_SCHEMA = {
         "internal_thinking": {
             "type": "string",
             "description": "Private strategy. What's your plan and why?",
-            "minLength": 50
+            "minLength": 1000
         },
         "note_to_self": {
             "type": "string",
@@ -39,18 +39,18 @@ ACTIVE_TURN_RESPONSE_SCHEMA = {
         },
         "action": {
             "type": "object",
-            "required": ["type", "parameters"],
+            "required": ["type"],
             "properties": {
                 "type": {
                     "type": "string",
                     "description": "The action type (must match one from allowed_actions in constraints)"
                 },
                 "parameters": {
-                    "type": "object",
-                    "description": "Action-specific parameters. If no parameters are needed, provide an empty object.",
-                    "additionalProperties": True  # Allow flexible parameters based on action
+                    "type": "string",
+                    "description": "Action parameters as JSON string. Example: {\"node\": 14} or {} if no parameters needed"
                 }
-            }
+            },
+            "propertyOrdering": ["type", "parameters"]
         }
     },
     "propertyOrdering": [

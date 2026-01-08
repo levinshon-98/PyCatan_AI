@@ -29,22 +29,27 @@ class LLMResponse:
     model: str = ""
     prompt_tokens: int = 0
     completion_tokens: int = 0
+    thinking_tokens: int = 0  # For thinking mode
     total_tokens: int = 0
     latency_seconds: float = 0.0
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for logging."""
+        tokens_dict = {
+            "prompt": self.prompt_tokens,
+            "completion": self.completion_tokens,
+            "total": self.total_tokens
+        }
+        if self.thinking_tokens > 0:
+            tokens_dict["thinking"] = self.thinking_tokens
+            
         return {
             "success": self.success,
             "content": self.content[:200] + "..." if self.content and len(self.content) > 200 else self.content,
             "error": self.error,
             "model": self.model,
-            "tokens": {
-                "prompt": self.prompt_tokens,
-                "completion": self.completion_tokens,
-                "total": self.total_tokens
-            },
+            "tokens": tokens_dict,
             "latency_seconds": round(self.latency_seconds, 2),
             "timestamp": self.timestamp
         }
@@ -156,6 +161,8 @@ class GeminiClient(LLMClient):
             prompt: Prompt text (can be JSON string or plain text)
             **kwargs: Override default generation parameters
                      - response_schema: JSON schema to enforce structure
+                     - enable_thinking: Enable thinking mode
+                     - thinking_budget: Max tokens for thinking
             
         Returns:
             LLMResponse object with result
@@ -169,6 +176,12 @@ class GeminiClient(LLMClient):
         
         if self.max_tokens:
             generation_config["max_output_tokens"] = kwargs.get("max_tokens", self.max_tokens)
+        
+        # Thinking mode (Gemini 2.0+)
+        if kwargs.get("enable_thinking", False):
+            generation_config["thinking_config"] = {
+                "thinking_budget": kwargs.get("thinking_budget", 16000)
+            }
         
         # Set response format
         response_format = kwargs.get("response_format", self.response_format)
@@ -187,17 +200,6 @@ class GeminiClient(LLMClient):
             logger.info(f"Sending request to Gemini ({self.model})...")
             logger.debug(f"Prompt length: {len(prompt)} chars")
             
-            # DEBUG: Print what we're sending to Gemini
-            print("\n" + "="*80)
-            print("🔍 DEBUG: SENDING TO GEMINI")
-            print("="*80)
-            print(f"📤 Prompt (first 500 chars): {prompt[:500]}...")
-            print(f"� Response Schema Keys: {list(generation_config.get('response_schema', {}).keys())}")
-            if 'response_schema' in generation_config:
-                print(f"📋 Required Fields: {generation_config['response_schema'].get('required', [])}")
-                print(f"📋 Properties: {list(generation_config['response_schema'].get('properties', {}).keys())}")
-            print("="*80 + "\n")
-            
             # Generate response
             response = self.model_instance.generate_content(
                 prompt,
@@ -209,14 +211,36 @@ class GeminiClient(LLMClient):
             # Extract content
             content = response.text
             
-            # Token counting (approximate - Gemini doesn't always provide exact counts)
-            prompt_tokens = self._estimate_tokens(prompt)
-            completion_tokens = self._estimate_tokens(content)
-            total_tokens = prompt_tokens + completion_tokens
+            # Token counting
+            # Try to get actual usage from response, fall back to estimation
+            thinking_tokens = 0
+            try:
+                if hasattr(response, 'usage_metadata'):
+                    prompt_tokens = response.usage_metadata.prompt_token_count
+                    completion_tokens = response.usage_metadata.candidates_token_count
+                    total_tokens = response.usage_metadata.total_token_count
+                    
+                    # Extract thinking tokens if available (Gemini 2.0 thinking mode)
+                    if hasattr(response.usage_metadata, 'thoughts_token_count'):
+                        thinking_tokens = response.usage_metadata.thoughts_token_count
+                    
+                    logger.debug(f"Token counts from API: prompt={prompt_tokens}, completion={completion_tokens}, thinking={thinking_tokens}, total={total_tokens}")
+                else:
+                    # Fallback to estimation
+                    prompt_tokens = self._estimate_tokens(prompt)
+                    completion_tokens = self._estimate_tokens(content)
+                    total_tokens = prompt_tokens + completion_tokens
+                    logger.debug(f"Token counts estimated: prompt={prompt_tokens}, completion={completion_tokens}")
+            except Exception as e:
+                logger.warning(f"Failed to get token counts: {e}, using estimation")
+                prompt_tokens = self._estimate_tokens(prompt)
+                completion_tokens = self._estimate_tokens(content)
+                total_tokens = prompt_tokens + completion_tokens
             
-            # Calculate cost (Gemini 2.5 Flash pricing - approximate)
+            # Calculate cost (Gemini 2.0 Flash pricing)
             # Input: $0.00001875 per 1K tokens, Output: $0.000075 per 1K tokens
-            cost = (prompt_tokens / 1000 * 0.00001875) + (completion_tokens / 1000 * 0.000075)
+            # Thinking tokens are charged as input tokens
+            cost = ((prompt_tokens + thinking_tokens) / 1000 * 0.00001875) + (completion_tokens / 1000 * 0.000075)
             
             llm_response = LLMResponse(
                 success=True,
@@ -225,13 +249,17 @@ class GeminiClient(LLMClient):
                 model=self.model,
                 prompt_tokens=prompt_tokens,
                 completion_tokens=completion_tokens,
+                thinking_tokens=thinking_tokens,
                 total_tokens=total_tokens,
                 latency_seconds=latency
             )
             
             self.stats.add_request(llm_response, cost)
             
-            logger.info(f"✅ Response received: {completion_tokens} tokens, {latency:.2f}s")
+            if thinking_tokens > 0:
+                logger.info(f"✅ Response received: {completion_tokens} tokens (+{thinking_tokens} thinking), {latency:.2f}s")
+            else:
+                logger.info(f"✅ Response received: {completion_tokens} tokens, {latency:.2f}s")
             logger.debug(f"Response preview: {content[:100]}...")
             
             return llm_response
@@ -269,7 +297,7 @@ class GeminiClient(LLMClient):
         The Google AI Studio interface supports propertyOrdering, but the
         Python SDK (google-generativeai) does NOT support it and will error.
         
-        Also removes: minLength, maxLength (validation constraints not enforced by Gemini)
+        Also removes: minLength, maxLength, additionalProperties (not supported)
         
         Args:
             schema: Schema dict or any nested structure
@@ -281,7 +309,7 @@ class GeminiClient(LLMClient):
             return schema
         
         # Fields to remove for Python SDK compatibility
-        unsupported = ['propertyOrdering', 'minLength', 'maxLength']
+        unsupported = ['propertyOrdering', 'minLength', 'maxLength', 'additionalProperties']
         
         cleaned = {}
         for key, value in schema.items():

@@ -1,0 +1,24 @@
+{
+  "request_number": 2,
+  "timestamp": "2026-01-08T22:43:34.472659",
+  "player_name": "shon",
+  "success": true,
+  "raw_content": "{\n  \"internal_thinking\": \"I need to place my starting settlement. I will choose a node that gives me access to a variety of resources and good dice roll probabilities. I will analyze the board state to find the best location.\",\n  \"action\": {\n    \"type\": \"place_starting_settlement\",\n    \"parameters\": \"{\\\"node\\\": 10}\"\n  },\n  \"note_to_self\": \"Remember to place a road after placing the settlement.\",\n  \"say_outloud\": \"Placing my first settlement.\"\n}",
+  "parsed": {
+    "internal_thinking": "I need to place my starting settlement. I will choose a node that gives me access to a variety of resources and good dice roll probabilities. I will analyze the board state to find the best location. [Response was too brief]",
+    "note_to_self": "Remember to place a road after placing the settlement.",
+    "say_outloud": "Placing my first settlement.",
+    "action_type": "place_starting_settlement",
+    "parameters": {
+      "node": 10
+    }
+  },
+  "model": "gemini-2.0-flash-exp",
+  "tokens": {
+    "prompt": 1818,
+    "completion": 121,
+    "total": 1939
+  },
+  "latency_seconds": 1.474149465560913,
+  "error": null
+}
