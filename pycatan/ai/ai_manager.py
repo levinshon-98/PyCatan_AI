@@ -468,17 +468,17 @@ class AIManager:
             "BUILD_SETTLEMENT": {
                 "type": "build_settlement",
                 "description": "Build a settlement at a node",
-                "example_parameters": "{\"node\": 14}"
+                "example_parameters": "{\"node\": X}"
             },
             "BUILD_CITY": {
                 "type": "build_city",
                 "description": "Upgrade a settlement to a city",
-                "example_parameters": "{\"node\": 14}"
+                "example_parameters": "{\"node\": X}"
             },
             "BUILD_ROAD": {
                 "type": "build_road",
                 "description": "Build a road between two nodes",
-                "example_parameters": "{\"from\": 14, \"to\": 15}"
+                "example_parameters": "{\"from\": X, \"to\": Y}"
             },
             "ROLL_DICE": {
                 "type": "roll_dice",
@@ -508,12 +508,12 @@ class AIManager:
             "TRADE_PROPOSE": {
                 "type": "trade_propose",
                 "description": "Propose a trade to other players",
-                "example_parameters": "{\"offer\": {\"wood\": 1}, \"request\": {\"brick\": 1}}"
+                "example_parameters": "{\"offer\": {\"wood\": X}, \"request\": {\"brick\": Y}}"
             },
             "ROBBER_MOVE": {
                 "type": "robber_move",
                 "description": "Move the robber to a hex",
-                "example_parameters": "{\"hex\": 7}"
+                "example_parameters": "{\"hex\": X}"
             },
             "STEAL_CARD": {
                 "type": "steal_card",
@@ -528,12 +528,12 @@ class AIManager:
             "PLACE_STARTING_SETTLEMENT": {
                 "type": "place_starting_settlement",
                 "description": "Place your starting settlement",
-                "example_parameters": "{\"node\": 14}"
+                "example_parameters": "{\"node\": X}"
             },
             "PLACE_STARTING_ROAD": {
                 "type": "place_starting_road",
                 "description": "Place your starting road",
-                "example_parameters": "{\"from\": 14, \"to\": 15}"
+                "example_parameters": "{\"from\": X, \"to\": Y}"
             },
             "WAIT_FOR_RESPONSE": {
                 "type": "wait_for_response",
@@ -593,6 +593,7 @@ class AIManager:
         kwargs = {
             "response_schema": schema,
             "enable_thinking": self.config.llm.enable_thinking,
+            "max_tokens": self.config.llm.max_tokens,
         }
         
         if self.config.llm.enable_thinking:

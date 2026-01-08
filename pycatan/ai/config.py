@@ -39,19 +39,19 @@ class LLMConfig:
     
     # Provider settings
     provider: str = "gemini"  # "gemini", "openai", "anthropic", "azure"
-    model_name: str = "gemini-2.0-flash-exp"
+    model_name: str = "gemini-2.5-flash"  # Current stable model (Jan 2026)
     
     # Generation parameters
     temperature: float = 0.7
-    max_tokens: int = 4096
+    max_tokens: int = 20000
     top_p: float = 0.95
     top_k: int = 40
     
     # Thinking mode (Gemini 2.0+)
-    # NOTE: Requires google.genai SDK (not google.generativeai)
-    # Currently disabled - old SDK doesn't support thinking_config
-    enable_thinking: bool = False  # Enable thinking mode
-    thinking_budget: int = 16000  # Max tokens for thinking (16k default)
+    # Uses new google-genai SDK
+    # Note: Requires gemini-2.0-flash-thinking-exp model
+    enable_thinking: bool = False  # Disabled - thinking tokens eat into output budget
+    thinking_budget: int = 3000  # Max tokens for thinking (3k default)
     
     # API settings
     api_key_env_var: str = "GEMINI_API_KEY"  # Environment variable name
