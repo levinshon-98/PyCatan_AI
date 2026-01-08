@@ -19,12 +19,17 @@ import json
 import time
 import hashlib
 import asyncio
+import os
 from pathlib import Path
 from typing import Dict, Any, Optional, List, Set
 from datetime import datetime
 from dataclasses import dataclass
 from concurrent.futures import ThreadPoolExecutor
 import threading
+
+# Load environment variables from .env file
+from dotenv import load_dotenv
+load_dotenv()
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
@@ -42,7 +47,17 @@ from examples.ai_testing.request_tracker import RequestTracker
 # Configuration
 # ============================================================================
 
-GEMINI_API_KEY = "AIzaSyAAdbl5LtljM8PGy5iqChAP70cn9Ua35p0"
+# Load API key from environment variable
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+if not GEMINI_API_KEY:
+    raise ValueError(
+        "❌ GEMINI_API_KEY not found in environment variables!\n"
+        "Please set it up:\n"
+        "1. Copy .env.example to .env\n"
+        "2. Add your API key to .env\n"
+        "3. Make sure .env is in .gitignore (already done ✓)"
+    )
+
 GEMINI_MODEL = "models/gemini-2.5-flash"  # As requested by user
 
 LOGS_DIR = Path("examples/ai_testing/my_games/ai_logs")
