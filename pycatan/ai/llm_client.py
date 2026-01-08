@@ -112,11 +112,12 @@ class GeminiClient(LLMClient):
     """
     Google Gemini LLM Client.
     
-    Supports Gemini models through the Google Generative AI API.
+    Supports Gemini models through the new Google GenAI SDK.
+    Includes support for thinking mode (Gemini 2.0+).
     """
     
     def __init__(self, 
-                 model: str = "models/gemini-2.5-flash",
+                 model: str = "gemini-2.0-flash-exp",
                  api_key: str = "",
                  temperature: float = 0.7,
                  max_tokens: Optional[int] = None,
@@ -126,7 +127,7 @@ class GeminiClient(LLMClient):
         Initialize Gemini client.
         
         Args:
-            model: Model name (e.g., "models/gemini-2.5-flash")
+            model: Model name (e.g., "gemini-2.0-flash-exp")
             api_key: Google API key
             temperature: Sampling temperature (0.0-1.0)
             max_tokens: Maximum tokens to generate
@@ -138,16 +139,19 @@ class GeminiClient(LLMClient):
         self.temperature = temperature
         self.max_tokens = max_tokens
         self.response_format = response_format
+        self.api_key = api_key
         
-        # Initialize Gemini client
+        # Initialize new GenAI client
         try:
-            import google.generativeai as genai
+            from google import genai
+            from google.genai import types
+            
             self.genai = genai
-            self.genai.configure(api_key=api_key)
-            self.model_instance = genai.GenerativeModel(model)
-            logger.info(f"Initialized Gemini client with model: {model}")
+            self.types = types
+            self.client = genai.Client(api_key=api_key)
+            logger.info(f"Initialized Gemini client (new SDK) with model: {model}")
         except ImportError:
-            logger.error("google-generativeai package not installed. Install with: pip install google-generativeai")
+            logger.error("google-genai package not installed. Install with: pip install google-genai")
             raise
         except Exception as e:
             logger.error(f"Failed to initialize Gemini client: {e}")
@@ -155,7 +159,7 @@ class GeminiClient(LLMClient):
     
     def generate(self, prompt: str, **kwargs) -> LLMResponse:
         """
-        Generate response from Gemini.
+        Generate response from Gemini using new SDK.
         
         Args:
             prompt: Prompt text (can be JSON string or plain text)
@@ -169,41 +173,46 @@ class GeminiClient(LLMClient):
         """
         start_time = time.time()
         
-        # Prepare generation config
-        generation_config = {
+        # Build generation config
+        config_dict = {
             "temperature": kwargs.get("temperature", self.temperature),
         }
         
         if self.max_tokens:
-            generation_config["max_output_tokens"] = kwargs.get("max_tokens", self.max_tokens)
+            config_dict["max_output_tokens"] = kwargs.get("max_tokens", self.max_tokens)
         
         # Thinking mode (Gemini 2.0+)
         if kwargs.get("enable_thinking", False):
-            generation_config["thinking_config"] = {
-                "thinking_budget": kwargs.get("thinking_budget", 16000)
-            }
+            thinking_budget = kwargs.get("thinking_budget", 16000)
+            config_dict["thinking_config"] = self.types.ThinkingConfig(
+                thinking_budget=thinking_budget
+            )
+            logger.info(f"Thinking mode enabled with budget: {thinking_budget}")
         
         # Set response format
         response_format = kwargs.get("response_format", self.response_format)
         if response_format == "json":
-            generation_config["response_mime_type"] = "application/json"
+            config_dict["response_mime_type"] = "application/json"
             
-            # Add response_schema if provided (enforces structure)
+            # Add response_json_schema if provided (enforces structure)
+            # Note: new SDK uses response_json_schema instead of response_schema
             if "response_schema" in kwargs:
-                # NOTE: propertyOrdering works in AI Studio but NOT in Python SDK
-                # We need to remove it for the SDK to accept the schema
                 schema = kwargs["response_schema"]
                 cleaned_schema = self._remove_unsupported_fields(schema)
-                generation_config["response_schema"] = cleaned_schema
+                config_dict["response_json_schema"] = cleaned_schema
         
         try:
             logger.info(f"Sending request to Gemini ({self.model})...")
             logger.debug(f"Prompt length: {len(prompt)} chars")
             
-            # Generate response
-            response = self.model_instance.generate_content(
-                prompt,
-                generation_config=generation_config
+            # Create generation config
+            generation_config = self.types.GenerateContentConfig(**config_dict)
+            
+            # Generate response using new SDK
+            response = self.client.models.generate_content(
+                model=self.model,
+                contents=prompt,
+                config=generation_config
             )
             
             latency = time.time() - start_time
@@ -211,18 +220,17 @@ class GeminiClient(LLMClient):
             # Extract content
             content = response.text
             
-            # Token counting
-            # Try to get actual usage from response, fall back to estimation
+            # Token counting from usage metadata
             thinking_tokens = 0
             try:
-                if hasattr(response, 'usage_metadata'):
-                    prompt_tokens = response.usage_metadata.prompt_token_count
-                    completion_tokens = response.usage_metadata.candidates_token_count
-                    total_tokens = response.usage_metadata.total_token_count
+                if hasattr(response, 'usage_metadata') and response.usage_metadata:
+                    prompt_tokens = response.usage_metadata.prompt_token_count or 0
+                    completion_tokens = response.usage_metadata.candidates_token_count or 0
+                    total_tokens = response.usage_metadata.total_token_count or 0
                     
-                    # Extract thinking tokens if available (Gemini 2.0 thinking mode)
+                    # Extract thinking tokens if available
                     if hasattr(response.usage_metadata, 'thoughts_token_count'):
-                        thinking_tokens = response.usage_metadata.thoughts_token_count
+                        thinking_tokens = response.usage_metadata.thoughts_token_count or 0
                     
                     logger.debug(f"Token counts from API: prompt={prompt_tokens}, completion={completion_tokens}, thinking={thinking_tokens}, total={total_tokens}")
                 else:

@@ -147,8 +147,9 @@ def create_game(player_configs: List[dict], send_to_llm: bool = True, manual_act
         
         users.append(user)
     
-    # Create game manager
-    game_manager = GameManager(users)
+    # Create game manager with optional random seed for reproducibility
+    # Use random_seed=0 for deterministic games, or None for random
+    game_manager = GameManager(users, random_seed=0)
     
     # Setup web visualization
     web_viz = WebVisualization(port=5000, auto_open=False, debug=False)
