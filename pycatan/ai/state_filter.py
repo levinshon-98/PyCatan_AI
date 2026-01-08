@@ -48,18 +48,20 @@ class StateFilter:
     
     def filter_game_state(self, raw_state: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Main filtering method - returns optimized compact state AS-IS.
+        Main filtering method - returns optimized compact state.
         
-        The state is already in compact format (H, N, players, bld, rds, meta).
-        This filter just returns it directly - the compactness IS the optimization.
+        The state is now in compact format (H, N, players, bld, rds, meta).
+        This filter can apply perspective-specific filtering if needed,
+        but for now returns it directly as the compactness IS the optimization.
         
         Args:
-            raw_state: Optimized game state (already compact)
+            raw_state: Optimized game state from state_optimizer (compact format)
             
         Returns:
             The same compact state (H, N arrays, etc.)
         """
-        # The optimized state is already perfect for LLM consumption
+        # The optimized state from state_optimizer is already perfect for LLM consumption
+        # It uses compact arrays and codes to minimize token usage
         # Just return it as-is
         return raw_state
     

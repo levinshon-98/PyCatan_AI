@@ -13,6 +13,7 @@ AIUser is the bridge between GameManager and the AI system:
 from typing import List, Optional, Dict, Any, TYPE_CHECKING
 from pycatan.players.user import User
 from pycatan.management.actions import Action, ActionType, GameState
+from pycatan.ai.state_optimizer import game_state_to_dict, optimize_state_for_ai
 
 if TYPE_CHECKING:
     from pycatan.ai.ai_manager import AIManager
@@ -313,46 +314,24 @@ class AIUser(User):
     
     def _game_state_to_dict(self, game_state: GameState) -> Dict[str, Any]:
         """
-        Convert GameState object to dictionary for AIManager.
+        Convert GameState object to optimized compact dictionary for AIManager.
+        
+        Uses game_state_to_dict to convert to captured_game.json format,
+        then optimize_state_for_ai to create compact format.
         
         Args:
             game_state: GameState object
             
         Returns:
-            Dictionary representation
+            Optimized compact state dictionary (H, N, state, players, meta)
         """
-        # Basic conversion - can be enhanced
-        return {
-            "game_id": game_state.game_id,
-            "turn_number": game_state.turn_number,
-            "current_player": game_state.current_player,
-            "game_phase": game_state.game_phase.name if hasattr(game_state.game_phase, 'name') else str(game_state.game_phase),
-            "turn_phase": game_state.turn_phase.name if hasattr(game_state.turn_phase, 'name') else str(game_state.turn_phase),
-            "dice_rolled": game_state.dice_rolled,
-            "allowed_actions": game_state.allowed_actions,
-            # Board state
-            "board_state": {
-                "tiles": game_state.board_state.tiles if hasattr(game_state.board_state, 'tiles') else [],
-                "robber_position": game_state.board_state.robber_position if hasattr(game_state.board_state, 'robber_position') else None,
-            } if game_state.board_state else {},
-            # Players state
-            "players_state": [
-                {
-                    "player_id": p.player_id,
-                    "name": p.name,
-                    "cards": p.cards,
-                    "dev_cards": p.dev_cards,
-                    "settlements": p.settlements,
-                    "cities": p.cities,
-                    "roads": p.roads,
-                    "victory_points": p.victory_points,
-                    "has_longest_road": p.has_longest_road,
-                    "has_largest_army": p.has_largest_army,
-                    "knights_played": p.knights_played
-                }
-                for p in game_state.players_state
-            ] if game_state.players_state else []
-        }
+        # Step 1: Convert GameState to captured_game.json format
+        verbose_state = game_state_to_dict(game_state)
+        
+        # Step 2: Optimize to compact format
+        optimized_state = optimize_state_for_ai(verbose_state)
+        
+        return optimized_state
     
     def notify_game_event(
         self,

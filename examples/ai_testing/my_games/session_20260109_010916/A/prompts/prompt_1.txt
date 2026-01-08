@@ -1,0 +1,87 @@
+=== Prompt #1 for A ===
+Timestamp: 2026-01-09T01:09:18.255670
+Active Turn: True
+
+--- What Happened ---
+• Game 3b6b3072-c70a-4df1-a372-78d6d99be424 has started with 2 players!
+• Turn 0: Player 0's turn begins.
+
+--- Response Schema ---
+{
+  "type": "object",
+  "required": [
+    "internal_thinking",
+    "action"
+  ],
+  "properties": {
+    "internal_thinking": {
+      "type": "string",
+      "description": "Private strategy. What's your plan and why?",
+      "minLength": 1000
+    },
+    "note_to_self": {
+      "type": "string",
+      "description": "Important facts for when it's your turn. Use only if essential for clarity or direct user query. Omit otherwise.",
+      "maxLength": 100
+    },
+    "say_outloud": {
+      "type": "string",
+      "description": "A short message to other players (max 100 chars). Use for negotiation, threats, or table talk. Keep in mind you pay for speak outload.",
+      "maxLength": 100
+    },
+    "action": {
+      "type": "object",
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "The action type (must match one from allowed_actions in constraints)"
+        },
+        "parameters": {
+          "type": "string",
+          "description": "Action parameters as JSON string. Example: {\"node\": 14} or {} if no parameters needed"
+        }
+      },
+      "propertyOrdering": [
+        "type",
+        "parameters"
+      ]
+    }
+  },
+  "propertyOrdering": [
+    "internal_thinking",
+    "note_to_self",
+    "say_outloud",
+    "action"
+  ]
+}
+
+--- Prompt Content ---
+{
+  "meta_data": {
+    "agent_name": "A",
+    "role": null
+  },
+  "task_context": {
+    "what_just_happened": "• Game 3b6b3072-c70a-4df1-a372-78d6d99be424 has started with 2 players!\n• Turn 0: Player 0's turn begins.",
+    "instructions": "Analyze the game state and select the optimal move from 'allowed_actions'. You have 2 possible actions. If you wish to negotiate or wait for other players, select the 'wait_for_response' action."
+  },
+  "game_state": "\n  1. LOOKUP TABLES:\n   • \"H\" (Hexes): Array where Index = HexID. Value = Resource+Num.\n     Example: H[1]=\"W12\" -> Hex 1 is Wood 12.\n   • \"N\" (Nodes): Array where Index = NodeID.\n     Format: [ [Neighbors], [HexIDs], Port? ]\n     Logic: To find yield of Node 10, check N[10]. Get HexIDs (e.g. [1,5]). Look up H[1] and H[5].\n\n2. CODES: W=Wood, B=Brick, S=Sheep, Wh=Wheat, O=Ore, D=Desert.\n          ?3=Any 3:1 port, X2=Specific Resource 2:1 port.\n\n3. STATE: \"bld\"=[NodeID, Owner, Type], \"rds\"=[[From,To], Owner].\n\n4. PLAYERS: \"res\"={Resource:Count}, \"dev\"={\"h\":[Hidden Cards], \"r\":[Revealed] (K=Knight)}, \n            \"stat\"=[\"LR\" (Longest Road), \"LA\" (Largest Army)].\n\n5. ROBBER: Located at HexID specified in \"meta.robber\". H[id] is blocked.\n\nJSON:\n{\"meta\":{\"curr\":\"A\",\"phase\":\"SETUP_FIRST_ROUND\",\"robber\":10,\"dice\":null},\"H\":[\"\",\"?12\",\"?5\",\"?4\",\"?8\",\"?6\",\"?3\",\"?8\",\"?10\",\"?11\",\"D\",\"?3\",\"?4\",\"?10\",\"?9\",\"?6\",\"?11\",\"?5\",\"?9\",\"?2\"],\"N\":[null,[[],[1]],[[],[1],\"Wh2\"],[[],[2,1],\"Wh2\"],[[],[2]],[[],[3,2]],[[],[3],\"B2\"],[[],[3],\"B2\"],[[],[4],\"?3\"],[[],[4,1],\"?3\"],[[],[5,4,1]],[[],[5,2,1]],[[],[6,5,2]],[[],[6,3,2]],[[],[7,6,3]],[[],[7,3]],[[],[7],\"O2\"],[[],[8],\"S2\"],[[],[8,4]],[[],[9,8,4]],[[],[9,5,4]],[[],[10,9,5]],[[],[10,6,5]],[[],[11,10,6]],[[],[11,7,6]],[[],[12,11,7]],[[],[12,7],\"O2\"],[[],[12]],[[],[8],\"S2\"],[[],[13,8]],[[],[13,9,8]],[[],[14,13,9]],[[],[14,10,9]],[[],[15,14,10]],[[],[15,11,10]],[[],[16,15,11]],[[],[16,12,11]],[[],[16,12],\"?3\"],[[],[12],\"?3\"],[[],[13]],[[],[17,13],\"W2\"],[[],[17,14,13]],[[],[18,17,14]],[[],[18,15,14]],[[],[19,18,15]],[[],[19,16,15]],[[],[19,16]],[[],[16]],[[],[17],\"W2\"],[[],[17]],[[],[18,17],\"?3\"],[[],[18],\"?3\"],[[],[19,18]],[[],[19],\"?3\"],[[],[19],\"?3\"]],\"state\":{\"bld\":[],\"rds\":[]},\"players\":{\"A\":{\"vp\":0,\"res\":{}},\"B\":{\"vp\":0,\"res\":{}}}}",
+  "constraints": {
+    "usage_instructions": "Choose one action type from the list below. Populate the 'parameters' field in your response strictly according to the 'example_parameters' structure provided.The 'node' parameter MUST be an exact Integer ID found in the 'N' lookup table. Do not pick an arbitrary number. If you choose Node 10, it implies you want the location defined at index 10 of Array N. Check that index specifically.",
+    "allowed_actions": [
+      {
+        "type": "place_starting_settlement",
+        "description": "Place your starting settlement",
+        "example_parameters": "{\"node\": X}"
+      },
+      {
+        "type": "wait_for_response",
+        "description": "Do nothing on the board, just wait or communicate. Use this when you want to talk, negotiate, or think without taking a game action.",
+        "example_parameters": "{}"
+      }
+    ]
+  }
+}

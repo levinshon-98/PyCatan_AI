@@ -131,6 +131,7 @@ class BoardState:
     harbors: List[Dict[str, Any]]  # Harbor information
     buildings: Dict[tuple, Dict[str, Any]]  # Point -> building info
     roads: List[tuple]  # All roads on board
+    points: List[Dict[str, Any]] = field(default_factory=list)  # Node/Point information for AI
 
 
 @dataclass  
