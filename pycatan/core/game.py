@@ -402,7 +402,8 @@ class Game:
             robber_position=tuple(self._get_robber_position()),
             harbors=self._get_ports_info(),
             buildings=self._get_all_buildings(),
-            roads=self._get_all_roads()
+            roads=self._get_all_roads(),
+            points=self._get_points_info()  # Add points for AI optimization
         )
         
         # Create and return game state
@@ -542,4 +543,68 @@ class Game:
                         'end_coords': end_coords       # Keep for debugging
                     })
         return roads
+
+    def _get_points_info(self):
+        """
+        Get information about all points/nodes on the board.
+        
+        Returns info needed for AI optimization: neighbors, adjacent hexes, ports.
+        """
+        points = []
+        
+        for point_row in self.board.points:
+            for point in point_row:
+                if point:
+                    # Get point ID
+                    point_id = board_definition.game_coords_to_point_id(point.position[0], point.position[1])
+                    
+                    if point_id:
+                        # Get neighbor node IDs
+                        neighbors = []
+                        if hasattr(point, 'neighbors'):
+                            for neighbor in point.neighbors:
+                                if neighbor:
+                                    neighbor_id = board_definition.game_coords_to_point_id(
+                                        neighbor.position[0], neighbor.position[1]
+                                    )
+                                    if neighbor_id:
+                                        neighbors.append(neighbor_id)
+                        
+                        # Get adjacent hex IDs
+                        hex_ids = []
+                        if hasattr(point, 'tiles'):
+                            for tile in point.tiles:
+                                if tile:
+                                    hex_id = board_definition.game_coords_to_hex_id(
+                                        tile.position[0], tile.position[1]
+                                    )
+                                    if hex_id:
+                                        hex_ids.append(hex_id)
+                        
+                        # Check if point has a port
+                        port_info = None
+                        for harbor in self.board.harbors:
+                            if harbor:
+                                point_one_coords = harbor.point_one.position if hasattr(harbor.point_one, 'position') else None
+                                point_two_coords = harbor.point_two.position if hasattr(harbor.point_two, 'position') else None
+                                
+                                if (point_one_coords == point.position or point_two_coords == point.position):
+                                    # This point has a port
+                                    ratio = 2 if harbor.type.name.lower() != 'any' else 3
+                                    port_info = {
+                                        'type': harbor.type.name.lower(),
+                                        'ratio': ratio
+                                    }
+                                    break
+                        
+                        point_info = {
+                            'id': point_id,
+                            'position': point.position,
+                            'neighbors': neighbors,
+                            'hexes': hex_ids,
+                            'port': port_info
+                        }
+                        points.append(point_info)
+        
+        return points
 

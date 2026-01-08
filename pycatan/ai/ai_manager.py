@@ -675,7 +675,17 @@ class AIManager:
             message: Human-readable description
             affected_players: List of affected player IDs
         """
+        # 🐛 FIX: Prevent duplicate events when multiple AI players call this
+        # Each AIUser calls this, but we only want to add the event once
+        # Check if this exact event was already added recently
         for agent_name, agent in self.agents.items():
+            # Check if the last event is identical (duplicate)
+            if (agent.recent_events and 
+                agent.recent_events[-1].get('message') == message and
+                agent.recent_events[-1].get('type') == event_type):
+                # Skip - event already added
+                continue
+            
             # Add event to all agents (they all see what happens)
             agent.add_event(event_type, message)
     
