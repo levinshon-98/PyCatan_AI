@@ -1,44 +1,73 @@
 @echo off
-REM Start AI Tester, Web Viewer, and Game in parallel
+REM ================================================================================
+REM PyCatan AI System - UPDATED VERSION
+REM ================================================================================
+REM This script has been updated to use the new AI system.
+REM Old files moved to: examples\ai_testing\_deprecated\
+REM ================================================================================
 
-echo ================================================================================
-echo 🎮 Starting AI Catan System
-echo ================================================================================
-echo.
-echo Opening THREE windows + TWO browser tabs:
-echo   1. AI Tester (monitoring AI responses)
-echo   2. AI Viewer (http://localhost:5001) - Shows AI thinking/responses
-echo   3. Catan Game (the actual game)
-echo   + Game Board (http://localhost:5000) - Shows the Catan board
 echo.
 echo ================================================================================
+echo    PyCatan AI System
+echo ================================================================================
+echo.
+echo Starting components:
+echo   1. AI Viewer (http://localhost:5001) - Shows AI prompts and responses
+echo   2. Catan Game with AI Agents (manual input mode)
+echo.
+echo ================================================================================
 echo.
 
-REM Start AI Tester in a new window
-start "AI Tester - Monitoring" cmd /k ".venv\Scripts\python.exe examples\ai_testing\test_ai_live.py"
+cd /d "%~dp0"
 
-REM Wait a moment for AI tester to initialize
-timeout /t 2 /nobreak >nul
+REM Check for virtual environment
+if exist ".venv\Scripts\python.exe" (
+    set PYTHON_CMD=.venv\Scripts\python.exe
+    echo [OK] Using virtual environment
+) else (
+    set PYTHON_CMD=python
+    echo [!] No virtual environment found, using system Python
+)
 
-echo ✅ AI Tester started in separate window
 echo.
 
 REM Start Web Viewer in a new window
-start "AI Viewer - http://localhost:5001" cmd /k ".venv\Scripts\python.exe examples\ai_testing\web_viewer.py"
+echo [1/2] Starting AI Viewer...
+start "AI Viewer - http://localhost:5001" cmd /k "%PYTHON_CMD% examples\ai_testing\web_viewer.py"
 
+REM Wait for web viewer to start
 timeout /t 2 /nobreak >nul
 
-echo ✅ AI Viewer started at http://localhost:5001
+echo [OK] AI Viewer started at http://localhost:5001
 echo.
-echo 🌐 Opening AI Viewer in browser...
-timeout /t 3 /nobreak >nul
+
+REM Open browser for AI Viewer
+echo [BROWSER] Opening AI Viewer...
+timeout /t 2 /nobreak >nul
 start http://localhost:5001
+
 echo.
-echo Starting game in this window...
-echo   (Game board will open at http://localhost:5000)
+echo [2/2] Starting game...
+echo.
+echo ================================================================================
+echo    MANUAL AI MODE
+echo ================================================================================
+echo    When it's an AI player's turn:
+echo    - A prompt is generated and saved
+echo    - You enter the action the AI should take
+echo.
+echo    Commands: r (roll), e (end turn), s 14 (settlement), rd 14 15 (road)
+echo    Type 'help' for full list
+echo ================================================================================
 echo.
 
-REM Start the game in this window
-.venv\Scripts\python.exe examples\ai_testing\play_with_prompts.py
+REM Start the game with the new system
+%PYTHON_CMD% examples\ai_testing\play_with_ai.py
 
+echo.
+echo ================================================================================
+echo    Session Complete!
+echo ================================================================================
+echo Session logs: examples\ai_testing\my_games\
+echo.
 pause

@@ -1,0 +1,24 @@
+{
+  "request_number": 1,
+  "timestamp": "2026-01-08T22:13:32.906634",
+  "player_name": "C",
+  "success": true,
+  "raw_content": "{\n  \"internal_thinking\": \"I need to place my first settlement. I will choose a location that gives me access to a variety of resources. I will prioritize locations with high probability numbers (6 or 8) and try to get access to ore for development cards.\",\n  \"action\": {\n    \"type\": \"PLACE_STARTING_SETTLEMENT\",\n    \"parameters\": \"{\\\"node\\\": 21}\"\n  },\n  \"note_to_self\": \"Remember to place a road after the settlement.\",\n  \"say_outloud\": \"\"\n}",
+  "parsed": {
+    "internal_thinking": "I need to place my first settlement. I will choose a location that gives me access to a variety of resources. I will prioritize locations with high probability numbers (6 or 8) and try to get access to ore for development cards.",
+    "note_to_self": "Remember to place a road after the settlement.",
+    "say_outloud": "",
+    "action_type": "PLACE_STARTING_SETTLEMENT",
+    "parameters": {
+      "node": 21
+    }
+  },
+  "model": "gemini-2.0-flash-exp",
+  "tokens": {
+    "prompt": 1199,
+    "completion": 110,
+    "total": 1309
+  },
+  "latency_seconds": 1.887739658355713,
+  "error": null
+}

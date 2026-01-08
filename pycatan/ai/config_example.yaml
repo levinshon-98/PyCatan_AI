@@ -21,7 +21,7 @@ llm:
   provider: "gemini"
   
   # Model name
-  # Gemini: "gemini-2.0-flash-exp", "gemini-1.5-pro", "gemini-1.5-flash"
+  # Gemini: "gemini-2.0-flash-exp", "gemini-2.0-flash-thinking-exp", "gemini-1.5-pro"
   # OpenAI: "gpt-4-turbo-preview", "gpt-4", "gpt-3.5-turbo"
   # Anthropic: "claude-3-opus-20240229", "claude-3-sonnet-20240229"
   model_name: "gemini-2.0-flash-exp"
@@ -31,6 +31,12 @@ llm:
   max_tokens: 4096          # Maximum tokens in response
   top_p: 0.95              # Nucleus sampling threshold
   top_k: 40                # Top-k sampling (for supported models)
+  
+  # Thinking mode (Gemini 2.0+ only)
+  # Enables the model to "think" before responding
+  # Use with: gemini-2.0-flash-thinking-exp
+  enable_thinking: false    # Enable thinking mode
+  thinking_budget: 16000    # Max tokens for thinking (8000-32000)
   
   # API settings
   # The API key is read from environment variables for security

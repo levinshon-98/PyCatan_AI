@@ -47,6 +47,12 @@ class LLMConfig:
     top_p: float = 0.95
     top_k: int = 40
     
+    # Thinking mode (Gemini 2.0+)
+    # NOTE: Requires google.genai SDK (not google.generativeai)
+    # Currently disabled - old SDK doesn't support thinking_config
+    enable_thinking: bool = False  # Enable thinking mode
+    thinking_budget: int = 16000  # Max tokens for thinking (16k default)
+    
     # API settings
     api_key_env_var: str = "GEMINI_API_KEY"  # Environment variable name
     api_base_url: Optional[str] = None  # For custom endpoints

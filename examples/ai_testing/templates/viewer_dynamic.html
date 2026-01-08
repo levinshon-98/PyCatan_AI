@@ -917,16 +917,17 @@
         }
 
         function generateRequestCard(req) {
+            const requestId = `req_${req.player_name}_${req.request_number}`;
             const isNew = req.is_new ? ' new' : '';
             const newBadge = req.is_new ? '<span class="badge new">NEW</span>' : '';
             
             // Check if this is a freshly added request (for animation)
-            const isJustAdded = newRequestIds.has(req.request_id);
+            const isJustAdded = newRequestIds.has(requestId);
             const fadeInClass = isJustAdded ? ' fade-in highlight-new' : '';
             
             // Remove from newRequestIds set after first render
             if (isJustAdded) {
-                setTimeout(() => newRequestIds.delete(req.request_id), 2000);
+                setTimeout(() => newRequestIds.delete(requestId), 2000);
             }
             
             const timestamp = new Date(req.timestamp).toLocaleString();
@@ -934,32 +935,39 @@
             const thinking = response.internal_thinking || '';
             const note = response.note_to_self || '';
             const chat = response.say_outloud || '';
-            const action = response.action || null;
-            const metadata = req.metadata || {};
-            const latency = metadata.latency_seconds ? metadata.latency_seconds.toFixed(2) + 's' : 'N/A';
+            
+            // Handle both old (action object) and new (action_type + parameters) formats
+            const actionType = response.action_type || (response.action ? response.action.type : null);
+            const actionParams = response.parameters || (response.action ? response.action.parameters : null);
+            
+            const tokens = req.tokens || {};
+            const latency = tokens.total ? `${tokens.total} tokens` : 'N/A';
+            
+            // Extract trigger from prompt
+            const trigger = req.prompt?.task_context?.what_just_happened || 'No trigger info';
+            const phase = req.prompt?.game_state ? 'Active' : 'Unknown';
             
             // Create content type icons
             const contentIcons = [];
             if (thinking) contentIcons.push('<span title="Has Internal Thinking">💭</span>');
             if (note) contentIcons.push('<span title="Has Note to Self">📝</span>');
             if (chat) contentIcons.push('<span title="Says Out Loud">💬</span>');
-            if (action) contentIcons.push('<span title="Has Action">🎮</span>');
+            if (actionType) contentIcons.push('<span title="Has Action">🎮</span>');
             const contentIconsHTML = contentIcons.length > 0 ? `<div style="display: inline-flex; gap: 6px; margin-left: 10px;">${contentIcons.join('')}</div>` : '';
             
             return `
-                <div class="request-card${isNew}${fadeInClass}" id="${req.request_id}">
-                    <div class="request-header" onclick="toggleRequest('${req.request_id}')">
-                        <div class="request-num">${req.request_id}</div>
+                <div class="request-card${isNew}${fadeInClass}" id="${requestId}">
+                    <div class="request-header" onclick="toggleRequest('${requestId}')">
+                        <div class="request-num">#${req.request_number}</div>
                         <div class="request-summary">
                             <div class="request-trigger">
                                 ${newBadge}
-                                <strong>${req.player_name.toUpperCase()}:</strong> ${escapeHtml(req.trigger)}
+                                <strong>${req.player_name.toUpperCase()}:</strong> ${escapeHtml(trigger.substring(0, 100))}...
                                 ${contentIconsHTML}
                             </div>
                             <div class="request-meta">
-                                <span>⏱️ ${latency}</span>
-                                <span>🎮 ${req.game_context.phase}</span>
-                                <span>👤 Turn: ${req.game_context.current_player}</span>
+                                <span>🔢 ${latency}</span>
+                                <span>${req.success ? '✅ Success' : '❌ Failed'}</span>
                                 <span>📅 ${timestamp}</span>
                             </div>
                         </div>
@@ -988,26 +996,25 @@
                                 </div>
                             ` : ''}
                             
-                            ${action ? `
+                            ${actionType ? `
                                 <div class="request-section">
                                     <h4>🎮 Action</h4>
                                     <div class="action-box">
-                                        <div class="action-type">${action.type || 'N/A'}</div>
-                                        ${action.parameters ? `
-                                            <div class="action-params">Parameters: ${JSON.stringify(action.parameters)}</div>
+                                        <div class="action-type">${actionType}</div>
+                                        ${actionParams ? `
+                                            <div class="action-params">Parameters: ${JSON.stringify(actionParams)}</div>
                                         ` : ''}
                                     </div>
                                 </div>
                             ` : ''}
                             
-                            ${metadata.total_tokens ? `
+                            ${tokens.total ? `
                                 <div class="request-section">
-                                    <h4>📊 Metadata</h4>
+                                    <h4>📊 Token Usage</h4>
                                     <div style="font-size: 12px; color: #858585;">
-                                        <div>Total Tokens: ${metadata.total_tokens}</div>
-                                        <div>Prompt Tokens: ${metadata.prompt_tokens || 'N/A'}</div>
-                                        <div>Completion Tokens: ${metadata.completion_tokens || 'N/A'}</div>
-                                        <div>Response Time: ${metadata.latency_seconds ? metadata.latency_seconds.toFixed(3) + 's' : 'N/A'}</div>
+                                        <div>Total Tokens: ${tokens.total}</div>
+                                        <div>Prompt Tokens: ${tokens.prompt || 'N/A'}</div>
+                                        <div>Completion Tokens: ${tokens.completion || 'N/A'}</div>
                                     </div>
                                 </div>
                             ` : ''}
@@ -1015,7 +1022,7 @@
                             <div class="request-section">
                                 <details>
                                     <summary>📤 Original Prompt (JSON)</summary>
-                                    <pre><code>${escapeHtml(JSON.stringify(req.prompt, null, 2))}</code></pre>
+                                    <pre><code>${escapeHtml(formatPromptInOrder(req.prompt))}</code></pre>
                                 </details>
                             </div>
                             
@@ -1117,16 +1124,10 @@
             const total = requests.length;
             const newCount = requests.filter(r => r.is_new).length;
             
-            const latencies = requests
-                .map(r => r.metadata?.latency_seconds)
-                .filter(l => l != null);
-            const avgLatency = latencies.length > 0 
-                ? (latencies.reduce((a, b) => a + b, 0) / latencies.length).toFixed(2)
-                : '0';
-            
+            // Use tokens object instead of metadata
             const tokenCounts = requests
-                .map(r => r.metadata?.total_tokens)
-                .filter(t => t != null);
+                .map(r => r.tokens?.total)
+                .filter(t => t != null && t > 0);
             const avgTokens = tokenCounts.length > 0
                 ? Math.round(tokenCounts.reduce((a, b) => a + b, 0) / tokenCounts.length)
                 : 0;
@@ -1134,23 +1135,29 @@
             const totalTokens = tokenCounts.reduce((a, b) => a + b, 0);
             
             const promptTokens = requests
-                .map(r => r.metadata?.prompt_tokens || 0)
+                .map(r => r.tokens?.prompt || 0)
                 .reduce((a, b) => a + b, 0);
             const completionTokens = requests
-                .map(r => r.metadata?.completion_tokens || 0)
+                .map(r => r.tokens?.completion || 0)
                 .reduce((a, b) => a + b, 0);
             
+            // Gemini pricing (approximate)
             const inputCost = (promptTokens / 1000000) * 0.075;
             const outputCost = (completionTokens / 1000000) * 0.30;
             const totalCost = (inputCost + outputCost).toFixed(4);
             
+            // Calculate success rate
+            const successCount = requests.filter(r => r.success).length;
+            const successRate = total > 0 ? Math.round((successCount / total) * 100) : 0;
+            
             return { 
                 total, 
                 new: newCount, 
-                avgLatency, 
+                avgLatency: 'N/A',
                 avgTokens,
                 totalTokens,
-                totalCost
+                totalCost,
+                successRate
             };
         }
 
@@ -1277,6 +1284,30 @@
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
+        }
+
+        function formatPromptInOrder(prompt) {
+            // Define the correct order for prompt keys
+            const keyOrder = ['meta_data', 'task_context', 'game_state', 'social_context', 'memory', 'constraints'];
+            const orderedPrompt = {};
+            
+            // Add keys in the correct order
+            for (const key of keyOrder) {
+                if (prompt && prompt[key] !== undefined) {
+                    orderedPrompt[key] = prompt[key];
+                }
+            }
+            
+            // Add any remaining keys that weren't in our order list
+            if (prompt) {
+                for (const key of Object.keys(prompt)) {
+                    if (!keyOrder.includes(key)) {
+                        orderedPrompt[key] = prompt[key];
+                    }
+                }
+            }
+            
+            return JSON.stringify(orderedPrompt, null, 2);
         }
 
         function refreshData() {
