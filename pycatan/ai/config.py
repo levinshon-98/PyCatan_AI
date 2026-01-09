@@ -47,11 +47,16 @@ class LLMConfig:
     top_p: float = 0.95
     top_k: int = 40
     
+    # Response schema version
+    # "v1" = Original technical schema
+    # "v2" = Natural language schema (DEFAULT) - more casual say_outloud
+    schema_version: str = "v2"
+    
     # Thinking mode (Gemini 2.0+)
     # Uses new google-genai SDK
     # Note: Requires gemini-2.0-flash-thinking-exp model
     enable_thinking: bool = False  # Disabled - thinking tokens eat into output budget
-    thinking_budget: int = 3000  # Max tokens for thinking (3k default) - used if thinking_budgets is empty
+    thinking_budget: int = 2000  # Max tokens for thinking (2k default) - used if thinking_budgets is empty
     
     # Dynamic thinking budgets per tool iteration
     # Each element = budget for that iteration (1st, 2nd, 3rd, etc.)

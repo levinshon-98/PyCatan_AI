@@ -157,6 +157,12 @@ def create_game(player_configs: List[dict], send_to_llm: bool = True, manual_act
     viz_manager.add_visualization(web_viz)
     game_manager.visualization_manager = viz_manager
     
+    # Connect AI chat to web visualization
+    ai_manager.set_chat_callback(lambda player, msg: web_viz.display_chat(player, msg))
+    
+    # Connect AI status updates to web visualization
+    ai_manager.set_status_callback(lambda player, status, details: web_viz.display_ai_status(player, status, details))
+    
     print(f"\n[OK] Game created!")
     print(f"[LOG] Session: {ai_manager.get_session_path()}")
     print()
@@ -176,12 +182,12 @@ def run_game(game_manager: GameManager, ai_manager: AIManager, web_viz: WebVisua
     # Start web server in background
     web_viz.start_server()
     
-    # Open browser
-    webbrowser.open("http://localhost:5000")
+    # Don't open browser here - batch file already opens unified view
+    # webbrowser.open("http://localhost:5000")
     
     print("=" * 70)
     print("[GAME] GAME STARTING!")
-    print("[WEB] Board: http://localhost:5000")
+    print("[WEB] Board: http://localhost:5000/unified")
     print("=" * 70)
     print()
     print("Commands:")

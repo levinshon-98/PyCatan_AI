@@ -135,6 +135,40 @@ class WebVisualization(Visualization):
     def display_error(self, error: str) -> None:
         """Display error via web interface."""
         self.display_message(error, "ERROR")
+    
+    def display_chat(self, player_name: str, message: str) -> None:
+        """Display chat message (say_outloud) via web interface."""
+        # Store the latest chat message for each player
+        if not hasattr(self, 'player_chat_messages'):
+            self.player_chat_messages = {}
+        self.player_chat_messages[player_name] = message
+        
+        self._broadcast_to_clients({
+            'type': 'player_chat',
+            'payload': {
+                'player_name': player_name,
+                'message': message,
+                'timestamp': datetime.now().strftime("%H:%M:%S")
+            }
+        })
+    
+    def display_ai_status(self, player_name: str, status: str, details: str = "") -> None:
+        """Display AI thinking status via web interface.
+        
+        Args:
+            player_name: Name of the AI player
+            status: Status type ('thinking', 'tool_call', 'processing', 'done')
+            details: Optional details about what the AI is doing
+        """
+        self._broadcast_to_clients({
+            'type': 'ai_status',
+            'payload': {
+                'player_name': player_name,
+                'status': status,
+                'details': details,
+                'timestamp': datetime.now().strftime("%H:%M:%S")
+            }
+        })
         
     def _setup_routes(self):
         """Setup Flask routes for the web interface."""
@@ -258,6 +292,11 @@ class WebVisualization(Visualization):
         def manual_mapping():
             """Page for manually mapping the board."""
             return render_template('manual_mapping.html')
+        
+        @self.app.route('/unified')
+        def unified_view():
+            """Unified view combining game board and AI analysis."""
+            return render_template('unified.html')
     
     def _convert_game_state(self, game_state: GameState) -> Dict[str, Any]:
         """
@@ -531,6 +570,11 @@ class WebVisualization(Visualization):
                         card_name = card_name.split(".")[-1]
                     dev_cards_list.append(card_name)
             
+            # Get chat message if available
+            chat_message = None
+            if hasattr(self, 'player_chat_messages') and player_name in self.player_chat_messages:
+                chat_message = self.player_chat_messages[player_name]
+            
             player_data = {
                 'id': i,
                 'name': player_name,
@@ -545,7 +589,8 @@ class WebVisualization(Visualization):
                 'has_longest_road': getattr(player, 'has_longest_road', False),
                 'knights': getattr(player, 'knight_cards', 0),
                 'knights_played': getattr(player, 'knights_played', getattr(player, 'knight_cards', 0)),
-                'has_largest_army': getattr(player, 'has_largest_army', False)
+                'has_largest_army': getattr(player, 'has_largest_army', False),
+                'chat_message': chat_message  # Add chat message for display
             }
             web_players.append(player_data)
         

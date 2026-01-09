@@ -18,6 +18,14 @@ app = Flask(__name__,
 # Ensure Flask preserves JSON key order
 app.config['JSON_SORT_KEYS'] = False
 
+# Enable CORS for API endpoints (allows unified view to access this server)
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+    response.headers.add('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+    return response
+
 # Session directories - use absolute path from script location
 SCRIPT_DIR = Path(__file__).parent.absolute()
 LOGS_DIR = SCRIPT_DIR / "my_games"

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catan - Game Simulation</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/unified.css') }}">
+</head>
+<body>
+    <div class="unified-container">
+        <!-- Top Navigation Bar -->
+        <nav class="top-nav">
+            <div class="nav-brand">
+                <span class="brand-icon">🎲</span>
+                <span class="brand-text">Catan - Game Simulation</span>
+            </div>
+            <div class="nav-tabs">
+                <button class="nav-tab active" data-view="game" onclick="switchView('game')">
+                    <span class="tab-icon">🎮</span>
+                    <span class="tab-text">Game Board</span>
+                </button>
+                <button class="nav-tab" data-view="ai" onclick="switchView('ai')">
+                    <span class="tab-icon">🤖</span>
+                    <span class="tab-text">AI Analysis</span>
+                    <span class="badge new-badge" id="ai-new-badge" style="display: none;">NEW</span>
+                </button>
+            </div>
+            <div class="nav-status">
+                <span class="status-dot live"></span>
+                <span class="status-text">LIVE</span>
+            </div>
+        </nav>
+
+        <!-- Game View -->
+        <div id="game-view" class="view-container active">
+            <div class="game-layout">
+                <!-- Left Panel - Player Hub -->
+                <aside class="panel panel-left">
+                    <div class="panel-header">
+                        <h3>👥 Player Hub</h3>
+                    </div>
+                    <div class="player-hub" id="player-hub">
+                        <!-- Players will be rendered here -->
+                        <div class="loading-state">Loading players...</div>
+                    </div>
+                    <!-- Hidden game-info div for compatibility with main.js -->
+                    <div id="game-info" style="display: none;"></div>
+                </aside>
+
+                <!-- Center - Board -->
+                <main class="board-section">
+                    <div class="board-container" id="boardContainer">
+                        <!-- Board Controls -->
+                        <div class="board-controls">
+                            <button onclick="zoomIn()" class="control-btn" title="Zoom In">🔍+</button>
+                            <button onclick="zoomOut()" class="control-btn" title="Zoom Out">🔍−</button>
+                            <button onclick="resetZoom()" class="control-btn" title="Reset View">⌂</button>
+                            <button id="toggleVertices" onclick="toggleVertices()" class="control-btn" title="Show Vertices">📍</button>
+                            <button id="toggleInfo" onclick="toggleBuildingCosts()" class="control-btn" title="Building Costs">ℹ️</button>
+                        </div>
+                        
+                        <!-- Game Board SVG -->
+                        <svg id="catan-board" width="100%" height="100%"></svg>
+                    </div>
+                    
+                    <!-- Building Costs Modal -->
+                    <div id="buildingCostsModal" class="modal hidden">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3>Building Costs</h3>
+                                <button class="modal-close" onclick="toggleBuildingCosts()">✕</button>
+                            </div>
+                            <div class="modal-body">
+                                <table class="costs-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Building</th>
+                                            <th>Resources Required</th>
+                                            <th>VP</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td>Road</td><td>1 Brick + 1 Wood</td><td>—</td></tr>
+                                        <tr><td>Settlement</td><td>1 Brick + 1 Wood + 1 Wheat + 1 Sheep</td><td>1</td></tr>
+                                        <tr><td>City</td><td>3 Ore + 2 Wheat</td><td>2</td></tr>
+                                        <tr><td>Dev Card</td><td>1 Ore + 1 Sheep + 1 Wheat</td><td>1*</td></tr>
+                                    </tbody>
+                                </table>
+                                <p class="costs-note">* VP awarded only for Victory Point dev cards</p>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+
+                <!-- Right Panel - System & Logs -->
+                <aside class="panel panel-right">
+                    <div class="panel-header">
+                        <h3>📋 System & Logs</h3>
+                        <div class="panel-tabs">
+                            <button class="panel-tab active" onclick="switchLogTab('actions', event)">Action Log</button>
+                            <button class="panel-tab" onclick="switchLogTab('details', event)">Game Details</button>
+                            <button class="panel-tab" onclick="switchLogTab('chat', event)">💬 Chat</button>
+                        </div>
+                    </div>
+                    <div id="log-content" class="log-content">
+                        <div id="actions-log-panel" class="log-panel active">
+                            <div id="action-log" class="action-log">
+                                <div class="info">Waiting for updates...</div>
+                            </div>
+                        </div>
+                        <div id="details-log-panel" class="log-panel">
+                            <div id="game-details" class="game-details">
+                                <!-- Game details will be rendered here -->
+                            </div>
+                        </div>
+                        <div id="chat-log-panel" class="log-panel">
+                            <div id="chat-log" class="chat-log">
+                                <!-- Chat messages will be rendered here -->
+                                <div class="info">No chat messages yet...</div>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </div>
+
+        <!-- AI Analysis View -->
+        <div id="ai-view" class="view-container">
+            <div class="ai-layout">
+                <!-- AI Sidebar -->
+                <aside class="ai-sidebar">
+                    <div class="sidebar-section">
+                        <h3>🎮 Players</h3>
+                        <div id="ai-players-nav" class="nav-list">
+                            <!-- Player nav items will be rendered here -->
+                        </div>
+                    </div>
+                    <div class="sidebar-section">
+                        <h3>📊 Views</h3>
+                        <div class="nav-list">
+                            <div class="nav-item" onclick="showAIView('chat')">
+                                <span class="nav-icon">💬</span>
+                                <span>Chat History</span>
+                                <span class="badge" id="chat-count">0</span>
+                            </div>
+                            <div class="nav-item" onclick="showAIView('memories')">
+                                <span class="nav-icon">📝</span>
+                                <span>Agent Memories</span>
+                            </div>
+                            <div class="nav-item" onclick="showAIView('requests')">
+                                <span class="nav-icon">📡</span>
+                                <span>All Requests</span>
+                                <span class="badge" id="requests-count">0</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sidebar-section">
+                        <h3>📁 Session</h3>
+                        <div id="session-info" class="session-info">
+                            No active session
+                        </div>
+                    </div>
+                </aside>
+
+                <!-- AI Main Content -->
+                <main class="ai-content">
+                    <div class="ai-content-header">
+                        <h2 id="ai-content-title">AI Analysis</h2>
+                        <div class="ai-status">
+                            <span class="status-dot live"></span>
+                            <span>Auto-refreshing</span>
+                        </div>
+                    </div>
+                    <div id="ai-content-body" class="ai-content-body">
+                        <div class="empty-state">
+                            <div class="empty-icon">🤖</div>
+                            <h3>Select a player or view</h3>
+                            <p>Choose from the sidebar to see AI analysis data</p>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Bubble Template (for player messages) -->
+    <template id="chat-bubble-template">
+        <div class="chat-bubble">
+            <div class="bubble-avatar"></div>
+            <div class="bubble-content">
+                <div class="bubble-header">
+                    <span class="bubble-name"></span>
+                    <span class="bubble-time"></span>
+                </div>
+                <div class="bubble-message"></div>
+            </div>
+        </div>
+    </template>
+
+    <script src="{{ url_for('static', filename='js/gameData.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/board.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/unified.js') }}"></script>
+</body>
+</html>
