@@ -53,30 +53,88 @@ class AgentTools:
         self._update_internal_structures()
     
     def _update_internal_structures(self):
-        """Build internal lookup structures from game state for fast queries."""
-        # Extract board data
-        self.board_data = self.game_state.get("board", {})
-        self.nodes = self.board_data.get("nodes", [])
-        self.tiles = self.board_data.get("tiles", [])
+        """
+        Build internal lookup structures from game state for fast queries.
         
-        # Build node lookup: node_id -> node_data
-        self.node_lookup: Dict[int, Dict[str, Any]] = {}
-        for node in self.nodes:
-            node_id = node.get("id")
-            if node_id is not None:
-                self.node_lookup[node_id] = node
+        Supports the COMPACT format from state_optimizer:
+        - H: Array of hex data. H[id] = "W12" (Wood, number 12)
+        - N: Array of node data. N[id] = [[neighbors], [hex_ids], port?]
+        - state: {"bld": [[node, owner, type], ...], "rds": [[[from,to], owner], ...]}
         
-        # Build tile lookup: tile_id -> tile_data
+        Resource codes: W=Wood, B=Brick, S=Sheep, Wh=Wheat, O=Ore, D=Desert
+        Port codes: ?3=Any 3:1, W2=Wood 2:1, etc.
+        """
+        # Resource code mapping (compact -> full name)
+        RES_DECODE = {"W": "Wood", "B": "Brick", "S": "Sheep", "Wh": "Wheat", "O": "Ore", "D": "Desert"}
+        
+        # Extract compact arrays
+        self.H = self.game_state.get("H", [])  # Hex array
+        self.N = self.game_state.get("N", [])  # Node array  
+        self.state = self.game_state.get("state", {})  # Buildings & roads
+        
+        # Build hex lookup: hex_id -> {type, number}
         self.tile_lookup: Dict[int, Dict[str, Any]] = {}
-        for tile in self.tiles:
-            tile_id = tile.get("id")
-            if tile_id is not None:
-                self.tile_lookup[tile_id] = tile
+        for hex_id, hex_val in enumerate(self.H):
+            if hex_val:  # Skip empty entries
+                # Parse "W12" -> type="Wood", number=12
+                # Or "D" -> type="Desert", number=0
+                resource_code = ""
+                number = 0
+                
+                # Handle "Wh" (2 char) vs "W" (1 char)
+                if hex_val.startswith("Wh"):
+                    resource_code = "Wh"
+                    num_str = hex_val[2:]
+                elif len(hex_val) >= 1:
+                    resource_code = hex_val[0]
+                    num_str = hex_val[1:]
+                
+                if num_str.isdigit():
+                    number = int(num_str)
+                
+                self.tile_lookup[hex_id] = {
+                    "type": RES_DECODE.get(resource_code, resource_code),
+                    "number": number
+                }
+        
+        # Build buildings lookup from state.bld: [[node, owner, type], ...]
+        self.buildings: Dict[int, Dict[str, Any]] = {}  # node_id -> building info
+        for bld in self.state.get("bld", []):
+            if len(bld) >= 3:
+                node_id, owner, bld_type = bld[0], bld[1], bld[2]
+                self.buildings[node_id] = {
+                    "owner": owner,
+                    "type": "settlement" if bld_type == "S" else "city"
+                }
+        
+        # Build node lookup: node_id -> node_data (converted from compact format)
+        self.node_lookup: Dict[int, Dict[str, Any]] = {}
+        for node_id, node_val in enumerate(self.N):
+            if node_val is not None:  # Skip null entries (index 0 is often null)
+                # N[id] = [[neighbors], [hex_ids], port?]
+                neighbors = node_val[0] if len(node_val) > 0 else []
+                hex_ids = node_val[1] if len(node_val) > 1 else []
+                port = node_val[2] if len(node_val) > 2 else None
+                
+                # Check if this node has a building
+                building = self.buildings.get(node_id)
+                
+                self.node_lookup[node_id] = {
+                    "id": node_id,
+                    "neighbors": neighbors,
+                    "adjacent_tiles": hex_ids,
+                    "port": port,
+                    "building": building
+                }
+        
+        # For backwards compatibility
+        self.nodes = list(self.node_lookup.values())
+        self.tiles = list(self.tile_lookup.values())
     
     
     # ========== TOOL 1: Inspect Node (Prevents Hallucinations) ==========
     
-    def inspect_node(self, node_id: int) -> Dict[str, Any]:
+    def inspect_node(self, node_id: int, reasoning: str = "") -> Dict[str, Any]:
         """
         Get detailed, processed information about a specific node.
         
@@ -86,6 +144,7 @@ class AgentTools:
         
         Args:
             node_id: The node ID to inspect (e.g., 10, 18, 40)
+            reasoning: LLM's explanation for why it's inspecting this node
             
         Returns:
             Dictionary with complete node information
@@ -95,7 +154,8 @@ class AgentTools:
             return {
                 "node_id": node_id,
                 "exists": False,
-                "error": f"Node {node_id} does not exist on the board"
+                "error": f"Node {node_id} does not exist on the board",
+                "llm_reasoning": reasoning
             }
         
         node = self.node_lookup[node_id]
@@ -164,7 +224,8 @@ class AgentTools:
             "occupied_by": occupied_by,
             "building_type": building_type,
             "can_build_here": can_build_here,
-            "blocked_reason": blocked_reason
+            "blocked_reason": blocked_reason,
+            "llm_reasoning": reasoning
         }
     
     
@@ -172,6 +233,7 @@ class AgentTools:
     
     def find_best_nodes(
         self,
+        reasoning: str = "",
         min_pips: int = 0,
         must_have_resource: Optional[str] = None,
         exclude_blocked: bool = True,
@@ -186,6 +248,7 @@ class AgentTools:
         tool to find the best positions that match specific criteria.
         
         Args:
+            reasoning: LLM's explanation for this search strategy
             min_pips: Minimum total pip value (e.g., 10 for high-probability spots)
             must_have_resource: Required resource type (e.g., "Wheat", "Ore")
             exclude_blocked: Skip nodes that can't be built on
@@ -261,6 +324,7 @@ class AgentTools:
         matching_nodes = matching_nodes[:limit]
         
         return {
+            "llm_reasoning": reasoning,
             "query": {
                 "min_pips": min_pips,
                 "must_have_resource": must_have_resource,
@@ -277,6 +341,7 @@ class AgentTools:
     def analyze_path_potential(
         self,
         from_node: int,
+        reasoning: str = "",
         direction_node: Optional[int] = None,
         max_depth: int = 2
     ) -> Dict[str, Any]:
@@ -289,6 +354,7 @@ class AgentTools:
         
         Args:
             from_node: Starting node ID
+            reasoning: LLM's explanation for analyzing this path
             direction_node: Target direction (neighbor node ID), or None to check all directions
             max_depth: How many steps ahead to look (1 or 2)
             
@@ -296,11 +362,12 @@ class AgentTools:
             Dictionary with path analysis
         """
         # Get starting node info
-        from_info = self.inspect_node(from_node)
+        from_info = self.inspect_node(from_node, reasoning="Internal call for path analysis")
         if not from_info.get("exists"):
             return {
                 "error": f"Starting node {from_node} does not exist",
-                "from_node": from_node
+                "from_node": from_node,
+                "llm_reasoning": reasoning
             }
         
         neighbors = from_info.get("neighbors", [])
@@ -311,7 +378,8 @@ class AgentTools:
                 return {
                     "error": f"Node {direction_node} is not a neighbor of {from_node}",
                     "from_node": from_node,
-                    "neighbors": neighbors
+                    "neighbors": neighbors,
+                    "llm_reasoning": reasoning
                 }
             neighbors = [direction_node]
         
@@ -327,7 +395,7 @@ class AgentTools:
             }
             
             # Depth 1: Immediate neighbor
-            depth_1_info = self.inspect_node(neighbor_id)
+            depth_1_info = self.inspect_node(neighbor_id, reasoning="Internal call for path analysis depth 1")
             if depth_1_info.get("exists"):
                 path_analysis["depth_1"] = {
                     "node_id": neighbor_id,
@@ -366,7 +434,7 @@ class AgentTools:
                         if depth_2_id == from_node:  # Don't go back
                             continue
                         
-                        depth_2_info = self.inspect_node(depth_2_id)
+                        depth_2_info = self.inspect_node(depth_2_id, reasoning="Internal call for path analysis depth 2")
                         if depth_2_info.get("exists"):
                             node_data = {
                                 "node_id": depth_2_id,
@@ -411,6 +479,7 @@ class AgentTools:
         paths.sort(key=lambda p: p["score"], reverse=True)
         
         return {
+            "llm_reasoning": reasoning,
             "from_node": from_node,
             "total_directions": len(paths),
             "paths": paths
@@ -436,12 +505,16 @@ class AgentTools:
                 "parameters": {
                     "type": "object",
                     "properties": {
+                        "reasoning": {
+                            "type": "string",
+                            "description": "Explain WHY you're inspecting this specific node. What are you trying to verify or learn?"
+                        },
                         "node_id": {
                             "type": "integer",
                             "description": "The node ID to inspect (e.g., 10, 18, 40)"
                         }
                     },
-                    "required": ["node_id"]
+                    "required": ["reasoning", "node_id"]
                 }
             },
             {
@@ -450,6 +523,10 @@ class AgentTools:
                 "parameters": {
                     "type": "object",
                     "properties": {
+                        "reasoning": {
+                            "type": "string",
+                            "description": "Explain your search strategy. What kind of position are you looking for and why?"
+                        },
                         "min_pips": {
                             "type": "integer",
                             "description": "Minimum total pip value (probability). Good nodes have 10+, excellent have 12+",
@@ -476,7 +553,7 @@ class AgentTools:
                             "default": 10
                         }
                     },
-                    "required": []
+                    "required": ["reasoning"]
                 }
             },
             {
@@ -485,6 +562,10 @@ class AgentTools:
                 "parameters": {
                     "type": "object",
                     "properties": {
+                        "reasoning": {
+                            "type": "string",
+                            "description": "Explain your road-building strategy. Why analyze this path? What are you hoping to reach?"
+                        },
                         "from_node": {
                             "type": "integer",
                             "description": "Starting node ID (where you currently have a settlement/road)"
@@ -500,7 +581,7 @@ class AgentTools:
                             "default": 2
                         }
                     },
-                    "required": ["from_node"]
+                    "required": ["reasoning", "from_node"]
                 }
             }
         ]

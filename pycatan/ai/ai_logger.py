@@ -19,6 +19,10 @@ from typing import Dict, Any, Optional, List
 
 from pycatan.ai.llm_client import LLMResponse
 
+# Gemini 3 Flash Preview pricing (per million tokens)
+GEMINI_FLASH_INPUT_PRICE = 0.50  # $0.50 per 1M tokens
+GEMINI_FLASH_OUTPUT_PRICE = 3.00  # $3.00 per 1M tokens
+
 
 class AILogger:
     """
@@ -65,6 +69,17 @@ class AILogger:
         # Track request numbers per player
         self.request_counters: Dict[str, int] = {}
         
+        # Global API call index (across all players/tool iterations)
+        self.api_call_index: int = 0
+        
+        # Track pending API calls (sent but not yet received)
+        self.pending_api_calls: Dict[int, Dict[str, Any]] = {}
+        
+        # Track cumulative costs
+        self.cumulative_input_tokens: int = 0
+        self.cumulative_output_tokens: int = 0
+        self.cumulative_cost: float = 0.0
+        
         # Session start time
         self.start_time = datetime.now()
         
@@ -102,13 +117,117 @@ class AILogger:
         with open(current_session_file, 'w', encoding='utf-8') as f:
             f.write(self.session_dir.name)
     
+    def log_api_call_start(
+        self,
+        player_name: str,
+        prompt_number: int,
+        iteration: int,
+        prompt_content: Optional[str] = None,
+        tools_schema: Optional[List[Dict]] = None,
+        is_tool_followup: bool = False
+    ) -> int:
+        """
+        Log the start of an API call to LLM. Returns the API call index.
+        
+        Args:
+            player_name: Name of the player making the call
+            prompt_number: The prompt number (within this player's session)
+            iteration: Tool iteration number (1, 2, 3...)
+            prompt_content: The prompt content being sent (for logging)
+            tools_schema: The tools schema being sent with the call
+            is_tool_followup: Whether this is a follow-up call after tool execution
+            
+        Returns:
+            The global API call index assigned to this call
+        """
+        self.api_call_index += 1
+        call_id = self.api_call_index
+        
+        # Track pending call
+        self.pending_api_calls[call_id] = {
+            "player_name": player_name,
+            "prompt_number": prompt_number,
+            "iteration": iteration,
+            "start_time": datetime.now().isoformat(),
+            "is_tool_followup": is_tool_followup
+        }
+        
+        # Log to communication file
+        call_type = "TOOL_FOLLOWUP" if is_tool_followup else "INITIAL"
+        msg = f"📤 API Call #{call_id} SENT [{call_type}] - Player: {player_name}, Prompt: {prompt_number}, Iteration: {iteration}"
+        self.log_llm_communication(msg, "API_SEND")
+        
+        # Log tools being sent
+        if tools_schema:
+            tool_names = [t.get("name", "unknown") for t in tools_schema]
+            self.log_llm_communication(f"   🔧 Tools enabled: {tool_names}", "API_SEND")
+        
+        return call_id
+    
+    def log_api_call_end(
+        self,
+        call_id: int,
+        success: bool,
+        tokens: int = 0,
+        prompt_tokens: int = 0,
+        completion_tokens: int = 0,
+        has_tool_calls: bool = False,
+        tool_calls_count: int = 0,
+        error: Optional[str] = None
+    ) -> None:
+        """
+        Log the completion of an API call.
+        
+        Args:
+            call_id: The API call index returned by log_api_call_start
+            success: Whether the call succeeded
+            tokens: Total tokens used
+            prompt_tokens: Input tokens (for cost calculation)
+            completion_tokens: Output tokens (for cost calculation)
+            has_tool_calls: Whether the response includes tool calls
+            tool_calls_count: Number of tool calls requested
+            error: Error message if failed
+        """
+        # Get pending call info
+        call_info = self.pending_api_calls.pop(call_id, {})
+        player_name = call_info.get("player_name", "unknown")
+        iteration = call_info.get("iteration", 0)
+        
+        if success:
+            # Calculate cost
+            input_cost = (prompt_tokens / 1_000_000) * GEMINI_FLASH_INPUT_PRICE
+            output_cost = (completion_tokens / 1_000_000) * GEMINI_FLASH_OUTPUT_PRICE
+            total_cost = input_cost + output_cost
+            
+            # Update cumulative totals
+            self.cumulative_input_tokens += prompt_tokens
+            self.cumulative_output_tokens += completion_tokens
+            self.cumulative_cost += total_cost
+            
+            if has_tool_calls:
+                msg = f"📥 API Call #{call_id} RECEIVED ✅ - {tokens} tokens (in:{prompt_tokens} out:{completion_tokens}), {tool_calls_count} tool request(s) | 💰 ${total_cost:.6f}"
+            else:
+                msg = f"📥 API Call #{call_id} RECEIVED ✅ - {tokens} tokens (in:{prompt_tokens} out:{completion_tokens}) (final response) | 💰 ${total_cost:.6f}"
+            self.log_llm_communication(msg, "API_RECV")
+            
+            # Update cumulative summary at top of log file
+            self._update_cumulative_header()
+        else:
+            msg = f"📥 API Call #{call_id} FAILED ❌ - Error: {error}"
+            self.log_llm_communication(msg, "API_RECV")
+        
+        # Show pending calls status
+        if self.pending_api_calls:
+            pending_ids = list(self.pending_api_calls.keys())
+            self.log_llm_communication(f"   ⏳ Still pending: API Call(s) {pending_ids}", "API_STATUS")
+    
     def log_llm_communication(self, message: str, msg_type: str = "INFO") -> None:
         """
         Log a message to the LLM communication log file.
         
         Args:
             message: The message to log
-            msg_type: Type of message (SEND, RECV, ERROR, INFO)
+            msg_type: Type of message (SEND, RECV, ERROR, INFO, API_SEND, API_RECV, API_STATUS)
         """
         timestamp = datetime.now().strftime("%H:%M:%S")
         line = f"[{timestamp}] [{msg_type}] {message}\n"
@@ -116,6 +235,42 @@ class AILogger:
         with open(self.llm_log_file, 'a', encoding='utf-8') as f:
             f.write(line)
             f.flush()  # Ensure immediate write
+    
+    def _update_cumulative_header(self) -> None:
+        """
+        Update the cumulative cost summary at the top of the log file.
+        Rewrites the header section with updated totals.
+        """
+        import re
+        
+        # Read current content
+        with open(self.llm_log_file, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        # Find where the actual log entries start (lines starting with [HH:MM:SS])
+        # Everything before that is header
+        log_entry_match = re.search(r'^\[\d{2}:\d{2}:\d{2}\]', content, re.MULTILINE)
+        if log_entry_match:
+            log_content = content[log_entry_match.start():]
+        else:
+            log_content = ""
+        
+        # Create new header with cumulative totals
+        new_header = f"""=== LLM Communication Log ===
+Session: {self.session_dir.name}
+Started: {self.start_time.isoformat()}
+{'=' * 50}
+
+💰 CUMULATIVE COST: ${self.cumulative_cost:.6f}
+   Input:  {self.cumulative_input_tokens:,} tokens (${(self.cumulative_input_tokens / 1_000_000) * GEMINI_FLASH_INPUT_PRICE:.6f})
+   Output: {self.cumulative_output_tokens:,} tokens (${(self.cumulative_output_tokens / 1_000_000) * GEMINI_FLASH_OUTPUT_PRICE:.6f})
+{'=' * 50}
+
+"""
+        
+        # Write updated file
+        with open(self.llm_log_file, 'w', encoding='utf-8') as f:
+            f.write(new_header + log_content)
     
     def _ensure_player_dirs(self, player_name: str) -> Dict[str, Path]:
         """
@@ -152,7 +307,8 @@ class AILogger:
         schema: Optional[Dict[str, Any]] = None,
         is_active: bool = True,
         what_happened: str = "",
-        allowed_actions: Optional[List[Dict]] = None
+        allowed_actions: Optional[List[Dict]] = None,
+        tools_schema: Optional[List[Dict[str, Any]]] = None
     ) -> Dict[str, Any]:
         """
         Log a prompt for a player.
@@ -164,6 +320,7 @@ class AILogger:
             is_active: Whether this is an active turn prompt
             what_happened: Description of what happened
             allowed_actions: List of allowed actions
+            tools_schema: List of tool schemas being sent with this prompt
             
         Returns:
             Dict with 'number', 'json_path', 'txt_path'
@@ -186,6 +343,8 @@ class AILogger:
             prompt_doc["what_happened"] = what_happened
         if allowed_actions:
             prompt_doc["allowed_actions"] = allowed_actions
+        if tools_schema:
+            prompt_doc["tools_schema"] = tools_schema
         
         # Save JSON file
         json_path = dirs["prompts"] / f"prompt_{num}.json"
@@ -196,16 +355,28 @@ class AILogger:
         txt_path = dirs["prompts"] / f"prompt_{num}.txt"
         prompt_str = json.dumps(prompt, indent=2, ensure_ascii=False)
         schema_str = json.dumps(schema, indent=2, ensure_ascii=False) if schema else "N/A"
+        
+        # Format tools schema for TXT
+        tools_str = "N/A"
+        if tools_schema:
+            tools_summary = []
+            for tool in tools_schema:
+                tool_name = tool.get("name", "unknown")
+                tool_desc = tool.get("description", "")[:80]
+                tools_summary.append(f"  - {tool_name}: {tool_desc}...")
+            tools_str = "\n".join(tools_summary)
+        
         with open(txt_path, 'w', encoding='utf-8') as f:
             f.write(f"=== Prompt #{num} for {player_name} ===\n")
             f.write(f"Timestamp: {datetime.now().isoformat()}\n")
             f.write(f"Active Turn: {is_active}\n")
             f.write(f"\n--- What Happened ---\n{what_happened}\n")
+            f.write(f"\n--- Tools Available ---\n{tools_str}\n")
             f.write(f"\n--- Response Schema ---\n{schema_str}\n")
             f.write(f"\n--- Prompt Content ---\n{prompt_str}\n")
         
         # Update MD log
-        self._append_prompt_to_md(player_name, num, prompt, is_active, what_happened)
+        self._append_prompt_to_md(player_name, num, prompt, is_active, what_happened, tools_schema)
         
         return {
             "number": num,
@@ -213,6 +384,90 @@ class AILogger:
             "txt_path": txt_path
         }
     
+    def log_tool_followup_prompt(
+        self,
+        player_name: str,
+        original_prompt_number: int,
+        iteration: int,
+        conversation_context: str,
+        tool_results: str,
+        tools_schema: Optional[List[Dict[str, Any]]] = None,
+        schema: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """
+        Log a follow-up prompt sent after tool execution.
+        
+        This creates a new prompt file that shows what was sent back to LLM
+        after tool execution, including the tool results.
+        
+        Args:
+            player_name: Name of the player
+            original_prompt_number: The original request number
+            iteration: Tool iteration number (2, 3, etc.)
+            conversation_context: Full conversation context being sent
+            tool_results: Formatted tool results string
+            tools_schema: Tools still available (may be empty on last iteration)
+            schema: Response schema
+            
+        Returns:
+            Dict with 'path' to the saved file
+        """
+        dirs = self._ensure_player_dirs(player_name)
+        
+        # Create iterations subdirectory
+        iterations_dir = dirs["prompts"] / "iterations"
+        iterations_dir.mkdir(exist_ok=True)
+        
+        # Use naming like prompt_1_iter2.json
+        filename = f"prompt_{original_prompt_number}_iter{iteration}"
+        
+        prompt_doc = {
+            "original_request_number": original_prompt_number,
+            "iteration": iteration,
+            "timestamp": datetime.now().isoformat(),
+            "player_name": player_name,
+            "type": "tool_followup",
+            "tool_results": tool_results,
+            "full_context_sent": conversation_context,
+        }
+        
+        if tools_schema:
+            prompt_doc["tools_schema"] = tools_schema
+            prompt_doc["tools_enabled"] = True
+        else:
+            prompt_doc["tools_enabled"] = False
+            
+        if schema:
+            prompt_doc["response_schema"] = schema
+        
+        # Save JSON in iterations folder
+        json_path = iterations_dir / f"{filename}.json"
+        with open(json_path, 'w', encoding='utf-8') as f:
+            json.dump(prompt_doc, f, indent=2, ensure_ascii=False)
+        
+        # Save TXT in iterations folder
+        txt_path = iterations_dir / f"{filename}.txt"
+        tools_enabled = "Yes" if tools_schema else "No (final iteration)"
+        with open(txt_path, 'w', encoding='utf-8') as f:
+            f.write(f"=== Tool Follow-up #{iteration} for Prompt #{original_prompt_number} ===\n")
+            f.write(f"Player: {player_name}\n")
+            f.write(f"Timestamp: {datetime.now().isoformat()}\n")
+            f.write(f"Tools Enabled: {tools_enabled}\n")
+            f.write(f"\n--- Tool Results Appended ---\n")
+            f.write(tool_results)
+            f.write(f"\n\n--- Full Context Sent to LLM ---\n")
+            f.write(conversation_context[:5000])  # Truncate for readability
+            if len(conversation_context) > 5000:
+                f.write(f"\n... (truncated, full length: {len(conversation_context)} chars)")
+        
+        # Update MD log
+        self._append_tool_followup_to_md(player_name, original_prompt_number, iteration, tool_results)
+        
+        return {
+            "path": json_path,
+            "txt_path": txt_path
+        }
+
     def log_response(
         self,
         player_name: str,
@@ -288,7 +543,8 @@ class AILogger:
         num: int,
         prompt: Dict[str, Any],
         is_active: bool,
-        what_happened: str
+        what_happened: str,
+        tools_schema: Optional[List[Dict[str, Any]]] = None
     ) -> None:
         """Append prompt section to MD file."""
         dirs = self._ensure_player_dirs(player_name)
@@ -300,10 +556,16 @@ class AILogger:
         
         turn_type = "🎯 ACTIVE TURN" if is_active else "👀 OBSERVING"
         
+        # Format tools info
+        tools_info = ""
+        if tools_schema:
+            tool_names = [t.get("name", "unknown") for t in tools_schema]
+            tools_info = f"\n**Tools:** {', '.join(tool_names)}\n"
+        
         section = f"""
 ## Request #{num} - {turn_type}
 
-**Time:** {datetime.now().strftime('%H:%M:%S')}
+**Time:** {datetime.now().strftime('%H:%M:%S')}{tools_info}
 
 ### What Happened
 {what_happened if what_happened else "(No events)"}
@@ -315,6 +577,33 @@ See: [prompt_{num}.json](prompts/prompt_{num}.json)
         with open(md_path, 'a', encoding='utf-8') as f:
             f.write(section)
     
+    def _append_tool_followup_to_md(
+        self,
+        player_name: str,
+        original_prompt_number: int,
+        iteration: int,
+        tool_results: str
+    ) -> None:
+        """Append tool follow-up section to MD file."""
+        dirs = self._ensure_player_dirs(player_name)
+        md_path = dirs["root"] / f"{player_name}.md"
+        
+        section = f"""
+### 🔧 Tool Follow-up (Iteration {iteration})
+
+**Time:** {datetime.now().strftime('%H:%M:%S')}
+
+**Tool Results:**
+```
+{tool_results}
+```
+
+See: [prompt_{original_prompt_number}_iter{iteration}.json](prompts/iterations/prompt_{original_prompt_number}_iter{iteration}.json)
+
+"""
+        with open(md_path, 'a', encoding='utf-8') as f:
+            f.write(section)
+
     def _append_response_to_md(
         self,
         player_name: str,
@@ -331,20 +620,27 @@ See: [prompt_{num}.json](prompts/prompt_{num}.json)
             thinking = parsed.get("internal_thinking", "N/A")
             note = parsed.get("note_to_self", "")
             say = parsed.get("say_outloud", "")
-            action = parsed.get("action", {})
+            
+            # Handle both action formats: old (action object) and new (action_type + parameters)
+            action_type = parsed.get("action_type") or (parsed.get("action", {}).get("type") if parsed.get("action") else None)
+            action_params = parsed.get("parameters") or (parsed.get("action", {}).get("parameters") if parsed.get("action") else None)
             
             action_str = ""
-            if action:
-                action_str = f"**{action.get('type', 'unknown')}**"
-                params = action.get("parameters", {})
-                if params:
-                    action_str += f" - {json.dumps(params)}"
+            if action_type:
+                action_str = f"**{action_type}**"
+                if action_params:
+                    action_str += f" - {json.dumps(action_params)}"
+            
+            # Calculate cost
+            input_cost = (response.prompt_tokens / 1_000_000) * GEMINI_FLASH_INPUT_PRICE
+            output_cost = (response.completion_tokens / 1_000_000) * GEMINI_FLASH_OUTPUT_PRICE
+            total_cost = input_cost + output_cost
             
             section = f"""### Response Received ✅
 
-**Latency:** {response.latency_seconds:.2f}s | **Tokens:** {response.total_tokens}
+**Latency:** {response.latency_seconds:.2f}s | **Tokens:** {response.total_tokens} (in:{response.prompt_tokens} out:{response.completion_tokens}) | **Cost:** ${total_cost:.6f}
 
-**Thinking:** {thinking[:200]}{'...' if len(thinking) > 200 else ''}
+**Thinking:** {thinking}
 
 """
             if note:
@@ -485,3 +781,76 @@ See: [prompt_{num}.json](prompts/prompt_{num}.json)
     def get_player_log_path(self, player_name: str) -> Path:
         """Get the MD log path for a player."""
         return self.session_dir / player_name / f"{player_name}.md"
+    
+    def log_tool_execution(self, batch) -> None:
+        """
+        Log tool execution batch with detailed information.
+        
+        Args:
+            batch: ToolExecutionBatch object with tool call results
+        """
+        # Log to communication file
+        self.log_llm_communication(
+            f"=== Tool Execution Batch ({batch.total_calls} calls) ===",
+            "TOOL"
+        )
+        
+        for call in batch.tool_calls:
+            status = "✅" if call.success else "❌"
+            
+            # Extract reasoning if present
+            reasoning = call.parameters.get("reasoning", "")
+            params_without_reasoning = {k: v for k, v in call.parameters.items() if k != "reasoning"}
+            
+            self.log_llm_communication(
+                f"  {status} {call.name}({json.dumps(params_without_reasoning)})",
+                "TOOL"
+            )
+            
+            if reasoning:
+                self.log_llm_communication(
+                    f"     💭 Reasoning: {reasoning}",
+                    "TOOL"
+                )
+            
+            self.log_llm_communication(
+                f"     Time: {call.execution_time*1000:.1f}ms | "
+                f"Tokens: {call.input_tokens} in + {call.output_tokens} out = {call.input_tokens + call.output_tokens} total",
+                "TOOL"
+            )
+            
+            if call.success:
+                # Log abbreviated result (without reasoning field)
+                result = call.result.copy() if isinstance(call.result, dict) else call.result
+                if isinstance(result, dict) and "llm_reasoning" in result:
+                    result.pop("llm_reasoning")
+                result_str = json.dumps(result, ensure_ascii=False)
+                if len(result_str) > 200:
+                    result_str = result_str[:200] + "..."
+                self.log_llm_communication(f"     Result: {result_str}", "TOOL")
+            else:
+                self.log_llm_communication(f"     Error: {call.error}", "TOOL")
+        
+        # Summary
+        self.log_llm_communication(
+            f"  Total: {batch.success_count}/{batch.total_calls} successful | "
+            f"{batch.total_tokens} tokens | {batch.total_time*1000:.1f}ms",
+            "TOOL"
+        )
+        self.log_llm_communication("=" * 50, "TOOL")
+        
+        # Save detailed tool execution to separate file
+        tool_log_file = self.session_dir / "tool_executions.json"
+        
+        # Load existing logs
+        tool_logs = []
+        if tool_log_file.exists():
+            with open(tool_log_file, 'r', encoding='utf-8') as f:
+                tool_logs = json.load(f)
+        
+        # Add new batch
+        tool_logs.append(batch.to_dict())
+        
+        # Save updated logs
+        with open(tool_log_file, 'w', encoding='utf-8') as f:
+            json.dump(tool_logs, f, indent=2, ensure_ascii=False)

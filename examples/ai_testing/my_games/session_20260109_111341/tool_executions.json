@@ -1,0 +1,292 @@
+[
+  {
+    "timestamp": "2026-01-09T11:13:51.750143",
+    "total_calls": 1,
+    "successful": 1,
+    "failed": 0,
+    "total_time_ms": 0.9,
+    "tokens": {
+      "input": 42,
+      "output": 332,
+      "total": 374
+    },
+    "calls": [
+      {
+        "id": "call_1",
+        "name": "find_best_nodes",
+        "parameters": {
+          "reasoning": "Looking for high-probability nodes to establish a strong resource base for the first settlement. Priority is on nodes with 8, 6, 5, 9, 10.",
+          "min_pips": 11
+        },
+        "result": {
+          "llm_reasoning": "Looking for high-probability nodes to establish a strong resource base for the first settlement. Priority is on nodes with 8, 6, 5, 9, 10.",
+          "query": {
+            "min_pips": 11,
+            "must_have_resource": null,
+            "exclude_blocked": true,
+            "prefer_port": false
+          },
+          "total_found": 6,
+          "nodes": [
+            {
+              "node_id": 20,
+              "resources": {
+                "Wood": 11,
+                "Brick": 6,
+                "Sheep": 8
+              },
+              "total_pips": 12,
+              "port": null,
+              "neighbors": [
+                19,
+                21,
+                10
+              ],
+              "score": 13.5,
+              "can_build": true,
+              "occupied": false
+            },
+            {
+              "node_id": 43,
+              "resources": {
+                "Wheat": 9
+              },
+              "total_pips": 13,
+              "port": null,
+              "neighbors": [
+                42,
+                44,
+                33
+              ],
+              "score": 13.5,
+              "can_build": true,
+              "occupied": false
+            },
+            {
+              "node_id": 42,
+              "resources": {
+                "Wheat": 9,
+                "Ore": 5
+              },
+              "total_pips": 12,
+              "port": null,
+              "neighbors": [
+                41,
+                43,
+                50
+              ],
+              "score": 13.0,
+              "can_build": true,
+              "occupied": false
+            },
+            {
+              "node_id": 10,
+              "resources": {
+                "Brick": 6,
+                "Sheep": 8,
+                "Wood": 12
+              },
+              "total_pips": 11,
+              "port": null,
+              "neighbors": [
+                9,
+                11,
+                20
+              ],
+              "score": 12.5,
+              "can_build": true,
+              "occupied": false
+            },
+            {
+              "node_id": 12,
+              "resources": {
+                "Wood": 3,
+                "Brick": 6,
+                "Sheep": 5
+              },
+              "total_pips": 11,
+              "port": null,
+              "neighbors": [
+                11,
+                13,
+                22
+              ],
+              "score": 12.5,
+              "can_build": true,
+              "occupied": false
+            },
+            {
+              "node_id": 41,
+              "resources": {
+                "Ore": 5,
+                "Wheat": 9,
+                "Brick": 10
+              },
+              "total_pips": 11,
+              "port": null,
+              "neighbors": [
+                40,
+                42,
+                31
+              ],
+              "score": 12.5,
+              "can_build": true,
+              "occupied": false
+            }
+          ]
+        },
+        "success": true,
+        "error": null,
+        "execution_time_ms": 0.7,
+        "tokens": {
+          "input": 42,
+          "output": 332,
+          "total": 374
+        }
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-01-09T11:14:41.982619",
+    "total_calls": 1,
+    "successful": 1,
+    "failed": 0,
+    "total_time_ms": 0.38,
+    "tokens": {
+      "input": 39,
+      "output": 356,
+      "total": 395
+    },
+    "calls": [
+      {
+        "id": "call_1",
+        "name": "analyze_path_potential",
+        "parameters": {
+          "from_node": 20,
+          "reasoning": "I want to see the best direction to build my first road from Node 20. I'm looking for high-production spots or ports nearby."
+        },
+        "result": {
+          "llm_reasoning": "I want to see the best direction to build my first road from Node 20. I'm looking for high-production spots or ports nearby.",
+          "from_node": 20,
+          "total_directions": 3,
+          "paths": [
+            {
+              "direction": 10,
+              "depth_1": {
+                "node_id": 10,
+                "resources": {
+                  "Brick": 6,
+                  "Sheep": 8,
+                  "Wood": 12
+                },
+                "total_pips": 11,
+                "port": null,
+                "can_build": false,
+                "occupied": false
+              },
+              "depth_2": {
+                "reachable_nodes": [
+                  {
+                    "node_id": 9,
+                    "total_pips": 6,
+                    "port": "?3",
+                    "can_build": true
+                  },
+                  {
+                    "node_id": 11,
+                    "total_pips": 10,
+                    "port": null,
+                    "can_build": true
+                  }
+                ],
+                "best_node": 11,
+                "best_pips": 10
+              },
+              "highlights": [
+                "Port (?3) at depth 2 (node 9)"
+              ],
+              "score": 17.5
+            },
+            {
+              "direction": 19,
+              "depth_1": {
+                "node_id": 19,
+                "resources": {
+                  "Wood": 11,
+                  "Brick": 10,
+                  "Sheep": 8
+                },
+                "total_pips": 10,
+                "port": null,
+                "can_build": false,
+                "occupied": false
+              },
+              "depth_2": {
+                "reachable_nodes": [
+                  {
+                    "node_id": 18,
+                    "total_pips": 8,
+                    "port": null,
+                    "can_build": true
+                  },
+                  {
+                    "node_id": 30,
+                    "total_pips": 8,
+                    "port": null,
+                    "can_build": true
+                  }
+                ],
+                "best_node": 18,
+                "best_pips": 8
+              },
+              "highlights": [],
+              "score": 14.0
+            },
+            {
+              "direction": 21,
+              "depth_1": {
+                "node_id": 21,
+                "resources": {
+                  "Wood": 11,
+                  "Brick": 6
+                },
+                "total_pips": 7,
+                "port": null,
+                "can_build": false,
+                "occupied": false
+              },
+              "depth_2": {
+                "reachable_nodes": [
+                  {
+                    "node_id": 22,
+                    "total_pips": 7,
+                    "port": null,
+                    "can_build": true
+                  },
+                  {
+                    "node_id": 32,
+                    "total_pips": 6,
+                    "port": null,
+                    "can_build": true
+                  }
+                ],
+                "best_node": 22,
+                "best_pips": 7
+              },
+              "highlights": [],
+              "score": 10.5
+            }
+          ]
+        },
+        "success": true,
+        "error": null,
+        "execution_time_ms": 0.26,
+        "tokens": {
+          "input": 39,
+          "output": 356,
+          "total": 395
+        }
+      }
+    ]
+  }
+]

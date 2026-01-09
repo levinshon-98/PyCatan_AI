@@ -39,7 +39,7 @@ class LLMConfig:
     
     # Provider settings
     provider: str = "gemini"  # "gemini", "openai", "anthropic", "azure"
-    model_name: str = "gemini-2.5-flash"  # Current stable model (Jan 2026)
+    model_name: str = "gemini-3-flash-preview"  # Gemini 3 supports tools + JSON together
     
     # Generation parameters
     temperature: float = 0.7
@@ -51,7 +51,14 @@ class LLMConfig:
     # Uses new google-genai SDK
     # Note: Requires gemini-2.0-flash-thinking-exp model
     enable_thinking: bool = False  # Disabled - thinking tokens eat into output budget
-    thinking_budget: int = 3000  # Max tokens for thinking (3k default)
+    thinking_budget: int = 3000  # Max tokens for thinking (3k default) - used if thinking_budgets is empty
+    
+    # Dynamic thinking budgets per tool iteration
+    # Each element = budget for that iteration (1st, 2nd, 3rd, etc.)
+    # List length determines max tool iterations
+    # Last iteration automatically disables tools
+    # Example: [8000, 4000, 2000] = 3 iterations, tools disabled on iteration 3
+    thinking_budgets: list = field(default_factory=lambda: [])
     
     # API settings
     api_key_env_var: str = "GEMINI_API_KEY"  # Environment variable name

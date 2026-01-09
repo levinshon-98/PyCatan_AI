@@ -23,6 +23,8 @@ from pycatan.ai.response_parser import ResponseParser, ParseResult
 from pycatan.ai.schemas import ResponseType, ACTIVE_TURN_RESPONSE_SCHEMA, OBSERVING_RESPONSE_SCHEMA
 from pycatan.ai.agent_state import AgentState, compute_state_hash
 from pycatan.ai.ai_logger import AILogger
+from pycatan.ai.agent_tools import AgentTools
+from pycatan.ai.tool_executor import ToolExecutor
 from pycatan.management.actions import Action, ActionType
 
 
@@ -72,6 +74,10 @@ class AIManager:
         self.prompt_manager = PromptManager(self.config)
         self.response_parser = ResponseParser()
         self.logger = AILogger(session_dir=session_dir)
+        
+        # Agent tools and executor
+        self.agent_tools = AgentTools()
+        self.tool_executor = ToolExecutor(self.agent_tools)
         
         # LLM client (created lazily when needed)
         self._llm_client: Optional[GeminiClient] = None
@@ -202,6 +208,9 @@ class AIManager:
         self._current_game_state = game_state
         self._current_allowed_actions = allowed_actions
         
+        # Update agent tools with current game state
+        self.agent_tools.update_game_state(game_state)
+        
         # Build "what happened" from recent events
         what_happened = self._build_what_happened(agent)
         
@@ -214,14 +223,18 @@ class AIManager:
             is_active_turn=True
         )
         
-        # Log the prompt
+        # Get tool schemas for logging
+        tool_schemas = self.agent_tools.get_tools_schema()
+        
+        # Log the prompt (with tools schema)
         log_info = self.logger.log_prompt(
             player_name=player_name,
             prompt=prompt,
             schema=schema,
             is_active=True,
             what_happened=what_happened,
-            allowed_actions=self._format_allowed_actions(allowed_actions)
+            allowed_actions=self._format_allowed_actions(allowed_actions),
+            tools_schema=tool_schemas
         )
         
         # Mark request sent
@@ -234,7 +247,11 @@ class AIManager:
         if self.send_to_llm:
             try:
                 self.logger.log_llm_communication(f"Sending prompt #{log_info['number']} for {player_name}", "SEND")
-                response = self._send_to_llm(prompt, schema, ResponseType.ACTIVE_TURN)
+                response = self._send_to_llm(
+                    prompt, schema, ResponseType.ACTIVE_TURN,
+                    player_name=player_name,
+                    prompt_number=log_info["number"]
+                )
                 
                 if response and response.success and response.content:
                     self.logger.log_llm_communication(f"Received response for {player_name} ({response.total_tokens} tokens)", "RECV")
@@ -245,10 +262,7 @@ class AIManager:
                     if llm_suggestion:
                         action = llm_suggestion.get("action_type", "unknown")
                         params = llm_suggestion.get("parameters", {})
-                        thinking = llm_suggestion.get("internal_thinking", "")[:100]
                         self.logger.log_llm_communication(f"LLM suggests: {action} {params}", "RECV")
-                        if thinking:
-                            self.logger.log_llm_communication(f"  Thinking: {thinking}...", "RECV")
                 else:
                     error_msg = response.error if response else "No response"
                     self.logger.log_llm_communication(f"LLM error: {error_msg}", "ERROR")
@@ -687,27 +701,232 @@ class AIManager:
         self,
         prompt: Dict[str, Any],
         schema: Dict[str, Any],
-        response_type: ResponseType
+        response_type: ResponseType,
+        player_name: str = "unknown",
+        prompt_number: int = 0
     ) -> LLMResponse:
-        """Send prompt to LLM and get response."""
+        """
+        Send prompt to LLM and get response.
+        
+        Handles tool calling loop:
+        1. Send prompt with tools
+        2. If LLM requests tools, execute them
+        3. Send results back to LLM
+        4. Repeat until final answer
+        
+        Args:
+            prompt: The prompt dictionary
+            schema: Response schema
+            response_type: Type of response expected
+            player_name: Name of the player (for logging)
+            prompt_number: The prompt number (for logging)
+        """
         # Convert prompt to string
         prompt_str = json.dumps(prompt, indent=2, ensure_ascii=False)
         
-        # Send to LLM with schema and thinking mode (if enabled)
+        # Get tool schemas
+        tool_schemas = self.agent_tools.get_tools_schema()
+        
+        # Build generation kwargs
         kwargs = {
             "response_schema": schema,
+            "tools": tool_schemas,  # Enable function calling
             "enable_thinking": self.config.llm.enable_thinking,
             "max_tokens": self.config.llm.max_tokens,
         }
         
-        if self.config.llm.enable_thinking:
-            kwargs["thinking_budget"] = self.config.llm.thinking_budget
+        # Determine thinking budgets and max iterations
+        if self.config.llm.thinking_budgets:
+            # Use dynamic budgets from config
+            thinking_budgets = self.config.llm.thinking_budgets
+            max_tool_iterations = len(thinking_budgets)
+        else:
+            # Fallback to single budget, default 3 iterations
+            thinking_budgets = [self.config.llm.thinking_budget] * 3
+            max_tool_iterations = 3
         
-        response = self.llm_client.generate(
-            prompt_str,
-            **kwargs
+        # Tool calling loop
+        iteration = 0
+        conversation_context = prompt_str
+        
+        # Accumulated tokens across all iterations
+        accumulated_prompt_tokens = 0
+        accumulated_completion_tokens = 0
+        accumulated_thinking_tokens = 0
+        accumulated_tool_tokens = 0
+        final_response = None
+        
+        while iteration < max_tool_iterations:
+            iteration += 1
+            is_tool_followup = iteration > 1
+            
+            # Set thinking budget for this iteration
+            if self.config.llm.enable_thinking:
+                current_budget = thinking_budgets[iteration - 1] if iteration <= len(thinking_budgets) else thinking_budgets[-1]
+                kwargs["thinking_budget"] = current_budget
+                self.logger.log_llm_communication(
+                    f"💭 Thinking budget for iteration {iteration}: {current_budget} tokens",
+                    "INFO"
+                )
+            
+            # Log API call start with running index
+            current_tools = kwargs.get("tools", [])
+            api_call_id = self.logger.log_api_call_start(
+                player_name=player_name,
+                prompt_number=prompt_number,
+                iteration=iteration,
+                tools_schema=current_tools if current_tools else None,
+                is_tool_followup=is_tool_followup
+            )
+            
+            # Send request to LLM
+            response = self.llm_client.generate(
+                conversation_context,
+                **kwargs
+            )
+            
+            # Accumulate tokens from this iteration
+            accumulated_prompt_tokens += response.prompt_tokens
+            accumulated_completion_tokens += response.completion_tokens
+            accumulated_thinking_tokens += response.thinking_tokens
+            
+            # Log API call end
+            self.logger.log_api_call_end(
+                call_id=api_call_id,
+                success=response.success,
+                tokens=response.total_tokens,
+                prompt_tokens=response.prompt_tokens,
+                completion_tokens=response.completion_tokens,
+                has_tool_calls=bool(response.tool_calls),
+                tool_calls_count=len(response.tool_calls) if response.tool_calls else 0,
+                error=response.error
+            )
+            
+            if not response.success:
+                # Update response with accumulated tokens before returning
+                response.prompt_tokens = accumulated_prompt_tokens
+                response.completion_tokens = accumulated_completion_tokens
+                response.thinking_tokens = accumulated_thinking_tokens
+                response.total_tokens = accumulated_prompt_tokens + accumulated_completion_tokens + accumulated_thinking_tokens + accumulated_tool_tokens
+                return response
+            
+            # Check if LLM requested tools
+            if response.tool_calls:
+                self.logger.log_llm_communication(
+                    f"🔧 LLM requested {len(response.tool_calls)} tool(s) (iteration {iteration})",
+                    "TOOL_REQUEST"
+                )
+                
+                # Execute tools
+                batch = self.tool_executor.execute_tool_calls(response.tool_calls)
+                
+                # Log tool execution
+                self.logger.log_tool_execution(batch)
+                
+                # Add tool tokens to accumulated count
+                accumulated_tool_tokens += batch.total_tokens
+                
+                # Add tool tokens to stats
+                self.llm_client.stats.add_tool_tokens(batch.total_tokens)
+                
+                # Format results for LLM
+                tool_results = self.tool_executor.format_tool_results_for_llm(batch)
+                
+                # Add tool results to conversation
+                conversation_context = f"{conversation_context}\n\n{tool_results}\n\nNow provide your final answer based on the tool results:"
+                
+                # Check if this is the last iteration
+                if iteration >= max_tool_iterations:
+                    # Remove tools and send ONE FINAL request for structured answer
+                    kwargs["tools"] = []
+                    self.logger.log_llm_communication(
+                        f"🔒 Tools disabled - sending final request for structured answer",
+                        "INFO"
+                    )
+                    
+                    # Log the final prompt
+                    self.logger.log_tool_followup_prompt(
+                        player_name=player_name,
+                        original_prompt_number=prompt_number,
+                        iteration=iteration + 1,
+                        conversation_context=conversation_context,
+                        tool_results=tool_results,
+                        tools_schema=None,  # No tools
+                        schema=schema
+                    )
+                    
+                    # Send final request (without tools)
+                    final_api_call_id = self.logger.log_api_call_start(
+                        player_name=player_name,
+                        prompt_number=prompt_number,
+                        iteration=iteration + 1,
+                        tools_schema=None,
+                        is_tool_followup=True
+                    )
+                    
+                    final_response = self.llm_client.generate(
+                        conversation_context,
+                        **kwargs
+                    )
+                    
+                    # Accumulate tokens from final request
+                    accumulated_prompt_tokens += final_response.prompt_tokens
+                    accumulated_completion_tokens += final_response.completion_tokens
+                    accumulated_thinking_tokens += final_response.thinking_tokens
+                    
+                    self.logger.log_api_call_end(
+                        call_id=final_api_call_id,
+                        success=final_response.success,
+                        tokens=final_response.total_tokens,
+                        prompt_tokens=final_response.prompt_tokens,
+                        completion_tokens=final_response.completion_tokens,
+                        has_tool_calls=bool(final_response.tool_calls),
+                        tool_calls_count=0,
+                        error=final_response.error
+                    )
+                    
+                    # Update final response with accumulated tokens
+                    final_response.prompt_tokens = accumulated_prompt_tokens
+                    final_response.completion_tokens = accumulated_completion_tokens
+                    final_response.thinking_tokens = accumulated_thinking_tokens
+                    final_response.total_tokens = accumulated_prompt_tokens + accumulated_completion_tokens + accumulated_thinking_tokens + accumulated_tool_tokens
+                    
+                    return final_response
+                else:
+                    # More iterations available - continue the loop
+                    next_tools = tool_schemas
+                    
+                    # Log the tool follow-up prompt that will be sent
+                    self.logger.log_tool_followup_prompt(
+                        player_name=player_name,
+                        original_prompt_number=prompt_number,
+                        iteration=iteration + 1,
+                        conversation_context=conversation_context,
+                        tool_results=tool_results,
+                        tools_schema=next_tools,
+                        schema=schema
+                    )
+                    
+                    self.logger.log_llm_communication(
+                        f"✅ Tool results sent back to LLM ({batch.total_tokens} tokens)",
+                        "TOOL_RESULTS"
+                    )
+                
+            else:
+                # No tool calls - this is the final structured answer
+                # Gemini 3 supports tools + JSON schema together, so response is already structured
+                # Update response with accumulated tokens before returning
+                response.prompt_tokens = accumulated_prompt_tokens
+                response.completion_tokens = accumulated_completion_tokens
+                response.thinking_tokens = accumulated_thinking_tokens
+                response.total_tokens = accumulated_prompt_tokens + accumulated_completion_tokens + accumulated_thinking_tokens + accumulated_tool_tokens
+                return response
+        
+        # Should not reach here normally, but return last response as fallback
+        self.logger.log_llm_communication(
+            f"⚠️ Loop ended unexpectedly after {iteration} iterations",
+            "WARNING"
         )
-        
         return response
     
     def _parse_response(

@@ -99,6 +99,10 @@ def get_session_data(session_path):
             
             # Load all prompts for this player
             for prompt_file in sorted(prompts_dir.glob("prompt_*.json")):
+                # Skip iteration files - they're in iterations subfolder
+                if "iter" in prompt_file.name:
+                    continue
+                    
                 try:
                     with open(prompt_file, 'r', encoding='utf-8') as f:
                         prompt_data = json.load(f)
@@ -112,6 +116,22 @@ def get_session_data(session_path):
                         with open(response_file, 'r', encoding='utf-8') as f:
                             response_data = json.load(f)
                     
+                    # Load tool iterations for this prompt
+                    tool_iterations = []
+                    iterations_dir = prompts_dir / "iterations"
+                    if iterations_dir.exists():
+                        for iter_file in sorted(iterations_dir.glob(f"prompt_{req_num}_iter*.json")):
+                            try:
+                                with open(iter_file, 'r', encoding='utf-8') as f:
+                                    iter_data = json.load(f)
+                                    tool_iterations.append({
+                                        "iteration": iter_data.get("iteration", 0),
+                                        "tool_results": iter_data.get("tool_results", ""),
+                                        "timestamp": iter_data.get("timestamp", "")
+                                    })
+                            except Exception as e:
+                                print(f"    [!] Error loading iteration {iter_file.name}: {e}")
+                    
                     requests_data.append({
                         "player_name": player_name,
                         "request_number": req_num,
@@ -120,7 +140,8 @@ def get_session_data(session_path):
                         "response": response_data.get("parsed", {}) if response_data else None,
                         "raw_response": response_data.get("raw_content", "") if response_data else None,
                         "tokens": response_data.get("tokens", {}) if response_data else {},
-                        "success": response_data.get("success", False) if response_data else False
+                        "success": response_data.get("success", False) if response_data else False,
+                        "tool_iterations": tool_iterations
                     })
                     
                 except Exception as e:
