@@ -238,17 +238,40 @@ def main():
                        help="Number of players (skip setup)")
     parser.add_argument("--all-ai", action="store_true",
                        help="Make all players AI (skip setup)")
+    parser.add_argument("--names", type=str, nargs="+",
+                       help="Custom names for AI players (e.g., --names Alice Bob Charlie). Also sets player count.")
     args = parser.parse_args()
     
-    # Quick setup mode
-    if args.players and args.all_ai:
+    # Quick setup mode - either explicit --players or inferred from --names
+    num_players = args.players
+    
+    # If names provided, infer player count from names (unless explicitly set)
+    if args.names:
+        if not num_players:
+            num_players = min(len(args.names), 4)  # Max 4 players
+            if num_players < 2:
+                num_players = 2  # Min 2 players
+        args.all_ai = True  # Names implies all-ai mode
+    
+    if num_players and args.all_ai:
         colors = ["Red", "Blue", "White", "Orange"]
+        default_names = ["Alice", "Bob", "Charlie", "Diana"]
+        
+        # Use custom names if provided, otherwise use defaults
+        if args.names:
+            names = args.names[:num_players]
+            # Pad with defaults if not enough names provided
+            while len(names) < num_players:
+                names.append(default_names[len(names)])
+        else:
+            names = default_names[:num_players]
+        
         player_configs = [
-            {"name": f"AI_{i+1}", "is_ai": True, "color": colors[i]}
-            for i in range(args.players)
+            {"name": names[i], "is_ai": True, "color": colors[i]}
+            for i in range(num_players)
         ]
         print_banner()
-        print(f"Quick setup: {args.players} AI players")
+        print(f"Quick setup: {num_players} AI players - {', '.join(names)}")
     else:
         # Interactive setup
         num_players, player_configs = setup_game()
