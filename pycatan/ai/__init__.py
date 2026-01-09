@@ -18,6 +18,7 @@ Supporting Components:
 - response_parser: LLM response parsing and validation
 - llm_client: LLM API abstraction and client
 - schemas: JSON schemas for LLM responses
+- agent_tools: Helper tools for LLM decision-making (NEW!)
 
 Architecture Overview:
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -70,6 +71,9 @@ from pycatan.ai.llm_client import LLMResponse, GeminiClient, create_llm_client
 from pycatan.ai.schemas import ResponseType, ACTIVE_TURN_RESPONSE_SCHEMA, OBSERVING_RESPONSE_SCHEMA
 from pycatan.ai.state_optimizer import optimize_state_for_ai, format_with_legend, game_state_to_dict
 
+# Agent tools
+from pycatan.ai.agent_tools import AgentTools
+
 __all__ = [
     # Main classes
     "AIManager",
@@ -99,4 +103,7 @@ __all__ = [
     "optimize_state_for_ai",
     "format_with_legend",
     "game_state_to_dict",
+    
+    # Agent tools
+    "AgentTools",
 ]

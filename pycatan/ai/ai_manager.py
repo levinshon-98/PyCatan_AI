@@ -281,9 +281,22 @@ class AIManager:
             tokens=response.total_tokens if response else 0
         )
         
+        # Merge LLM's memory/chat with the action (even if action was manual)
+        # This ensures note_to_self and say_outloud are preserved from LLM
+        if llm_suggestion and parsed:
+            # If parsed doesn't have note_to_self, use LLM's
+            if not parsed.get("note_to_self") and llm_suggestion.get("note_to_self"):
+                parsed["note_to_self"] = llm_suggestion["note_to_self"]
+            # If parsed doesn't have say_outloud, use LLM's
+            if not parsed.get("say_outloud") and llm_suggestion.get("say_outloud"):
+                parsed["say_outloud"] = llm_suggestion["say_outloud"]
+        
         if parsed:
             # Update memory
-            agent.update_memory(parsed.get("note_to_self"))
+            note_to_self = parsed.get("note_to_self")
+            agent.update_memory(note_to_self)
+            print(f"[DEBUG SAVE] Saved note_to_self: {note_to_self[:50] if note_to_self else 'None'}...")
+            print(f"[DEBUG SAVE] Agent.memory now: {agent.memory[:50] if agent.memory else 'None'}...")
             
             # Clear events since they've been processed
             agent.clear_events()
@@ -440,6 +453,9 @@ class AIManager:
         agent_memory = None
         if agent.memory:
             agent_memory = {"note_from_last_turn": agent.memory}
+        
+        # DEBUG: Print memory state
+        print(f"[DEBUG MEMORY] Agent: {agent.player_name}, Memory: {agent.memory[:50] if agent.memory else 'None'}...")
         
         # Create prompt through PromptManager
         prompt = self.prompt_manager.create_prompt(
