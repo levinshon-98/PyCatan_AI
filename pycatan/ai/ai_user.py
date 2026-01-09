@@ -165,8 +165,8 @@ class AIUser(User):
         note_to_self = llm_response.get("note_to_self")
         if note_to_self:
             agent.update_memory(note_to_self)
-            print(f"[DEBUG SAVE] Saved note_to_self: {note_to_self[:50] if note_to_self else 'None'}...")
-            print(f"[DEBUG SAVE] Agent.memory now: {agent.memory[:50] if agent.memory else 'None'}...")
+            # Save memories to file for web viewer
+            self.ai_manager.logger.save_agent_memories(self.ai_manager.agents)
         
         # Broadcast say_outloud to chat
         say_outloud = llm_response.get("say_outloud")

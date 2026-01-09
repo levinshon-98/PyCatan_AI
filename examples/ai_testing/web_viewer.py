@@ -169,10 +169,9 @@ def get_session_data(session_path):
             with open(chat_file, 'r', encoding='utf-8') as f:
                 data = json.load(f)
                 chat_messages = data.get("messages", [])
-                print(f"  [OK] Loaded {len(chat_messages)} chat messages")
         except Exception as e:
             print(f"  [!] Error loading chat: {e}")
-            chat_messages = [{"error": str(e)}]
+            chat_messages = []
     
     # Get agent memories
     memory_file = session_dir / "agent_memories.json"

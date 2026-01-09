@@ -1196,7 +1196,7 @@
             document.getElementById('filter-bar').style.display = 'none';
             document.getElementById('content-title').textContent = 'Chat History';
             
-            if (!sessionData.chat || sessionData.chat.length === 0) {
+            if (!sessionData || !sessionData.chat || sessionData.chat.length === 0) {
                 document.getElementById('content-body').innerHTML = `
                     <div class="empty-state">
                         <div class="icon">💬</div>
@@ -1206,12 +1206,30 @@
                 `;
                 return;
             }
-
-            const chatHTML = sessionData.chat.map(msg => `
-                <div class="chat-box" style="margin-bottom: 10px;">
-                    <strong>${msg.player.toUpperCase()}:</strong> "${escapeHtml(msg.message)}"
-                </div>
-            `).join('');
+            
+            // Filter out undefined/null messages and validate structure
+            const validMessages = sessionData.chat.filter(msg => msg && msg.message);
+            
+            if (validMessages.length === 0) {
+                document.getElementById('content-body').innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">💬</div>
+                        <h3>No valid messages</h3>
+                        <p>Chat data exists but contains no valid messages</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const chatHTML = validMessages.map(msg => {
+                const sender = msg.from || msg.player || 'UNKNOWN';
+                const message = msg.message || '';
+                return `
+                    <div class="chat-box" style="margin-bottom: 10px; background: #2a2a2a; padding: 15px; border-radius: 8px;">
+                        <strong style="color: #4a9eff;">${sender.toUpperCase()}:</strong> "${escapeHtml(message)}"
+                    </div>
+                `;
+            }).join('');
 
             document.getElementById('content-body').innerHTML = chatHTML;
         }
@@ -1231,12 +1249,17 @@
                 return;
             }
 
-            const memoriesHTML = Object.entries(sessionData.memories).map(([player, memory]) => `
-                <div class="note-box" style="margin-bottom: 15px;">
-                    <strong>${player.toUpperCase()}:</strong><br>
-                    "${escapeHtml(memory)}"
-                </div>
-            `).join('');
+            const memoriesHTML = Object.entries(sessionData.memories).map(([player, memory]) => {
+                // Handle both string format and object format {note_to_self: ...}
+                const memoryText = typeof memory === 'string' ? memory : 
+                                   (memory.note_to_self || JSON.stringify(memory));
+                return `
+                    <div class="note-box" style="margin-bottom: 15px;">
+                        <strong>${player.toUpperCase()}:</strong><br>
+                        "${escapeHtml(memoryText)}"
+                    </div>
+                `;
+            }).join('');
 
             document.getElementById('content-body').innerHTML = memoriesHTML;
         }
