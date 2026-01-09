@@ -14,6 +14,7 @@ from typing import List, Optional, Dict, Any, TYPE_CHECKING
 from pycatan.players.user import User
 from pycatan.management.actions import Action, ActionType, GameState
 from pycatan.ai.state_optimizer import game_state_to_dict, optimize_state_for_ai
+from pycatan.config.board_definition import board_definition
 
 if TYPE_CHECKING:
     from pycatan.ai.ai_manager import AIManager
@@ -91,7 +92,7 @@ class AIUser(User):
             return action
         else:
             # Auto mode - use LLM response directly
-            return self._decision_to_action(decision)
+            return self._decision_to_action(decision, allowed_actions)
     
     def _get_manual_input(self, allowed_actions: Optional[List[str]]) -> Action:
         """
@@ -114,7 +115,7 @@ class AIUser(User):
                     llm_response = self.ai_manager._last_llm_response
                     if llm_response:
                         print(f"    [OK] Using LLM suggestion")
-                        return self._decision_to_action(llm_response)
+                        return self._decision_to_action(llm_response, allowed_actions)
                     else:
                         print(f"    [!] No input and no LLM suggestion")
                         continue
@@ -125,7 +126,7 @@ class AIUser(User):
                 
                 # Parse the input
                 decision = self.ai_manager.parse_manual_action(user_input)
-                action = self._decision_to_action(decision)
+                action = self._decision_to_action(decision, allowed_actions)
                 
                 # Validate against allowed actions
                 if allowed_actions and action.action_type.name not in allowed_actions:
@@ -167,12 +168,13 @@ class AIUser(User):
       e              -> end_turn
         """)
     
-    def _decision_to_action(self, decision: Dict[str, Any]) -> Action:
+    def _decision_to_action(self, decision: Dict[str, Any], allowed_actions: Optional[List[str]] = None) -> Action:
         """
         Convert AI decision dict to Action object.
         
         Args:
             decision: Dict with 'action_type' and 'parameters'
+            allowed_actions: List of allowed action type names (for auto-detection)
             
         Returns:
             Action object
@@ -214,11 +216,15 @@ class AIUser(User):
             "buy": ActionType.BUY_DEV_CARD,
         }
         
-        # Handle setup phase shortcuts
+        # Auto-detect setup phase: if only PLACE_STARTING_SETTLEMENT is allowed, use it
         if action_type_str.lower() in ["s", "settlement", "build_settlement"]:
-            # Could be either BUILD_SETTLEMENT or PLACE_STARTING_SETTLEMENT
-            # This will be determined by GameManager validation
-            pass
+            if allowed_actions and "PLACE_STARTING_SETTLEMENT" in allowed_actions and "BUILD_SETTLEMENT" not in allowed_actions:
+                action_type_str = "place_starting_settlement"
+        
+        # Auto-detect setup phase for roads
+        if action_type_str.lower() in ["rd", "road", "build_road"]:
+            if allowed_actions and "PLACE_STARTING_ROAD" in allowed_actions and "BUILD_ROAD" not in allowed_actions:
+                action_type_str = "place_starting_road"
         
         action_type = action_map.get(action_type_str.lower())
         
@@ -257,33 +263,45 @@ class AIUser(User):
         # Map AI parameter names to GameManager names
         if action_type in [ActionType.BUILD_SETTLEMENT, ActionType.BUILD_CITY,
                           ActionType.PLACE_STARTING_SETTLEMENT]:
-            # AI uses "node", GameManager uses "point_coords"
+            # AI uses "node" (point ID), GameManager uses "point_coords" ([row, col])
             if "node" in parameters:
-                return {"point_coords": parameters["node"]}
+                node_id = parameters["node"]
+                # Convert node ID to game coordinates
+                coords = board_definition.point_id_to_game_coords(node_id)
+                if coords is None:
+                    # Invalid node ID - return as-is, GameManager will handle error
+                    return {"point_coords": node_id}
+                return {"point_coords": list(coords)}
             elif "point_coords" in parameters:
                 return parameters
             else:
                 return parameters
         
         elif action_type in [ActionType.BUILD_ROAD, ActionType.PLACE_STARTING_ROAD]:
-            # AI uses "from"/"to", GameManager uses "start_coords"/"end_coords"
+            # AI uses "from"/"to" (node IDs), GameManager uses "start_coords"/"end_coords" ([row, col])
             result = {}
             if "from" in parameters:
-                result["start_coords"] = parameters["from"]
+                from_id = parameters["from"]
+                coords = board_definition.point_id_to_game_coords(from_id)
+                result["start_coords"] = list(coords) if coords else from_id
             elif "start_coords" in parameters:
                 result["start_coords"] = parameters["start_coords"]
             
             if "to" in parameters:
-                result["end_coords"] = parameters["to"]
+                to_id = parameters["to"]
+                coords = board_definition.point_id_to_game_coords(to_id)
+                result["end_coords"] = list(coords) if coords else to_id
             elif "end_coords" in parameters:
                 result["end_coords"] = parameters["end_coords"]
             
             return result
         
         elif action_type == ActionType.ROBBER_MOVE:
-            # AI uses "hex", GameManager uses "tile_coords"
+            # AI uses "hex" (hex ID), GameManager uses "tile_coords" ([row, col])
             if "hex" in parameters:
-                return {"tile_coords": parameters["hex"]}
+                hex_id = parameters["hex"]
+                coords = board_definition.hex_id_to_game_coords(hex_id)
+                return {"tile_coords": list(coords) if coords else hex_id}
             elif "tile_coords" in parameters:
                 return parameters
             else:

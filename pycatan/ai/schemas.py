@@ -24,17 +24,17 @@ ACTIVE_TURN_RESPONSE_SCHEMA = {
     "properties": {
         "internal_thinking": {
             "type": "string",
-            "description": "Private strategy. What's your plan and why?",
+            "description": "Private strategy. What's your plan and why? Do not invent resources. Verify indices in Array N carefully. Write a detailed analysis (600+ chars) only AFTER verifying the node data",
             "minLength": 1000
         },
         "note_to_self": {
             "type": "string",
-            "description": "Important facts for when it's your turn. Use only if essential for clarity or direct user query. Omit otherwise.",
+            "description": "Save important observations and plans for future turns. Examples: opponent strategies, key nodes to claim, resource priorities, or threats to watch. This helps maintain continuity between turns.",
             "maxLength": 100
         },
         "say_outloud": {
             "type": "string",
-            "description": "A short message to other players (max 100 chars). Use for negotiation, threats, or table talk. Keep in mind you pay for speak outload.",
+            "description": "Communicate with other players! Use for: trade proposals, warnings, bluffs, alliance hints, or strategic banter. Makes the game more interesting and can influence opponents.",
             "maxLength": 100
         },
         "action": {
@@ -69,17 +69,17 @@ OBSERVING_RESPONSE_SCHEMA = {
     "properties": {
         "internal_thinking": {
             "type": "string",
-            "description": "Track what's happening. What are opponents doing? What's your strategy for next turn?",
+            "description": "Track what's happening. Analyze opponent moves by verifying their positions in Array N and resources from Array H. What patterns do you see? What's your strategy for next turn? Be specific about locations and threats.",
             "minLength": 30
         },
         "note_to_self": {
             "type": "string",
-            "description": "Important facts for when it's your turn. Use only if essential for clarity or direct user query. Omit otherwise.",
+            "description": "Track key developments! Note opponent positions, resource imbalances, or strategic opportunities you noticed. This memory persists between turns.",
             "maxLength": 100
         },
         "say_outloud": {
             "type": "string",
-            "description": "Optional message to other players (max 100 chars). Propose trades or negotiate. You pay for this.",
+            "description": "Even when observing, you can negotiate! Propose trades, form alliances, or send strategic messages. Example: 'I'll trade ore for wheat next turn' or 'Nice move!'",
             "maxLength": 100
         }
     },
@@ -122,19 +122,19 @@ def get_schema_description(response_type: ResponseType) -> str:
     if response_type == ResponseType.ACTIVE_TURN:
         return (
             "Response must include:\n"
-            "- internal_thinking: Your strategy (min 50 chars)\n"
+            "- internal_thinking: VERIFY data from Arrays N/H first, then write 1000+ char analysis\n"
             "- action: {type: action_name, parameters: {...}}\n"
-            "Optional:\n"
-            "- note_to_self: Important reminder (max 100 chars)\n"
-            "- say_outloud: Message to other players (max 100 chars)"
+            "Encouraged (use frequently!):\n"
+            "- note_to_self: Save key observations for future turns (max 100 chars)\n"
+            "- say_outloud: Communicate with other players (max 100 chars)"
         )
     elif response_type == ResponseType.OBSERVING:
         return (
             "Response must include:\n"
-            "- internal_thinking: What you observed (min 30 chars)\n"
-            "Optional:\n"
-            "- note_to_self: Important reminder (max 100 chars)\n"
-            "- say_outloud: Message to other players (max 100 chars)"
+            "- internal_thinking: Track opponent moves, verify positions in Arrays N/H (min 30 chars)\n"
+            "Encouraged (use frequently!):\n"
+            "- note_to_self: Track key developments for later (max 100 chars)\n"
+            "- say_outloud: Negotiate or send messages (max 100 chars)"
         )
     else:
         return "Unknown response type"
