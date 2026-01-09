@@ -1,10 +1,9 @@
 @echo off
 REM ============================================
-REM PyCatan with AI Agents - Full System Launcher
+REM PyCatan with AI Agents - FULL AUTO MODE
 REM ============================================
-REM This script starts:
-REM   1. Web Viewer (for viewing AI prompts/responses)
-REM   2. The main game with AI agents
+REM AI plays completely autonomously!
+REM No manual input needed - just watch!
 REM ============================================
 
 REM Enable DEBUG logging
@@ -12,12 +11,15 @@ set LOGLEVEL=DEBUG
 
 echo.
 echo ================================================================================
-echo    PyCatan AI System - Full Launch
+echo    PyCatan AI System - FULL AUTO MODE
 echo ================================================================================
+echo.
+echo    AI will play completely autonomously - no manual input needed!
 echo.
 echo Starting components:
 echo   1. AI Viewer (http://localhost:5001) - Shows AI prompts and responses
-echo   2. Catan Game with AI Agents
+echo   2. LLM Logger - Shows real-time AI communication
+echo   3. Catan Game with AI Agents (AUTO MODE)
 echo.
 echo ================================================================================
 echo.
@@ -66,27 +68,29 @@ timeout /t 1 /nobreak >nul
 start http://localhost:5001
 
 echo.
-echo [3/3] Starting game in this window...
+echo [3/3] Starting game in AUTO mode...
 echo.
 echo ================================================================================
-echo    GAME CONTROLS (Manual Mode)
+echo    FULL AUTO MODE - AI PLAYS AUTOMATICALLY
 echo ================================================================================
-echo    - LLM sends suggestions, you approve or override
-echo    - Press ENTER to accept LLM suggestion
-echo    - Or type your own command
+echo    The AI agents will make all decisions automatically.
+echo    Watch the LLM Logger window to see their thinking process.
+echo    Press Ctrl+C to stop the game.
 echo.
-echo    Quick commands:
-echo      r          - Roll dice
-echo      e          - End turn
-echo      s 14       - Build settlement at node 14
-echo      rd 14 15   - Build road from 14 to 15
-echo.
-echo    TIP: Use play_ai_auto.bat for fully automatic AI play!
+echo    Custom names: --names Alice Bob Charlie (also sets player count!)
+echo    Examples:
+echo      play_ai_auto.bat --names Dan Yael          (2 players)
+echo      play_ai_auto.bat --names A B C D           (4 players)
 echo ================================================================================
 echo.
 
-REM Start the game
-%PYTHON_CMD% examples\ai_testing\play_with_ai.py %*
+REM Start the game in AUTO mode
+REM If no --names provided, use default 3 players
+if "%~1"=="" (
+    %PYTHON_CMD% examples\ai_testing\play_with_ai.py --auto --players 3 --all-ai
+) else (
+    %PYTHON_CMD% examples\ai_testing\play_with_ai.py --auto %*
+)
 
 echo.
 echo ================================================================================
