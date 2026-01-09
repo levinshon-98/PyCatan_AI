@@ -295,8 +295,10 @@ class AIManager:
             # Update memory
             note_to_self = parsed.get("note_to_self")
             agent.update_memory(note_to_self)
-            print(f"[DEBUG SAVE] Saved note_to_self: {note_to_self[:50] if note_to_self else 'None'}...")
-            print(f"[DEBUG SAVE] Agent.memory now: {agent.memory[:50] if agent.memory else 'None'}...")
+            
+            # Save memories to file for web viewer (real-time update)
+            if note_to_self:
+                self.logger.save_agent_memories(self.agents)
             
             # Clear events since they've been processed
             agent.clear_events()
@@ -454,9 +456,6 @@ class AIManager:
         if agent.memory:
             agent_memory = {"note_from_last_turn": agent.memory}
         
-        # DEBUG: Print memory state
-        print(f"[DEBUG MEMORY] Agent: {agent.player_name}, Memory: {agent.memory[:50] if agent.memory else 'None'}...")
-        
         # Create prompt through PromptManager
         prompt = self.prompt_manager.create_prompt(
             player_num=agent.player_id,
@@ -578,22 +577,111 @@ class AIManager:
     
     def _build_what_happened(self, agent: AgentState) -> str:
         """
-        Build the 'what happened' message from recent events.
+        Build the 'what happened' message - only the LAST action in clear format.
         
         Args:
             agent: The agent to build message for
             
         Returns:
-            Human-readable summary of recent events
+            Clear description of the most recent action relevant to this agent
         """
         if not agent.recent_events:
-            return "Game is starting."
+            return "Game is starting. Place your first settlement."
         
-        lines = []
-        for event in agent.recent_events:
-            lines.append(f"• {event['message']}")
+        # Get only the last event and format it clearly
+        last_event = agent.recent_events[-1]
+        return self._format_event_for_agent(last_event, agent)
+    
+    def _format_event_for_agent(self, event: Dict[str, Any], agent: AgentState) -> str:
+        """
+        Format a single event into a clear, agent-focused message.
         
-        return "\n".join(lines)
+        Args:
+            event: Event dict with 'type' and 'message' keys
+            agent: The agent receiving this message
+            
+        Returns:
+            Clear, concise description of what happened
+        """
+        event_type = event.get('type', '')
+        message = event.get('message', '')
+        
+        # Replace "Player X" with actual player name
+        message = self._replace_player_numbers_with_names(message)
+        
+        # Parse common event patterns and make them clearer
+        if 'PLACE_STARTING_SETTLEMENT' in message:
+            if agent.player_name in message:
+                return "You just placed your starting settlement. Now place your starting road adjacent to it."
+            else:
+                return message.replace('ActionType.PLACE_STARTING_SETTLEMENT', 'placed their starting settlement')
+        
+        if 'PLACE_STARTING_ROAD' in message:
+            if agent.player_name in message:
+                return "You just placed your starting road."
+            else:
+                return message.replace('ActionType.PLACE_STARTING_ROAD', 'placed their starting road')
+        
+        if 'BUILD_SETTLEMENT' in message:
+            if agent.player_name in message:
+                return "You just built a settlement."
+            else:
+                return message.replace('ActionType.BUILD_SETTLEMENT', 'built a settlement')
+        
+        if 'BUILD_ROAD' in message:
+            if agent.player_name in message:
+                return "You just built a road."
+            else:
+                return message.replace('ActionType.BUILD_ROAD', 'built a road')
+        
+        if 'BUILD_CITY' in message:
+            if agent.player_name in message:
+                return "You just upgraded to a city."
+            else:
+                return message.replace('ActionType.BUILD_CITY', 'upgraded to a city')
+        
+        if 'ROLL_DICE' in message:
+            # Extract dice result if present in message
+            # Try to make it more informative
+            if agent.player_name in message:
+                return message.replace('ActionType.ROLL_DICE', 'rolled the dice')
+            else:
+                return message.replace('ActionType.ROLL_DICE', 'rolled the dice')
+        
+        if 'turn begins' in message.lower():
+            if agent.player_name in message:
+                return "It's your turn."
+            else:
+                return message
+        
+        # Default: clean up ActionType formatting
+        cleaned = message.replace('ActionType.', '').replace('_', ' ').lower()
+        return cleaned
+    
+    def _replace_player_numbers_with_names(self, message: str) -> str:
+        """
+        Replace 'Player X' with actual player names in a message.
+        
+        Args:
+            message: Message with player numbers
+            
+        Returns:
+            Message with player names
+        """
+        import re
+        
+        # Find all "Player X" patterns
+        pattern = r'Player (\d+)'
+        
+        def replace_func(match):
+            player_id = int(match.group(1))
+            # Find agent with this player_id
+            for agent_name, agent in self.agents.items():
+                if agent.player_id == player_id:
+                    return agent_name
+            return match.group(0)  # Keep original if not found
+        
+        return re.sub(pattern, replace_func, message)
     
     def _send_to_llm(
         self,
@@ -713,11 +801,10 @@ class AIManager:
             from_player: Name of player sending message
             message: The chat message
         """
-        # Add to chat history
+        # Add to chat history (no timestamp - cleaner for LLM)
         chat_entry = {
             "from": from_player,
-            "message": message,
-            "timestamp": time.time()
+            "message": message
         }
         self.chat_history.append(chat_entry)
         

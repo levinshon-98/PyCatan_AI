@@ -380,22 +380,46 @@ See: [prompt_{num}.json](prompts/prompt_{num}.json)
         chat_file = self.session_dir / "chat_history.json"
         
         # Load existing chat
-        chat_history = []
+        chat_data = {"messages": []}
         if chat_file.exists():
             with open(chat_file, 'r', encoding='utf-8') as f:
-                chat_history = json.load(f)
+                loaded = json.load(f)
+                # Support both formats: {"messages": [...]} or [...]
+                if isinstance(loaded, dict):
+                    chat_data = loaded
+                else:
+                    chat_data = {"messages": loaded}
         
         # Add new message
-        chat_history.append({
+        chat_data["messages"].append({
             "timestamp": datetime.now().isoformat(),
             "from": from_player,
             "to": to_player or "all",
             "message": message
         })
         
-        # Save
+        # Save (wrapped in object for viewer)
         with open(chat_file, 'w', encoding='utf-8') as f:
-            json.dump(chat_history, f, indent=2, ensure_ascii=False)
+            json.dump(chat_data, f, indent=2, ensure_ascii=False)
+    
+    def save_agent_memories(self, agents: Dict[str, Any]) -> None:
+        """
+        Save current agent memories to file (for real-time web viewer updates).
+        
+        Args:
+            agents: Dictionary of AgentState objects
+        """
+        memories = {}
+        for name, agent in agents.items():
+            if hasattr(agent, 'memory') and agent.memory:
+                memories[name] = {
+                    "note_to_self": agent.memory,
+                    "last_updated": datetime.now().isoformat()
+                }
+        
+        memory_file = self.session_dir / "agent_memories.json"
+        with open(memory_file, 'w', encoding='utf-8') as f:
+            json.dump(memories, f, indent=2, ensure_ascii=False)
     
     def log_error(self, player_name: str, error: str, context: Optional[Dict] = None) -> None:
         """Log an error for a player."""
@@ -442,6 +466,17 @@ See: [prompt_{num}.json](prompts/prompt_{num}.json)
         summary_file = self.session_dir / "session_summary.json"
         with open(summary_file, 'w', encoding='utf-8') as f:
             json.dump(summary, f, indent=2, ensure_ascii=False)
+        
+        # Save agent memories separately for web viewer
+        memories = {}
+        for name, agent in agents.items():
+            if hasattr(agent, 'memory') and agent.memory:
+                memories[name] = agent.memory
+        
+        if memories:
+            memory_file = self.session_dir / "agent_memories.json"
+            with open(memory_file, 'w', encoding='utf-8') as f:
+                json.dump(memories, f, indent=2, ensure_ascii=False)
     
     def get_session_path(self) -> Path:
         """Get the session directory path."""
