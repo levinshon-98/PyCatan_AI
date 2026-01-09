@@ -110,11 +110,15 @@ class AIUser(User):
             try:
                 user_input = input(f"    {self.name} (AI) > ").strip()
                 
+                # Get LLM response (for memory/chat even if action is manual)
+                llm_response = self.ai_manager._last_llm_response
+                
                 # If empty and we have LLM suggestion, use it
                 if not user_input:
-                    llm_response = self.ai_manager._last_llm_response
                     if llm_response:
                         print(f"    [OK] Using LLM suggestion")
+                        # Save memory and chat from LLM response
+                        self._save_llm_memory_and_chat(llm_response)
                         return self._decision_to_action(llm_response, allowed_actions)
                     else:
                         print(f"    [!] No input and no LLM suggestion")
@@ -134,6 +138,10 @@ class AIUser(User):
                     print(f"    Allowed: {allowed_actions}")
                     continue
                 
+                # Even with manual action, save LLM's memory and chat if available
+                if llm_response:
+                    self._save_llm_memory_and_chat(llm_response)
+                
                 return action
                 
             except ValueError as e:
@@ -141,6 +149,29 @@ class AIUser(User):
             except KeyboardInterrupt:
                 print("\n    Game interrupted.")
                 return Action(ActionType.END_TURN, self.user_id)
+    
+    def _save_llm_memory_and_chat(self, llm_response: Dict[str, Any]) -> None:
+        """
+        Save memory and chat from LLM response to agent state.
+        
+        This ensures note_to_self and say_outloud are preserved even when
+        the user provides a manual action override.
+        """
+        agent = self.ai_manager.get_agent(self.name)
+        if not agent:
+            return
+        
+        # Save note_to_self to agent memory
+        note_to_self = llm_response.get("note_to_self")
+        if note_to_self:
+            agent.update_memory(note_to_self)
+            print(f"[DEBUG SAVE] Saved note_to_self: {note_to_self[:50] if note_to_self else 'None'}...")
+            print(f"[DEBUG SAVE] Agent.memory now: {agent.memory[:50] if agent.memory else 'None'}...")
+        
+        # Broadcast say_outloud to chat
+        say_outloud = llm_response.get("say_outloud")
+        if say_outloud:
+            self.ai_manager._broadcast_chat(self.name, say_outloud)
     
     def _show_help(self):
         """Show help for manual input."""
