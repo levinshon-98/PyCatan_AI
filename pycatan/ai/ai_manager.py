@@ -20,7 +20,7 @@ from pycatan.ai.config import AIConfig
 from pycatan.ai.prompt_manager import PromptManager
 from pycatan.ai.llm_client import LLMResponse, create_llm_client, GeminiClient
 from pycatan.ai.response_parser import ResponseParser, ParseResult
-from pycatan.ai.schemas import ResponseType, ACTIVE_TURN_RESPONSE_SCHEMA, OBSERVING_RESPONSE_SCHEMA
+from pycatan.ai.schemas import ResponseType, SchemaVersion, get_schema_for_response_type
 from pycatan.ai.agent_state import AgentState, compute_state_hash
 from pycatan.ai.ai_logger import AILogger
 from pycatan.ai.agent_tools import AgentTools
@@ -260,6 +260,13 @@ class AIManager:
                     
                     # Log the action suggestion with details
                     if llm_suggestion:
+                        # Broadcast reasoning/thinking to web visualization
+                        thinking = llm_suggestion.get("internal_thinking", "")
+                        if thinking:
+                            # Show abbreviated thinking in the status flow
+                            thinking_preview = thinking[:80] + "..." if len(thinking) > 80 else thinking
+                            self._broadcast_status(player_name, "reasoning", thinking_preview, min_display_time=0.5)
+                        
                         action = llm_suggestion.get("action_type", "unknown")
                         params = llm_suggestion.get("parameters", {})
                         self.logger.log_llm_communication(f"LLM suggests: {action} {params}", "RECV")
@@ -482,11 +489,17 @@ class AIManager:
             agent_memory=agent_memory
         )
         
-        # Get appropriate schema
-        if is_active_turn:
-            schema = ACTIVE_TURN_RESPONSE_SCHEMA
-        else:
-            schema = OBSERVING_RESPONSE_SCHEMA
+        # Get appropriate schema based on config version
+        schema_version = SchemaVersion.V2  # Default
+        if hasattr(self.config, 'llm') and hasattr(self.config.llm, 'schema_version'):
+            version_str = self.config.llm.schema_version.lower()
+            if version_str == 'v1':
+                schema_version = SchemaVersion.V1
+            elif version_str == 'v2':
+                schema_version = SchemaVersion.V2
+        
+        response_type = ResponseType.ACTIVE_TURN if is_active_turn else ResponseType.OBSERVING
+        schema = get_schema_for_response_type(response_type, schema_version)
         
         return prompt, schema
     
@@ -760,6 +773,12 @@ class AIManager:
             iteration += 1
             is_tool_followup = iteration > 1
             
+            # Broadcast thinking status
+            if iteration == 1:
+                self._broadcast_status(player_name, "thinking", "Analyzing situation...")
+            else:
+                self._broadcast_status(player_name, "thinking", f"Re-evaluating (iteration {iteration})...")
+            
             # Set thinking budget for this iteration
             if self.config.llm.enable_thinking:
                 current_budget = thinking_budgets[iteration - 1] if iteration <= len(thinking_budgets) else thinking_budgets[-1]
@@ -812,6 +831,32 @@ class AIManager:
             
             # Check if LLM requested tools
             if response.tool_calls:
+                # Broadcast each tool call with parameters
+                try:
+                    for tc in response.tool_calls[:3]:
+                        if isinstance(tc, dict):
+                            tool_name = tc.get('name', 'unknown')
+                            tool_params = tc.get('parameters', {})
+                        else:
+                            tool_name = tc.name if hasattr(tc, 'name') else str(tc)
+                            tool_params = tc.parameters if hasattr(tc, 'parameters') else {}
+                        
+                        # Format parameters for display
+                        if tool_params:
+                            params_str = json.dumps(tool_params, ensure_ascii=False)
+                            if len(params_str) > 60:
+                                params_str = params_str[:57] + "..."
+                            tool_display = f"{tool_name}({params_str})"
+                        else:
+                            tool_display = f"{tool_name}()"
+                        
+                        self._broadcast_status(player_name, "tool_call", tool_display, min_display_time=0.8)
+                    
+                    if len(response.tool_calls) > 3:
+                        self._broadcast_status(player_name, "tool_call", f"+{len(response.tool_calls) - 3} more tools...")
+                except Exception as e:
+                    self._broadcast_status(player_name, "tool_call", f"Using {len(response.tool_calls)} tool(s)")
+                
                 self.logger.log_llm_communication(
                     f"🔧 LLM requested {len(response.tool_calls)} tool(s) (iteration {iteration})",
                     "TOOL_REQUEST"
@@ -819,6 +864,9 @@ class AIManager:
                 
                 # Execute tools
                 batch = self.tool_executor.execute_tool_calls(response.tool_calls)
+                
+                # Broadcast processing status after tool execution
+                self._broadcast_status(player_name, "processing", "Analyzing results...")
                 
                 # Log tool execution
                 self.logger.log_tool_execution(batch)
@@ -920,6 +968,8 @@ class AIManager:
                 response.completion_tokens = accumulated_completion_tokens
                 response.thinking_tokens = accumulated_thinking_tokens
                 response.total_tokens = accumulated_prompt_tokens + accumulated_completion_tokens + accumulated_thinking_tokens + accumulated_tool_tokens
+                # Broadcast done status
+                self._broadcast_status(player_name, "done")
                 return response
         
         # Should not reach here normally, but return last response as fallback
@@ -1034,8 +1084,52 @@ class AIManager:
         # Log the chat
         self.logger.log_chat(from_player, message)
         
+        # Call chat callback if registered (for web visualization)
+        if hasattr(self, '_chat_callback') and self._chat_callback:
+            self._chat_callback(from_player, message)
+        
         # Display to console
         print(f"[CHAT] {from_player}: \"{message}\"")
+    
+    def set_chat_callback(self, callback) -> None:
+        """
+        Set callback for chat messages (e.g., for web visualization).
+        
+        Args:
+            callback: Function(player_name, message) to call on chat
+        """
+        self._chat_callback = callback
+    
+    def set_status_callback(self, callback) -> None:
+        """
+        Set callback for AI status updates (e.g., for web visualization).
+        
+        Args:
+            callback: Function(player_name, status, details) to call on status change
+        """
+        self._status_callback = callback
+        self._last_status_time = 0  # Track last status broadcast time
+    
+    def _broadcast_status(self, player_name: str, status: str, details: str = "", min_display_time: float = 1.5) -> None:
+        """Broadcast AI status update to callback if registered.
+        
+        Args:
+            player_name: Name of the player
+            status: Status type ('thinking', 'tool_call', 'done', etc.)
+            details: Optional details about what's happening
+            min_display_time: Minimum time to wait since last status (seconds)
+        """
+        import time
+        
+        if hasattr(self, '_status_callback') and self._status_callback:
+            # Ensure minimum display time for previous status
+            if hasattr(self, '_last_status_time') and self._last_status_time > 0:
+                elapsed = time.time() - self._last_status_time
+                if elapsed < min_display_time and status != 'done':
+                    time.sleep(min_display_time - elapsed)
+            
+            self._status_callback(player_name, status, details)
+            self._last_status_time = time.time()
     
     # === Utilities ===
     

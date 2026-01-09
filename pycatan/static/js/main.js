@@ -158,6 +158,12 @@ function connectToSSE() {
                     logEvent(data.payload, 'info');
                 } else if (data.type === 'error') {
                     logEvent(data.payload, 'error');
+                } else if (data.type === 'player_chat') {
+                    // Handle player chat message (say_outloud)
+                    handlePlayerChat(data.payload);
+                } else if (data.type === 'ai_status') {
+                    // Handle AI thinking status update
+                    handleAIStatus(data.payload);
                 }
             };
             
@@ -174,6 +180,7 @@ function connectToSSE() {
 // Update game state
 function updateGameState(newState) {
     gameState = newState;
+    window.gameState = gameState; // Make globally accessible for unified UI
     
     if (catanBoard) {
         catanBoard.updateFromGameState(gameState);
@@ -269,6 +276,13 @@ function updateGameInfo(state) {
     }
     
     gameInfoDiv.innerHTML = html;
+    
+    // Update unified UI if available (for unified view)
+    if (window.unifiedUI) {
+        window.unifiedUI.renderPlayerHub(state.players);
+        window.unifiedUI.updateGameDetails(state);
+        window.unifiedUI.updateGameStats(state);
+    }
 }
 
 // Toggle player info visibility
@@ -356,6 +370,108 @@ function logResourceDistribution(data) {
         element.className = 'log-resource';
         element.textContent = `📦 ${data.message}`;
         appendToLog(logDiv, element);
+    }
+}
+
+// Handle player chat message (say_outloud)
+function handlePlayerChat(data) {
+    const playerName = data.player_name;
+    const message = data.message;
+    const timestamp = new Date().toLocaleTimeString();
+    
+    // Store chat message for player
+    if (!window.playerChatMessages) {
+        window.playerChatMessages = {};
+    }
+    window.playerChatMessages[playerName] = message;
+    
+    // Add to chat log panel only (not action log)
+    const chatLog = document.getElementById('chat-log');
+    if (chatLog) {
+        // Remove "no messages" placeholder if exists
+        const placeholder = chatLog.querySelector('.info');
+        if (placeholder) {
+            placeholder.remove();
+        }
+        
+        const chatElement = document.createElement('div');
+        chatElement.className = 'chat-log-message';
+        chatElement.innerHTML = `
+            <div class="chat-log-header">
+                <span class="chat-log-player">🤖 ${playerName}</span>
+                <span class="chat-log-time">${timestamp}</span>
+            </div>
+            <div class="chat-log-text">"${message}"</div>
+        `;
+        chatLog.appendChild(chatElement);
+        chatLog.scrollTop = chatLog.scrollHeight;
+        
+        // Keep only last 50 messages
+        while (chatLog.children.length > 50) {
+            chatLog.removeChild(chatLog.firstChild);
+        }
+    }
+    
+    // Update unified UI if available - show chat bubble
+    if (window.showPlayerChatBubble) {
+        window.showPlayerChatBubble(playerName, message);
+    }
+}
+
+// Handle AI thinking status update
+function handleAIStatus(data) {
+    const playerName = data.player_name;
+    const status = data.status; // 'thinking', 'tool_call', 'processing', 'done'
+    const details = data.details || '';
+    
+    // Find the thinking log element for this player
+    const logElement = document.getElementById(`thinking-log-${playerName}`);
+    if (!logElement) return;
+    
+    if (status === 'done' || status === 'idle') {
+        // Clear the log after a short delay
+        setTimeout(() => {
+            logElement.innerHTML = '';
+            logElement.style.display = 'none';
+        }, 1000);
+    } else {
+        // Show the log container
+        logElement.style.display = 'block';
+        
+        // Create status entry
+        const entry = document.createElement('div');
+        entry.className = `thinking-entry thinking-${status}`;
+        
+        let icon = '';
+        let text = '';
+        
+        if (status === 'thinking') {
+            icon = '💭';
+            text = details || 'Thinking...';
+        } else if (status === 'tool_call') {
+            icon = '🔧';
+            text = details || 'Using tools...';
+        } else if (status === 'processing') {
+            icon = '⚙️';
+            text = details || 'Processing...';
+        } else if (status === 'reasoning') {
+            icon = '💡';
+            text = details;
+        } else {
+            icon = '•';
+            text = details || status;
+        }
+        
+        entry.innerHTML = `<span class="thinking-icon">${icon}</span><span class="thinking-text">${text}</span>`;
+        logElement.appendChild(entry);
+        
+        // Scroll to show latest
+        logElement.scrollTop = logElement.scrollHeight;
+        
+        // Keep only last 5 entries
+        while (logElement.children.length > 5) {
+            logElement.removeChild(logElement.firstChild);
+        }
     }
 }
 

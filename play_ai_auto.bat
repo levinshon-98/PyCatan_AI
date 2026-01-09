@@ -62,10 +62,17 @@ timeout /t 1 /nobreak >nul
 echo [OK] LLM Logger console opened
 echo.
 
-REM Open browser for AI Viewer
-echo [BROWSER] Opening AI Viewer...
+REM Open browser for Unified View (combines game board and AI viewer)
+echo [BROWSER] Opening Unified View...
 timeout /t 1 /nobreak >nul
-start http://localhost:5001
+start http://localhost:5000/unified
+
+echo.
+echo [NOTE] Alternative views available:
+echo    - http://localhost:5000         (Game board only)
+echo    - http://localhost:5000/unified (Unified view - RECOMMENDED)
+echo    - http://localhost:5001         (AI Viewer standalone)
+echo.
 
 echo.
 echo [3/3] Starting game in AUTO mode...

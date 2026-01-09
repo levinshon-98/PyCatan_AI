@@ -32,6 +32,11 @@ llm:
   top_p: 0.95              # Nucleus sampling threshold
   top_k: 40                # Top-k sampling (for supported models)
   
+  # Response schema version
+  # "v1" = Original technical schema (more formal say_outloud)
+  # "v2" = Natural language schema (casual table talk) - DEFAULT
+  schema_version: "v2"
+  
   # Thinking mode (Gemini 2.0+ only)
   # Enables the model to "think" before responding
   # Use with: gemini-2.0-flash-thinking-exp

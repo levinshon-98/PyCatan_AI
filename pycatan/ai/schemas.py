@@ -5,6 +5,10 @@ This module contains all schema definitions used for:
 1. Validating LLM responses
 2. Generating prompts with schema documentation
 3. Type checking and validation
+
+Schema Versions:
+- SCHEMA_V1: Original schema with technical descriptions
+- SCHEMA_V2: Improved schema with natural language prompts (DEFAULT)
 """
 
 from typing import Dict, Any, List, Optional
@@ -17,8 +21,21 @@ class ResponseType(Enum):
     OBSERVING = "observing"       # When agent is observing other players
 
 
-# Schema for when it's the agent's turn (must take action)
-ACTIVE_TURN_RESPONSE_SCHEMA = {
+class SchemaVersion(Enum):
+    """Available schema versions."""
+    V1 = "v1"  # Original technical schema
+    V2 = "v2"  # Natural language schema (DEFAULT)
+
+
+# Default schema version
+DEFAULT_SCHEMA_VERSION = SchemaVersion.V2
+
+
+# ============================================================================
+# SCHEMA V1 - Original Technical Schema
+# ============================================================================
+
+ACTIVE_TURN_RESPONSE_SCHEMA_V1 = {
     "type": "object",
     "required": ["internal_thinking", "action"],
     "properties": {
@@ -61,9 +78,7 @@ ACTIVE_TURN_RESPONSE_SCHEMA = {
     ]
 }
 
-
-# Schema for when agent is observing (not their turn)
-OBSERVING_RESPONSE_SCHEMA = {
+OBSERVING_RESPONSE_SCHEMA_V1 = {
     "type": "object",
     "required": ["internal_thinking"],
     "properties": {
@@ -91,53 +106,192 @@ OBSERVING_RESPONSE_SCHEMA = {
 }
 
 
-def get_schema_for_response_type(response_type: ResponseType) -> Dict[str, Any]:
+# ============================================================================
+# SCHEMA V2 - Natural Language Schema (DEFAULT)
+# ============================================================================
+
+ACTIVE_TURN_RESPONSE_SCHEMA_V2 = {
+    "type": "object",
+    "required": ["internal_thinking", "action"],
+    "properties": {
+        "internal_thinking": {
+            "type": "string",
+            "description": "Private strategy. Plan your move logically here. Analyze the board, probabilities, and opponents. NOTE: Keep your logic HERE. Do not leak technical explanations into 'say_outloud'.",
+            "minLength": 1000
+        },
+        "note_to_self": {
+            "type": "string",
+            "description": "Save important observations for future turns (e.g., 'Player 3 is hoarding ore').",
+            "maxLength": 100
+        },
+        "say_outloud": {
+            "type": "string",
+            "description": "Table talk. Must be natural. If nothing interesting happened, leave empty. If frustrated or happy, express it briefly. mimic real chat: no capitalization sometimes, slang allowed but not forced.",
+            "maxLength": 120
+        },
+        "action": {
+            "type": "object",
+            "required": ["type"],
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "description": "The action type (must match one from allowed_actions in constraints)"
+                },
+                "parameters": {
+                    "type": "string",
+                    "description": "Action parameters as JSON string. Example: {\"node\": 14} or {}"
+                }
+            },
+            "propertyOrdering": ["type", "parameters"]
+        }
+    },
+    "propertyOrdering": [
+        "internal_thinking",
+        "note_to_self",
+        "say_outloud",
+        "action"
+    ]
+}
+
+OBSERVING_RESPONSE_SCHEMA_V2 = {
+    "type": "object",
+    "required": ["internal_thinking"],
+    "properties": {
+        "internal_thinking": {
+            "type": "string",
+            "description": "Private thoughts while watching. What are opponents doing? Any threats? What's your plan for your next turn?",
+            "minLength": 30
+        },
+        "note_to_self": {
+            "type": "string",
+            "description": "Save important observations (e.g., 'Blue is going for longest road').",
+            "maxLength": 100
+        },
+        "say_outloud": {
+            "type": "string",
+            "description": "React naturally to what's happening. Can be empty if nothing notable. Keep it casual.",
+            "maxLength": 120
+        }
+    },
+    "propertyOrdering": [
+        "internal_thinking",
+        "note_to_self",
+        "say_outloud"
+    ]
+}
+
+
+# ============================================================================
+# Current Active Schemas (aliases to selected version)
+# ============================================================================
+
+# These are the schemas used by the system - update to switch versions
+ACTIVE_TURN_RESPONSE_SCHEMA = ACTIVE_TURN_RESPONSE_SCHEMA_V2
+OBSERVING_RESPONSE_SCHEMA = OBSERVING_RESPONSE_SCHEMA_V2
+
+
+def get_schema_for_response_type(
+    response_type: ResponseType, 
+    version: SchemaVersion = None
+) -> Dict[str, Any]:
     """
-    Get the appropriate schema based on response type.
+    Get the appropriate schema based on response type and version.
     
     Args:
         response_type: Type of response expected (active turn or observing)
+        version: Schema version to use (defaults to DEFAULT_SCHEMA_VERSION)
         
     Returns:
         JSON schema dictionary
     """
-    if response_type == ResponseType.ACTIVE_TURN:
-        return ACTIVE_TURN_RESPONSE_SCHEMA
-    elif response_type == ResponseType.OBSERVING:
-        return OBSERVING_RESPONSE_SCHEMA
-    else:
-        raise ValueError(f"Unknown response type: {response_type}")
+    if version is None:
+        version = DEFAULT_SCHEMA_VERSION
+    
+    if version == SchemaVersion.V1:
+        if response_type == ResponseType.ACTIVE_TURN:
+            return ACTIVE_TURN_RESPONSE_SCHEMA_V1
+        elif response_type == ResponseType.OBSERVING:
+            return OBSERVING_RESPONSE_SCHEMA_V1
+    elif version == SchemaVersion.V2:
+        if response_type == ResponseType.ACTIVE_TURN:
+            return ACTIVE_TURN_RESPONSE_SCHEMA_V2
+        elif response_type == ResponseType.OBSERVING:
+            return OBSERVING_RESPONSE_SCHEMA_V2
+    
+    raise ValueError(f"Unknown response type: {response_type} or version: {version}")
 
 
-def get_schema_description(response_type: ResponseType) -> str:
+def get_schema_description(response_type: ResponseType, version: SchemaVersion = None) -> str:
     """
     Get a human-readable description of what the schema expects.
     
     Args:
         response_type: Type of response expected
+        version: Schema version (defaults to DEFAULT_SCHEMA_VERSION)
         
     Returns:
         Description string
     """
+    if version is None:
+        version = DEFAULT_SCHEMA_VERSION
+        
     if response_type == ResponseType.ACTIVE_TURN:
-        return (
-            "Response must include:\n"
-            "- internal_thinking: VERIFY data from Arrays N/H first, then write 1000+ char analysis\n"
-            "- action: {type: action_name, parameters: {...}}\n"
-            "Encouraged (use frequently!):\n"
-            "- note_to_self: Save key observations for future turns (max 100 chars)\n"
-            "- say_outloud: Communicate with other players (max 100 chars)"
-        )
+        if version == SchemaVersion.V1:
+            return (
+                "Response must include:\n"
+                "- internal_thinking: VERIFY data from Arrays N/H first, then write 1000+ char analysis\n"
+                "- action: {type: action_name, parameters: {...}}\n"
+                "Encouraged (use frequently!):\n"
+                "- note_to_self: Save key observations for future turns (max 100 chars)\n"
+                "- say_outloud: Communicate with other players (max 100 chars)"
+            )
+        else:  # V2
+            return (
+                "Response must include:\n"
+                "- internal_thinking: Plan your move logically (1000+ chars). Keep technical analysis HERE.\n"
+                "- action: {type: action_name, parameters: {...}}\n"
+                "Optional:\n"
+                "- note_to_self: Save observations for later (max 100 chars)\n"
+                "- say_outloud: Natural table talk - casual, not technical (max 120 chars)"
+            )
     elif response_type == ResponseType.OBSERVING:
-        return (
-            "Response must include:\n"
-            "- internal_thinking: Track opponent moves, verify positions in Arrays N/H (min 30 chars)\n"
-            "Encouraged (use frequently!):\n"
-            "- note_to_self: Track key developments for later (max 100 chars)\n"
-            "- say_outloud: Negotiate or send messages (max 100 chars)"
-        )
+        if version == SchemaVersion.V1:
+            return (
+                "Response must include:\n"
+                "- internal_thinking: Track opponent moves, verify positions in Arrays N/H (min 30 chars)\n"
+                "Encouraged (use frequently!):\n"
+                "- note_to_self: Track key developments for later (max 100 chars)\n"
+                "- say_outloud: Negotiate or send messages (max 100 chars)"
+            )
+        else:  # V2
+            return (
+                "Response must include:\n"
+                "- internal_thinking: Private thoughts while watching (min 30 chars)\n"
+                "Optional:\n"
+                "- note_to_self: Save important observations (max 100 chars)\n"
+                "- say_outloud: React naturally - keep it casual (max 120 chars)"
+            )
     else:
         return "Unknown response type"
+
+
+def set_default_schema_version(version: SchemaVersion) -> None:
+    """
+    Set the default schema version used by the system.
+    
+    Args:
+        version: SchemaVersion.V1 or SchemaVersion.V2
+    """
+    global DEFAULT_SCHEMA_VERSION, ACTIVE_TURN_RESPONSE_SCHEMA, OBSERVING_RESPONSE_SCHEMA
+    
+    DEFAULT_SCHEMA_VERSION = version
+    
+    if version == SchemaVersion.V1:
+        ACTIVE_TURN_RESPONSE_SCHEMA = ACTIVE_TURN_RESPONSE_SCHEMA_V1
+        OBSERVING_RESPONSE_SCHEMA = OBSERVING_RESPONSE_SCHEMA_V1
+    else:
+        ACTIVE_TURN_RESPONSE_SCHEMA = ACTIVE_TURN_RESPONSE_SCHEMA_V2
+        OBSERVING_RESPONSE_SCHEMA = OBSERVING_RESPONSE_SCHEMA_V2
 
 
 # Common action parameter schemas for validation
