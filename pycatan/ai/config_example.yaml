@@ -36,7 +36,17 @@ llm:
   # Enables the model to "think" before responding
   # Use with: gemini-2.0-flash-thinking-exp
   enable_thinking: false    # Enable thinking mode
-  thinking_budget: 16000    # Max tokens for thinking (8000-32000)
+  thinking_budget: 16000    # Max tokens for thinking (fallback if thinking_budgets is empty)
+  
+  # Dynamic thinking budgets per tool iteration
+  # Each element = budget for that tool call iteration
+  # List length determines max tool iterations
+  # Last iteration automatically disables tools (forces final answer)
+  # Examples:
+  #   [8000, 4000, 2000] = 3 iterations, tools disabled on iteration 3
+  #   [10000, 5000, 3000, 1000] = 4 iterations, tools disabled on iteration 4
+  #   [] = use thinking_budget for all iterations (default 3 iterations)
+  thinking_budgets: []
   
   # API settings
   # The API key is read from environment variables for security

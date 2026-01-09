@@ -418,6 +418,84 @@
             font-family: 'Consolas', monospace;
         }
 
+        /* Tool Iterations Section */
+        .tools-section {
+            background: #252526;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+
+        .tool-iteration {
+            background: #1e1e1e;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-left: 4px solid #c586c0;
+        }
+
+        .tool-iteration:last-child {
+            margin-bottom: 0;
+        }
+
+        .tool-iteration-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            color: #c586c0;
+            font-weight: bold;
+        }
+
+        .tool-call {
+            background: #2d2d30;
+            border-radius: 4px;
+            padding: 12px;
+            margin-top: 10px;
+        }
+
+        .tool-call-name {
+            color: #dcdcaa;
+            font-family: 'Consolas', monospace;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .tool-params {
+            background: #252526;
+            border-radius: 4px;
+            padding: 8px 12px;
+            margin: 8px 0;
+            font-size: 12px;
+        }
+
+        .tool-params code {
+            color: #ce9178;
+            font-family: 'Consolas', monospace;
+            white-space: pre-wrap;
+        }
+
+        .tool-reasoning {
+            background: #1a1a1a;
+            border-left: 3px solid #569cd6;
+            padding: 10px;
+            margin: 8px 0;
+            color: #9cdcfe;
+            font-style: italic;
+        }
+
+        .tool-result {
+            background: #1a1a1a;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 8px;
+            font-family: 'Consolas', monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            color: #d4d4d4;
+        }
+
         /* Statistics */
         .stats-grid {
             display: flex;
@@ -863,12 +941,12 @@
                         <div class="stat-label">Total Tokens</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-value">$${stats.totalCost}</div>
-                        <div class="stat-label">Total Cost</div>
+                        <div class="stat-value" style="color: #4ec9b0;">$${stats.totalCost}</div>
+                        <div class="stat-label">💰 Total Cost</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-value">${stats.avgLatency}s</div>
-                        <div class="stat-label">Avg Response Time</div>
+                        <div class="stat-value" style="color: #c586c0;">${stats.toolIterations}</div>
+                        <div class="stat-label">🛠️ Tool Calls</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-value">${stats.avgTokens}</div>
@@ -947,12 +1025,17 @@
             const trigger = req.prompt?.task_context?.what_just_happened || 'No trigger info';
             const phase = req.prompt?.game_state ? 'Active' : 'Unknown';
             
+            // Check for tool iterations
+            const hasTools = req.tool_iterations && req.tool_iterations.length > 0;
+            const toolCount = hasTools ? req.tool_iterations.length : 0;
+            
             // Create content type icons
             const contentIcons = [];
             if (thinking) contentIcons.push('<span title="Has Internal Thinking">💭</span>');
             if (note) contentIcons.push('<span title="Has Note to Self">📝</span>');
             if (chat) contentIcons.push('<span title="Says Out Loud">💬</span>');
             if (actionType) contentIcons.push('<span title="Has Action">🎮</span>');
+            if (hasTools) contentIcons.push(`<span title="Used ${toolCount} tool iteration(s)" style="color: #c586c0;">🛠️${toolCount}</span>`);
             const contentIconsHTML = contentIcons.length > 0 ? `<div style="display: inline-flex; gap: 6px; margin-left: 10px;">${contentIcons.join('')}</div>` : '';
             
             return `
@@ -1008,6 +1091,8 @@
                                 </div>
                             ` : ''}
                             
+                            ${generateToolIterationsSection(req)}
+                            
                             ${tokens.total ? `
                                 <div class="request-section">
                                     <h4>📊 Token Usage</h4>
@@ -1038,6 +1123,120 @@
                     </div>
                 </div>
             `;
+        }
+
+        function generateToolIterationsSection(req) {
+            const iterations = req.tool_iterations || [];
+            if (iterations.length === 0) {
+                return '';
+            }
+            
+            const iterationsHTML = iterations.map(iter => {
+                // Parse tool results
+                const toolCalls = parseToolResults(iter.tool_results);
+                
+                const toolCallsHTML = toolCalls.map(tool => `
+                    <div class="tool-call">
+                        <div class="tool-call-name">🔧 ${escapeHtml(tool.name)}</div>
+                        ${tool.parameters ? `
+                            <div class="tool-params">
+                                <span style="color: #858585;">Parameters:</span>
+                                <code>${escapeHtml(tool.parameters)}</code>
+                            </div>
+                        ` : ''}
+                        ${tool.reasoning ? `
+                            <div class="tool-reasoning">
+                                💭 ${escapeHtml(tool.reasoning)}
+                            </div>
+                        ` : ''}
+                        <div class="tool-result">
+                            <details>
+                                <summary>📊 Result (${tool.resultPreview})</summary>
+                                <pre>${escapeHtml(tool.result)}</pre>
+                            </details>
+                        </div>
+                    </div>
+                `).join('');
+                
+                return `
+                    <div class="tool-iteration">
+                        <div class="tool-iteration-header">
+                            <span>🔄 Iteration ${iter.iteration}</span>
+                            <span style="font-size: 12px; color: #858585;">${iter.timestamp ? new Date(iter.timestamp).toLocaleTimeString() : ''}</span>
+                        </div>
+                        ${toolCallsHTML}
+                    </div>
+                `;
+            }).join('');
+            
+            return `
+                <div class="request-section">
+                    <h4>🛠️ Tool Calls (${iterations.length} iteration${iterations.length > 1 ? 's' : ''})</h4>
+                    <div class="tools-section">
+                        ${iterationsHTML}
+                    </div>
+                </div>
+            `;
+        }
+
+        function parseToolResults(toolResultsStr) {
+            const tools = [];
+            if (!toolResultsStr) return tools;
+            
+            // Split by "Tool: " to get each tool call
+            const parts = toolResultsStr.split(/Tool:\s+/);
+            
+            for (let i = 1; i < parts.length; i++) {
+                const part = parts[i];
+                
+                // Extract tool name (first line)
+                const lines = part.split('\n');
+                const name = lines[0].trim();
+                
+                // Extract parameters JSON
+                let parameters = '';
+                const paramsMatch = part.match(/Parameters:\s*(\{[\s\S]*?\})\s*(?=Result:|$)/);
+                if (paramsMatch) {
+                    try {
+                        // Parse and re-stringify for nice formatting
+                        const parsed = JSON.parse(paramsMatch[1]);
+                        // Remove reasoning from display params (it's shown separately)
+                        const displayParams = {...parsed};
+                        delete displayParams.reasoning;
+                        parameters = JSON.stringify(displayParams, null, 2);
+                    } catch (e) {
+                        parameters = paramsMatch[1].trim();
+                    }
+                }
+                
+                // Extract reasoning from llm_reasoning field in result or parameters
+                let reasoning = '';
+                const reasoningMatch = part.match(/"(?:reasoning|llm_reasoning)":\s*"([^"]+)"/);
+                if (reasoningMatch) {
+                    reasoning = reasoningMatch[1];
+                }
+                
+                // Extract result JSON
+                const resultMatch = part.match(/Result:\s*([\s\S]*?)(?=---|\Z)/);
+                let result = resultMatch ? resultMatch[1].trim() : '';
+                
+                // Create preview
+                let resultPreview = 'click to expand';
+                try {
+                    const parsed = JSON.parse(result);
+                    if (parsed.total_found !== undefined) {
+                        resultPreview = `${parsed.total_found} nodes found`;
+                    } else if (parsed.node_id !== undefined) {
+                        resultPreview = `Node ${parsed.node_id}`;
+                    } else if (parsed.from_node !== undefined) {
+                        resultPreview = `Path from ${parsed.from_node}`;
+                    }
+                } catch (e) {}
+                
+                tools.push({ name, parameters, reasoning, result, resultPreview });
+            }
+            
+            return tools;
         }
 
         function toggleRequest(requestId) {
@@ -1141,14 +1340,18 @@
                 .map(r => r.tokens?.completion || 0)
                 .reduce((a, b) => a + b, 0);
             
-            // Gemini pricing (approximate)
-            const inputCost = (promptTokens / 1000000) * 0.075;
-            const outputCost = (completionTokens / 1000000) * 0.30;
+            // Gemini 3 Flash Preview pricing
+            const inputCost = (promptTokens / 1000000) * 0.50;   // $0.50 per 1M input
+            const outputCost = (completionTokens / 1000000) * 3.00;  // $3.00 per 1M output
             const totalCost = (inputCost + outputCost).toFixed(4);
             
             // Calculate success rate
             const successCount = requests.filter(r => r.success).length;
             const successRate = total > 0 ? Math.round((successCount / total) * 100) : 0;
+            
+            // Count tool iterations
+            const toolIterations = requests.reduce((sum, r) => 
+                sum + (r.tool_iterations ? r.tool_iterations.length : 0), 0);
             
             return { 
                 total, 
@@ -1157,7 +1360,8 @@
                 avgTokens,
                 totalTokens,
                 totalCost,
-                successRate
+                successRate,
+                toolIterations
             };
         }
 

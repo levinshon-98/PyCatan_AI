@@ -24,6 +24,7 @@ class LLMResponse:
     content: Optional[str] = None
     raw_response: Optional[Any] = None
     error: Optional[str] = None
+    tool_calls: List[Dict[str, Any]] = field(default_factory=list)  # Function calls from LLM
     
     # Metadata
     model: str = ""
@@ -44,7 +45,7 @@ class LLMResponse:
         if self.thinking_tokens > 0:
             tokens_dict["thinking"] = self.thinking_tokens
             
-        return {
+        result = {
             "success": self.success,
             "content": self.content[:200] + "..." if self.content and len(self.content) > 200 else self.content,
             "error": self.error,
@@ -53,6 +54,12 @@ class LLMResponse:
             "latency_seconds": round(self.latency_seconds, 2),
             "timestamp": self.timestamp
         }
+        
+        # Add tool calls if present
+        if self.tool_calls:
+            result["tool_calls"] = self.tool_calls
+        
+        return result
 
 
 @dataclass
@@ -62,6 +69,7 @@ class LLMStats:
     successful_requests: int = 0
     failed_requests: int = 0
     total_tokens: int = 0
+    tool_tokens: int = 0  # Tokens from tool inputs/outputs
     total_cost_usd: float = 0.0
     total_latency: float = 0.0
     
@@ -76,6 +84,11 @@ class LLMStats:
         self.total_cost_usd += cost
         self.total_latency += response.latency_seconds
     
+    def add_tool_tokens(self, tokens: int):
+        """Add tokens from tool execution."""
+        self.tool_tokens += tokens
+        self.total_tokens += tokens
+    
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
         return {
@@ -84,6 +97,8 @@ class LLMStats:
             "failed": self.failed_requests,
             "success_rate": f"{self.successful_requests / self.total_requests * 100:.1f}%" if self.total_requests > 0 else "0%",
             "total_tokens": self.total_tokens,
+            "tool_tokens": self.tool_tokens,
+            "llm_tokens": self.total_tokens - self.tool_tokens,
             "total_cost_usd": f"${self.total_cost_usd:.4f}",
             "avg_latency": f"{self.total_latency / self.total_requests:.2f}s" if self.total_requests > 0 else "0s"
         }
@@ -167,9 +182,10 @@ class GeminiClient(LLMClient):
                      - response_schema: JSON schema to enforce structure
                      - enable_thinking: Enable thinking mode
                      - thinking_budget: Max tokens for thinking
+                     - tools: List of tool schemas for function calling
             
         Returns:
-            LLMResponse object with result
+            LLMResponse object with result (may include tool_calls)
         """
         start_time = time.time()
         
@@ -189,13 +205,41 @@ class GeminiClient(LLMClient):
             )
             logger.info(f"Thinking mode enabled with budget: {thinking_budget}")
         
+        # Add tools for function calling if provided
+        # NOTE: Must be done BEFORE setting response format (they're mutually exclusive!)
+        tools = kwargs.get("tools", [])
+        has_tools = False
+        if tools:
+            # Convert tool schemas to Gemini Tool objects
+            try:
+                gemini_tools = []
+                for tool_dict in tools:
+                    # Create FunctionDeclaration for each tool
+                    func_decl = self.types.FunctionDeclaration(
+                        name=tool_dict.get("name", ""),
+                        description=tool_dict.get("description", ""),
+                        parameters=self._remove_unsupported_fields(tool_dict.get("parameters", {}))
+                    )
+                    gemini_tools.append(func_decl)
+                
+                # Wrap in Tool object
+                config_dict["tools"] = [self.types.Tool(function_declarations=gemini_tools)]
+                has_tools = True
+                logger.info(f"Function calling enabled with {len(tools)} tool(s)")
+            except Exception as e:
+                logger.warning(f"Failed to create tool declarations: {e}")
+                logger.warning("Tools will be disabled.")
+                # Continue without tools if conversion fails
+                pass
+        
         # Set response format
+        # NOTE: Gemini 3 supports tools + JSON schema together!
+        # For older models (Gemini 2.x), this was incompatible
         response_format = kwargs.get("response_format", self.response_format)
         if response_format == "json":
             config_dict["response_mime_type"] = "application/json"
             
             # Add response_json_schema if provided (enforces structure)
-            # Note: new SDK uses response_json_schema instead of response_schema
             if "response_schema" in kwargs:
                 schema = kwargs["response_schema"]
                 cleaned_schema = self._remove_unsupported_fields(schema)
@@ -217,8 +261,31 @@ class GeminiClient(LLMClient):
             
             latency = time.time() - start_time
             
-            # Extract content
-            content = response.text
+            # Extract content and tool calls
+            content = response.text if hasattr(response, 'text') else ""
+            tool_calls = []
+            
+            # Check for function calls in response
+            if hasattr(response, 'candidates') and response.candidates:
+                candidate = response.candidates[0]
+                if hasattr(candidate, 'content') and hasattr(candidate.content, 'parts'):
+                    for part in candidate.content.parts:
+                        if hasattr(part, 'function_call'):
+                            # Extract function call
+                            func_call = part.function_call
+                            # Guard: func_call or func_call.name can be None sometimes
+                            if func_call is None:
+                                logger.warning("Skipping None function_call in response")
+                                continue
+                            func_name = getattr(func_call, 'name', None)
+                            if func_name is None:
+                                logger.warning(f"Skipping function_call with None name: {func_call}")
+                                continue
+                            tool_calls.append({
+                                "id": f"call_{len(tool_calls)+1}",
+                                "name": func_name,
+                                "parameters": dict(func_call.args) if hasattr(func_call, 'args') else {}
+                            })
             
             # Token counting from usage metadata
             thinking_tokens = 0
@@ -254,6 +321,7 @@ class GeminiClient(LLMClient):
                 success=True,
                 content=content,
                 raw_response=response,
+                tool_calls=tool_calls,
                 model=self.model,
                 prompt_tokens=prompt_tokens,
                 completion_tokens=completion_tokens,
@@ -264,11 +332,17 @@ class GeminiClient(LLMClient):
             
             self.stats.add_request(llm_response, cost)
             
-            if thinking_tokens > 0:
+            if tool_calls:
+                logger.info(f"✅ Response with {len(tool_calls)} tool call(s): {completion_tokens} tokens, {latency:.2f}s")
+                for tc in tool_calls:
+                    logger.info(f"   🔧 {tc['name']}({tc['parameters']})")
+            elif thinking_tokens > 0:
                 logger.info(f"✅ Response received: {completion_tokens} tokens (+{thinking_tokens} thinking), {latency:.2f}s")
             else:
                 logger.info(f"✅ Response received: {completion_tokens} tokens, {latency:.2f}s")
-            logger.debug(f"Response preview: {content[:100]}...")
+            
+            if content:
+                logger.debug(f"Response preview: {content[:100]}...")
             
             return llm_response
             
@@ -297,6 +371,8 @@ class GeminiClient(LLMClient):
         This is not exact but sufficient for cost estimation.
         """
         return len(text) // 4
+    
+    # Note: _convert_tool_schema removed - using FunctionDeclaration directly now
     
     def _remove_unsupported_fields(self, schema: Any) -> Any:
         """
