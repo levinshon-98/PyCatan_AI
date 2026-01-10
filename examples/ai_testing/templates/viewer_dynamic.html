@@ -443,7 +443,7 @@
             align-items: center;
             gap: 10px;
             margin-bottom: 10px;
-            color: #c586c0;
+            color: #d4d4d4;
             font-weight: bold;
         }
 
@@ -945,6 +945,10 @@
                         <div class="stat-label">💰 Total Cost</div>
                     </div>
                     <div class="stat-card">
+                        <div class="stat-value" style="color: #569cd6;">${stats.avgLatency}</div>
+                        <div class="stat-label">⏱️ Avg Response Time</div>
+                    </div>
+                    <div class="stat-card">
                         <div class="stat-value" style="color: #c586c0;">${stats.toolIterations}</div>
                         <div class="stat-label">🛠️ Tool Calls</div>
                     </div>
@@ -1019,7 +1023,15 @@
             const actionParams = response.parameters || (response.action ? response.action.parameters : null);
             
             const tokens = req.tokens || {};
-            const latency = tokens.total ? `${tokens.total} tokens` : 'N/A';
+            const tokensDisplay = tokens.total ? `${tokens.total.toLocaleString()} tokens` : 'N/A';
+            
+            // Calculate cost
+            const cost = calculateGeminiCost(tokens);
+            const costDisplay = cost ? cost.formatted : 'N/A';
+            
+            // Get latency (response time)
+            const latencySeconds = req.latency_seconds || req.tokens?.latency || 0;
+            const latencyDisplay = latencySeconds ? `${latencySeconds.toFixed(2)}s` : 'N/A';
             
             // Extract trigger from prompt
             const trigger = req.prompt?.task_context?.what_just_happened || 'No trigger info';
@@ -1049,7 +1061,9 @@
                                 ${contentIconsHTML}
                             </div>
                             <div class="request-meta">
-                                <span>🔢 ${latency}</span>
+                                <span>🔢 ${tokensDisplay}</span>
+                                <span>💰 ${costDisplay}</span>
+                                <span>⏱️ ${latencyDisplay}</span>
                                 <span>${req.success ? '✅ Success' : '❌ Failed'}</span>
                                 <span>📅 ${timestamp}</span>
                             </div>
@@ -1095,11 +1109,20 @@
                             
                             ${tokens.total ? `
                                 <div class="request-section">
-                                    <h4>📊 Token Usage</h4>
+                                    <h4>📊 Token Usage & Cost</h4>
                                     <div style="font-size: 12px; color: #858585;">
-                                        <div>Total Tokens: ${tokens.total}</div>
-                                        <div>Prompt Tokens: ${tokens.prompt || 'N/A'}</div>
-                                        <div>Completion Tokens: ${tokens.completion || 'N/A'}</div>
+                                        <div>⏱️ Response Time: <strong>${latencyDisplay}</strong></div>
+                                        <div>🔢 Total Tokens: <strong>${tokens.total.toLocaleString()}</strong></div>
+                                        <div style="padding-right: 15px;">├─ Prompt: ${(tokens.prompt || 0).toLocaleString()}</div>
+                                        <div style="padding-right: 15px;">└─ Completion: ${(tokens.completion || 0).toLocaleString()}</div>
+                                        ${cost ? `
+                                            <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #3e3e42;">
+                                                <div>💰 Total Cost: <strong style="color: #4ec9b0;">${cost.formatted}</strong></div>
+                                                <div style="padding-right: 15px; font-size: 11px;">├─ Input: $${cost.input.toFixed(6)}</div>
+                                                <div style="padding-right: 15px; font-size: 11px;">└─ Output: $${cost.output.toFixed(6)}</div>
+                                            </div>
+                                        ` : ''}
+                                        ${tokens.thinking ? `<div style="margin-top: 5px;">🧠 Thinking Tokens: ${tokens.thinking.toLocaleString()}</div>` : ''}
                                     </div>
                                 </div>
                             ` : ''}
@@ -1195,13 +1218,14 @@
                 
                 // Extract parameters JSON
                 let parameters = '';
+                let paramsParsed = null;
                 const paramsMatch = part.match(/Parameters:\s*(\{[\s\S]*?\})\s*(?=Result:|$)/);
                 if (paramsMatch) {
                     try {
                         // Parse and re-stringify for nice formatting
-                        const parsed = JSON.parse(paramsMatch[1]);
+                        paramsParsed = JSON.parse(paramsMatch[1]);
                         // Remove reasoning from display params (it's shown separately)
-                        const displayParams = {...parsed};
+                        const displayParams = {...paramsParsed};
                         delete displayParams.reasoning;
                         parameters = JSON.stringify(displayParams, null, 2);
                     } catch (e) {
@@ -1209,11 +1233,15 @@
                     }
                 }
                 
-                // Extract reasoning from llm_reasoning field in result or parameters
+                // Extract reasoning - first from parameters, then from result llm_reasoning
                 let reasoning = '';
-                const reasoningMatch = part.match(/"(?:reasoning|llm_reasoning)":\s*"([^"]+)"/);
-                if (reasoningMatch) {
-                    reasoning = reasoningMatch[1];
+                if (paramsParsed && paramsParsed.reasoning) {
+                    reasoning = paramsParsed.reasoning;
+                } else {
+                    const reasoningMatch = part.match(/"(?:reasoning|llm_reasoning)":\s*"([^"]+)"/);
+                    if (reasoningMatch) {
+                        reasoning = reasoningMatch[1];
+                    }
                 }
                 
                 // Extract result JSON
@@ -1340,10 +1368,20 @@
                 .map(r => r.tokens?.completion || 0)
                 .reduce((a, b) => a + b, 0);
             
-            // Gemini 3 Flash Preview pricing
-            const inputCost = (promptTokens / 1000000) * 0.50;   // $0.50 per 1M input
-            const outputCost = (completionTokens / 1000000) * 3.00;  // $3.00 per 1M output
-            const totalCost = (inputCost + outputCost).toFixed(4);
+            // Gemini 2.0 Flash pricing (as of Jan 2025)
+            // Input: $0.075 per 1M tokens (up to 128k)
+            // Output: $0.30 per 1M tokens
+            const inputCost = (promptTokens / 1000000) * 0.075;
+            const outputCost = (completionTokens / 1000000) * 0.30;
+            const totalCost = (inputCost + outputCost).toFixed(6);
+            
+            // Calculate average latency
+            const latencies = requests
+                .map(r => r.latency_seconds || r.tokens?.latency || 0)
+                .filter(l => l > 0);
+            const avgLatency = latencies.length > 0
+                ? (latencies.reduce((a, b) => a + b, 0) / latencies.length).toFixed(2) + 's'
+                : 'N/A';
             
             // Calculate success rate
             const successCount = requests.filter(r => r.success).length;
@@ -1426,11 +1464,12 @@
             }
             
             const chatHTML = validMessages.map(msg => {
-                const sender = msg.from || msg.player || 'UNKNOWN';
-                const message = msg.message || '';
+                const sender = msg.from || msg.player_name || msg.player || 'Unknown';
+                const message = msg.message || msg.text || '';
+                const displayName = sender ? escapeHtml(sender) : 'Unknown';
                 return `
                     <div class="chat-box" style="margin-bottom: 10px; background: #2a2a2a; padding: 15px; border-radius: 8px;">
-                        <strong style="color: #4a9eff;">${sender.toUpperCase()}:</strong> "${escapeHtml(message)}"
+                        <strong style="color: #4a9eff;">${displayName}:</strong> "${escapeHtml(message)}"
                     </div>
                 `;
             }).join('');
@@ -1511,6 +1550,28 @@
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
+        }
+
+        // Calculate cost for Gemini models
+        function calculateGeminiCost(tokens) {
+            if (!tokens || !tokens.prompt || !tokens.completion) return null;
+            
+            // Gemini 2.0 Flash pricing (as of Jan 2025)
+            // Input: $0.075 per 1M tokens (up to 128k)
+            // Output: $0.30 per 1M tokens
+            const inputCostPer1M = 0.075;
+            const outputCostPer1M = 0.30;
+            
+            const inputCost = (tokens.prompt / 1000000) * inputCostPer1M;
+            const outputCost = (tokens.completion / 1000000) * outputCostPer1M;
+            const totalCost = inputCost + outputCost;
+            
+            return {
+                input: inputCost,
+                output: outputCost,
+                total: totalCost,
+                formatted: `$${totalCost.toFixed(6)}`
+            };
         }
 
         function formatPromptInOrder(prompt) {

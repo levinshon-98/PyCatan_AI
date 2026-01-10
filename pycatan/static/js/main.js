@@ -148,10 +148,14 @@ function connectToSSE() {
                     updateGameState(data.payload);
                 } else if (data.type === 'action_executed') {
                     logAction(data.payload);
+                    // Refresh game state to show any changes
+                    refreshGameState();
                 } else if (data.type === 'dice_roll') {
                     logEvent(data.payload, 'log-dice');
                 } else if (data.type === 'resource_distribution') {
                     logResourceDistribution(data.payload);
+                    // Refresh game state to show updated resources
+                    refreshGameState();
                 } else if (data.type === 'turn_start') {
                     logEvent(data.payload, 'log-turn');
                 } else if (data.type === 'message') {
@@ -174,6 +178,19 @@ function connectToSSE() {
         console.log('✅ Connected to real-time updates');
     } catch (error) {
         console.warn('⚠️ Unable to connect to SSE:', error);
+    }
+}
+
+// Refresh game state from server
+async function refreshGameState() {
+    try {
+        const response = await fetch('/api/game-state');
+        if (response.ok) {
+            const newState = await response.json();
+            updateGameState(newState);
+        }
+    } catch (error) {
+        console.warn('Failed to refresh game state:', error);
     }
 }
 
@@ -418,60 +435,79 @@ function handlePlayerChat(data) {
     }
 }
 
+// Track current active player for thinking log
+let currentThinkingPlayer = null;
+
 // Handle AI thinking status update
 function handleAIStatus(data) {
     const playerName = data.player_name;
     const status = data.status; // 'thinking', 'tool_call', 'processing', 'done'
     const details = data.details || '';
     
+    console.log(`[AI_STATUS] ${playerName}: ${status} - ${details.substring(0, 30)}...`);
+    
     // Find the thinking log element for this player
     const logElement = document.getElementById(`thinking-log-${playerName}`);
-    if (!logElement) return;
+    if (!logElement) {
+        console.warn(`[AI_STATUS] Could not find thinking-log-${playerName}`);
+        return;
+    }
     
     if (status === 'done' || status === 'idle') {
-        // Clear the log after a short delay
-        setTimeout(() => {
-            logElement.innerHTML = '';
-            logElement.style.display = 'none';
-        }, 1000);
-    } else {
-        // Show the log container
+        // Don't hide immediately - let the reasoning stay visible
+        // It will be cleared when a different player starts thinking
+        return;
+    } else if (status === 'thinking') {
+        // Check if this is a NEW player starting to think
+        if (currentThinkingPlayer !== playerName) {
+            // Different player - clear ALL player logs first
+            document.querySelectorAll('.player-thinking-log').forEach(log => {
+                log.innerHTML = '';
+                log.style.display = 'none';
+            });
+            currentThinkingPlayer = playerName;
+        }
+        // Don't clear - just show and add to the log
         logElement.style.display = 'block';
-        
-        // Create status entry
-        const entry = document.createElement('div');
-        entry.className = `thinking-entry thinking-${status}`;
-        
-        let icon = '';
-        let text = '';
-        
-        if (status === 'thinking') {
-            icon = '💭';
-            text = details || 'Thinking...';
-        } else if (status === 'tool_call') {
-            icon = '🔧';
-            text = details || 'Using tools...';
-        } else if (status === 'processing') {
-            icon = '⚙️';
-            text = details || 'Processing...';
-        } else if (status === 'reasoning') {
-            icon = '💡';
-            text = details;
-        } else {
-            icon = '•';
-            text = details || status;
-        }
-        
-        entry.innerHTML = `<span class="thinking-icon">${icon}</span><span class="thinking-text">${text}</span>`;
-        logElement.appendChild(entry);
-        
-        // Scroll to show latest
-        logElement.scrollTop = logElement.scrollHeight;
-        
-        // Keep only last 5 entries
-        while (logElement.children.length > 5) {
-            logElement.removeChild(logElement.firstChild);
-        }
+    } else {
+        // Show the log container for other statuses
+        logElement.style.display = 'block';
+    }
+    
+    // Create status entry
+    const entry = document.createElement('div');
+    entry.className = `thinking-entry thinking-${status}`;
+    
+    let icon = '';
+    let text = '';
+    
+    if (status === 'thinking') {
+        icon = '💭';
+        text = details || 'Thinking...';
+    } else if (status === 'tool_call') {
+        icon = '🔧';
+        // Handle multiline tool calls (reasoning on separate line)
+        text = (details || 'Using tools...').replace(/\n/g, '<br>');
+    } else if (status === 'processing') {
+        icon = '⚙️';
+        text = details || 'Processing...';
+    } else if (status === 'reasoning') {
+        icon = '💡';
+        text = details;
+    } else {
+        icon = '•';
+        text = details || status;
+    }
+    
+    entry.innerHTML = `<span class="thinking-icon">${icon}</span><span class="thinking-text">${text}</span>`;
+    logElement.appendChild(entry);
+    
+    // Scroll to show latest
+    logElement.scrollTop = logElement.scrollHeight;
+    
+    // Keep only last 15 entries to show full chain
+    while (logElement.children.length > 15) {
+        logElement.removeChild(logElement.firstChild);
     }
 }
 

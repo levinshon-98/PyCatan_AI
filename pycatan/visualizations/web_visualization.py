@@ -160,6 +160,9 @@ class WebVisualization(Visualization):
             status: Status type ('thinking', 'tool_call', 'processing', 'done')
             details: Optional details about what the AI is doing
         """
+        # Debug: Log to console
+        print(f"[AI_STATUS] {player_name}: {status} - {details[:50] if details else ''}...")
+        
         self._broadcast_to_clients({
             'type': 'ai_status',
             'payload': {
@@ -797,6 +800,10 @@ class WebVisualization(Visualization):
         """Notify web clients of action execution."""
         # Get player name from action parameters (added by GameManager)
         player_name = action.parameters.get('player_name', f'Player {action.player_id + 1}') if hasattr(action, 'parameters') and action.parameters else f'Player {action.player_id + 1}'
+        
+        # Debug: Print action to console
+        status = "✓" if result.success else "✗"
+        print(f"[ACTION] {status} {player_name}: {action.action_type.name}")
         
         # Map ActionType to EventType and extract relevant data
         event_type, event_data = self._map_action_to_event(action, result)

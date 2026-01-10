@@ -1,0 +1,29 @@
+{
+  "request_number": 1,
+  "iteration": 1,
+  "timestamp": "2026-01-10T11:31:18.174030",
+  "player_name": "Bob",
+  "type": "intermediate",
+  "success": true,
+  "raw_content": null,
+  "has_tool_calls": true,
+  "tool_calls": [
+    {
+      "id": "call_1",
+      "name": "find_best_nodes",
+      "parameters": {
+        "min_pips": 10,
+        "reasoning": "Looking for high yield nodes for my first settlement placement. Priority on balanced resources and high probability numbers (6, 8, 5, 9)."
+      }
+    }
+  ],
+  "model": "gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 2305,
+    "completion": 57,
+    "thinking": 1074,
+    "total": 3436
+  },
+  "latency_seconds": 6.7898478507995605,
+  "error": null
+}

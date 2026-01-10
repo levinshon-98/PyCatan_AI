@@ -162,6 +162,7 @@ class AgentTools:
         
         # Extract resources and calculate pips
         resources = {}
+        resources_detailed = []  # List of all resources with their numbers
         total_pips = 0
         
         adjacent_tiles = node.get("adjacent_tiles", [])
@@ -173,7 +174,16 @@ class AgentTools:
                 
                 # Skip desert
                 if resource.lower() != "desert" and number > 0:
-                    resources[resource] = number
+                    # Add to detailed list
+                    resources_detailed.append({
+                        "type": resource,
+                        "number": number,
+                        "pips": PIP_VALUES.get(number, 0)
+                    })
+                    # Keep aggregated format for backwards compatibility
+                    if resource not in resources:
+                        resources[resource] = []
+                    resources[resource].append(number)
                     total_pips += PIP_VALUES.get(number, 0)
         
         # Check for port
@@ -216,7 +226,8 @@ class AgentTools:
         return {
             "node_id": node_id,
             "exists": True,
-            "resources": resources,
+            "resources": resources,  # {"Wheat": [9, 6, 9], "Ore": [5]}
+            "resources_detailed": resources_detailed,  # [{"type": "Wheat", "number": 9, "pips": 4}, ...]
             "total_pips": total_pips,
             "port": port,
             "neighbors": neighbors,
@@ -301,7 +312,8 @@ class AgentTools:
             
             matching_nodes.append({
                 "node_id": node_id,
-                "resources": resources,
+                "resources": resources,  # {"Wheat": [9, 6, 9], "Ore": [5]}
+                "resources_detailed": info.get("resources_detailed", []),  # Full details
                 "total_pips": total_pips,
                 "port": info.get("port"),
                 "neighbors": info.get("neighbors", []),
