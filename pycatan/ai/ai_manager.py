@@ -270,9 +270,13 @@ class AIManager:
                         action = llm_suggestion.get("action_type", "unknown")
                         params = llm_suggestion.get("parameters", {})
                         self.logger.log_llm_communication(f"LLM suggests: {action} {params}", "RECV")
+                    
+                    # Broadcast done after reasoning is shown
+                    self._broadcast_status(player_name, "done")
                 else:
                     error_msg = response.error if response else "No response"
                     self.logger.log_llm_communication(f"LLM error: {error_msg}", "ERROR")
+                    self._broadcast_status(player_name, "done")
                 
                 # Log response
                 self.logger.log_response(
@@ -831,6 +835,14 @@ class AIManager:
             
             # Check if LLM requested tools
             if response.tool_calls:
+                # Log this intermediate response (with tool_calls)
+                self.logger.log_intermediate_response(
+                    player_name=player_name,
+                    request_number=prompt_number,
+                    iteration=iteration,
+                    response=response
+                )
+                
                 # Broadcast each tool call with parameters
                 try:
                     for tc in response.tool_calls[:3]:
@@ -841,12 +853,23 @@ class AIManager:
                             tool_name = tc.name if hasattr(tc, 'name') else str(tc)
                             tool_params = tc.parameters if hasattr(tc, 'parameters') else {}
                         
-                        # Format parameters for display
+                        # Format parameters for display - show full reasoning
                         if tool_params:
-                            params_str = json.dumps(tool_params, ensure_ascii=False)
-                            if len(params_str) > 60:
-                                params_str = params_str[:57] + "..."
-                            tool_display = f"{tool_name}({params_str})"
+                            # Extract reasoning separately for better display
+                            reasoning = tool_params.get('reasoning', '')
+                            other_params = {k: v for k, v in tool_params.items() if k != 'reasoning'}
+                            
+                            params_str = json.dumps(other_params, ensure_ascii=False)
+                            if len(params_str) > 10000:
+                                params_str = params_str[:9997] + "..."
+                            
+                            # Include reasoning in full (up to 200 chars)
+                            if reasoning:
+                                if len(reasoning) > 200:
+                                    reasoning = reasoning[:197] + "..."
+                                tool_display = f"{tool_name}({params_str})\n💭 {reasoning}"
+                            else:
+                                tool_display = f"{tool_name}({params_str})"
                         else:
                             tool_display = f"{tool_name}()"
                         
@@ -968,8 +991,7 @@ class AIManager:
                 response.completion_tokens = accumulated_completion_tokens
                 response.thinking_tokens = accumulated_thinking_tokens
                 response.total_tokens = accumulated_prompt_tokens + accumulated_completion_tokens + accumulated_thinking_tokens + accumulated_tool_tokens
-                # Broadcast done status
-                self._broadcast_status(player_name, "done")
+                # Note: "done" status will be broadcast by the caller after processing reasoning
                 return response
         
         # Should not reach here normally, but return last response as fallback
@@ -1130,6 +1152,9 @@ class AIManager:
             
             self._status_callback(player_name, status, details)
             self._last_status_time = time.time()
+            
+            # Give Flask time to actually send the SSE event before we block on API call
+            time.sleep(0.1)
     
     # === Utilities ===
     

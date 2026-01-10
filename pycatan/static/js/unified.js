@@ -149,8 +149,15 @@ function getPlayerInitial(name) {
 }
 
 function getTotalCards(player) {
-    if (!player.resources) return 0;
-    return Object.values(player.resources).reduce((sum, val) => sum + (val || 0), 0);
+    // Check cards_list first (accurate count)
+    if (player.cards_list && Array.isArray(player.cards_list)) {
+        return player.cards_list.length;
+    }
+    // Fall back to resources object
+    if (player.resources) {
+        return Object.values(player.resources).reduce((sum, val) => sum + (val || 0), 0);
+    }
+    return 0;
 }
 
 function renderResourceItem(type, count) {

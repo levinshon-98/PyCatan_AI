@@ -148,6 +148,7 @@ def get_session_data(session_path):
                         "response": response_data.get("parsed", {}) if response_data else None,
                         "raw_response": response_data.get("raw_content", "") if response_data else None,
                         "tokens": response_data.get("tokens", {}) if response_data else {},
+                        "latency_seconds": response_data.get("latency_seconds", 0) if response_data else 0,
                         "success": response_data.get("success", False) if response_data else False,
                         "tool_iterations": tool_iterations
                     })

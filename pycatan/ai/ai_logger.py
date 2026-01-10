@@ -277,20 +277,26 @@ Started: {self.start_time.isoformat()}
         Ensure directories exist for a player.
         
         Returns:
-            Dict with 'root', 'prompts', 'responses' paths
+            Dict with 'root', 'prompts', 'responses', 'iterations', 'intermediate' paths
         """
         player_dir = self.session_dir / player_name
         prompts_dir = player_dir / "prompts"
         responses_dir = player_dir / "responses"
+        iterations_dir = prompts_dir / "iterations"
+        intermediate_dir = responses_dir / "intermediate"
         
         player_dir.mkdir(parents=True, exist_ok=True)
         prompts_dir.mkdir(exist_ok=True)
         responses_dir.mkdir(exist_ok=True)
+        iterations_dir.mkdir(exist_ok=True)
+        intermediate_dir.mkdir(exist_ok=True)
         
         return {
             "root": player_dir,
             "prompts": prompts_dir,
-            "responses": responses_dir
+            "responses": responses_dir,
+            "iterations": iterations_dir,
+            "intermediate": intermediate_dir
         }
     
     def _get_request_number(self, player_name: str) -> int:
@@ -468,6 +474,56 @@ Started: {self.start_time.isoformat()}
             "txt_path": txt_path
         }
 
+    def log_intermediate_response(
+        self,
+        player_name: str,
+        request_number: int,
+        iteration: int,
+        response: LLMResponse
+    ) -> Path:
+        """
+        Log an intermediate response from the LLM (when it requests tools).
+        
+        Args:
+            player_name: Name of the player
+            request_number: The request number this responds to
+            iteration: The iteration number (1, 2, etc.)
+            response: The LLMResponse object with tool_calls
+            
+        Returns:
+            Path to the intermediate response JSON file
+        """
+        dirs = self._ensure_player_dirs(player_name)
+        
+        # Prepare intermediate response document
+        response_doc = {
+            "request_number": request_number,
+            "iteration": iteration,
+            "timestamp": datetime.now().isoformat(),
+            "player_name": player_name,
+            "type": "intermediate",
+            "success": response.success,
+            "raw_content": response.content,
+            "has_tool_calls": bool(response.tool_calls),
+            "tool_calls": response.tool_calls if response.tool_calls else [],
+            "model": response.model,
+            "tokens": {
+                "prompt": response.prompt_tokens,
+                "completion": response.completion_tokens,
+                "thinking": response.thinking_tokens if hasattr(response, 'thinking_tokens') else 0,
+                "total": response.total_tokens
+            },
+            "latency_seconds": response.latency_seconds,
+            "error": response.error
+        }
+        
+        # Save JSON file in intermediate directory
+        json_path = dirs["intermediate"] / f"response_{request_number}_iter{iteration}.json"
+        with open(json_path, 'w', encoding='utf-8') as f:
+            json.dump(response_doc, f, indent=2, ensure_ascii=False)
+        
+        return json_path
+    
     def log_response(
         self,
         player_name: str,
@@ -494,6 +550,7 @@ Started: {self.start_time.isoformat()}
             "request_number": request_number,
             "timestamp": datetime.now().isoformat(),
             "player_name": player_name,
+            "type": "final",
             "success": response.success,
             "raw_content": response.content,
             "parsed": parsed,
@@ -501,6 +558,7 @@ Started: {self.start_time.isoformat()}
             "tokens": {
                 "prompt": response.prompt_tokens,
                 "completion": response.completion_tokens,
+                "thinking": response.thinking_tokens if hasattr(response, 'thinking_tokens') else 0,
                 "total": response.total_tokens
             },
             "latency_seconds": response.latency_seconds,

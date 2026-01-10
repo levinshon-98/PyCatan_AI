@@ -1,0 +1,881 @@
+[
+  {
+    "timestamp": "2026-01-10T11:30:13.637996",
+    "total_calls": 1,
+    "successful": 1,
+    "failed": 0,
+    "total_time_ms": 0.26,
+    "tokens": {
+      "input": 33,
+      "output": 308,
+      "total": 341
+    },
+    "calls": [
+      {
+        "id": "call_1",
+        "name": "find_best_nodes",
+        "parameters": {
+          "reasoning": "Initial search for high-probability starting locations with a good resource mix. Looking for 12+ pips.",
+          "min_pips": 12
+        },
+        "result": {
+          "llm_reasoning": "Initial search for high-probability starting locations with a good resource mix. Looking for 12+ pips.",
+          "query": {
+            "min_pips": 12,
+            "must_have_resource": null,
+            "exclude_blocked": true,
+            "prefer_port": false
+          },
+          "total_found": 3,
+          "nodes": [
+            {
+              "node_id": 20,
+              "resources": {
+                "Wood": [
+                  11
+                ],
+                "Brick": [
+                  6
+                ],
+                "Sheep": [
+                  8
+                ]
+              },
+              "resources_detailed": [
+                {
+                  "type": "Wood",
+                  "number": 11,
+                  "pips": 2
+                },
+                {
+                  "type": "Brick",
+                  "number": 6,
+                  "pips": 5
+                },
+                {
+                  "type": "Sheep",
+                  "number": 8,
+                  "pips": 5
+                }
+              ],
+              "total_pips": 12,
+              "port": null,
+              "neighbors": [
+                19,
+                21,
+                10
+              ],
+              "score": 13.5,
+              "can_build": true,
+              "occupied": false
+            },
+            {
+              "node_id": 43,
+              "resources": {
+                "Wheat": [
+                  9,
+                  6,
+                  9
+                ]
+              },
+              "resources_detailed": [
+                {
+                  "type": "Wheat",
+                  "number": 9,
+                  "pips": 4
+                },
+                {
+                  "type": "Wheat",
+                  "number": 6,
+                  "pips": 5
+                },
+                {
+                  "type": "Wheat",
+                  "number": 9,
+                  "pips": 4
+                }
+              ],
+              "total_pips": 13,
+              "port": null,
+              "neighbors": [
+                42,
+                44,
+                33
+              ],
+              "score": 13.5,
+              "can_build": true,
+              "occupied": false
+            },
+            {
+              "node_id": 42,
+              "resources": {
+                "Wheat": [
+                  9,
+                  9
+                ],
+                "Ore": [
+                  5
+                ]
+              },
+              "resources_detailed": [
+                {
+                  "type": "Wheat",
+                  "number": 9,
+                  "pips": 4
+                },
+                {
+                  "type": "Ore",
+                  "number": 5,
+                  "pips": 4
+                },
+                {
+                  "type": "Wheat",
+                  "number": 9,
+                  "pips": 4
+                }
+              ],
+              "total_pips": 12,
+              "port": null,
+              "neighbors": [
+                41,
+                43,
+                50
+              ],
+              "score": 13.0,
+              "can_build": true,
+              "occupied": false
+            }
+          ]
+        },
+        "success": true,
+        "error": null,
+        "execution_time_ms": 0.17,
+        "tokens": {
+          "input": 33,
+          "output": 308,
+          "total": 341
+        }
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-01-10T11:30:47.576157",
+    "total_calls": 1,
+    "successful": 1,
+    "failed": 0,
+    "total_time_ms": 0.28,
+    "tokens": {
+      "input": 36,
+      "output": 725,
+      "total": 761
+    },
+    "calls": [
+      {
+        "id": "call_1",
+        "name": "find_best_nodes",
+        "parameters": {
+          "min_pips": 10,
+          "reasoning": "Looking for a strong second settlement location with Wheat and Ore to balance the initial Wood/Brick/Sheep setup."
+        },
+        "result": {
+          "llm_reasoning": "Looking for a strong second settlement location with Wheat and Ore to balance the initial Wood/Brick/Sheep setup.",
+          "query": {
+            "min_pips": 10,
+            "must_have_resource": null,
+            "exclude_blocked": true,
+            "prefer_port": false
+          },
+          "total_found": 8,
+          "nodes": [
+            {
+              "node_id": 43,
+              "resources": {
+                "Wheat": [
+                  9,
+                  6,
+                  9
+                ]
+              },
+              "resources_detailed": [
+                {
+                  "type": "Wheat",
+                  "number": 9,
+                  "pips": 4
+                },
+                {
+                  "type": "Wheat",
+                  "number": 6,
+                  "pips": 5
+                },
+                {
+                  "type": "Wheat",
+                  "number": 9,
+                  "pips": 4
+                }
+              ],
+              "total_pips": 13,
+              "port": null,
+              "neighbors": [
+                42,
+                44,
+                33
+              ],
+              "score": 13.5,
+              "can_build": true,
+              "occupied": false
+            },
+            {
+              "node_id": 42,
+              "resources": {
+                "Wheat": [
+                  9,
+                  9
+                ],
+                "Ore": [
+                  5
+                ]
+              },
+              "resources_detailed": [
+                {
+                  "type": "Wheat",
+                  "number": 9,
+                  "pips": 4
+                },
+                {
+                  "type": "Ore",
+                  "number": 5,
+                  "pips": 4
+                },
+                {
+                  "type": "Wheat",
+                  "number": 9,
+                  "pips": 4
+                }
+              ],
+              "total_pips": 12,
+              "port": null,
+              "neighbors": [
+                41,
+                43,
+                50
+              ],
+              "score": 13.0,
+              "can_build": true,
+              "occupied": false
+            },
+            {
+              "node_id": 12,
+              "resources": {
+                "Wood": [
+                  3
+                ],
+                "Brick": [
+                  6
+                ],
+                "Sheep": [
+                  5
+                ]
+              },
+              "resources_detailed": [
+                {
+                  "type": "Wood",
+                  "number": 3,
+                  "pips": 2
+                },
+                {
+                  "type": "Brick",
+                  "number": 6,
+                  "pips": 5
+                },
+                {
+                  "type": "Sheep",
+                  "number": 5,
+                  "pips": 4
+                }
+              ],
+              "total_pips": 11,
+              "port": null,
+              "neighbors": [
+                11,
+                13,
+                22
+              ],
+              "score": 12.5,
+              "can_build": true,
+              "occupied": false
+            },
+            {
+              "node_id": 41,
+              "resources": {
+                "Ore": [
+                  5
+                ],
+                "Wheat": [
+                  9
+                ],
+                "Brick": [
+                  10
+                ]
+              },
+              "resources_detailed": [
+                {
+                  "type": "Ore",
+                  "number": 5,
+                  "pips": 4
+                },
+                {
+                  "type": "Wheat",
+                  "number": 9,
+                  "pips": 4
+                },
+                {
+                  "type": "Brick",
+                  "number": 10,
+                  "pips": 3
+                }
+              ],
+              "total_pips": 11,
+              "port": null,
+              "neighbors": [
+                40,
+                42,
+                31
+              ],
+              "score": 12.5,
+              "can_build": true,
+              "occupied": false
+            },
+            {
+              "node_id": 11,
+              "resources": {
+                "Brick": [
+                  6
+                ],
+                "Sheep": [
+                  5
+                ],
+                "Wood": [
+                  12
+                ]
+              },
+              "resources_detailed": [
+                {
+                  "type": "Brick",
+                  "number": 6,
+                  "pips": 5
+                },
+                {
+                  "type": "Sheep",
+                  "number": 5,
+                  "pips": 4
+                },
+                {
+                  "type": "Wood",
+                  "number": 12,
+                  "pips": 1
+                }
+              ],
+              "total_pips": 10,
+              "port": null,
+              "neighbors": [
+                10,
+                12,
+                3
+              ],
+              "score": 11.5,
+              "can_build": true,
+              "occupied": false
+            },
+            {
+              "node_id": 25,
+              "resources": {
+                "Sheep": [
+                  4
+                ],
+                "Ore": [
+                  3
+                ],
+                "Wheat": [
+                  8
+                ]
+              },
+              "resources_detailed": [
+                {
+                  "type": "Sheep",
+                  "number": 4,
+                  "pips": 3
+                },
+                {
+                  "type": "Ore",
+                  "number": 3,
+                  "pips": 2
+                },
+                {
+                  "type": "Wheat",
+                  "number": 8,
+                  "pips": 5
+                }
+              ],
+              "total_pips": 10,
+              "port": null,
+              "neighbors": [
+                24,
+                26,
+                36
+              ],
+              "score": 11.5,
+              "can_build": true,
+              "occupied": false
+            },
+            {
+              "node_id": 14,
+              "resources": {
+                "Wheat": [
+                  8
+                ],
+                "Wood": [
+                  3,
+                  4
+                ]
+              },
+              "resources_detailed": [
+                {
+                  "type": "Wheat",
+                  "number": 8,
+                  "pips": 5
+                },
+                {
+                  "type": "Wood",
+                  "number": 3,
+                  "pips": 2
+                },
+                {
+                  "type": "Wood",
+                  "number": 4,
+                  "pips": 3
+                }
+              ],
+              "total_pips": 10,
+              "port": null,
+              "neighbors": [
+                13,
+                15,
+                24
+              ],
+              "score": 11.0,
+              "can_build": true,
+              "occupied": false
+            },
+            {
+              "node_id": 44,
+              "resources": {
+                "Ore": [
+                  2
+                ],
+                "Wheat": [
+                  9,
+                  6
+                ]
+              },
+              "resources_detailed": [
+                {
+                  "type": "Ore",
+                  "number": 2,
+                  "pips": 1
+                },
+                {
+                  "type": "Wheat",
+                  "number": 9,
+                  "pips": 4
+                },
+                {
+                  "type": "Wheat",
+                  "number": 6,
+                  "pips": 5
+                }
+              ],
+              "total_pips": 10,
+              "port": null,
+              "neighbors": [
+                43,
+                45,
+                52
+              ],
+              "score": 11.0,
+              "can_build": true,
+              "occupied": false
+            }
+          ]
+        },
+        "success": true,
+        "error": null,
+        "execution_time_ms": 0.2,
+        "tokens": {
+          "input": 36,
+          "output": 725,
+          "total": 761
+        }
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-01-10T11:31:18.275410",
+    "total_calls": 1,
+    "successful": 1,
+    "failed": 0,
+    "total_time_ms": 0.42,
+    "tokens": {
+      "input": 42,
+      "output": 731,
+      "total": 773
+    },
+    "calls": [
+      {
+        "id": "call_1",
+        "name": "find_best_nodes",
+        "parameters": {
+          "min_pips": 10,
+          "reasoning": "Looking for high yield nodes for my first settlement placement. Priority on balanced resources and high probability numbers (6, 8, 5, 9)."
+        },
+        "result": {
+          "llm_reasoning": "Looking for high yield nodes for my first settlement placement. Priority on balanced resources and high probability numbers (6, 8, 5, 9).",
+          "query": {
+            "min_pips": 10,
+            "must_have_resource": null,
+            "exclude_blocked": true,
+            "prefer_port": false
+          },
+          "total_found": 8,
+          "nodes": [
+            {
+              "node_id": 43,
+              "resources": {
+                "Wheat": [
+                  9,
+                  6,
+                  9
+                ]
+              },
+              "resources_detailed": [
+                {
+                  "type": "Wheat",
+                  "number": 9,
+                  "pips": 4
+                },
+                {
+                  "type": "Wheat",
+                  "number": 6,
+                  "pips": 5
+                },
+                {
+                  "type": "Wheat",
+                  "number": 9,
+                  "pips": 4
+                }
+              ],
+              "total_pips": 13,
+              "port": null,
+              "neighbors": [
+                42,
+                44,
+                33
+              ],
+              "score": 13.5,
+              "can_build": true,
+              "occupied": false
+            },
+            {
+              "node_id": 42,
+              "resources": {
+                "Wheat": [
+                  9,
+                  9
+                ],
+                "Ore": [
+                  5
+                ]
+              },
+              "resources_detailed": [
+                {
+                  "type": "Wheat",
+                  "number": 9,
+                  "pips": 4
+                },
+                {
+                  "type": "Ore",
+                  "number": 5,
+                  "pips": 4
+                },
+                {
+                  "type": "Wheat",
+                  "number": 9,
+                  "pips": 4
+                }
+              ],
+              "total_pips": 12,
+              "port": null,
+              "neighbors": [
+                41,
+                43,
+                50
+              ],
+              "score": 13.0,
+              "can_build": true,
+              "occupied": false
+            },
+            {
+              "node_id": 12,
+              "resources": {
+                "Wood": [
+                  3
+                ],
+                "Brick": [
+                  6
+                ],
+                "Sheep": [
+                  5
+                ]
+              },
+              "resources_detailed": [
+                {
+                  "type": "Wood",
+                  "number": 3,
+                  "pips": 2
+                },
+                {
+                  "type": "Brick",
+                  "number": 6,
+                  "pips": 5
+                },
+                {
+                  "type": "Sheep",
+                  "number": 5,
+                  "pips": 4
+                }
+              ],
+              "total_pips": 11,
+              "port": null,
+              "neighbors": [
+                11,
+                13,
+                22
+              ],
+              "score": 12.5,
+              "can_build": true,
+              "occupied": false
+            },
+            {
+              "node_id": 41,
+              "resources": {
+                "Ore": [
+                  5
+                ],
+                "Wheat": [
+                  9
+                ],
+                "Brick": [
+                  10
+                ]
+              },
+              "resources_detailed": [
+                {
+                  "type": "Ore",
+                  "number": 5,
+                  "pips": 4
+                },
+                {
+                  "type": "Wheat",
+                  "number": 9,
+                  "pips": 4
+                },
+                {
+                  "type": "Brick",
+                  "number": 10,
+                  "pips": 3
+                }
+              ],
+              "total_pips": 11,
+              "port": null,
+              "neighbors": [
+                40,
+                42,
+                31
+              ],
+              "score": 12.5,
+              "can_build": true,
+              "occupied": false
+            },
+            {
+              "node_id": 11,
+              "resources": {
+                "Brick": [
+                  6
+                ],
+                "Sheep": [
+                  5
+                ],
+                "Wood": [
+                  12
+                ]
+              },
+              "resources_detailed": [
+                {
+                  "type": "Brick",
+                  "number": 6,
+                  "pips": 5
+                },
+                {
+                  "type": "Sheep",
+                  "number": 5,
+                  "pips": 4
+                },
+                {
+                  "type": "Wood",
+                  "number": 12,
+                  "pips": 1
+                }
+              ],
+              "total_pips": 10,
+              "port": null,
+              "neighbors": [
+                10,
+                12,
+                3
+              ],
+              "score": 11.5,
+              "can_build": true,
+              "occupied": false
+            },
+            {
+              "node_id": 25,
+              "resources": {
+                "Sheep": [
+                  4
+                ],
+                "Ore": [
+                  3
+                ],
+                "Wheat": [
+                  8
+                ]
+              },
+              "resources_detailed": [
+                {
+                  "type": "Sheep",
+                  "number": 4,
+                  "pips": 3
+                },
+                {
+                  "type": "Ore",
+                  "number": 3,
+                  "pips": 2
+                },
+                {
+                  "type": "Wheat",
+                  "number": 8,
+                  "pips": 5
+                }
+              ],
+              "total_pips": 10,
+              "port": null,
+              "neighbors": [
+                24,
+                26,
+                36
+              ],
+              "score": 11.5,
+              "can_build": true,
+              "occupied": false
+            },
+            {
+              "node_id": 14,
+              "resources": {
+                "Wheat": [
+                  8
+                ],
+                "Wood": [
+                  3,
+                  4
+                ]
+              },
+              "resources_detailed": [
+                {
+                  "type": "Wheat",
+                  "number": 8,
+                  "pips": 5
+                },
+                {
+                  "type": "Wood",
+                  "number": 3,
+                  "pips": 2
+                },
+                {
+                  "type": "Wood",
+                  "number": 4,
+                  "pips": 3
+                }
+              ],
+              "total_pips": 10,
+              "port": null,
+              "neighbors": [
+                13,
+                15,
+                24
+              ],
+              "score": 11.0,
+              "can_build": true,
+              "occupied": false
+            },
+            {
+              "node_id": 44,
+              "resources": {
+                "Ore": [
+                  2
+                ],
+                "Wheat": [
+                  9,
+                  6
+                ]
+              },
+              "resources_detailed": [
+                {
+                  "type": "Ore",
+                  "number": 2,
+                  "pips": 1
+                },
+                {
+                  "type": "Wheat",
+                  "number": 9,
+                  "pips": 4
+                },
+                {
+                  "type": "Wheat",
+                  "number": 6,
+                  "pips": 5
+                }
+              ],
+              "total_pips": 10,
+              "port": null,
+              "neighbors": [
+                43,
+                45,
+                52
+              ],
+              "score": 11.0,
+              "can_build": true,
+              "occupied": false
+            }
+          ]
+        },
+        "success": true,
+        "error": null,
+        "execution_time_ms": 0.32,
+        "tokens": {
+          "input": 42,
+          "output": 731,
+          "total": 773
+        }
+      }
+    ]
+  }
+]
