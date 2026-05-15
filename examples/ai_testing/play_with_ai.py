@@ -46,7 +46,7 @@ except Exception:
 # Add parent directories to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Set
 import webbrowser
 import threading
 import time
@@ -184,8 +184,14 @@ def _first_response_timestamp(player_dir: Path) -> str:
     return min(timestamps) if timestamps else ""
 
 
-def infer_players_from_session(session_dir: Path) -> List[str]:
+def infer_players_from_session(session_dir: Path, _visited: Optional[Set[str]] = None) -> List[str]:
     """Infer player names from session folders, preserving original turn order when possible."""
+    _visited = _visited or set()
+    session_key = str(session_dir.resolve())
+    if session_key in _visited:
+        return []
+    _visited.add(session_key)
+
     ignored = {"prompts", "responses", "intermediate"}
     players = []
     for child in sorted(session_dir.iterdir(), key=lambda p: p.name.lower()):
@@ -196,7 +202,44 @@ def infer_players_from_session(session_dir: Path) -> List[str]:
     # In setup, first response order is the player order. Fall back to name order for
     # empty/incomplete folders.
     players.sort(key=lambda item: (item[1] == "", item[1], item[0].lower()))
-    return [name for name, _timestamp in players]
+    local_inferred = [name for name, _timestamp in players]
+
+    parent_inferred: List[str] = []
+    metadata_file = session_dir / "session_metadata.json"
+    if metadata_file.exists():
+        try:
+            metadata = json.loads(metadata_file.read_text(encoding="utf-8"))
+        except Exception:
+            metadata = {}
+        derived_from = metadata.get("derived_from")
+        if derived_from:
+            try:
+                parent_inferred = infer_players_from_session(resolve_session_path(derived_from), _visited)
+            except Exception:
+                parent_inferred = []
+
+    if parent_inferred:
+        merged = list(parent_inferred)
+        seen = {name.lower() for name in merged}
+        for name in local_inferred:
+            if name.lower() not in seen:
+                merged.append(name)
+                seen.add(name.lower())
+        return merged
+
+    return local_inferred
+
+
+def infer_players_from_decisions(decisions: List[Dict[str, Any]]) -> List[str]:
+    """Infer player names from loaded replay decisions when session folders are absent."""
+    players: List[str] = []
+    seen = set()
+    for decision in decisions:
+        player_name = decision.get("player_name")
+        if player_name and player_name.lower() not in seen:
+            players.append(player_name)
+            seen.add(player_name.lower())
+    return players
 
 
 def load_replay_decisions(
@@ -262,7 +305,8 @@ def load_replay_decision_chain(
     session_dir: Path,
     max_decisions: Optional[int] = None,
     replay_through: Optional[str] = None,
-    replay_stop_before: Optional[str] = None
+    replay_stop_before: Optional[str] = None,
+    _visited: Optional[Set[str]] = None
 ) -> List[Dict[str, Any]]:
     """
     Load replay decisions needed to reconstruct a session.
@@ -271,6 +315,12 @@ def load_replay_decision_chain(
     prefix. To replay from a derived session, first replay its lineage metadata,
     then append this session's local decisions.
     """
+    _visited = _visited or set()
+    session_key = str(session_dir.resolve())
+    if session_key in _visited:
+        raise ValueError(f"Replay lineage cycle detected at {session_dir}")
+    _visited.add(session_key)
+
     prefix: List[Dict[str, Any]] = []
     metadata_file = session_dir / "session_metadata.json"
     if metadata_file.exists():
@@ -286,7 +336,8 @@ def load_replay_decision_chain(
             prefix = load_replay_decision_chain(
                 parent_session,
                 replay_through=replay_meta.get("replay_through"),
-                replay_stop_before=replay_meta.get("replay_stop_before")
+                replay_stop_before=replay_meta.get("replay_stop_before"),
+                _visited=_visited
             )
 
     local = load_replay_decisions(
@@ -1225,7 +1276,8 @@ def run_replay_viewer(
     ai_manager: AIManager,
     web_viz: WebVisualization,
     delay_seconds: float = 2.5,
-    source_session: Optional[Path] = None
+    source_session: Optional[Path] = None,
+    text_lead_seconds: float = 0.25
 ) -> None:
     """
     Build a recorded-session timeline and serve it to the browser.
@@ -1240,17 +1292,36 @@ def run_replay_viewer(
     print()
 
     try:
-        speech_prepare_callback = (
+        raw_speech_prepare_callback = (
             getattr(ai_manager.tts, "prepare_blocking", None)
             or getattr(ai_manager.tts, "speak_blocking", None)
             or getattr(ai_manager.tts, "speak", None)
         )
-        speech_play_callback = getattr(ai_manager.tts, "speak", None)
+        raw_speech_play_callback = (
+            getattr(ai_manager.tts, "speak_blocking", None)
+            or getattr(ai_manager.tts, "speak", None)
+        )
+
+        def speech_prepare_callback(player_name: str, message: str) -> None:
+            if raw_speech_prepare_callback:
+                raw_speech_prepare_callback(
+                    ai_manager.get_tts_speaker_key(player_name),
+                    message,
+                )
+
+        def speech_play_callback(player_name: str, message: str) -> None:
+            if raw_speech_play_callback:
+                raw_speech_play_callback(
+                    ai_manager.get_tts_speaker_key(player_name),
+                    message,
+                )
+
         web_viz.enable_replay_mode(
             source_session=str(source_session or ai_manager.get_session_path()),
             delay_seconds=delay_seconds,
             speech_prepare_callback=speech_prepare_callback,
             speech_play_callback=speech_play_callback,
+            text_lead_seconds=text_lead_seconds,
         )
 
         game_manager.start_game()
@@ -1298,6 +1369,7 @@ def run_replay_viewer(
         print(f"[REPLAY] Timeline ready: {len(web_viz.replay_timeline)} snapshots")
         print("[WEB] Board: http://localhost:5000/unified")
         print(f"[REPLAY] Browser playback delay: {delay_seconds:.1f}s")
+        print(f"[REPLAY] Text lead before action: {text_lead_seconds:.2f}s")
         print("=" * 70)
 
         web_viz.seek_replay(0, speak=False)
@@ -1365,8 +1437,12 @@ def main():
                        help="Do not rebroadcast recorded say_outloud chat while fast-replaying.")
     parser.add_argument("--watch-replay", action="store_true",
                        help="Play a recorded session visually and stop when the recording ends. No LLM calls are made.")
+    parser.add_argument("--analyse-game", action="store_true",
+                       help="Open a recorded session as a visual replay with per-decision analysis.")
     parser.add_argument("--replay-delay", type=float, default=2.5,
                        help="Seconds to wait between recorded decisions in --watch-replay mode.")
+    parser.add_argument("--replay-text-lead", type=float, default=0.25,
+                       help="Seconds to show recorded chat before rendering that step's game action.")
     parser.add_argument("--replay-speak", action="store_true",
                        help="Speak recorded say_outloud chat during replay using the configured cached TTS provider.")
     args = parser.parse_args()
@@ -1409,8 +1485,11 @@ def main():
         print("[SETUP] Browser settings accepted")
 
     replay_session_ref = args.replay_session or args.resume_session
+    if args.analyse_game:
+        args.watch_replay = True
+
     if args.watch_replay and not replay_session_ref:
-        parser.error("--watch-replay requires --replay-session or --resume-session")
+        parser.error("--watch-replay/--analyse-game requires --replay-session or --resume-session")
 
     replay_session_path = resolve_session_path(replay_session_ref) if replay_session_ref else None
     if (
@@ -1420,6 +1499,7 @@ def main():
         and not os.environ.get("PYCATAN_TTS_CACHE_DIR")
     ):
         os.environ["AI_TTS_CACHE_DIR"] = str(replay_session_path / "tts_cache")
+        os.environ["AI_TTS_CACHE_DIR_AUTO"] = "replay_session_default"
         print(f"[REPLAY] TTS cache: {os.environ['AI_TTS_CACHE_DIR']}")
     elif not args.watch_replay and not os.environ.get("AI_TTS_CACHE_DIR") and not os.environ.get("PYCATAN_TTS_CACHE_DIR"):
         print("[TTS] Voice cache: per-session tts_cache/")
@@ -1436,6 +1516,8 @@ def main():
         )
         replay_decisions_by_player = group_replay_decisions(replay_decision_list)
         replay_player_names = infer_players_from_session(replay_session_path)
+        if not replay_player_names:
+            replay_player_names = infer_players_from_decisions(replay_decision_list)
         print(f"[REPLAY] Source: {replay_session_path}")
         print(f"[REPLAY] Loaded {len(replay_decision_list)} parsed decisions")
         if (replay_session_path / "session_metadata.json").exists():
@@ -1494,7 +1576,10 @@ def main():
     if args.watch_replay:
         send_to_llm = False
         manual_actions = False
-        print("[REPLAY] Watch mode enabled: using recorded decisions only")
+        if args.analyse_game:
+            print("[ANALYSE] Analysis replay enabled: using recorded decisions only")
+        else:
+            print("[REPLAY] Watch mode enabled: using recorded decisions only")
 
     print(f"[MODE] LLM: {'ON' if send_to_llm else 'OFF'} | Actions: {'Manual' if manual_actions else 'Auto'}")
     print(f"[CONFIG] {ai_config.llm.provider}/{ai_config.llm.model_name}")
@@ -1517,7 +1602,13 @@ def main():
             replay_decision_list,
             args.replay_through,
             args.replay_stop_before,
-            mode="watch_replay_visual_playback" if args.watch_replay else "fast_action_replay_then_live_ai"
+            mode=(
+                "analyse_game_visual_playback"
+                if args.analyse_game
+                else "watch_replay_visual_playback"
+                if args.watch_replay
+                else "fast_action_replay_then_live_ai"
+            )
         )
         print(f"[REPLAY] New derived session: {ai_manager.get_session_path()}")
     
@@ -1528,7 +1619,8 @@ def main():
             ai_manager,
             web_viz,
             delay_seconds=max(0.0, args.replay_delay),
-            source_session=replay_session_path
+            source_session=replay_session_path,
+            text_lead_seconds=max(0.0, args.replay_text_lead)
         )
     else:
         run_game(game_manager, ai_manager, web_viz)

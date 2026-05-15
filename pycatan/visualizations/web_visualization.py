@@ -8,6 +8,7 @@ import copy
 import threading
 import time
 from datetime import datetime
+from pathlib import Path
 from typing import Dict, Any, Optional, List
 from queue import Queue, Empty
 import webbrowser
@@ -24,6 +25,7 @@ from .visualization import Visualization
 from pycatan.management.actions import Action, ActionResult, GameState
 from pycatan.config.board_definition import board_definition
 from pycatan.management.log_events import EventType, LogEntry, create_log_entry
+from pycatan.ai.session_analysis import build_decision_analysis, build_turn_flow
 
 
 class WebVisualization(Visualization):
@@ -86,6 +88,7 @@ class WebVisualization(Visualization):
         self.replay_index: int = 0
         self.replay_speech_prepare_callback = None
         self.replay_speech_play_callback = None
+        self.replay_text_lead_seconds: float = 0.25
         
         # SSE (Server-Sent Events) for real-time updates
         self.sse_clients: List[Queue] = []
@@ -248,6 +251,14 @@ class WebVisualization(Visualization):
             if snapshot is None:
                 return jsonify({"error": "Replay snapshot not found"}), 404
             return jsonify(snapshot)
+
+        @self.app.route('/api/replay/analysis/<int:index>')
+        def get_replay_analysis(index: int):
+            """Get a decision-analysis trace for a replay snapshot."""
+            analysis = self.get_replay_analysis(index)
+            if analysis is None:
+                return jsonify({"error": "Replay analysis not available"}), 404
+            return jsonify(analysis)
         
         @self.app.route('/api/board_mapping')
         def get_board_mapping():
@@ -767,12 +778,14 @@ class WebVisualization(Visualization):
         delay_seconds: float = 2.5,
         speech_callback=None,
         speech_prepare_callback=None,
-        speech_play_callback=None
+        speech_play_callback=None,
+        text_lead_seconds: float = 0.25
     ) -> None:
         """Enable browser-controlled replay timeline mode."""
         self.replay_enabled = True
         self.replay_source_session = source_session
         self.replay_delay_seconds = delay_seconds
+        self.replay_text_lead_seconds = max(0.0, text_lead_seconds)
         self.replay_speech_prepare_callback = speech_prepare_callback or speech_callback
         self.replay_speech_play_callback = speech_play_callback or speech_callback
         self.replay_timeline = []
@@ -818,6 +831,37 @@ class WebVisualization(Visualization):
             ],
         }
 
+    def get_replay_analysis(self, index: int) -> Optional[Dict[str, Any]]:
+        """Return AI decision analysis for the snapshot at index."""
+        if not self.replay_enabled or not self.replay_timeline:
+            return None
+
+        index = max(0, min(index, len(self.replay_timeline) - 1))
+        snapshot = self.replay_timeline[index]
+        decision = snapshot.get("decision") or {}
+        if not decision:
+            return {
+                "available": False,
+                "index": index,
+                "total": len(self.replay_timeline),
+                "message": "This replay point does not contain an AI decision.",
+            }
+
+        latest_action = self._snapshot_latest_action(snapshot)
+        analysis = build_decision_analysis(
+            Path(self.replay_source_session or "."),
+            decision,
+            action_result=latest_action,
+        )
+        analysis["index"] = index
+        analysis["total"] = len(self.replay_timeline)
+        analysis["replay_label"] = snapshot.get("label", "")
+        analysis["turn_flow"] = build_turn_flow(
+            Path(self.replay_source_session or "."),
+            self._collect_turn_decision_items(index),
+        )
+        return analysis
+
     def seek_replay(self, index: int, speak: bool = False) -> Optional[Dict[str, Any]]:
         """Restore a captured replay snapshot and broadcast the restored UI state."""
         if not self.replay_enabled or not self.replay_timeline:
@@ -825,6 +869,11 @@ class WebVisualization(Visualization):
 
         index = max(0, min(index, len(self.replay_timeline) - 1))
         previous_index = self.replay_index
+        previous_snapshot = (
+            self.replay_timeline[previous_index]
+            if 0 <= previous_index < len(self.replay_timeline)
+            else None
+        )
         previous_chat_count = (
             len(self.replay_timeline[previous_index].get("chat_history") or [])
             if 0 <= previous_index < len(self.replay_timeline)
@@ -832,57 +881,132 @@ class WebVisualization(Visualization):
         )
 
         snapshot = self.replay_timeline[index]
-        self.replay_index = index
-        self.current_game_state = copy.deepcopy(snapshot.get("game_state"))
-        self.action_history = copy.deepcopy(snapshot.get("action_history") or [])
-        self.chat_history = copy.deepcopy(snapshot.get("chat_history") or [])
 
-        self.player_chat_messages = {}
-        for chat in self.chat_history[-20:]:
-            player_name = chat.get("player_name")
-            message = chat.get("message")
-            if player_name and message:
-                self.player_chat_messages[player_name] = message
-
-        payload = {
-            "index": self.replay_index,
-            "total": len(self.replay_timeline),
-            "label": snapshot.get("label", ""),
-            "decision": snapshot.get("decision", {}),
-            "game_state": self.current_game_state,
-            "action_history": self.action_history,
-            "chat_history": self.chat_history,
-            "delay_seconds": self.replay_delay_seconds,
-        }
-
-        # For forward playback with speech, keep the board/log render behind the
-        # audio step. Otherwise SSE can paint the action before the recording
-        # request finishes, which makes replay feel out of sync.
         messages_to_speak = []
         if speak and index > previous_index:
-            new_messages = self.chat_history[previous_chat_count:]
+            new_messages = (snapshot.get("chat_history") or [])[previous_chat_count:]
             for chat in new_messages:
                 player_name = chat.get("player_name")
                 message = chat.get("message")
                 if player_name and message:
                     messages_to_speak.append((player_name, message))
 
+        def apply_snapshot_state(
+            source_snapshot: Dict[str, Any],
+            phase: str = "action",
+            chat_history: Optional[List[Dict[str, Any]]] = None,
+            action_history: Optional[List[Dict[str, Any]]] = None,
+            game_state: Optional[Dict[str, Any]] = None
+        ) -> Dict[str, Any]:
+            self.replay_index = index
+            self.current_game_state = copy.deepcopy(
+                game_state if game_state is not None else source_snapshot.get("game_state")
+            )
+            self.action_history = copy.deepcopy(
+                action_history if action_history is not None else source_snapshot.get("action_history") or []
+            )
+            self.chat_history = copy.deepcopy(
+                chat_history if chat_history is not None else source_snapshot.get("chat_history") or []
+            )
+
+            self.player_chat_messages = {}
+            for chat in self.chat_history[-20:]:
+                player_name = chat.get("player_name")
+                message = chat.get("message")
+                if player_name and message:
+                    self.player_chat_messages[player_name] = message
+
+            return {
+                "index": self.replay_index,
+                "total": len(self.replay_timeline),
+                "label": source_snapshot.get("label", ""),
+                "decision": source_snapshot.get("decision", {}),
+                "game_state": self.current_game_state,
+                "action_history": self.action_history,
+                "chat_history": self.chat_history,
+                "delay_seconds": self.replay_delay_seconds,
+                "phase": phase,
+            }
+
         # Wait until the audio is available before painting the action. Playback
-        # itself stays async below, so a long voice line does not freeze Flask.
+        # then runs before the final action snapshot is painted, keeping table
+        # talk visibly ahead of the game move that belongs to it.
         if messages_to_speak and self.replay_speech_prepare_callback:
             for player_name, message in messages_to_speak:
                 self.replay_speech_prepare_callback(player_name, message)
 
-        self._broadcast_to_clients({
-            "type": "replay_seek",
-            "payload": payload,
-        })
+        if messages_to_speak and previous_snapshot:
+            speech_payload = apply_snapshot_state(
+                snapshot,
+                phase="speech",
+                chat_history=snapshot.get("chat_history") or [],
+                action_history=previous_snapshot.get("action_history") or [],
+                game_state=previous_snapshot.get("game_state"),
+            )
+            self._broadcast_to_clients({
+                "type": "replay_seek",
+                "payload": speech_payload,
+            })
+            time.sleep(self.replay_text_lead_seconds)
 
         if messages_to_speak and self.replay_speech_play_callback:
             for player_name, message in messages_to_speak:
                 self.replay_speech_play_callback(player_name, message)
 
+        payload = apply_snapshot_state(snapshot, phase="action")
+        self._broadcast_to_clients({
+            "type": "replay_seek",
+            "payload": payload,
+        })
+
         return payload
+
+    def _snapshot_latest_action(self, snapshot: Dict[str, Any]) -> Dict[str, Any]:
+        actions = snapshot.get("action_history") or []
+        return copy.deepcopy(actions[-1]) if actions else {}
+
+    def _collect_turn_decision_items(self, index: int) -> List[Dict[str, Any]]:
+        """Collect snapshot decisions that belong to the same player turn."""
+        if not (0 <= index < len(self.replay_timeline)):
+            return []
+
+        target_snapshot = self.replay_timeline[index]
+        target_decision = target_snapshot.get("decision") or {}
+        target_action = self._snapshot_latest_action(target_snapshot)
+        target_turn = target_action.get("turn_number")
+        target_player = target_decision.get("player_name")
+
+        items: List[Dict[str, Any]] = []
+        for snap in self.replay_timeline:
+            decision = snap.get("decision") or {}
+            if not decision:
+                continue
+            action = self._snapshot_latest_action(snap)
+            same_turn = (
+                target_turn not in (None, 0)
+                and action.get("turn_number") == target_turn
+            )
+            same_setup_player = (
+                target_turn in (None, 0)
+                and decision.get("player_name") == target_player
+                and snap.get("index") == index
+            )
+            if same_turn or same_setup_player:
+                items.append({
+                    "snapshot_index": snap.get("index"),
+                    "label": snap.get("label", ""),
+                    "decision": decision,
+                    "action_result": action,
+                })
+
+        if not items:
+            items.append({
+                "snapshot_index": index,
+                "label": target_snapshot.get("label", ""),
+                "decision": target_decision,
+                "action_result": target_action,
+            })
+        return items
     
     def _map_action_to_event(self, action: Action, result: ActionResult) -> tuple:
         """
@@ -1011,6 +1135,7 @@ class WebVisualization(Visualization):
         # Create display data from log entry
         action_data = {
             'timestamp': log_entry.timestamp.strftime("%H:%M:%S.%f")[:-3],
+            'turn_number': turn_number,
             'action_type': action.action_type.name,
             'event_type': event_type.value,
             'player': action.player_id,

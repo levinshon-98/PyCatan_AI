@@ -81,6 +81,7 @@ class AIManager:
         self.memory_compactor = MemoryCompactor(self.config)
         self.logger = AILogger(session_dir=session_dir)
         self._configure_session_tts_cache()
+        self._sync_default_tts_voice_slots()
         
         # Agent tools and executor
         self.agent_tools = AgentTools()
@@ -97,6 +98,7 @@ class AIManager:
         
         # Agent state management
         self.agents: Dict[str, AgentState] = {}
+        self._tts_speaker_keys: Dict[str, str] = {}
         
         # Chat history (shared between all agents)
         self.chat_history: List[Dict[str, Any]] = []
@@ -126,12 +128,17 @@ class AIManager:
     def _configure_session_tts_cache(self) -> None:
         """Default generated voice clips to this session's log directory."""
         existing_cache_dir = os.environ.get("AI_TTS_CACHE_DIR") or os.environ.get("PYCATAN_TTS_CACHE_DIR")
-        if existing_cache_dir:
-            self._write_tts_cache_metadata(Path(existing_cache_dir), source="env")
+        auto_cache_mode = os.environ.get("AI_TTS_CACHE_DIR_AUTO", "")
+        if existing_cache_dir and auto_cache_mode != "session_default":
+            self._write_tts_cache_metadata(
+                Path(existing_cache_dir),
+                source=auto_cache_mode or "env"
+            )
             return
 
         cache_dir = self.logger.get_session_path() / "tts_cache"
         os.environ["AI_TTS_CACHE_DIR"] = str(cache_dir)
+        os.environ["AI_TTS_CACHE_DIR_AUTO"] = "session_default"
         self._write_tts_cache_metadata(cache_dir, source="session_default")
 
     def _write_tts_cache_metadata(self, cache_dir: Path, source: str) -> None:
@@ -152,6 +159,26 @@ class AIManager:
             )
         except Exception as exc:
             print(f"[TTS] Could not write cache metadata: {exc}")
+
+    def _sync_default_tts_voice_slots(self) -> None:
+        """
+        Treat legacy Alice/Bob/Charlie/Diana voice settings as player slots.
+
+        Older .env files used name-based keys. After moving to slot-based voices,
+        those should still mean Player 1/2/3/4 even when the display names are
+        changed to something like hadar/shon/ziv.
+        """
+        default_slot_names = ["ALICE", "BOB", "CHARLIE", "DIANA"]
+        for index, legacy_name in enumerate(default_slot_names, start=1):
+            slot_suffix = f"PLAYER_{index}"
+            env_pairs = [
+                (f"GEMINI_TTS_VOICE_{slot_suffix}", f"GEMINI_TTS_VOICE_{legacy_name}"),
+                (f"ELEVENLABS_TTS_VOICE_{slot_suffix}", f"ELEVENLABS_TTS_VOICE_{legacy_name}"),
+                (f"ELEVENLABS_VOICE_{slot_suffix}", f"ELEVENLABS_VOICE_{legacy_name}"),
+            ]
+            for slot_key, legacy_key in env_pairs:
+                if not os.environ.get(slot_key) and os.environ.get(legacy_key):
+                    os.environ[slot_key] = os.environ[legacy_key]
     
     @property
     def llm_client(self) -> GeminiClient:
@@ -205,6 +232,8 @@ class AIManager:
             player_color=player_color
         )
         self.agents[player_name] = agent
+        self._tts_speaker_keys[player_name] = f"player_{player_id + 1}"
+        self._sync_legacy_tts_voice_env(player_name, player_id)
         
         print(f"[AI] Registered AI agent: {player_name} (ID: {player_id}, Color: {player_color})")
         return agent
@@ -217,7 +246,42 @@ class AIManager:
         """Remove an agent."""
         if player_name in self.agents:
             del self.agents[player_name]
+            self._tts_speaker_keys.pop(player_name, None)
             print(f"[AI] Unregistered agent: {player_name}")
+
+    def get_tts_speaker_key(self, player_name: str) -> str:
+        """Return the stable voice/cache identity for a display player name."""
+        if player_name in self._tts_speaker_keys:
+            return self._tts_speaker_keys[player_name]
+
+        agent = self.agents.get(player_name)
+        if agent:
+            speaker_key = f"player_{agent.player_id + 1}"
+            self._tts_speaker_keys[player_name] = speaker_key
+            return speaker_key
+
+        return player_name
+
+    def _sync_legacy_tts_voice_env(self, player_name: str, player_id: int) -> None:
+        """
+        Keep old name-based .env voice overrides working for default sessions.
+
+        New runs use PLAYER_1/PLAYER_2/etc. for stable voices, but many local
+        .env files may still contain GEMINI_TTS_VOICE_ALICE-style overrides.
+        """
+        legacy_suffix = re.sub(r"[^A-Za-z0-9]+", "_", player_name or "").strip("_").upper()
+        if not legacy_suffix:
+            return
+
+        slot_suffix = f"PLAYER_{player_id + 1}"
+        env_pairs = [
+            (f"GEMINI_TTS_VOICE_{slot_suffix}", f"GEMINI_TTS_VOICE_{legacy_suffix}"),
+            (f"ELEVENLABS_TTS_VOICE_{slot_suffix}", f"ELEVENLABS_TTS_VOICE_{legacy_suffix}"),
+            (f"ELEVENLABS_VOICE_{slot_suffix}", f"ELEVENLABS_VOICE_{legacy_suffix}"),
+        ]
+        for slot_key, legacy_key in env_pairs:
+            if not os.environ.get(slot_key) and os.environ.get(legacy_key):
+                os.environ[slot_key] = os.environ[legacy_key]
     
     # === Core Processing ===
     
@@ -1782,7 +1846,7 @@ class AIManager:
 
         # Optional non-blocking text-to-speech.
         if speak:
-            self.tts.speak(from_player, message)
+            self.tts.speak(self.get_tts_speaker_key(from_player), message)
         
         # Display to console
         print(f"[CHAT] {from_player}: \"{message}\"")

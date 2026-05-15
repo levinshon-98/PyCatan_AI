@@ -59,6 +59,15 @@ def _clean_player_env_name(player_name: str) -> str:
     return cleaned.upper()
 
 
+def _speaker_env_suffixes(player_name: str) -> list[str]:
+    suffix = _clean_player_env_name(player_name)
+    suffixes = [suffix] if suffix else []
+    compact = suffix.replace("_", "")
+    if compact and compact not in suffixes:
+        suffixes.append(compact)
+    return suffixes
+
+
 def _pcm_to_wav_bytes(pcm: bytes, sample_rate: int = 24000) -> bytes:
     buffer = io.BytesIO()
     with wave.open(buffer, "wb") as wav_file:
@@ -228,11 +237,11 @@ class GeminiTTS:
             print(f"[TTS] Gemini prepare error: {exc}")
 
     def _voice_name_for_player(self, player_name: str) -> str:
-        suffix = _clean_player_env_name(player_name)
-        return (
-            os.environ.get(f"GEMINI_TTS_VOICE_{suffix}")
-            or self.config.voice_name
-        ).strip()
+        for suffix in _speaker_env_suffixes(player_name):
+            voice_name = os.environ.get(f"GEMINI_TTS_VOICE_{suffix}")
+            if voice_name:
+                return voice_name.strip()
+        return self.config.voice_name.strip()
 
     def _synthesize(self, player_name: str, text: str) -> bytes:
         voice_name = self._voice_name_for_player(player_name)

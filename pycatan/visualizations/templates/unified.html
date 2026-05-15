@@ -34,6 +34,7 @@
                 <button class="replay-btn" id="replay-end" title="End">&gt;|</button>
                 <input id="replay-slider" class="replay-slider" type="range" min="0" max="0" value="0">
                 <span class="replay-label" id="replay-label">0 / 0</span>
+                <button class="replay-btn replay-analyse" id="replay-analyse" title="Analyse current decision">Analyse</button>
             </div>
             <div class="nav-status">
                 <span class="status-dot live"></span>
@@ -206,6 +207,22 @@
             </div>
         </div>
     </template>
+
+    <div id="analysis-modal" class="analysis-modal hidden" role="dialog" aria-modal="true" aria-labelledby="analysis-title">
+        <div class="analysis-dialog">
+            <div class="analysis-header">
+                <div>
+                    <div class="analysis-kicker">Decision Trace</div>
+                    <h2 id="analysis-title">AI Decision Analysis</h2>
+                    <div id="analysis-subtitle" class="analysis-subtitle"></div>
+                </div>
+                <button class="analysis-close" onclick="closeReplayAnalysis()" title="Close">x</button>
+            </div>
+            <div id="analysis-body" class="analysis-body">
+                <div class="analysis-loading">Loading analysis...</div>
+            </div>
+        </div>
+    </div>
 
     <script src="{{ url_for('static', filename='js/gameData.js') }}"></script>
     <script src="{{ url_for('static', filename='js/board.js') }}"></script>

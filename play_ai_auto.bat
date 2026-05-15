@@ -45,6 +45,13 @@ if exist ".venv\Scripts\python.exe" (
 
 echo.
 
+set WATCH_REPLAY=0
+if not "%~1"=="" (
+    for %%A in (%*) do (
+        if /I "%%~A"=="--watch-replay" set WATCH_REPLAY=1
+    )
+)
+
 REM Start Web Viewer in a new window
 echo [1/3] Starting AI Viewer...
 start "AI Viewer - http://localhost:5001" cmd /k "%PYTHON_CMD% examples\ai_testing\web_viewer.py"
@@ -63,9 +70,13 @@ echo [OK] LLM Logger console opened
 echo.
 
 REM Open browser for Unified View (combines game board and AI viewer)
-echo [BROWSER] Opening Unified View...
-timeout /t 1 /nobreak >nul
-start http://localhost:5000/unified
+if "%WATCH_REPLAY%"=="1" (
+    echo [BROWSER] Watch replay mode: browser will open when the replay timeline is ready.
+) else (
+    echo [BROWSER] Opening Unified View...
+    timeout /t 1 /nobreak >nul
+    start http://localhost:5000/unified
+)
 
 echo.
 echo [NOTE] Alternative views available:
@@ -87,14 +98,14 @@ echo.
 echo    Custom names: --names Alice Bob Charlie (also sets player count!)
 echo    Chat language: --hebrew-chat or --english-chat
 echo    Replay: --replay-session session_YYYYMMDD_HHMMSS --replay-stop-before Alice:6
-echo    Watch replay: --watch-replay --replay-session session_YYYYMMDD_HHMMSS --replay-delay 2.5
+echo    Watch replay: --watch-replay --replay-session session_YYYYMMDD_HHMMSS --replay-delay 2.5 --replay-text-lead 0.25
 echo    Replay clean chat: add --replay-skip-chat to hide old recorded table talk
 echo    Examples:
 echo      play_ai_auto.bat --names Dan Yael          (2 players)
 echo      play_ai_auto.bat --names A B C D           (4 players)
 echo      play_ai_auto.bat --hebrew-chat
 echo      play_ai_auto.bat --replay-session session_20260515_205233 --replay-stop-before Alice:6 --replay-skip-chat
-echo      play_ai_auto.bat --watch-replay --replay-session session_20260515_211742 --replay-delay 2.5
+echo      play_ai_auto.bat --watch-replay --replay-session session_20260515_211742 --replay-delay 2.5 --replay-text-lead 0.5
 echo ================================================================================
 echo.
 

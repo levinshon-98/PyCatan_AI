@@ -989,10 +989,15 @@ async function initReplayControls() {
             pauseReplay();
             seekReplay(replayState.total - 1, false);
         });
+        bindReplayButton('replay-analyse', () => {
+            pauseReplay();
+            openReplayAnalysis(replayState.index);
+        });
 
         updateReplayLabel();
         await seekReplay(replayState.index, false);
         if (replayState.total > 1) {
+            await waitForReplayEventStream(1500);
             playReplay();
         }
     } catch (error) {
@@ -1003,6 +1008,24 @@ async function initReplayControls() {
 function bindReplayButton(id, handler) {
     const button = document.getElementById(id);
     if (button) button.addEventListener('click', handler);
+}
+
+function waitForReplayEventStream(timeoutMs) {
+    if (window.replayServerEventsConnected) {
+        return Promise.resolve();
+    }
+
+    return new Promise(resolve => {
+        const timeout = setTimeout(done, timeoutMs);
+
+        function done() {
+            clearTimeout(timeout);
+            document.removeEventListener('server-events-connected', done);
+            resolve();
+        }
+
+        document.addEventListener('server-events-connected', done, { once: true });
+    });
 }
 
 async function seekReplay(index, speak) {
@@ -1100,6 +1123,287 @@ window.replayControls = {
     pause: pauseReplay,
     play: playReplay
 };
+
+// ========== Replay Decision Analysis ==========
+async function openReplayAnalysis(index) {
+    const modal = document.getElementById('analysis-modal');
+    const body = document.getElementById('analysis-body');
+    if (!modal || !body) return;
+
+    modal.classList.remove('hidden');
+    body.innerHTML = '<div class="analysis-loading">Loading analysis...</div>';
+
+    try {
+        const response = await fetch(`/api/replay/analysis/${index}`);
+        if (!response.ok) {
+            throw new Error(`Analysis unavailable (${response.status})`);
+        }
+        const analysis = await response.json();
+        renderReplayAnalysis(analysis);
+    } catch (error) {
+        body.innerHTML = `<div class="analysis-empty">${escapeHtml(error.message)}</div>`;
+    }
+}
+
+function closeReplayAnalysis() {
+    const modal = document.getElementById('analysis-modal');
+    if (modal) modal.classList.add('hidden');
+}
+
+function renderReplayAnalysis(analysis) {
+    const title = document.getElementById('analysis-title');
+    const subtitle = document.getElementById('analysis-subtitle');
+    const body = document.getElementById('analysis-body');
+    if (!body) return;
+
+    if (!analysis || analysis.available === false) {
+        if (title) title.textContent = 'AI Decision Analysis';
+        if (subtitle) subtitle.textContent = '';
+        body.innerHTML = `<div class="analysis-empty">${escapeHtml(analysis?.message || 'No AI decision at this replay point.')}</div>`;
+        return;
+    }
+
+    const worldview = analysis.worldview || {};
+    const task = worldview.task_context || {};
+    const memory = worldview.memory_before || {};
+    const social = worldview.social_context || {};
+    const action = analysis.action || {};
+    const result = analysis.engine_result || {};
+
+    if (title) title.textContent = analysis.label || 'AI Decision Analysis';
+    if (subtitle) {
+        subtitle.textContent = `${analysis.session || ''} | replay ${Number(analysis.index || 0) + 1} / ${analysis.total || 0}`;
+    }
+
+    body.innerHTML = `
+        ${renderTurnFlow(analysis.turn_flow || [])}
+        <div class="analysis-flow">
+            ${renderFlowNode('Worldview', 'What the agent could see', `
+                ${renderKeyText('What just happened', task.what_just_happened)}
+                ${renderKeyText('Instructions', task.instructions)}
+                ${renderObservedFacts(worldview.observed_facts || {})}
+                ${renderMemory(memory)}
+                ${renderSocialContext(social)}
+                ${renderAllowedActions(worldview.allowed_actions || [])}
+                ${renderCompactGameState(worldview)}
+            `)}
+            ${renderToolTrace(analysis.tool_trace || [])}
+            ${renderFlowNode('Thinking', 'Private reasoning from the response', `
+                <div class="analysis-text">${escapeHtml(analysis.thinking || 'No internal thinking recorded.')}</div>
+            `)}
+            ${renderFlowNode('Memory Update', 'What was written for future turns', `
+                <div class="analysis-text">${escapeHtml(analysis.memory_write || 'No memory update recorded.')}</div>
+            `)}
+            ${renderFlowNode('Communication', 'What other players heard', `
+                <div class="analysis-quote">${escapeHtml(analysis.say_outloud || 'No public message recorded.')}</div>
+            `)}
+            ${renderFlowNode('Action', 'Final selected move', `
+                <div class="analysis-action-type">${escapeHtml(action.type || 'Unknown action')}</div>
+                ${renderJsonBlock(action.parameters || {}, 'Parameters')}
+            `)}
+            ${renderFlowNode('Engine Result', 'What the game engine accepted or rejected', `
+                <div class="analysis-result ${result.success === false ? 'fail' : 'success'}">
+                    ${result.success === false ? 'Failed' : 'Succeeded'}
+                </div>
+                ${renderKeyText('Message', result.message || result.structured || '')}
+                ${renderJsonBlock(result.data || {}, 'Result Data')}
+            `)}
+        </div>
+        <details class="analysis-raw">
+            <summary>Raw prompt and response</summary>
+            ${renderJsonBlock(analysis.raw || {}, 'Raw')}
+        </details>
+    `;
+}
+
+function renderFlowNode(title, subtitle, innerHtml) {
+    return `
+        <section class="analysis-node">
+            <div class="analysis-node-marker"></div>
+            <div class="analysis-node-content">
+                <div class="analysis-node-title">${escapeHtml(title)}</div>
+                <div class="analysis-node-subtitle">${escapeHtml(subtitle || '')}</div>
+                <div class="analysis-node-body">${innerHtml}</div>
+            </div>
+        </section>
+    `;
+}
+
+function renderTurnFlow(items) {
+    if (!items.length) return '';
+    return `
+        <div class="analysis-turn-flow">
+            <div class="analysis-section-title">Full Player Turn</div>
+            <div class="analysis-turn-steps">
+                ${items.map(item => `
+                    <button class="analysis-turn-step ${item.snapshot_index === replayState.index ? 'active' : ''}"
+                            onclick="seekReplay(${Number(item.snapshot_index || 0)}, false); openReplayAnalysis(${Number(item.snapshot_index || 0)})">
+                        <span>${escapeHtml(item.player_name || 'Player')} #${escapeHtml(String(item.request_number || '?'))}</span>
+                        <strong>${escapeHtml(item.action_type || 'decision')}</strong>
+                    </button>
+                `).join('')}
+            </div>
+        </div>
+    `;
+}
+
+function renderMemory(memory) {
+    if (!memory || Object.keys(memory).length === 0) {
+        return renderKeyText('Memory before decision', 'No memory was included in this prompt.');
+    }
+    return `
+        <div class="analysis-memory">
+            <div class="analysis-field-label">Memory before decision</div>
+            ${renderKeyText('Last note', memory.note_from_last_turn || memory.previous_note_to_self || '')}
+            ${memory.long_term_summary ? renderKeyText('Compacted long-term memory', memory.long_term_summary) : ''}
+            ${Array.isArray(memory.recent_notes) ? `
+                <div class="analysis-field-label">Recent notes</div>
+                <ol class="analysis-list">
+                    ${memory.recent_notes.map(note => `<li>${escapeHtml(typeof note === 'string' ? note : (note.note || JSON.stringify(note)))}</li>`).join('')}
+                </ol>
+            ` : ''}
+        </div>
+    `;
+}
+
+function renderObservedFacts(facts) {
+    if (!facts || Object.keys(facts).length === 0) return '';
+    const dice = facts.dice;
+    const diceText = Array.isArray(dice) && dice.length
+        ? `${dice.join(' + ')} = ${facts.dice_total ?? dice.reduce((sum, value) => sum + Number(value || 0), 0)}`
+        : 'Not rolled yet / not visible';
+    const playerState = facts.current_player_state || {};
+
+    return `
+        <div class="analysis-observed">
+            <div class="analysis-field-label">Observed game facts from prompt</div>
+            <div class="analysis-fact-grid">
+                <div><span>Current</span><strong>${escapeHtml(facts.current_player || 'Unknown')}</strong></div>
+                <div><span>Phase</span><strong>${escapeHtml(facts.phase || 'Unknown')}</strong></div>
+                <div><span>Dice</span><strong>${escapeHtml(diceText)}</strong></div>
+                <div><span>Robber hex</span><strong>${escapeHtml(String(facts.robber_hex ?? 'Unknown'))}</strong></div>
+            </div>
+            ${Object.keys(playerState).length ? renderJsonBlock(playerState, `${facts.current_player || 'Current player'} visible state`) : ''}
+        </div>
+    `;
+}
+
+function renderSocialContext(social) {
+    const chats = social.recent_chat || [];
+    const summaries = social.last_summaries || social.recent_summaries || [];
+    const trades = social.pending_trades || [];
+    const knownKeys = new Set(['recent_chat', 'last_summaries', 'recent_summaries', 'pending_trades']);
+    const extraContext = Object.fromEntries(Object.entries(social || {}).filter(([key]) => !knownKeys.has(key)));
+    if (!chats.length && !summaries.length && !trades.length && Object.keys(extraContext).length === 0) {
+        return renderKeyText('Social context', 'No recent chat or pending trades were included.');
+    }
+    return `
+        <div class="analysis-field-label">Social context</div>
+        ${summaries.length ? `
+            <div class="analysis-field-label">Compacted message summaries</div>
+            <ol class="analysis-list">
+                ${summaries.map(item => `<li>${escapeHtml(typeof item === 'string' ? item : (item.summary || item.message || JSON.stringify(item)))}</li>`).join('')}
+            </ol>
+        ` : ''}
+        ${chats.length ? `
+            <div class="analysis-field-label">Recent chat included in prompt</div>
+            <div class="analysis-mini-list">
+                ${chats.slice(-6).map(msg => `
+                    <div><strong>${escapeHtml(msg.from || msg.player || 'Unknown')}:</strong> ${escapeHtml(msg.message || '')}</div>
+                `).join('')}
+            </div>
+        ` : ''}
+        ${trades.length ? renderJsonBlock(trades, 'Pending trades') : ''}
+        ${Object.keys(extraContext).length ? renderJsonBlock(extraContext, 'Additional social context') : ''}
+    `;
+}
+
+function renderAllowedActions(actions) {
+    if (!actions.length) return '';
+    return `
+        <div class="analysis-field-label">Allowed actions</div>
+        <div class="analysis-pills">
+            ${actions.map(item => `<span>${escapeHtml(item.type || String(item))}</span>`).join('')}
+        </div>
+    `;
+}
+
+function renderCompactGameState(worldview) {
+    const compactJson = worldview.compact_game_state_json;
+    const compactText = worldview.compact_game_state;
+    if (!compactText && !compactJson) return '';
+    return `
+        <details class="analysis-details">
+            <summary>Compact game state seen by the agent</summary>
+            ${compactJson ? renderJsonBlock(compactJson, 'Parsed compact state') : ''}
+            ${compactText ? `<pre class="analysis-pre">${escapeHtml(compactText)}</pre>` : ''}
+        </details>
+    `;
+}
+
+function renderToolTrace(toolTrace) {
+    if (!toolTrace.length) {
+        return renderFlowNode('Tools', 'Tool usage before the final answer', `
+            <div class="analysis-text">No tool calls were recorded for this decision.</div>
+        `);
+    }
+    return renderFlowNode('Tools', 'Tool usage before the final answer', `
+        <div class="analysis-tools">
+            ${toolTrace.map(iter => `
+                <div class="analysis-tool-iteration">
+                    <div class="analysis-tool-heading">Iteration ${escapeHtml(String(iter.iteration || '?'))}</div>
+                    ${(iter.tool_calls || []).map(call => `
+                        <div class="analysis-tool-call">
+                            <strong>${escapeHtml(call.name || 'tool')}</strong>
+                            ${call.parameters?.reasoning ? `<div class="analysis-tool-reason">${escapeHtml(call.parameters.reasoning)}</div>` : ''}
+                            ${renderJsonBlock(call.parameters || {}, 'Input')}
+                        </div>
+                    `).join('')}
+                    ${iter.tool_results_text ? `
+                        <details class="analysis-details">
+                            <summary>Tool output</summary>
+                            <pre class="analysis-pre">${escapeHtml(iter.tool_results_text)}</pre>
+                        </details>
+                    ` : '<div class="analysis-muted">No tool output was logged.</div>'}
+                </div>
+            `).join('')}
+        </div>
+    `);
+}
+
+function renderKeyText(label, text) {
+    if (!text) return '';
+    return `
+        <div class="analysis-field">
+            <div class="analysis-field-label">${escapeHtml(label)}</div>
+            <div class="analysis-text">${escapeHtml(text)}</div>
+        </div>
+    `;
+}
+
+function renderJsonBlock(value, label) {
+    if (value === null || value === undefined || value === '') return '';
+    let normalized = value;
+    if (typeof value === 'string') {
+        try {
+            normalized = JSON.parse(value);
+        } catch {
+            return renderKeyText(label, value);
+        }
+    }
+    return `
+        <details class="analysis-details">
+            <summary>${escapeHtml(label)}</summary>
+            <pre class="analysis-pre">${escapeHtml(JSON.stringify(normalized, null, 2))}</pre>
+        </details>
+    `;
+}
+
+document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') {
+        closeReplayAnalysis();
+    }
+});
 
 // ========== Game Details Panel ==========
 function updateGameDetails(data) {
