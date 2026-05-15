@@ -1,0 +1,25 @@
+{
+  "request_number": 6,
+  "timestamp": "2026-05-16T01:57:18.020552",
+  "player_name": "Ziv",
+  "type": "final",
+  "success": true,
+  "raw_content": "{\n  \"internal_thinking\": \"Shon is offering me 1 sheep for 1 brick. Looking at my resources, I have 1 brick, 1 wood, and 1 sheep. I need the brick and wood to build a road toward node 32, which is a high-priority expansion for me. Shon just rolled an 11, which gave him a wood (from node 30, hex 9). If I accept this trade, he will have wheat, sheep, wood, and brick—exactly what he needs to build a settlement. Since he mentioned wanting to build at the port, and I'm competing with him for board space, it's not in my interest to help him settle right now, especially when I gain nothing useful (I already have a sheep and no immediate use for a second one without a port).\",\n  \"note_to_self\": \"Shon is one brick away from a settlement. I must be careful not to trade him the final piece he needs to box me in. My priority is reaching node 32.\",\n  \"say_outloud\": \"לא הפעם שון, אני חייב לשמור את הלבנה הזאת כדי לנסות להתקדם קצת בעצמי. ה-11 הזה לא נתן לי כלום ואני חייב לשמור על המשאבים שלי.\",\n  \"action\": {\n    \"type\": \"trade_reject\",\n    \"parameters\": \"{}\"\n  }\n}",
+  "parsed": {
+    "internal_thinking": "Shon is offering me 1 sheep for 1 brick. Looking at my resources, I have 1 brick, 1 wood, and 1 sheep. I need the brick and wood to build a road toward node 32, which is a high-priority expansion for me. Shon just rolled an 11, which gave him a wood (from node 30, hex 9). If I accept this trade, he will have wheat, sheep, wood, and brick—exactly what he needs to build a settlement. Since he mentioned wanting to build at the port, and I'm competing with him for board space, it's not in my interest to help him settle right now, especially when I gain nothing useful (I already have a sheep and no immediate use for a second one without a port).",
+    "note_to_self": "Shon is one brick away from a settlement. I must be careful not to trade him the final piece he needs to box me in. My priority is reaching node 32.",
+    "say_outloud": "לא הפעם שון, אני חייב לשמור את הלבנה הזאת כדי לנסות להתקדם קצת בעצמי. ה-11 הזה לא נתן לי כלום ואני חייב לשמור על המשאבים שלי.",
+    "action_type": "trade_reject",
+    "parameters": {}
+  },
+  "model": "gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 1902,
+    "completion": 265,
+    "thinking": 0,
+    "total": 2167
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}

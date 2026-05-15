@@ -88,6 +88,10 @@ function switchLogTab(tab, evt) {
     if (panel) {
         panel.classList.add('active');
     }
+
+    if (tab === 'chat' && typeof scrollChatLogToBottom === 'function') {
+        scrollChatLogToBottom();
+    }
 }
 
 // ========== Player Hub Rendering ==========
@@ -146,7 +150,7 @@ function renderPlayerHub(players) {
                     ${renderResourceItem('ore', oreCount)}
                 </div>
                 
-                ${renderDevCards(player.development_cards || player.dev_cards)}
+                ${renderPlayerDevCardsDetailed(player)}
             </div>
         `;
     }).join('');
@@ -206,6 +210,15 @@ function renderResourceItem(type, count) {
 
 function renderDevCards(devCards) {
     if (!devCards || Object.keys(devCards).length === 0) return '';
+
+    if (Array.isArray(devCards)) {
+        const counted = {};
+        devCards.forEach(card => {
+            const normalized = normalizeDevCardNameForDisplay(card);
+            counted[normalized] = (counted[normalized] || 0) + 1;
+        });
+        devCards = counted;
+    }
     
     const totalCards = Object.values(devCards).reduce((sum, val) => sum + (val || 0), 0);
     if (totalCards === 0) return '';
@@ -863,6 +876,582 @@ function showAINewBadge() {
     }
 }
 
+// ========== Board Event Overlay ==========
+const BOARD_RESOURCE_ICONS = {
+    wood: '🌲',
+    brick: '🧱',
+    sheep: '🐑',
+    wheat: '🌾',
+    ore: '⛰️'
+};
+
+const BOARD_RESOURCE_LABELS = {
+    wood: 'Wood',
+    brick: 'Brick',
+    sheep: 'Sheep',
+    wheat: 'Wheat',
+    ore: 'Ore'
+};
+
+const BOARD_DEV_LABELS = {
+    road: 'Road Building',
+    road_building: 'Road Building',
+    victorypoint: 'Victory Point',
+    victory_point: 'Victory Point',
+    knight: 'Knight',
+    monopoly: 'Monopoly',
+    yearofplenty: 'Year of Plenty',
+    year_of_plenty: 'Year of Plenty'
+};
+
+const BOARD_PLAYER_COLORS = ['#FF4444', '#4444FF', '#22c55e', '#FFAA00'];
+const BOARD_MAX_ANIMATED_EVENTS = 8;
+
+let boardEventState = {
+    seenFirstState: false,
+    lastDiceKey: '',
+    lastReplayActionKey: '',
+    recentCardEvents: new Map(),
+    activeTimer: null
+};
+
+function activateBoardEventLayer(durationMs = 3600) {
+    const layer = document.getElementById('board-event-layer');
+    if (!layer) return;
+
+    layer.classList.add('active');
+    window.clearTimeout(boardEventState.activeTimer);
+    boardEventState.activeTimer = window.setTimeout(() => {
+        const hasCards = Boolean(document.getElementById('board-card-events')?.children.length);
+        const diceVisible = !document.getElementById('board-dice-popover')?.hidden;
+        const hasPiles = Boolean(document.getElementById('board-card-piles')?.children.length);
+        if (!hasCards && !diceVisible && !hasPiles) {
+            layer.classList.remove('active');
+        }
+    }, durationMs);
+}
+
+function showBoardDiceRoll(diceValues, playerName) {
+    if (!Array.isArray(diceValues) || diceValues.length < 2) return;
+    const total = diceValues.reduce((sum, value) => sum + Number(value || 0), 0);
+    const key = `${playerName || ''}:${diceValues.join(',')}`;
+    const isSameRoll = boardEventState.lastDiceKey === key;
+    boardEventState.lastDiceKey = key;
+
+    const popover = document.getElementById('board-dice-popover');
+    if (!popover) return;
+
+    activateBoardEventLayer(3600);
+    popover.hidden = false;
+    popover.innerHTML = `
+        <div class="board-dice-title">Last roll${playerName ? ` · ${escapeHtml(playerName)}` : ''}</div>
+        <div class="board-dice-value">
+            <span class="board-dice-total">${total}</span>
+            <span class="board-dice-breakdown">${diceValues.map(value => escapeHtml(String(value))).join(' + ')}</span>
+        </div>
+    `;
+
+    if (!isSameRoll) {
+        popover.style.animation = 'none';
+        void popover.offsetWidth;
+        popover.style.animation = '';
+    }
+
+    window.clearTimeout(popover._hideTimer);
+}
+
+function showBoardResourceDistribution(distributions) {
+    if (!distributions || typeof distributions !== 'object') return;
+
+    Object.entries(distributions).forEach(([playerName, resources]) => {
+        if (!Array.isArray(resources)) return;
+        countCards(resources).forEach(({ card, count }) => {
+            showBoardCardEvent({
+                playerName,
+                card,
+                count,
+                mode: 'receive',
+                detail: `received ${formatCardAmount(card, count)}`
+            });
+        });
+    });
+}
+
+function handleBoardActionEvent(actionData) {
+    if (!actionData) return;
+
+    const eventType = String(actionData.event_type || actionData.type || '').toUpperCase();
+    const actionType = String(actionData.action_type || '').toUpperCase();
+    const data = actionData.data || {};
+    const playerName = actionData.player_name || actionData.playerName || data.player_name || 'Player';
+
+    if (eventType === 'DICE_ROLL' || actionType === 'ROLL_DICE') {
+        const dice = data.dice || actionData.dice || actionData.dice_values;
+        showBoardDiceRoll(dice, playerName);
+        return;
+    }
+
+    if (eventType === 'RESOURCE_DIST') {
+        const resources = data.resources || {};
+        Object.entries(resources).forEach(([card, count]) => {
+            showBoardCardEvent({
+                playerName,
+                card,
+                count: Number(count || 0),
+                mode: 'receive',
+                detail: `received ${formatCardAmount(card, count)}`
+            });
+        });
+        return;
+    }
+
+    if (eventType === 'BUY_DEV_CARD' || actionType === 'BUY_DEV_CARD') {
+        const card = data.card || actionData.card || 'Development';
+        showBoardCardEvent({
+            playerName,
+            card,
+            count: 1,
+            mode: 'receive',
+            kind: 'dev',
+            detail: `bought ${formatCardName(card, 'dev')}`
+        });
+        return;
+    }
+
+    if (eventType === 'USE_DEV_CARD' || actionType === 'USE_DEV_CARD') {
+        const card = data.card || actionData.card || data.card_type || 'Development';
+        showBoardCardEvent({
+            playerName,
+            card,
+            count: 1,
+            mode: 'use',
+            kind: 'dev',
+            detail: `used ${formatCardName(card, 'dev')}`
+        });
+        return;
+    }
+
+    if (eventType === 'ROBBER_STEAL') {
+        const card = data.card || 'Card';
+        const victim = data.victim || data.victim_name || 'another player';
+        showBoardCardEvent({
+            playerName,
+            peerName: victim,
+            card,
+            count: 1,
+            mode: 'trade',
+            detail: `stole ${formatCardAmount(card, 1)} from ${victim}`
+        });
+    }
+}
+
+function handleBoardReplaySnapshot(payload) {
+    if (!payload || payload.phase === 'speech') return;
+
+    const latestAction = (payload.action_history || [])[Math.max(0, (payload.action_history || []).length - 1)];
+    if (!latestAction) return;
+
+    const actionKey = [
+        payload.index,
+        latestAction.timestamp || '',
+        latestAction.event_type || latestAction.action_type || '',
+        latestAction.message || ''
+    ].join('|');
+
+    if (boardEventState.lastReplayActionKey === actionKey) return;
+    boardEventState.lastReplayActionKey = actionKey;
+    handleBoardActionEvent(latestAction);
+}
+
+function handleBoardStateUpdate(currentState, previousState) {
+    if (!currentState || !currentState.players) return;
+
+    if (Array.isArray(currentState.dice_result) && currentState.dice_result.length >= 2) {
+        const currentPlayer = currentState.players[currentState.current_player || 0];
+        showBoardDiceRoll(currentState.dice_result, currentPlayer?.name || currentState.current_player_name || '');
+    }
+
+    renderBoardDevHands(currentState.players);
+
+    if (!previousState || !previousState.players || !boardEventState.seenFirstState) {
+        boardEventState.seenFirstState = true;
+        return;
+    }
+
+    const events = buildCardDeltaEvents(previousState, currentState);
+    events.slice(0, BOARD_MAX_ANIMATED_EVENTS).forEach((event, index) => {
+        window.setTimeout(() => showBoardCardEvent(event), index * 115);
+    });
+}
+
+function buildCardDeltaEvents(previousState, currentState) {
+    const previousPlayers = indexPlayersForBoardEvents(previousState.players || []);
+    const currentPlayers = indexPlayersForBoardEvents(currentState.players || []);
+    const allPlayerIds = new Set([...Object.keys(previousPlayers), ...Object.keys(currentPlayers)]);
+    const deltas = [];
+
+    allPlayerIds.forEach(playerId => {
+        const before = previousPlayers[playerId] || {};
+        const after = currentPlayers[playerId] || {};
+        const playerName = after.name || before.name || `Player ${Number(playerId) + 1}`;
+        const playerIndex = Number(playerId);
+
+        collectDeltaForKind(before.resources || {}, after.resources || {}, 'resource', playerName, playerIndex, deltas);
+        collectDeltaForKind(before.dev || {}, after.dev || {}, 'dev', playerName, playerIndex, deltas);
+    });
+
+    return pairCardDeltas(deltas);
+}
+
+function collectDeltaForKind(before, after, kind, playerName, playerIndex, deltas) {
+    const cards = new Set([...Object.keys(before), ...Object.keys(after)]);
+    cards.forEach(card => {
+        const delta = Number(after[card] || 0) - Number(before[card] || 0);
+        if (delta === 0) return;
+        deltas.push({ playerName, playerIndex, card, kind, delta });
+    });
+}
+
+function pairCardDeltas(deltas) {
+    const events = [];
+    const gains = deltas.filter(item => item.delta > 0).map(item => ({ ...item, remaining: item.delta }));
+    const losses = deltas.filter(item => item.delta < 0).map(item => ({ ...item, remaining: Math.abs(item.delta) }));
+
+    gains.forEach(gain => {
+        losses
+            .filter(loss => loss.kind === gain.kind && loss.card === gain.card && loss.remaining > 0)
+            .forEach(loss => {
+                if (gain.remaining <= 0) return;
+                const amount = Math.min(gain.remaining, loss.remaining);
+                events.push({
+                    playerName: gain.playerName,
+                    playerIndex: gain.playerIndex,
+                    peerName: loss.playerName,
+                    card: gain.card,
+                    kind: gain.kind,
+                    count: amount,
+                    mode: 'trade',
+                    detail: `${loss.playerName} passed ${formatCardAmount(gain.card, amount)} to ${gain.playerName}`
+                });
+                gain.remaining -= amount;
+                loss.remaining -= amount;
+            });
+    });
+
+    gains.filter(gain => gain.remaining > 0).forEach(gain => {
+        events.push({
+            playerName: gain.playerName,
+            playerIndex: gain.playerIndex,
+            card: gain.card,
+            kind: gain.kind,
+            count: gain.remaining,
+            mode: 'receive',
+            detail: `received ${formatCardAmount(gain.card, gain.remaining)}`
+        });
+    });
+
+    losses.filter(loss => loss.remaining > 0).forEach(loss => {
+        events.push({
+            playerName: loss.playerName,
+            playerIndex: loss.playerIndex,
+            card: loss.card,
+            kind: loss.kind,
+            count: loss.remaining,
+            mode: loss.kind === 'dev' ? 'use' : 'give',
+            detail: loss.kind === 'dev'
+                ? `used ${formatCardName(loss.card, 'dev')}`
+                : `passed/spent ${formatCardAmount(loss.card, loss.remaining)}`
+        });
+    });
+
+    return events;
+}
+
+function indexPlayersForBoardEvents(players) {
+    const indexed = {};
+    players.forEach((player, index) => {
+        const id = player.id ?? player.player_id ?? index;
+        indexed[id] = {
+            name: player.name || `Player ${index + 1}`,
+            resources: normalizeResourceCounts(player),
+            dev: normalizeDevCounts(player)
+        };
+    });
+    return indexed;
+}
+
+function normalizeResourceCounts(player) {
+    const counts = {};
+    if (Array.isArray(player.cards_list)) {
+        player.cards_list.forEach(card => addCount(counts, normalizeResourceCard(card), 1));
+    } else if (player.resources && typeof player.resources === 'object') {
+        Object.entries(player.resources).forEach(([card, count]) => {
+            addCount(counts, normalizeResourceCard(card), Number(count || 0));
+        });
+    }
+    return counts;
+}
+
+function normalizeDevCounts(player) {
+    const counts = {};
+    if (Array.isArray(player.dev_cards_list)) {
+        player.dev_cards_list.forEach(card => addCount(counts, normalizeDevCard(card), 1));
+    } else {
+        const devCards = player.development_cards || player.dev_cards || {};
+        if (Array.isArray(devCards)) {
+            devCards.forEach(card => addCount(counts, normalizeDevCard(card), 1));
+        } else if (devCards && typeof devCards === 'object') {
+            Object.entries(devCards).forEach(([card, count]) => {
+                addCount(counts, normalizeDevCard(card), Number(count || 0));
+            });
+        }
+    }
+    return counts;
+}
+
+function normalizeResourceCard(card) {
+    const key = String(card || '').trim().toLowerCase().replace(/^rescard\./, '');
+    const aliases = {
+        w: 'wood',
+        wood: 'wood',
+        lumber: 'wood',
+        b: 'brick',
+        brick: 'brick',
+        s: 'sheep',
+        sheep: 'sheep',
+        wool: 'sheep',
+        wh: 'wheat',
+        wheat: 'wheat',
+        grain: 'wheat',
+        o: 'ore',
+        ore: 'ore',
+        stone: 'ore'
+    };
+    return aliases[key] || key;
+}
+
+function normalizeDevCard(card) {
+    const key = String(card || '').trim().toLowerCase()
+        .replace(/^devcard\./, '')
+        .replace(/[\s-]/g, '_');
+    const aliases = {
+        road: 'road_building',
+        roadbuilding: 'road_building',
+        road_building: 'road_building',
+        victorypoint: 'victory_point',
+        victory_point: 'victory_point',
+        yearofplenty: 'year_of_plenty',
+        year_of_plenty: 'year_of_plenty',
+        knight: 'knight',
+        monopoly: 'monopoly'
+    };
+    return aliases[key] || key;
+}
+
+function addCount(counts, card, amount) {
+    if (!card || !Number.isFinite(amount) || amount === 0) return;
+    counts[card] = (counts[card] || 0) + amount;
+}
+
+function countCards(cards) {
+    const counts = {};
+    cards.forEach(card => addCount(counts, normalizeResourceCard(card), 1));
+    return Object.entries(counts).map(([card, count]) => ({ card, count }));
+}
+
+function renderBoardCardPiles(players) {
+    const container = document.getElementById('board-card-piles');
+    if (!container || !Array.isArray(players)) return;
+
+    container.innerHTML = players.map((player, index) => {
+        const resources = normalizeResourceCounts(player);
+        const devCards = normalizeDevCounts(player);
+        const resourceTotal = Object.values(resources).reduce((sum, value) => sum + Number(value || 0), 0);
+        const devTotal = Object.values(devCards).reduce((sum, value) => sum + Number(value || 0), 0);
+        const topResource = getTopResource(resources);
+        const playerColor = BOARD_PLAYER_COLORS[index % BOARD_PLAYER_COLORS.length] || '#64748b';
+
+        return `
+            <div class="board-pile-row" data-player-index="${index}" style="border-left-color: ${playerColor};">
+                <div class="board-pile-player">${escapeHtml(player.name || `Player ${index + 1}`)}</div>
+                <div class="board-pile-stack" title="Resource cards">
+                    <span class="board-pile-card resource">${escapeHtml(BOARD_RESOURCE_ICONS[topResource] || '🂠')}</span>
+                    <span class="board-pile-count">${resourceTotal}</span>
+                </div>
+                <div class="board-pile-stack" title="Development cards">
+                    <span class="board-pile-card dev">DEV</span>
+                    <span class="board-pile-count">${devTotal}</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    if (players.length) {
+        activateBoardEventLayer(3600);
+    }
+}
+
+function renderBoardDevHands(players) {
+    const container = document.getElementById('board-card-piles');
+    if (!container || !Array.isArray(players)) return;
+
+    container.innerHTML = players.map((player, index) => {
+        const resources = normalizeResourceCounts(player);
+        const devCards = normalizeDevCounts(player);
+        const topResource = getTopResource(resources);
+        const devEntries = Object.entries(devCards).filter(([, count]) => Number(count || 0) > 0);
+        const playerColor = BOARD_PLAYER_COLORS[index % BOARD_PLAYER_COLORS.length] || '#64748b';
+        const devHtml = devEntries.length
+            ? devEntries.map(([type, count]) => {
+                const label = formatCardName(type, 'dev');
+                const suffix = Number(count || 0) > 1 ? ` x${Number(count)}` : '';
+                return `
+                    <span class="board-dev-chip" title="${escapeHtml(label)}">
+                        ${escapeHtml(label)}${suffix}
+                    </span>
+                `;
+            }).join('')
+            : '<span class="board-dev-chip empty">None</span>';
+
+        return `
+            <div class="board-pile-row dev-hand" data-player-index="${index}" style="border-left-color: ${playerColor};">
+                <div class="board-pile-player">${escapeHtml(player.name || `Player ${index + 1}`)}</div>
+                <div class="board-dev-card-list">${devHtml}</div>
+                <span class="board-pile-card resource" title="Resource movement target">${escapeHtml(BOARD_RESOURCE_ICONS[topResource] || '🂠')}</span>
+                <span class="board-pile-card dev" title="Development card movement target">DEV</span>
+            </div>
+        `;
+    }).join('');
+
+    if (players.length) {
+        activateBoardEventLayer(3600);
+    }
+}
+
+function getTopResource(resources) {
+    let topResource = 'wood';
+    let topCount = -1;
+    Object.entries(resources || {}).forEach(([resource, count]) => {
+        if (Number(count || 0) > topCount) {
+            topResource = resource;
+            topCount = Number(count || 0);
+        }
+    });
+    return topResource;
+}
+
+function showBoardCardEvent(event) {
+    const container = document.getElementById('board-card-events');
+    if (!container || !event || !event.card || !event.count) return;
+    activateBoardEventLayer(4400);
+
+    const kind = event.kind || (BOARD_RESOURCE_ICONS[normalizeResourceCard(event.card)] ? 'resource' : 'dev');
+    const card = kind === 'dev' ? normalizeDevCard(event.card) : normalizeResourceCard(event.card);
+    const mode = event.mode || 'receive';
+    const detail = event.detail || `${mode} ${formatCardAmount(card, event.count, kind)}`;
+    const signature = `${event.playerName || ''}|${mode}|${kind}|${card}|${event.count}|${detail}`;
+    const now = Date.now();
+    const lastSeenAt = boardEventState.recentCardEvents.get(signature) || 0;
+    if (now - lastSeenAt < 700) return;
+    boardEventState.recentCardEvents.set(signature, now);
+    if (boardEventState.recentCardEvents.size > 40) {
+        const staleBefore = now - 5000;
+        for (const [key, value] of boardEventState.recentCardEvents.entries()) {
+            if (value < staleBefore) boardEventState.recentCardEvents.delete(key);
+        }
+    }
+
+    const resolvedPlayerIndex = event.playerIndex ?? findBoardPlayerIndexByName(event.playerName);
+    const playerColor = BOARD_PLAYER_COLORS[(resolvedPlayerIndex ?? 0) % BOARD_PLAYER_COLORS.length] || '#64748b';
+    const item = document.createElement('div');
+    item.className = `board-card-event ${mode}`;
+    item.style.borderLeftColor = playerColor;
+
+    const faceClass = kind === 'dev' ? 'board-card-face dev' : 'board-card-face';
+    const face = kind === 'dev'
+        ? escapeHtml(formatCardName(card, kind))
+        : escapeHtml(BOARD_RESOURCE_ICONS[card] || '?');
+
+    item.innerHTML = `
+        <div class="${faceClass}">${face}</div>
+        <div class="board-card-text">
+            <div class="board-card-player">${escapeHtml(event.playerName || 'Player')}</div>
+            <div class="board-card-detail">${escapeHtml(detail)}</div>
+        </div>
+    `;
+
+    container.prepend(item);
+    animateCardToBoardPile(item, event, kind, card);
+    item.addEventListener('animationend', () => {
+        item.remove();
+        activateBoardEventLayer(600);
+    }, { once: true });
+
+    while (container.children.length > 8) {
+        container.removeChild(container.lastChild);
+    }
+}
+
+function animateCardToBoardPile(sourceItem, event, kind, card) {
+    const playerIndex = event.playerIndex ?? findBoardPlayerIndexByName(event.playerName);
+    const targetSelector = `.board-pile-row[data-player-index="${playerIndex}"] .board-pile-card.${kind === 'dev' ? 'dev' : 'resource'}`;
+    const target = document.querySelector(targetSelector);
+    const sourceFace = sourceItem.querySelector('.board-card-face');
+    if (!target || !sourceFace) return;
+
+    const start = sourceFace.getBoundingClientRect();
+    const end = target.getBoundingClientRect();
+    if (!start.width || !end.width) return;
+
+    const flyingCard = document.createElement('div');
+    flyingCard.className = `board-flying-card ${kind === 'dev' ? 'dev' : ''}`;
+    flyingCard.innerHTML = kind === 'dev'
+        ? escapeHtml(formatCardName(card, kind))
+        : escapeHtml(BOARD_RESOURCE_ICONS[card] || '?');
+    flyingCard.style.left = `${start.left}px`;
+    flyingCard.style.top = `${start.top}px`;
+    document.body.appendChild(flyingCard);
+
+    const dx = end.left + (end.width / 2) - (start.left + (start.width / 2));
+    const dy = end.top + (end.height / 2) - (start.top + (start.height / 2));
+
+    window.requestAnimationFrame(() => {
+        flyingCard.style.transform = `translate(${dx}px, ${dy}px) scale(0.62)`;
+        flyingCard.style.opacity = '0.12';
+    });
+
+    window.setTimeout(() => {
+        flyingCard.remove();
+    }, 760);
+}
+
+function findBoardPlayerIndexByName(playerName) {
+    const players = window.gameState?.players || [];
+    const index = players.findIndex(player => player && player.name === playerName);
+    return index >= 0 ? index : 0;
+}
+
+function formatCardAmount(card, count, kind) {
+    const amount = Number(count || 0);
+    const label = formatCardName(card, kind || 'resource');
+    return `${amount > 1 ? amount + 'x ' : ''}${label}`;
+}
+
+function formatCardName(card, kind) {
+    if (kind === 'dev') {
+        const normalized = normalizeDevCard(card);
+        return BOARD_DEV_LABELS[normalized] || titleCase(String(card || 'Development'));
+    }
+    const normalized = normalizeResourceCard(card);
+    return BOARD_RESOURCE_LABELS[normalized] || titleCase(String(card || 'Card'));
+}
+
+function titleCase(value) {
+    return value
+        .replace(/_/g, ' ')
+        .replace(/\w\S*/g, word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase());
+}
+
 // ========== Markdown Rendering ==========
 function renderMarkdown(text) {
     if (!text) return '';
@@ -1216,6 +1805,46 @@ function renderReplayAnalysis(analysis) {
     `;
 }
 
+function normalizeDevCardNameForDisplay(type) {
+    const key = String(type || '').trim().toLowerCase().replace(/^devcard\./, '').replace(/[\s-]/g, '_');
+    const aliases = {
+        road: 'road_building',
+        roadbuilding: 'road_building',
+        victorypoint: 'victory_point',
+        yearofplenty: 'year_of_plenty'
+    };
+    return aliases[key] || key;
+}
+
+function renderPlayerDevCardsDetailed(player) {
+    const devCards = normalizeDevCounts(player || {});
+    const entries = Object.entries(devCards).filter(([, count]) => Number(count || 0) > 0);
+
+    if (!entries.length) {
+        return `
+            <div class="player-dev-cards detailed empty">
+                <span class="dev-card-empty">No development cards</span>
+            </div>
+        `;
+    }
+
+    return `
+        <div class="player-dev-cards detailed">
+            ${entries.map(([type, count]) => {
+                const label = formatCardName(type, 'dev');
+                const icon = DEV_CARD_ICONS[type] || '🎴';
+                const suffix = Number(count || 0) > 1 ? ` x${Number(count)}` : '';
+                return `
+                    <div class="dev-card-chip" title="${escapeHtml(label)}">
+                        <span class="dev-chip-icon">${icon}</span>
+                        <span class="dev-chip-name">${escapeHtml(label)}${suffix}</span>
+                    </div>
+                `;
+            }).join('')}
+        </div>
+    `;
+}
+
 function renderFlowNode(title, subtitle, innerHtml) {
     return `
         <section class="analysis-node">
@@ -1298,10 +1927,11 @@ function renderObservedFacts(facts) {
 function renderSocialContext(social) {
     const chats = social.recent_chat || [];
     const summaries = social.last_summaries || social.recent_summaries || [];
+    const tradeContext = social.trade_context || '';
     const trades = social.pending_trades || [];
-    const knownKeys = new Set(['recent_chat', 'last_summaries', 'recent_summaries', 'pending_trades']);
+    const knownKeys = new Set(['recent_chat', 'last_summaries', 'recent_summaries', 'trade_context', 'pending_trades']);
     const extraContext = Object.fromEntries(Object.entries(social || {}).filter(([key]) => !knownKeys.has(key)));
-    if (!chats.length && !summaries.length && !trades.length && Object.keys(extraContext).length === 0) {
+    if (!chats.length && !summaries.length && !tradeContext && !trades.length && Object.keys(extraContext).length === 0) {
         return renderKeyText('Social context', 'No recent chat or pending trades were included.');
     }
     return `
@@ -1320,6 +1950,7 @@ function renderSocialContext(social) {
                 `).join('')}
             </div>
         ` : ''}
+        ${tradeContext ? renderKeyText('Recent trade history', tradeContext) : ''}
         ${trades.length ? renderJsonBlock(trades, 'Pending trades') : ''}
         ${Object.keys(extraContext).length ? renderJsonBlock(extraContext, 'Additional social context') : ''}
     `;
@@ -1486,3 +2117,8 @@ window.unifiedUI = {
 
 // Export chat bubble function globally
 window.showPlayerChatBubble = showPlayerChatBubble;
+window.showBoardDiceRoll = showBoardDiceRoll;
+window.showBoardResourceDistribution = showBoardResourceDistribution;
+window.handleBoardActionEvent = handleBoardActionEvent;
+window.handleBoardReplaySnapshot = handleBoardReplaySnapshot;
+window.handleBoardStateUpdate = handleBoardStateUpdate;

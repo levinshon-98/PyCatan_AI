@@ -160,14 +160,28 @@ function connectToSSE() {
                     updateGameState(data.payload);
                 } else if (data.type === 'action_executed') {
                     logAction(data.payload);
+                    if (typeof handleBoardActionEvent === 'function') {
+                        handleBoardActionEvent(data.payload);
+                    }
                     // Refresh game state to show any changes
                     refreshGameState();
                 } else if (data.type === 'dice_roll') {
                     logEvent(data.payload, 'log-dice');
+                    if (typeof showBoardDiceRoll === 'function') {
+                        showBoardDiceRoll(data.payload.dice_values, data.payload.player_name);
+                    }
                 } else if (data.type === 'resource_distribution') {
                     logResourceDistribution(data.payload);
+                    if (typeof showBoardResourceDistribution === 'function') {
+                        showBoardResourceDistribution(data.payload.distributions);
+                    }
                     // Refresh game state to show updated resources
                     refreshGameState();
+                } else if (data.type === 'log_event') {
+                    logAction(data.payload);
+                    if (typeof handleBoardActionEvent === 'function') {
+                        handleBoardActionEvent(data.payload);
+                    }
                 } else if (data.type === 'turn_start') {
                     logEvent(data.payload, 'log-turn');
                 } else if (data.type === 'message') {
@@ -200,6 +214,10 @@ function handleReplaySeek(payload) {
 
     if (payload.game_state) {
         updateGameState(payload.game_state);
+    }
+
+    if (typeof handleBoardReplaySnapshot === 'function') {
+        handleBoardReplaySnapshot(payload);
     }
 
     renderActionHistory(payload.action_history || []);
@@ -257,7 +275,23 @@ function renderChatHistory(messages) {
         `;
         chatLog.appendChild(chatElement);
     });
-    chatLog.scrollTop = chatLog.scrollHeight;
+    scrollChatLogToBottom();
+}
+
+function scrollChatLogToBottom() {
+    const chatLog = document.getElementById('chat-log');
+    const chatPanel = document.getElementById('chat-log-panel');
+    const scrollTargets = [chatLog, chatPanel].filter(Boolean);
+    if (!scrollTargets.length) return;
+
+    const scrollToEnd = () => {
+        scrollTargets.forEach(element => {
+            element.scrollTop = element.scrollHeight;
+        });
+    };
+
+    scrollToEnd();
+    requestAnimationFrame(scrollToEnd);
 }
 
 // Refresh game state from server
@@ -275,6 +309,7 @@ async function refreshGameState() {
 
 // Update game state
 function updateGameState(newState) {
+    const previousState = gameState;
     gameState = newState;
     window.gameState = gameState; // Make globally accessible for unified UI
     
@@ -288,6 +323,10 @@ function updateGameState(newState) {
     }
     
     updateGameInfo(gameState);
+
+    if (typeof handleBoardStateUpdate === 'function') {
+        handleBoardStateUpdate(gameState, previousState);
+    }
 }
 
 // Update player information display
@@ -500,12 +539,13 @@ function handlePlayerChat(data) {
             <div class="chat-log-text">"${message}"</div>
         `;
         chatLog.appendChild(chatElement);
-        chatLog.scrollTop = chatLog.scrollHeight;
-        
+
         // Keep only last 50 messages
         while (chatLog.children.length > 50) {
             chatLog.removeChild(chatLog.firstChild);
         }
+
+        scrollChatLogToBottom();
     }
     
     // Update unified UI if available - show chat bubble

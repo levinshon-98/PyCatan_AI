@@ -287,13 +287,25 @@ def optimize_state_for_ai(input_data: Dict[str, Any]) -> Dict[str, Any]:
     curr_name = pid_to_name.get(curr_id, str(curr_id) if curr_id is not None else None)
 
     # החזרת המילון המעובד
+    dice_result = data.get('dice_result')
+    dice_total = None
+    if isinstance(dice_result, (list, tuple)) and len(dice_result) >= 2:
+        try:
+            dice_total = sum(int(die) for die in dice_result)
+        except (TypeError, ValueError):
+            dice_total = None
+
+    meta = {
+        "curr": curr_name,
+        "phase": data.get('current_phase'),
+        "robber": robber_hex,
+        "dice": dice_result
+    }
+    if dice_total is not None:
+        meta["dice_total"] = dice_total
+
     return {
-        "meta": {
-            "curr": curr_name, 
-            "phase": data.get('current_phase'), 
-            "robber": robber_hex,
-            "dice": data.get('dice_result')
-        },
+        "meta": meta,
         "H": hex_array,
         "N": nodes_array,
         "state": {"bld": bld, "rds": rds},

@@ -78,13 +78,16 @@ class AIUser(User):
         # Convert GameState to dict for AIManager
         state_dict = self._game_state_to_dict(game_state)
         
-        # Process the turn (may send to LLM)
-        decision = self.ai_manager.process_agent_turn(
-            player_name=self.name,
-            game_state=state_dict,
-            prompt_message=prompt_message,
-            allowed_actions=allowed_actions or []
-        )
+        # Process the turn (may send to LLM). The per-agent lock prevents an
+        # async social reaction for this same player from overlapping their
+        # actual turn prompt.
+        with self.ai_manager.get_agent_request_lock(self.name):
+            decision = self.ai_manager.process_agent_turn(
+                player_name=self.name,
+                game_state=state_dict,
+                prompt_message=prompt_message,
+                allowed_actions=allowed_actions or []
+            )
         
         # If manual actions mode, get input from human
         if self.ai_manager.manual_actions:

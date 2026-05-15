@@ -218,6 +218,10 @@ JSON:
         # Recent chat messages
         if "recent_chat" in social_context:
             result["recent_chat"] = social_context["recent_chat"]
+
+        # Compact trade memory for resolved offers
+        if "trade_context" in social_context:
+            result["trade_context"] = social_context["trade_context"]
         
         # Chat summaries (if using summarization)
         if "last_summaries" in social_context:
