@@ -841,20 +841,130 @@ See: [prompt_{original_prompt_number}_iter{iteration}.json](prompts/iterations/p
         """
         memories = {}
         for name, agent in agents.items():
-            if hasattr(agent, 'memory') and agent.memory:
+            if (
+                (hasattr(agent, 'memory') and agent.memory)
+                or getattr(agent, "compacted_memory", None)
+            ):
                 updated_at = getattr(agent, "memory_updated_at", None)
+                compacted_updated_at = getattr(agent, "compacted_memory_updated_at", None)
                 memories[name] = {
                     "note_to_self": agent.memory,
+                    "long_term_summary": getattr(agent, "compacted_memory", None),
                     "recent_notes": getattr(agent, "memory_history", []),
+                    "compaction_count": getattr(agent, "compaction_count", 0),
                     "last_updated": (
                         datetime.fromtimestamp(updated_at).isoformat()
                         if updated_at else None
+                    ),
+                    "long_term_updated": (
+                        datetime.fromtimestamp(compacted_updated_at).isoformat()
+                        if compacted_updated_at else None
                     )
                 }
         
         memory_file = self.session_dir / "agent_memories.json"
         with open(memory_file, 'w', encoding='utf-8') as f:
             json.dump(memories, f, indent=2, ensure_ascii=False)
+
+    def log_memory_compaction(
+        self,
+        player_name: str,
+        compaction_count: int,
+        result: Dict[str, Any]
+    ) -> Dict[str, Path]:
+        """
+        Save before/after memory compaction artifacts for inspection.
+
+        Args:
+            player_name: Agent whose memory was compacted
+            compaction_count: Agent compaction counter after applying compaction
+            result: Compaction result returned by MemoryCompactor
+
+        Returns:
+            Paths of the JSON and TXT files written.
+        """
+        dirs = self._ensure_player_dirs(player_name)
+        compactions_dir = dirs["root"] / "memory_compactions"
+        compactions_dir.mkdir(exist_ok=True)
+
+        response = result.get("response")
+        response_data = response.to_dict() if hasattr(response, "to_dict") else None
+        old_entries = result.get("old_entries", [])
+        recent_entries = result.get("recent_entries", [])
+        artifact = {
+            "player_name": player_name,
+            "compaction_number": compaction_count,
+            "timestamp": datetime.now().isoformat(),
+            "before": {
+                "existing_compacted_memory": result.get("existing_compacted_memory"),
+                "old_notes_to_compact": old_entries,
+                "recent_notes_kept_verbatim": recent_entries,
+                "relevant_chat": result.get("relevant_chat", []),
+            },
+            "after": {
+                "long_term_summary": result.get("compacted_memory"),
+                "recent_notes": recent_entries,
+                "discarded_as_irrelevant": result.get("discarded_as_irrelevant", []),
+            },
+            "llm": response_data,
+            "prompt": result.get("prompt"),
+        }
+
+        json_path = compactions_dir / f"compaction_{compaction_count}.json"
+        txt_path = compactions_dir / f"compaction_{compaction_count}.txt"
+
+        with open(json_path, "w", encoding="utf-8") as f:
+            json.dump(artifact, f, indent=2, ensure_ascii=False)
+
+        def note_lines(entries: List[Dict[str, Any]]) -> str:
+            if not entries:
+                return "(none)"
+            return "\n".join(
+                f"- {entry.get('note', str(entry))}" for entry in entries
+            )
+
+        chat_entries = result.get("relevant_chat", [])
+        chat_lines = (
+            "\n".join(
+                f"- {chat.get('from', '?')}: {chat.get('message', '')}"
+                for chat in chat_entries
+            )
+            if chat_entries else "(none)"
+        )
+
+        txt = f"""Memory Compaction #{compaction_count} for {player_name}
+Time: {datetime.now().isoformat()}
+
+=== BEFORE: Existing Long-Term Summary ===
+{result.get("existing_compacted_memory") or "(none)"}
+
+=== BEFORE: Old Notes Compacted ===
+{note_lines(old_entries)}
+
+=== BEFORE: Recent Notes Kept Verbatim ===
+{note_lines(recent_entries)}
+
+=== BEFORE: Relevant Chat Considered ===
+{chat_lines}
+
+=== AFTER: New Long-Term Summary ===
+{result.get("compacted_memory") or "(none)"}
+
+=== AFTER: Discarded As Irrelevant ===
+{json.dumps(result.get("discarded_as_irrelevant", []), ensure_ascii=False)}
+
+JSON artifact:
+{json_path}
+"""
+        with open(txt_path, "w", encoding="utf-8") as f:
+            f.write(txt)
+
+        self.log_llm_communication(
+            f"Memory compaction artifact saved for {player_name}: {json_path}",
+            "MEMORY"
+        )
+
+        return {"json": json_path, "txt": txt_path}
     
     def log_error(self, player_name: str, error: str, context: Optional[Dict] = None) -> None:
         """Log an error for a player."""
@@ -903,15 +1013,7 @@ See: [prompt_{original_prompt_number}_iter{iteration}.json](prompts/iterations/p
             json.dump(summary, f, indent=2, ensure_ascii=False)
         
         # Save agent memories separately for web viewer
-        memories = {}
-        for name, agent in agents.items():
-            if hasattr(agent, 'memory') and agent.memory:
-                memories[name] = agent.memory
-        
-        if memories:
-            memory_file = self.session_dir / "agent_memories.json"
-            with open(memory_file, 'w', encoding='utf-8') as f:
-                json.dump(memories, f, indent=2, ensure_ascii=False)
+        self.save_agent_memories(agents)
     
     def get_session_path(self) -> Path:
         """Get the session directory path."""

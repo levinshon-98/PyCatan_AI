@@ -308,12 +308,17 @@ def group_replay_decisions(decisions: List[Dict[str, Any]]) -> Dict[str, List[Di
     return grouped
 
 
+class ReplayExhausted(Exception):
+    """Raised by watch-only replay when no recorded decision exists."""
+
+
 def annotate_replay_session(
     ai_manager: AIManager,
     source_session: Path,
     decisions: List[Dict[str, Any]],
     replay_through: Optional[str],
-    replay_stop_before: Optional[str]
+    replay_stop_before: Optional[str],
+    mode: str = "fast_action_replay_then_live_ai"
 ) -> None:
     """Write lineage metadata into the newly created session."""
     metadata_file = ai_manager.get_session_path() / "session_metadata.json"
@@ -327,7 +332,7 @@ def annotate_replay_session(
         "decisions_loaded": len(decisions),
         "replay_through": replay_through,
         "replay_stop_before": replay_stop_before,
-        "mode": "fast_action_replay_then_live_ai",
+        "mode": mode,
     }
 
     metadata_file.write_text(json.dumps(metadata, indent=2, ensure_ascii=False), encoding="utf-8")
@@ -342,10 +347,17 @@ class ReplayAIUser(AIUser):
         user_id: int,
         ai_manager: AIManager,
         color: str = "",
-        replay_decisions: Optional[List[Dict[str, Any]]] = None
+        replay_decisions: Optional[List[Dict[str, Any]]] = None,
+        replay_chat: bool = True,
+        replay_speak: bool = False,
+        replay_only: bool = False
     ):
         super().__init__(name=name, user_id=user_id, ai_manager=ai_manager, color=color)
         self.replay_decisions = list(replay_decisions or [])
+        self.replay_chat = replay_chat
+        self.replay_speak = replay_speak
+        self.replay_only = replay_only
+        self.last_replay_item: Optional[Dict[str, Any]] = None
 
     def get_input(self, game_state, prompt_message: str, allowed_actions: Optional[List[str]] = None):
         if self.replay_decisions:
@@ -354,6 +366,11 @@ class ReplayAIUser(AIUser):
             action = self._decision_to_action(decision, allowed_actions)
 
             if allowed_actions and action.action_type.name not in allowed_actions:
+                if self.replay_only:
+                    raise ReplayExhausted(
+                        f"{self.name} #{replay_item['request_number']} no longer matches "
+                        f"allowed actions {allowed_actions}"
+                    )
                 print(
                     f"[REPLAY] {self.name} #{replay_item['request_number']} no longer matches "
                     f"allowed actions {allowed_actions}; switching {self.name} to live AI."
@@ -361,26 +378,38 @@ class ReplayAIUser(AIUser):
                 self.replay_decisions.clear()
                 return super().get_input(game_state, prompt_message, allowed_actions)
 
-            self.replay_decisions.pop(0)
-            self._apply_replay_memory_and_chat(decision)
+            self.last_replay_item = self.replay_decisions.pop(0)
+            self._apply_replay_memory_and_chat(decision, game_state)
             print(
                 f"[REPLAY] {self.name} #{replay_item['request_number']}: "
                 f"{decision.get('action_type')} {decision.get('parameters', {})}"
             )
             return action
 
+        if self.replay_only:
+            raise ReplayExhausted(f"No more recorded replay decisions for {self.name}")
+
         return super().get_input(game_state, prompt_message, allowed_actions)
 
-    def _apply_replay_memory_and_chat(self, decision: Dict[str, Any]) -> None:
+    def _apply_replay_memory_and_chat(
+        self,
+        decision: Dict[str, Any],
+        game_state: Optional[Dict[str, Any]] = None
+    ) -> None:
         agent = self.ai_manager.agents.get(self.name)
         note_to_self = decision.get("note_to_self")
         if agent and note_to_self:
             agent.update_memory(note_to_self)
+            self.ai_manager._maybe_compact_agent_memory(agent, game_state)
             self.ai_manager.logger.save_agent_memories(self.ai_manager.agents)
 
         say_outloud = decision.get("say_outloud")
-        if say_outloud:
-            self.ai_manager._broadcast_chat(self.name, say_outloud)
+        if self.replay_chat and say_outloud:
+            self.ai_manager._broadcast_chat(
+                self.name,
+                say_outloud,
+                speak=self.replay_speak
+            )
 
 
 def load_env_file(env_path: Path = Path(".env")) -> None:
@@ -1046,7 +1075,10 @@ def create_game(
     send_to_llm: bool = True,
     manual_actions: bool = True,
     config: Optional[AIConfig] = None,
-    replay_decisions: Optional[Dict[str, List[Dict[str, Any]]]] = None
+    replay_decisions: Optional[Dict[str, List[Dict[str, Any]]]] = None,
+    replay_chat: bool = True,
+    replay_speak: bool = False,
+    replay_only: bool = False
 ) -> tuple:
     """
     Create the game with configured players.
@@ -1077,7 +1109,10 @@ def create_game(
                     user_id=i,
                     ai_manager=ai_manager,
                     color=cfg["color"],
-                    replay_decisions=replay_decisions[cfg["name"]]
+                    replay_decisions=replay_decisions[cfg["name"]],
+                    replay_chat=replay_chat,
+                    replay_speak=replay_speak,
+                    replay_only=replay_only
                 )
             else:
                 # Create AI user
@@ -1177,6 +1212,120 @@ def run_game(game_manager: GameManager, ai_manager: AIManager, web_viz: WebVisua
                   f"{agent_stats['total_tokens_used']} tokens")
 
 
+def _remaining_replay_decisions(game_manager: GameManager) -> int:
+    """Count unplayed replay decisions across replay users."""
+    total = 0
+    for user in game_manager.users:
+        total += len(getattr(user, "replay_decisions", []) or [])
+    return total
+
+
+def run_replay_viewer(
+    game_manager: GameManager,
+    ai_manager: AIManager,
+    web_viz: WebVisualization,
+    delay_seconds: float = 2.5,
+    source_session: Optional[Path] = None
+) -> None:
+    """
+    Build a recorded-session timeline and serve it to the browser.
+
+    The browser controls playback by seeking captured snapshots, so users can
+    move backward and forward without re-running game logic.
+    """
+    print("=" * 70)
+    print("[REPLAY] WATCH MODE")
+    print("[REPLAY] Building seekable timeline...")
+    print("=" * 70)
+    print()
+
+    try:
+        speech_prepare_callback = (
+            getattr(ai_manager.tts, "prepare_blocking", None)
+            or getattr(ai_manager.tts, "speak_blocking", None)
+            or getattr(ai_manager.tts, "speak", None)
+        )
+        speech_play_callback = getattr(ai_manager.tts, "speak", None)
+        web_viz.enable_replay_mode(
+            source_session=str(source_session or ai_manager.get_session_path()),
+            delay_seconds=delay_seconds,
+            speech_prepare_callback=speech_prepare_callback,
+            speech_play_callback=speech_play_callback,
+        )
+
+        game_manager.start_game()
+        web_viz.capture_replay_snapshot("Start")
+        consumed_items = set()
+
+        while game_manager.is_running and not game_manager._check_game_end_conditions():
+            remaining_before = _remaining_replay_decisions(game_manager)
+            if remaining_before <= 0:
+                print("[REPLAY] All recorded decisions were played.")
+                break
+
+            try:
+                turn_ended = game_manager._handle_single_turn()
+            except ReplayExhausted as exc:
+                print(f"[REPLAY] Stopping: {exc}")
+                break
+
+            remaining_after = _remaining_replay_decisions(game_manager)
+            if remaining_after == remaining_before:
+                print("[REPLAY] Stopping because no recorded decision was consumed.")
+                break
+
+            if turn_ended:
+                game_manager._advance_to_next_player()
+
+            consumed = None
+            for user in game_manager.users:
+                replay_item = getattr(user, "last_replay_item", None)
+                if replay_item is not None and id(replay_item) not in consumed_items:
+                    consumed = replay_item
+                    consumed_items.add(id(replay_item))
+                    break
+
+            label = "Recorded decision"
+            if consumed:
+                parsed = consumed.get("parsed") or {}
+                label = (
+                    f"{consumed.get('player_name')} #{consumed.get('request_number')}: "
+                    f"{parsed.get('action_type')}"
+                )
+            web_viz.capture_replay_snapshot(label, consumed)
+
+        print("\n" + "=" * 70)
+        print(f"[REPLAY] Timeline ready: {len(web_viz.replay_timeline)} snapshots")
+        print("[WEB] Board: http://localhost:5000/unified")
+        print(f"[REPLAY] Browser playback delay: {delay_seconds:.1f}s")
+        print("=" * 70)
+
+        web_viz.seek_replay(0, speak=False)
+        web_viz.start_server()
+        try:
+            webbrowser.open("http://localhost:5000/unified")
+        except Exception:
+            pass
+
+        print("[REPLAY] Use the browser controls to play, pause, seek, step backward, or step forward.")
+        print("[REPLAY] Press Ctrl+C here when you are done watching.")
+        while True:
+            time.sleep(1)
+
+    except KeyboardInterrupt:
+        print("\n\n[!] Replay interrupted by user")
+    except Exception as e:
+        print(f"\n\n[ERROR] Replay error: {e}")
+        import traceback
+        traceback.print_exc()
+    finally:
+        print("\n[SAVE] Saving replay viewer session...")
+        ai_manager.save_session()
+        if hasattr(ai_manager.tts, "close"):
+            ai_manager.tts.close()
+        print(f"[LOG] Replay viewer session saved to: {ai_manager.get_session_path()}")
+
+
 def main():
     """Main entry point."""
     import argparse
@@ -1212,6 +1361,14 @@ def main():
                        help="Replay through a marker like Alice:5, inclusive.")
     parser.add_argument("--replay-stop-before", type=str,
                        help="Stop replay before a marker like Alice:6.")
+    parser.add_argument("--replay-skip-chat", action="store_true",
+                       help="Do not rebroadcast recorded say_outloud chat while fast-replaying.")
+    parser.add_argument("--watch-replay", action="store_true",
+                       help="Play a recorded session visually and stop when the recording ends. No LLM calls are made.")
+    parser.add_argument("--replay-delay", type=float, default=2.5,
+                       help="Seconds to wait between recorded decisions in --watch-replay mode.")
+    parser.add_argument("--replay-speak", action="store_true",
+                       help="Speak recorded say_outloud chat during replay using the configured cached TTS provider.")
     args = parser.parse_args()
 
     load_env_file()
@@ -1252,7 +1409,19 @@ def main():
         print("[SETUP] Browser settings accepted")
 
     replay_session_ref = args.replay_session or args.resume_session
+    if args.watch_replay and not replay_session_ref:
+        parser.error("--watch-replay requires --replay-session or --resume-session")
+
     replay_session_path = resolve_session_path(replay_session_ref) if replay_session_ref else None
+    if (
+        args.watch_replay
+        and replay_session_path
+        and not os.environ.get("AI_TTS_CACHE_DIR")
+        and not os.environ.get("PYCATAN_TTS_CACHE_DIR")
+    ):
+        os.environ["AI_TTS_CACHE_DIR"] = str(replay_session_path / "tts_cache")
+        print(f"[REPLAY] TTS cache: {os.environ['AI_TTS_CACHE_DIR']}")
+
     replay_decision_list: List[Dict[str, Any]] = []
     replay_decisions_by_player: Dict[str, List[Dict[str, Any]]] = {}
     replay_player_names: List[str] = []
@@ -1319,7 +1488,12 @@ def main():
     # Determine mode
     send_to_llm = not args.no_llm  # Default: send to LLM
     manual_actions = not args.auto  # Default: manual input
-    
+
+    if args.watch_replay:
+        send_to_llm = False
+        manual_actions = False
+        print("[REPLAY] Watch mode enabled: using recorded decisions only")
+
     print(f"[MODE] LLM: {'ON' if send_to_llm else 'OFF'} | Actions: {'Manual' if manual_actions else 'Auto'}")
     print(f"[CONFIG] {ai_config.llm.provider}/{ai_config.llm.model_name}")
     
@@ -1329,7 +1503,10 @@ def main():
         send_to_llm=send_to_llm,
         manual_actions=manual_actions,
         config=ai_config,
-        replay_decisions=replay_decisions_by_player
+        replay_decisions=replay_decisions_by_player,
+        replay_chat=not args.replay_skip_chat,
+        replay_speak=(args.replay_speak and not args.watch_replay),
+        replay_only=args.watch_replay
     )
     if replay_session_path:
         annotate_replay_session(
@@ -1337,12 +1514,22 @@ def main():
             replay_session_path,
             replay_decision_list,
             args.replay_through,
-            args.replay_stop_before
+            args.replay_stop_before,
+            mode="watch_replay_visual_playback" if args.watch_replay else "fast_action_replay_then_live_ai"
         )
         print(f"[REPLAY] New derived session: {ai_manager.get_session_path()}")
     
     # Run game
-    run_game(game_manager, ai_manager, web_viz)
+    if args.watch_replay:
+        run_replay_viewer(
+            game_manager,
+            ai_manager,
+            web_viz,
+            delay_seconds=max(0.0, args.replay_delay),
+            source_session=replay_session_path
+        )
+    else:
+        run_game(game_manager, ai_manager, web_viz)
 
 
 if __name__ == "__main__":

@@ -2,7 +2,7 @@
 
 Live observations from autonomous PyCatan AI runs.
 
-Current run: `examples/ai_testing/my_games/session_20260515_220558`
+Current run: `examples/ai_testing/my_games/session_20260515_231622`
 
 ## Observations
 
@@ -33,6 +33,7 @@ Current run: `examples/ai_testing/my_games/session_20260515_220558`
 | AI-RUN-023 | Fixed - replay smoke verified | Development cards | High | AI can hold and choose `use_dev_card` for Road Building, but the emitted card type `road_building` was rejected by the engine as invalid. The failure was fed back correctly, but the card could not be used and the agent could waste turns or loop around the same plan. | `session_20260515_211742/Alice/responses/response_10.json` emits `use_dev_card {"card_type": "road_building", "road_1": [45,35], "road_2": [35,34]}`. `Alice/prompts/prompt_11.json` says `Your previous action failed ... Error: Invalid card type: road_building`. | Added dev-card alias normalization in `AIUser` and defensive alias handling in `GameManager`: `road_building`/`road` -> `Road`, `year_of_plenty` -> `YearOfPlenty`, plus resource aliases for Monopoly/Year of Plenty. `AIUser` now converts AI road params like `road_1: [45,35]` into `road_one_coords`. Prompt examples now show exact parameter shapes for Knight, Road Building, Monopoly, and Year of Plenty. Replay smoke through `session_20260515_211742` `Alice:10` verifies Alice's Road card is consumed successfully instead of failing. |
 | AI-RUN-024 | Open | Debug workflow/session replay | Medium | Fast replay replays recorded `say_outloud` and `note_to_self` for replayed actions, so if the source session contained a wrong belief near the bug, the derived session can inherit stale chat/memory even though the fixed engine state is now correct. | In derived `session_20260515_220558`, `--replay-through Alice:10` correctly executes Road Building, but also replays Alice's old table-talk: `nice, a 5! that brick is exactly what i needed...`. The live follow-up immediately corrects the state with `darn, no resources for me on that 5...`, and memory is corrected afterward. | Add a replay mode option such as `--replay-skip-side-effects-after Player:N` or recommend `--replay-stop-before Player:N` for bug-point re-generation. Consider marking replayed chat/memory as replayed and optionally excluding it from live prompt history after the cut point. |
 | AI-RUN-025 | Fixed - smoke verified | Bank trade execution | Critical | Successful bank trades could corrupt a player's hand by adding the requested card as a nested list, then later UI/state code failed with `'list' object has no attribute 'name'`. On Windows, a Unicode success print could also turn the already-mutated trade into a reported failure. | `session_20260515_220558/Charlie/response_9.json` emitted valid `trade_bank {"give":"wheat","receive":"brick"}` after Monopoly. The session then logged repeated processing failures: `'list' object has no attribute 'name'`. Local smoke reproduced the issue in `_execute_trade_bank`. | `GameManager._execute_trade_bank()` now passes the single requested `ResCard` to `game.trade_to_bank()` instead of a list, validates that bank trades request exactly one card, and uses ASCII logging so console encoding cannot fail after state mutation. `TRADE_BANK` prompt text now says the default bank trade is 4:1 and shows `give_amount: 4`. Compile and direct bank-trade smoke passed with no nested cards. |
+| AI-RUN-026 | Fixed - smoke verified | Viewer/replay chat | Medium | Replayed `say_outloud` messages were written to session chat logs, but the Unified chat panel could appear empty after fast replay because the browser connected after replay SSE chat events had already been emitted. | `session_20260515_231622` was derived from `session_20260515_224216` with 71 replay decisions; `chat_history.json` contained replayed chat, but the live board chat panel did not hydrate historical chat on load. | `WebVisualization` now keeps a bounded `chat_history`, exposes `/api/chat`, and `main.js` loads prior chat messages during initial connection before listening for live SSE updates. `py_compile` and `node --check` passed. |
 
 ## Run Notes
 
@@ -162,3 +163,9 @@ Current run: `examples/ai_testing/my_games/session_20260515_220558`
 - Fixed `AI-RUN-025` by passing `request_cards[0]`, validating exactly one requested card, and replacing the Unicode bank-trade success print with ASCII to avoid Windows console encoding failures after mutation.
 - Prompt examples now make the 4:1 bank-trade amount explicit: `{"give": "wheat", "give_amount": 4, "receive": "brick"}`.
 - Verification: `py_compile` passed and a direct smoke trade leaves Charlie with `['Wood', 'Brick']`, `success=True`, and `nested_lists=False`.
+
+### 2026-05-15 - Replay chat hydration (`session_20260515_231622`)
+
+- `--replay-session session_20260515_224216 --hebrew-chat` did replay old chat, but those chat events were emitted before the browser's SSE connection was ready, so the board chat panel could look empty.
+- Fixed `AI-RUN-026`: the web visualization now stores replay/live chat history, exposes `/api/chat`, and the frontend hydrates the chat panel on initial load.
+- Verification: `py_compile` passed for `web_visualization.py`; `node --check` passed for `main.js`.

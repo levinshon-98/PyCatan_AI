@@ -189,6 +189,38 @@ class TestGameManagerActions:
         assert not result.success
         assert result.status_code == "INVALID_PLAYER_ID"
 
+    def test_trade_propose_prompts_target_to_reject_when_target_lacks_cards(self):
+        alice = create_test_user("Alice", 0)
+        bob = create_test_user("Bob", 1)
+        trade_responses = []
+
+        for user in [alice, bob]:
+            user.notify_trade_offer = lambda *args: None
+            user.notify_trade_response = lambda trade_id, status, responder: trade_responses.append(
+                (trade_id, status, responder)
+            )
+
+        bob.set_next_action(Action(ActionType.TRADE_REJECT, 1, {}))
+        gm = GameManager([alice, bob], random_seed=0)
+        gm.game.players[0].cards = [ResCard.Sheep]
+        gm.game.players[1].cards = []
+
+        action = Action(
+            ActionType.TRADE_PROPOSE,
+            0,
+            {"target_player": 1, "offer": {"sheep": 1}, "request": {"wood": 1}},
+        )
+        result = gm._execute_trade_propose(action)
+
+        assert not result.success
+        assert result.status_code == "INSUFFICIENT_RESOURCES"
+        assert "doesn't have the required cards" in result.error_message
+        assert "You do not have the requested cards" in bob.last_input_call["prompt_message"]
+        assert bob.last_input_call["allowed_actions"] == ["TRADE_REJECT"]
+        assert action.parameters["trade_status"] == "rejected"
+        assert trade_responses[-1][1] == "rejected"
+        assert gm._current_game_state.pending_trades == []
+
     def test_execute_action_rejects_action_not_allowed_in_phase(self):
         """Test that actions outside the current phase do not execute."""
         self.gm.start_game()

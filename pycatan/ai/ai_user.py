@@ -165,6 +165,7 @@ class AIUser(User):
         note_to_self = llm_response.get("note_to_self")
         if note_to_self:
             agent.update_memory(note_to_self)
+            self.ai_manager._maybe_compact_agent_memory(agent)
             # Save memories to file for web viewer
             self.ai_manager.logger.save_agent_memories(self.ai_manager.agents)
         

@@ -117,6 +117,13 @@ class MemoryConfig:
     chat_history_size: int = 10  # Keep last N messages
     enable_chat_summarization: bool = True
     chat_summary_threshold: int = 10  # Summarize when reaching N messages
+
+    # Agent memory compaction
+    enable_memory_compaction: bool = True
+    memory_compaction_threshold: int = 10
+    memory_compaction_keep_recent: int = 2
+    memory_compaction_chat_messages: int = 20
+    memory_compaction_max_tokens: int = 800
     
     # Summarization settings
     summarization_provider: str = "gemini"

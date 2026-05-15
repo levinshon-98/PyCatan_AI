@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import atexit
 import base64
+import hashlib
 import io
 import os
 import queue
@@ -17,6 +18,7 @@ import sys
 import threading
 import wave
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Optional
 
 import requests
@@ -67,17 +69,27 @@ def _pcm_to_wav_bytes(pcm: bytes, sample_rate: int = 24000) -> bytes:
     return buffer.getvalue()
 
 
+def _default_cache_dir() -> Path:
+    return Path(
+        os.environ.get("AI_TTS_CACHE_DIR")
+        or os.environ.get("PYCATAN_TTS_CACHE_DIR")
+        or Path("examples") / "ai_testing" / "my_games" / "tts_cache"
+    )
+
+
 @dataclass
 class GeminiTTSConfig:
     enabled: bool
     api_key: str
-    model_id: str = "gemini-2.5-flash-preview-tts"
+    model_id: str = "gemini-3.1-flash-tts-preview"
     voice_name: str = "Kore"
-    prompt_template: str = "[casual, conversational] {text}"
+    prompt_template: str = "[casual, conversational, Israeli Hebrew pronunciation] {text}"
     play_audio: bool = True
     verify_ssl: bool = True
     timeout_seconds: float = 30.0
     queue_max_size: int = 20
+    cache_enabled: bool = True
+    cache_dir: Path = _default_cache_dir()
 
 
 class GeminiTTS:
@@ -117,17 +129,19 @@ class GeminiTTS:
             ).strip(),
             model_id=os.environ.get(
                 "GEMINI_TTS_MODEL_ID",
-                "gemini-2.5-flash-preview-tts",
+                "gemini-3.1-flash-tts-preview",
             ).strip(),
             voice_name=os.environ.get("GEMINI_TTS_VOICE_NAME", "Kore").strip(),
             prompt_template=os.environ.get(
                 "GEMINI_TTS_PROMPT_TEMPLATE",
-                "[casual, conversational] {text}",
+                "[casual, conversational, Israeli Hebrew pronunciation] {text}",
             ),
             play_audio=_env_bool("GEMINI_TTS_PLAY_AUDIO", True),
             verify_ssl=_env_bool("GEMINI_TTS_VERIFY_SSL", True),
             timeout_seconds=_env_float("GEMINI_TTS_TIMEOUT_SECONDS", 30.0),
             queue_max_size=_env_int("GEMINI_TTS_QUEUE_MAX_SIZE", 20),
+            cache_enabled=_env_bool("AI_TTS_CACHE_ENABLED", True),
+            cache_dir=_default_cache_dir(),
         )
         return cls(config)
 
@@ -168,6 +182,7 @@ class GeminiTTS:
             self._queue.put_nowait(None)
         except queue.Full:
             pass
+        self._worker.join(timeout=5)
 
     def _run(self) -> None:
         while True:
@@ -178,13 +193,39 @@ class GeminiTTS:
 
             player_name, text = item
             try:
-                audio = self._synthesize(player_name, text)
+                audio = self._audio_for_message(player_name, text)
                 if self.config.play_audio and audio:
                     self._play_audio(audio)
             except Exception as exc:
                 print(f"[TTS] Gemini error: {exc}")
             finally:
                 self._queue.task_done()
+
+    def speak_blocking(self, player_name: str, text: str) -> None:
+        """Synthesize/play a message immediately, using the cache when possible."""
+        if not self.enabled or not self._is_configured():
+            return
+        text = (text or "").strip()
+        if not text:
+            return
+        try:
+            audio = self._audio_for_message(player_name, text)
+            if self.config.play_audio and audio:
+                self._play_audio(audio)
+        except Exception as exc:
+            print(f"[TTS] Gemini error: {exc}")
+
+    def prepare_blocking(self, player_name: str, text: str) -> None:
+        """Ensure audio exists in cache, but do not play it."""
+        if not self.enabled or not self._is_configured():
+            return
+        text = (text or "").strip()
+        if not text:
+            return
+        try:
+            self._audio_for_message(player_name, text)
+        except Exception as exc:
+            print(f"[TTS] Gemini prepare error: {exc}")
 
     def _voice_name_for_player(self, player_name: str) -> str:
         suffix = _clean_player_env_name(player_name)
@@ -243,8 +284,36 @@ class GeminiTTS:
 
         return base64.b64decode(inline_data["data"])
 
-    def _play_audio(self, pcm_audio: bytes) -> None:
+    def _cache_path(self, player_name: str, text: str) -> Path:
+        voice_name = self._voice_name_for_player(player_name)
+        prompt = self.config.prompt_template.format(
+            player=player_name,
+            text=text.replace('"', "'"),
+        )
+        cache_key = "\n".join([
+            "gemini",
+            self.config.model_id,
+            voice_name,
+            prompt,
+        ])
+        digest = hashlib.sha256(cache_key.encode("utf-8")).hexdigest()
+        return Path(self.config.cache_dir) / "gemini" / f"{digest}.wav"
+
+    def _audio_for_message(self, player_name: str, text: str) -> bytes:
+        cache_path = self._cache_path(player_name, text)
+        if self.config.cache_enabled and cache_path.exists():
+            return cache_path.read_bytes()
+
+        pcm_audio = self._synthesize(player_name, text)
         wav_audio = _pcm_to_wav_bytes(pcm_audio, sample_rate=24000)
+
+        if self.config.cache_enabled:
+            cache_path.parent.mkdir(parents=True, exist_ok=True)
+            cache_path.write_bytes(wav_audio)
+
+        return wav_audio
+
+    def _play_audio(self, wav_audio: bytes) -> None:
 
         if sys.platform == "win32":
             import winsound

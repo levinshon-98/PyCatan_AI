@@ -112,6 +112,13 @@ memory:
   chat_history_size: 10              # Keep last N messages
   enable_chat_summarization: true    # Auto-summarize old chats
   chat_summary_threshold: 10         # Summarize after N messages
+
+  # Agent memory compaction
+  enable_memory_compaction: true      # Auto-compact after enough note_to_self entries
+  memory_compaction_threshold: 10     # Trigger when a player has this many notes
+  memory_compaction_keep_recent: 2    # Keep the newest notes verbatim
+  memory_compaction_chat_messages: 20 # Include recent relevant chat in compaction
+  memory_compaction_max_tokens: 800   # Output budget for the compacted memory
   
   # Summarization settings
   # Use a smaller/cheaper model for summarization

@@ -12,6 +12,7 @@ The AIManager bridges between GameManager (through AIUser) and the LLM.
 """
 
 import json
+import os
 import re
 import time
 from pathlib import Path
@@ -25,6 +26,7 @@ from pycatan.ai.schemas import ResponseType, SchemaVersion, get_schema_for_respo
 from pycatan.ai.agent_state import AgentState, compute_state_hash
 from pycatan.ai.ai_logger import AILogger
 from pycatan.ai.agent_tools import AgentTools
+from pycatan.ai.memory_compactor import MemoryCompactor
 from pycatan.ai.tool_executor import ToolExecutor
 from pycatan.ai.stream_broadcaster import StreamBroadcaster
 from pycatan.ai.tts import create_tts_from_env
@@ -76,7 +78,9 @@ class AIManager:
         # Core components
         self.prompt_manager = PromptManager(self.config)
         self.response_parser = ResponseParser()
+        self.memory_compactor = MemoryCompactor(self.config)
         self.logger = AILogger(session_dir=session_dir)
+        self._configure_session_tts_cache()
         
         # Agent tools and executor
         self.agent_tools = AgentTools()
@@ -118,6 +122,14 @@ class AIManager:
         print(f"   Manual actions: {self.manual_actions}")
         print(f"   Chat language: {getattr(self.config.agent, 'chat_language', 'english')}")
         print(f"   TTS: {self.tts.describe()}")
+
+    def _configure_session_tts_cache(self) -> None:
+        """Default generated voice clips to this session's log directory."""
+        if os.environ.get("AI_TTS_CACHE_DIR") or os.environ.get("PYCATAN_TTS_CACHE_DIR"):
+            return
+
+        cache_dir = self.logger.get_session_path() / "tts_cache"
+        os.environ["AI_TTS_CACHE_DIR"] = str(cache_dir)
     
     @property
     def llm_client(self) -> GeminiClient:
@@ -362,6 +374,8 @@ class AIManager:
             # Update memory
             note_to_self = parsed.get("note_to_self")
             agent.update_memory(note_to_self)
+            if note_to_self:
+                self._maybe_compact_agent_memory(agent, game_state)
             
             # Save memories to file for web viewer (real-time update)
             if note_to_self:
@@ -696,6 +710,78 @@ class AIManager:
             "note_to_self": None,
             "say_outloud": None
         }
+
+    def _maybe_compact_agent_memory(
+        self,
+        agent: AgentState,
+        game_state: Optional[Dict[str, Any]] = None
+    ) -> None:
+        """Compact an agent's memory once enough notes have accumulated."""
+        if not self.memory_compactor.should_compact(agent):
+            return
+
+        if not self.send_to_llm:
+            self.logger.log_llm_communication(
+                f"Skipping memory compaction for {agent.player_name}: send_to_llm is disabled",
+                "MEMORY"
+            )
+            return
+
+        compact_state = game_state or self._current_game_state
+        if not compact_state:
+            self.logger.log_llm_communication(
+                f"Skipping memory compaction for {agent.player_name}: no game state available",
+                "MEMORY"
+            )
+            return
+
+        self.logger.log_llm_communication(
+            f"Compacting memory for {agent.player_name} ({len(agent.memory_history)} notes)",
+            "MEMORY"
+        )
+
+        try:
+            result = self.memory_compactor.compact(
+                agent=agent,
+                game_state=compact_state,
+                chat_history=self.chat_history,
+                llm_client=self.llm_client,
+            )
+        except Exception as e:
+            self.logger.log_llm_communication(
+                f"Memory compaction failed for {agent.player_name}: {e}",
+                "ERROR"
+            )
+            return
+
+        if not result:
+            self.logger.log_llm_communication(
+                f"Memory compaction produced no usable summary for {agent.player_name}",
+                "WARNING"
+            )
+            return
+
+        response = result.get("response")
+        agent.apply_memory_compaction(
+            compacted_memory=result["compacted_memory"],
+            recent_notes_to_keep=result["recent_entries"],
+        )
+        artifact_paths = self.logger.log_memory_compaction(
+            agent.player_name,
+            agent.compaction_count,
+            result,
+        )
+        if response:
+            agent.total_tokens_used += getattr(response, "total_tokens", 0)
+
+        discarded = result.get("discarded_as_irrelevant") or []
+        discarded_text = f" Discarded: {discarded}" if discarded else ""
+        self.logger.log_llm_communication(
+            f"Memory compacted for {agent.player_name}: "
+            f"{len(agent.memory_history)} recent notes kept. "
+            f"See {artifact_paths.get('txt')}.{discarded_text}",
+            "MEMORY"
+        )
     
     def _create_prompt(
         self,
@@ -716,7 +802,7 @@ class AIManager:
         
         # Get agent's memory
         agent_memory = None
-        if agent.memory:
+        if agent.memory or agent.compacted_memory:
             recent_notes = [
                 note.get("note", str(note))
                 for note in getattr(agent, "memory_history", [])[-self.config.memory.short_term_turns:]
@@ -725,6 +811,8 @@ class AIManager:
                 "note_from_last_turn": agent.memory,
                 "recent_notes": recent_notes
             }
+            if agent.compacted_memory:
+                agent_memory["long_term_summary"] = agent.compacted_memory
         
         # Create prompt through PromptManager
         prompt = self.prompt_manager.create_prompt(
@@ -1643,13 +1731,14 @@ class AIManager:
             return "nothing"
         return ", ".join(f"{amount} {resource}" for resource, amount in resources.items())
     
-    def _broadcast_chat(self, from_player: str, message: str) -> None:
+    def _broadcast_chat(self, from_player: str, message: str, speak: bool = True) -> None:
         """
         Broadcast a chat message from an agent.
         
         Args:
             from_player: Name of player sending message
             message: The chat message
+            speak: If True, send the message to the configured TTS provider.
         """
         # Add to chat history (no timestamp - cleaner for LLM)
         chat_entry = {
@@ -1670,7 +1759,8 @@ class AIManager:
             self._chat_callback(from_player, message)
 
         # Optional non-blocking text-to-speech.
-        self.tts.speak(from_player, message)
+        if speak:
+            self.tts.speak(from_player, message)
         
         # Display to console
         print(f"[CHAT] {from_player}: \"{message}\"")

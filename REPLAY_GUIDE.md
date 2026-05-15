@@ -18,6 +18,20 @@ Or replay through an already-fixed action and continue after it:
 
 Both commands create a new derived session. The source session is not modified.
 
+Watch a previous session as a visual replay without waiting for the LLM:
+
+```powershell
+.\play_ai_auto.bat --watch-replay --replay-session session_20260515_211742 --replay-delay 2.5
+```
+
+This opens the normal board/unified view with video-like timeline controls:
+play/pause, previous/next, jump to start/end, and a draggable slider. The replay
+is rebuilt from recorded parsed actions, so board state, action log, resources,
+and chat can be scrubbed backward and forward. Recorded `say_outloud` messages
+are shown with the action. If TTS is enabled in `.env`, forward playback also
+speaks those messages; generated clips are cached under the replayed session's
+`tts_cache/` folder by default and reused on later runs of that same session.
+
 ## How Replay Works
 
 Replay reads final parsed responses from:
@@ -163,6 +177,16 @@ python examples\ai_testing\play_with_ai.py --auto --replay-session session_20260
 ```
 
 `--resume-session` is an alias for `--replay-session`.
+
+Visual replay options:
+
+```powershell
+.\play_ai_auto.bat --watch-replay --replay-session session_20260515_211742 --replay-delay 1.5
+```
+
+Use `--replay-skip-chat` to hide old table talk, or `--replay-speak` to force
+speech during a non-watch replay. TTS cache is per session by default and can
+be controlled with `AI_TTS_CACHE_ENABLED` and `AI_TTS_CACHE_DIR` in `.env`.
 
 ## Recommended Debug Workflow
 

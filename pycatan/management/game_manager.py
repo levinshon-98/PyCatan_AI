@@ -568,18 +568,11 @@ class GameManager:
                 card_type = self._resource_name_to_card(resource)
                 request_cards.extend([card_type] * int(amount))
             
-            # Validate that both players have the required cards
+            # Validate that the proposer has the cards before involving another player.
             if not self.game.players[proposer_id].has_cards(offer_cards):
-                print(f"    ✗ You don't have the required cards to offer")
+                print(f"    [X] You don't have the required cards to offer")
                 return ActionResult.failure_result(
                     f"You don't have the required cards to offer",
-                    "INSUFFICIENT_RESOURCES"
-                )
-            
-            if not self.game.players[target_id].has_cards(request_cards):
-                print(f"    ✗ {target_name} doesn't have the required cards")
-                return ActionResult.failure_result(
-                    f"{target_name} doesn't have the required cards",
                     "INSUFFICIENT_RESOURCES"
                 )
             
@@ -593,6 +586,25 @@ class GameManager:
 
             self._record_trade_offer(trade_id, proposer_name, target_name, offer, request)
             self._notify_all_users("trade_offer", trade_message, [proposer_id, target_id])
+
+            if not self.game.players[target_id].has_cards(request_cards):
+                print(f"    [X] {target_name} doesn't have the required cards")
+                target_user = self.users[target_id]
+                target_user.get_input(
+                    self.get_full_state(),
+                    (
+                        f"{trade_message} You do not have the requested cards "
+                        f"({request_str}), so this trade cannot be accepted. "
+                        "Choose trade_reject and briefly explain that you cannot make this trade."
+                    ),
+                    allowed_actions=[ActionType.TRADE_REJECT.name]
+                )
+                self._resolve_trade(trade_id, "rejected", target_name)
+                action.parameters['trade_status'] = 'rejected'
+                return ActionResult.failure_result(
+                    f"{target_name} doesn't have the required cards",
+                    "INSUFFICIENT_RESOURCES"
+                )
             
             # Ask the target player to accept or reject
             print(f"\n[TRADE] Trade Proposal:")

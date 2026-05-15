@@ -84,7 +84,8 @@ function connectToServer() {
         // Now load game state
         return Promise.all([
             fetch('/api/game-state', {timeout: 5000}),
-            fetch('/api/actions')
+            fetch('/api/actions'),
+            fetch('/api/chat')
         ]);
     })
     .then(responses => {
@@ -93,7 +94,7 @@ function connectToServer() {
             return r.json();
         }));
     })
-    .then(([gameStateData, actionsData]) => {
+    .then(([gameStateData, actionsData, chatData]) => {
         console.log('📥 Game state received from server:', gameStateData);
         
         // Check if state is empty (no hexes)
@@ -115,6 +116,11 @@ function connectToServer() {
         if (actionsData && Array.isArray(actionsData)) {
             console.log(`📥 Loaded ${actionsData.length} previous actions`);
             actionsData.forEach(action => logAction(action));
+        }
+
+        if (chatData && Array.isArray(chatData)) {
+            console.log(`Loaded ${chatData.length} previous chat messages`);
+            chatData.forEach(chat => handlePlayerChat(chat));
         }
         
         console.log('✓ Server connection established successfully');
@@ -168,6 +174,8 @@ function connectToSSE() {
                 } else if (data.type === 'ai_status') {
                     // Handle AI thinking status update
                     handleAIStatus(data.payload);
+                } else if (data.type === 'replay_seek') {
+                    handleReplaySeek(data.payload);
                 }
             };
             
@@ -179,6 +187,62 @@ function connectToSSE() {
     } catch (error) {
         console.warn('⚠️ Unable to connect to SSE:', error);
     }
+}
+
+function handleReplaySeek(payload) {
+    if (!payload) return;
+
+    if (payload.game_state) {
+        updateGameState(payload.game_state);
+    }
+
+    renderActionHistory(payload.action_history || []);
+    renderChatHistory(payload.chat_history || []);
+
+    if (window.replayControls && typeof window.replayControls.updateFromPayload === 'function') {
+        window.replayControls.updateFromPayload(payload);
+    }
+}
+
+function renderActionHistory(actions) {
+    const logDiv = document.getElementById('action-log');
+    if (!logDiv) return;
+
+    logDiv.innerHTML = '';
+    if (!actions.length) {
+        logDiv.innerHTML = '<div class="info">Waiting for updates...</div>';
+        return;
+    }
+
+    actions.forEach(action => logAction(action));
+}
+
+function renderChatHistory(messages) {
+    const chatLog = document.getElementById('chat-log');
+    if (!chatLog) return;
+
+    chatLog.innerHTML = '';
+    if (!messages.length) {
+        chatLog.innerHTML = '<div class="info">No chat messages yet...</div>';
+        return;
+    }
+
+    messages.forEach(msg => {
+        const playerName = msg.player_name || msg.from || msg.player || 'Unknown';
+        const message = msg.message || msg.text || '';
+        const timestamp = msg.timestamp || '';
+        const chatElement = document.createElement('div');
+        chatElement.className = 'chat-log-message';
+        chatElement.innerHTML = `
+            <div class="chat-log-header">
+                <span class="chat-log-player">נ₪– ${escapeHtmlLocal(playerName)}</span>
+                <span class="chat-log-time">${escapeHtmlLocal(timestamp)}</span>
+            </div>
+            <div class="chat-log-text">"${escapeHtmlLocal(message)}"</div>
+        `;
+        chatLog.appendChild(chatElement);
+    });
+    chatLog.scrollTop = chatLog.scrollHeight;
 }
 
 // Refresh game state from server
@@ -392,9 +456,9 @@ function logResourceDistribution(data) {
 
 // Handle player chat message (say_outloud)
 function handlePlayerChat(data) {
-    const playerName = data.player_name;
-    const message = data.message;
-    const timestamp = new Date().toLocaleTimeString();
+    const playerName = data.player_name || data.from || 'Unknown';
+    const message = data.message || '';
+    const timestamp = data.timestamp || new Date().toLocaleTimeString();
     
     // Store chat message for player
     if (!window.playerChatMessages) {
@@ -560,6 +624,12 @@ function appendToLog(container, element) {
     
     // Scroll to bottom
     container.scrollTop = container.scrollHeight;
+}
+
+function escapeHtmlLocal(text) {
+    const div = document.createElement('div');
+    div.textContent = text == null ? '' : String(text);
+    return div.innerHTML;
 }
 
 // Game initialization

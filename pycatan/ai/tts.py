@@ -15,6 +15,12 @@ class NoopTTS:
     def speak(self, player_name: str, text: str) -> None:
         return
 
+    def speak_blocking(self, player_name: str, text: str) -> None:
+        return
+
+    def prepare_blocking(self, player_name: str, text: str) -> None:
+        return
+
     def close(self) -> None:
         return
 
@@ -35,4 +41,3 @@ def create_tts_from_env():
 
     print(f"[TTS] Unknown TTS_PROVIDER={provider!r}; disabling TTS.")
     return NoopTTS()
-

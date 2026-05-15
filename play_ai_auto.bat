@@ -85,11 +85,16 @@ echo    Watch the LLM Logger window to see their thinking process.
 echo    Press Ctrl+C to stop the game.
 echo.
 echo    Custom names: --names Alice Bob Charlie (also sets player count!)
+echo    Chat language: --hebrew-chat or --english-chat
 echo    Replay: --replay-session session_YYYYMMDD_HHMMSS --replay-stop-before Alice:6
+echo    Watch replay: --watch-replay --replay-session session_YYYYMMDD_HHMMSS --replay-delay 2.5
+echo    Replay clean chat: add --replay-skip-chat to hide old recorded table talk
 echo    Examples:
 echo      play_ai_auto.bat --names Dan Yael          (2 players)
 echo      play_ai_auto.bat --names A B C D           (4 players)
-echo      play_ai_auto.bat --replay-session session_20260515_205233 --replay-stop-before Alice:6
+echo      play_ai_auto.bat --hebrew-chat
+echo      play_ai_auto.bat --replay-session session_20260515_205233 --replay-stop-before Alice:6 --replay-skip-chat
+echo      play_ai_auto.bat --watch-replay --replay-session session_20260515_211742 --replay-delay 2.5
 echo ================================================================================
 echo.
 

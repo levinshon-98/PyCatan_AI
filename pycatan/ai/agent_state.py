@@ -53,6 +53,9 @@ class AgentState:
     # === Memory ===
     memory: Optional[str] = None  # note_to_self from last response
     memory_updated_at: Optional[float] = None
+    compacted_memory: Optional[str] = None
+    compacted_memory_updated_at: Optional[float] = None
+    compaction_count: int = 0
     memory_history: List[Dict[str, Any]] = field(default_factory=list)
     
     # === Chat Summaries (for future use) ===
@@ -156,7 +159,26 @@ class AgentState:
                 "note": note_to_self,
                 "timestamp": self.memory_updated_at,
             })
-            self.memory_history = self.memory_history[-10:]
+
+    def apply_memory_compaction(
+        self,
+        compacted_memory: str,
+        recent_notes_to_keep: Optional[List[Dict[str, Any]]] = None
+    ) -> None:
+        """
+        Replace old memory history with a compact long-term summary plus recent notes.
+
+        Args:
+            compacted_memory: Strategic long-term summary produced by the LLM.
+            recent_notes_to_keep: The newest note entries to keep verbatim.
+        """
+        if not compacted_memory:
+            return
+
+        self.compacted_memory = compacted_memory
+        self.compacted_memory_updated_at = time.time()
+        self.compaction_count += 1
+        self.memory_history = list(recent_notes_to_keep or [])
     
     def update_state_hash(self, state_hash: str) -> bool:
         """
@@ -205,6 +227,9 @@ class AgentState:
             "player_color": self.player_color,
             "memory": self.memory,
             "memory_updated_at": self.memory_updated_at,
+            "compacted_memory": self.compacted_memory,
+            "compacted_memory_updated_at": self.compacted_memory_updated_at,
+            "compaction_count": self.compaction_count,
             "memory_history": self.memory_history,
             "chat_summaries": self.chat_summaries,
             "recent_events": self.recent_events,
