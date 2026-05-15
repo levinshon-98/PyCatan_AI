@@ -105,6 +105,8 @@ class AgentConfig:
     custom_instructions: Optional[str] = None
     # Language for public table talk in say_outloud. Supported: english, hebrew.
     chat_language: str = "english"
+    # Allow off-turn social reactions to table talk and direct hostile events.
+    enable_reactions: bool = True
 
 @dataclass
 class MemoryConfig:

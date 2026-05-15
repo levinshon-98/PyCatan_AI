@@ -1273,6 +1273,7 @@ function renderObservedFacts(facts) {
         ? `${dice.join(' + ')} = ${facts.dice_total ?? dice.reduce((sum, value) => sum + Number(value || 0), 0)}`
         : 'Not rolled yet / not visible';
     const playerState = facts.current_player_state || {};
+    const warnings = facts.prompt_warnings || [];
 
     return `
         <div class="analysis-observed">
@@ -1283,6 +1284,12 @@ function renderObservedFacts(facts) {
                 <div><span>Dice</span><strong>${escapeHtml(diceText)}</strong></div>
                 <div><span>Robber hex</span><strong>${escapeHtml(String(facts.robber_hex ?? 'Unknown'))}</strong></div>
             </div>
+            ${facts.expected_action ? renderKeyText('Expected action from allowed_actions', facts.expected_action) : ''}
+            ${warnings.length ? `
+                <div class="analysis-warning">
+                    ${warnings.map(item => `<div>${escapeHtml(item)}</div>`).join('')}
+                </div>
+            ` : ''}
             ${Object.keys(playerState).length ? renderJsonBlock(playerState, `${facts.current_player || 'Current player'} visible state`) : ''}
         </div>
     `;

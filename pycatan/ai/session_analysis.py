@@ -45,9 +45,14 @@ def build_decision_analysis(
     memory_before = copy.deepcopy(prompt.get("memory") or {})
     social_context = copy.deepcopy(prompt.get("social_context") or {})
     constraints = copy.deepcopy(prompt.get("constraints") or {})
+    allowed_actions = copy.deepcopy(prompt_doc.get("allowed_actions") or constraints.get("allowed_actions") or [])
     compact_state_text = prompt.get("game_state") or ""
     compact_state_json = _extract_embedded_json(compact_state_text)
-    observed_facts = _build_observed_facts(compact_state_json)
+    observed_facts = _build_observed_facts(
+        compact_state_json,
+        allowed_actions,
+        prompt.get("task_context") or {},
+    )
 
     action_type = parsed.get("action_type") or (parsed.get("action") or {}).get("type")
     action_parameters = parsed.get("parameters")
@@ -75,7 +80,7 @@ def build_decision_analysis(
             "compact_game_state": compact_state_text,
             "compact_game_state_json": compact_state_json,
             "observed_facts": observed_facts,
-            "allowed_actions": copy.deepcopy(prompt_doc.get("allowed_actions") or constraints.get("allowed_actions") or []),
+            "allowed_actions": allowed_actions,
         },
         "tool_trace": tool_trace,
         "thinking": parsed.get("internal_thinking") or "",
@@ -302,10 +307,17 @@ def _extract_embedded_json(text: str) -> Optional[Dict[str, Any]]:
         return None
 
 
-def _build_observed_facts(compact_state: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+def _build_observed_facts(
+    compact_state: Optional[Dict[str, Any]],
+    allowed_actions: List[Dict[str, Any]],
+    task_context: Dict[str, Any],
+) -> Dict[str, Any]:
     """Extract the high-signal facts that were visible in compact game_state."""
     if not isinstance(compact_state, dict):
-        return {}
+        return {
+            "expected_action": _expected_action_from_allowed(allowed_actions),
+            "prompt_warnings": _prompt_consistency_warnings(allowed_actions, task_context),
+        }
 
     meta = compact_state.get("meta") or {}
     dice = meta.get("dice")
@@ -324,9 +336,51 @@ def _build_observed_facts(compact_state: Optional[Dict[str, Any]]) -> Dict[str, 
         "robber_hex": meta.get("robber"),
         "dice": dice,
         "dice_total": dice_total,
+        "expected_action": _expected_action_from_allowed(allowed_actions),
+        "prompt_warnings": _prompt_consistency_warnings(allowed_actions, task_context),
         "current_player_state": current_player_state,
         "players": copy.deepcopy(players) if isinstance(players, dict) else {},
     }
+
+
+def _allowed_types(allowed_actions: List[Dict[str, Any]]) -> set[str]:
+    result = set()
+    for action in allowed_actions or []:
+        if isinstance(action, dict):
+            value = action.get("type")
+        else:
+            value = str(action)
+        if value:
+            result.add(str(value).lower())
+    return result
+
+
+def _expected_action_from_allowed(allowed_actions: List[Dict[str, Any]]) -> str:
+    allowed = _allowed_types(allowed_actions)
+    if "roll_dice" in allowed and allowed <= {"roll_dice", "use_dev_card"}:
+        if "use_dev_card" in allowed:
+            return "Start the turn: roll dice, or optionally use a development card before rolling."
+        return "Start the turn: roll dice."
+    if {"build_settlement", "build_city", "build_road", "trade_propose", "trade_bank", "buy_dev_card", "end_turn"} & allowed:
+        return "Post-roll actions: build, trade, buy/use development card, or end turn."
+    if allowed:
+        return "Allowed now: " + ", ".join(sorted(allowed))
+    return ""
+
+
+def _prompt_consistency_warnings(
+    allowed_actions: List[Dict[str, Any]],
+    task_context: Dict[str, Any],
+) -> List[str]:
+    allowed = _allowed_types(allowed_actions)
+    what_happened = str((task_context or {}).get("what_just_happened") or "").lower()
+    warnings = []
+    if "roll_dice" in allowed and allowed <= {"roll_dice", "use_dev_card"}:
+        if "build, trade, or end" in what_happened:
+            warnings.append(
+                "The prompt text says build/trade/end, but the allowed actions show this is a pre-roll decision."
+            )
+    return warnings
 
 
 def _parse_timestamp(value: Any) -> Optional[datetime]:

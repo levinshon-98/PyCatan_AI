@@ -500,6 +500,124 @@ class AIManager:
             "parameters": {},
         }
 
+    def process_agent_reaction(
+        self,
+        player_name: str,
+        game_state: Dict[str, Any],
+        prompt_message: str,
+        source_player: Optional[str] = None,
+        event_group_id: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Process an off-turn social reaction.
+
+        Reactions are observation-only: they may update memory and optionally
+        say something out loud, but they never return a board action.
+        """
+        if not getattr(self.config.agent, "enable_reactions", True):
+            return None
+
+        agent = self.get_agent(player_name)
+        if not agent:
+            raise ValueError(f"Agent '{player_name}' not registered!")
+
+        self._current_game_state = game_state
+        self._current_allowed_actions = []
+        self.agent_tools.update_game_state(game_state)
+
+        what_happened = (prompt_message or "").strip()
+        if source_player:
+            what_happened = f"{what_happened}\nSource player: {source_player}"
+        if event_group_id:
+            what_happened = f"{what_happened}\nReaction event id: {event_group_id}"
+
+        prompt, schema = self._create_prompt(
+            agent=agent,
+            game_state=game_state,
+            what_happened=what_happened,
+            allowed_actions=[],
+            is_active_turn=False,
+        )
+
+        tool_schemas = self.agent_tools.get_tools_schema()
+        log_info = self.logger.log_prompt(
+            player_name=player_name,
+            prompt=prompt,
+            schema=schema,
+            is_active=False,
+            what_happened=what_happened,
+            allowed_actions=[],
+            tools_schema=tool_schemas,
+        )
+
+        agent.mark_request_sent()
+        response = None
+        parsed = None
+
+        if self.send_to_llm:
+            try:
+                self.logger.log_llm_communication(
+                    f"Sending reaction prompt #{log_info['number']} for {player_name}",
+                    "SEND",
+                )
+                use_streaming = getattr(self.config.llm, "enable_streaming", True)
+                if use_streaming:
+                    response = self._send_to_llm_stream(
+                        prompt,
+                        schema,
+                        ResponseType.OBSERVING,
+                        player_name=player_name,
+                        prompt_number=log_info["number"],
+                    )
+                else:
+                    response = self._send_to_llm(
+                        prompt,
+                        schema,
+                        ResponseType.OBSERVING,
+                        player_name=player_name,
+                        prompt_number=log_info["number"],
+                    )
+
+                if response and response.success and response.content:
+                    parsed = self._parse_response(response, ResponseType.OBSERVING)
+                    self._last_llm_response = parsed
+                    self._broadcast_status(player_name, "done")
+                else:
+                    if response and response.error:
+                        self.logger.log_llm_communication(f"Reaction LLM error: {response.error}", "ERROR")
+                    self._broadcast_status(player_name, "done")
+
+                if response:
+                    self.logger.log_response(
+                        player_name=player_name,
+                        request_number=log_info["number"],
+                        response=response,
+                        parsed=parsed,
+                    )
+            except Exception as e:
+                self.logger.log_llm_communication(f"Reaction exception: {str(e)}", "ERROR")
+                parsed = None
+
+        agent.mark_request_complete(
+            success=parsed is not None,
+            tokens=response.total_tokens if response else 0,
+        )
+
+        if not parsed:
+            return None
+
+        note_to_self = parsed.get("note_to_self")
+        if note_to_self:
+            agent.update_memory(note_to_self)
+            self._maybe_compact_agent_memory(agent, game_state)
+            self.logger.save_agent_memories(self.agents)
+
+        say_outloud = (parsed.get("say_outloud") or "").strip()
+        if say_outloud:
+            self._broadcast_chat(player_name, say_outloud)
+
+        return parsed
+
     def _fallback_decision_from_unparsed_response(
         self,
         raw_content: str,
@@ -912,6 +1030,8 @@ class AIManager:
             agent_memory=agent_memory,
             pending_trades=self._get_relevant_trades(agent.player_name)
         )
+        if not is_active_turn:
+            prompt.setdefault("task_context", {})["instructions"] = self._get_reaction_instructions()
         
         # Get appropriate schema based on config version
         schema_version = SchemaVersion.V2  # Default
@@ -930,6 +1050,19 @@ class AIManager:
         )
         
         return prompt, schema
+
+    def _get_reaction_instructions(self) -> str:
+        """Instructions for observation-only social reactions."""
+        language = getattr(self.config.agent, "chat_language", "english")
+        language_name = "Hebrew" if str(language).lower() in {"hebrew", "he", "heb", "iw"} else "English"
+        return (
+            "You are not taking a board action now. You may only react socially. "
+            "Usually leave say_outloud empty. Reply only if you were addressed, "
+            "insulted, threatened, directly harmed, or if the event matters for "
+            "relationships or long-term strategy. If you do speak, write natural "
+            f"{language_name} only, keep it brief, human, and non-technical. "
+            "You may update note_to_self with useful relationship or strategy context."
+        )
     
     def _format_allowed_actions(self, allowed_actions: List[str]) -> List[Dict[str, Any]]:
         """Convert action type strings to formatted action dicts."""
@@ -1056,9 +1189,24 @@ class AIManager:
         phase_prompt = (prompt_message or "").strip()
         if not agent.recent_events:
             return phase_prompt or "It's your turn."
-        
-        # Get only the last event and format it clearly
+
         last_event = agent.recent_events[-1]
+        if last_event.get("type") == "turn_change":
+            previous_event = next(
+                (
+                    event for event in reversed(agent.recent_events[:-1])
+                    if event.get("type") != "turn_change"
+                ),
+                None,
+            )
+            lines = []
+            if previous_event:
+                lines.append(f"Previous game event: {self._format_event_for_agent(previous_event, agent)}")
+            lines.append("It's your turn.")
+            if phase_prompt:
+                lines.append(f"Current required action: {phase_prompt}")
+            return "\n".join(lines)
+
         event_summary = self._format_event_for_agent(last_event, agent)
 
         if phase_prompt and phase_prompt not in event_summary:
@@ -1690,6 +1838,13 @@ class AIManager:
                 "note_to_self": data.get("note_to_self"),
                 "say_outloud": data.get("say_outloud"),
             }
+
+            if response_type == ResponseType.OBSERVING:
+                self.logger.log_llm_communication(
+                    f"Observation: {parsed['internal_thinking'][:100]}...",
+                    "RECV"
+                )
+                return parsed
             
             # Extract action (action.type + action.parameters)
             action = data.get("action", {})
