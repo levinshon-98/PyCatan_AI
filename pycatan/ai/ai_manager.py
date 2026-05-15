@@ -125,11 +125,33 @@ class AIManager:
 
     def _configure_session_tts_cache(self) -> None:
         """Default generated voice clips to this session's log directory."""
-        if os.environ.get("AI_TTS_CACHE_DIR") or os.environ.get("PYCATAN_TTS_CACHE_DIR"):
+        existing_cache_dir = os.environ.get("AI_TTS_CACHE_DIR") or os.environ.get("PYCATAN_TTS_CACHE_DIR")
+        if existing_cache_dir:
+            self._write_tts_cache_metadata(Path(existing_cache_dir), source="env")
             return
 
         cache_dir = self.logger.get_session_path() / "tts_cache"
         os.environ["AI_TTS_CACHE_DIR"] = str(cache_dir)
+        self._write_tts_cache_metadata(cache_dir, source="session_default")
+
+    def _write_tts_cache_metadata(self, cache_dir: Path, source: str) -> None:
+        """Record where generated voice clips are cached for this session."""
+        metadata_file = self.logger.get_session_path() / "session_metadata.json"
+        try:
+            metadata = {}
+            if metadata_file.exists():
+                metadata = json.loads(metadata_file.read_text(encoding="utf-8"))
+            metadata["tts_cache"] = {
+                "enabled": os.environ.get("AI_TTS_CACHE_ENABLED", "true"),
+                "path": str(cache_dir),
+                "source": source,
+            }
+            metadata_file.write_text(
+                json.dumps(metadata, indent=2, ensure_ascii=False),
+                encoding="utf-8"
+            )
+        except Exception as exc:
+            print(f"[TTS] Could not write cache metadata: {exc}")
     
     @property
     def llm_client(self) -> GeminiClient:

@@ -1421,6 +1421,8 @@ def main():
     ):
         os.environ["AI_TTS_CACHE_DIR"] = str(replay_session_path / "tts_cache")
         print(f"[REPLAY] TTS cache: {os.environ['AI_TTS_CACHE_DIR']}")
+    elif not args.watch_replay and not os.environ.get("AI_TTS_CACHE_DIR") and not os.environ.get("PYCATAN_TTS_CACHE_DIR"):
+        print("[TTS] Voice cache: per-session tts_cache/")
 
     replay_decision_list: List[Dict[str, Any]] = []
     replay_decisions_by_player: Dict[str, List[Dict[str, Any]]] = {}
