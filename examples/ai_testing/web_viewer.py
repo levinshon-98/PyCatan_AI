@@ -2,13 +2,16 @@
 Real-Time AI Game Viewer
 -------------------------
 Web interface to monitor AI agents, chat, and game state in real-time.
+Supports Server-Sent Events (SSE) for streaming updates.
 """
 
 import json
+import queue
+import threading
 from pathlib import Path
 from datetime import datetime
 from collections import OrderedDict
-from flask import Flask, render_template, jsonify, Response
+from flask import Flask, render_template, jsonify, Response, stream_with_context
 import html
 
 app = Flask(__name__, 
@@ -30,6 +33,11 @@ def after_request(response):
 SCRIPT_DIR = Path(__file__).parent.absolute()
 LOGS_DIR = SCRIPT_DIR / "my_games"
 SESSION_FILE = LOGS_DIR / "current_session.txt"
+
+# SSE Streaming - Global event queue
+# Format: {player_name: queue.Queue()}
+streaming_queues: dict = {}
+streaming_lock = threading.Lock()
 
 
 def get_current_session():
@@ -359,7 +367,134 @@ def api_mark_all_viewed(session_path):
         return jsonify({"error": str(e)}), 500
 
 
+# ============================================================================
+# SSE Streaming Endpoints
+# ============================================================================
+
+@app.route('/api/stream/<player_name>')
+def stream_player(player_name):
+    """
+    Server-Sent Events (SSE) endpoint for real-time streaming updates.
+    
+    Returns a stream of events:
+    - thought: AI thinking/reasoning
+    - text: Regular response text
+    - function_call: Tool/function being called
+    - done: Stream complete
+    """
+    def generate():
+        # Create queue for this player if doesn't exist
+        with streaming_lock:
+            if player_name not in streaming_queues:
+                streaming_queues[player_name] = queue.Queue(maxsize=1000)
+            player_queue = streaming_queues[player_name]
+        
+        # Send initial connection message
+        yield f"data: {json.dumps({'type': 'connected', 'player': player_name})}\\n\\n"
+        
+        # Keep connection alive and send events
+        try:
+            while True:
+                # Wait for event (with timeout to send keepalive)
+                try:
+                    event = player_queue.get(timeout=30)
+                    
+                    # Send event to client
+                    yield f"data: {json.dumps(event)}\\n\\n"
+                    
+                    # If this is 'done', we can close the stream
+                    if event.get('type') == 'done':
+                        break
+                        
+                except queue.Empty:
+                    # Send keepalive ping
+                    yield f": keepalive\\n\\n"
+                    continue
+                    
+        except GeneratorExit:
+            # Client disconnected
+            pass
+        finally:
+            # Cleanup
+            with streaming_lock:
+                if player_name in streaming_queues and streaming_queues[player_name] == player_queue:
+                    # Clear the queue but keep it for next connection
+                    while not player_queue.empty():
+                        try:
+                            player_queue.get_nowait()
+                        except queue.Empty:
+                            break
+    
+    return Response(stream_with_context(generate()), 
+                   mimetype='text/event-stream',
+                   headers={
+                       'Cache-Control': 'no-cache',
+                       'X-Accel-Buffering': 'no',
+                       'Connection': 'keep-alive'
+                   })
+
+
+@app.route('/api/stream/broadcast', methods=['POST'])
+def broadcast_stream():
+    """
+    Endpoint for AI Manager to broadcast streaming events.
+    
+    POST body:
+    {
+        "player_name": "Agent1",
+        "chunk_type": "thought"|"text"|"function_call"|"done",
+        "content": "...",
+        "function_call": {...}
+    }
+    """
+    from flask import request
+    
+    try:
+        data = request.get_json()
+        player_name = data.get('player_name')
+        chunk_type = data.get('chunk_type')
+        
+        if not player_name or not chunk_type:
+            return jsonify({"error": "Missing player_name or chunk_type"}), 400
+        
+        # Create event object
+        event = {
+            'type': chunk_type,
+            'timestamp': datetime.now().isoformat()
+        }
+        
+        if 'content' in data:
+            event['content'] = data['content']
+        
+        if 'function_call' in data:
+            event['function_call'] = data['function_call']
+        
+        # Add to player's queue
+        with streaming_lock:
+            if player_name not in streaming_queues:
+                streaming_queues[player_name] = queue.Queue(maxsize=1000)
+            
+            player_queue = streaming_queues[player_name]
+            
+            # Try to add event (non-blocking)
+            try:
+                player_queue.put_nowait(event)
+            except queue.Full:
+                # Queue is full, drop oldest event
+                try:
+                    player_queue.get_nowait()
+                    player_queue.put_nowait(event)
+                except:
+                    pass
+        
+        return jsonify({"success": True})
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 if __name__ == '__main__':
+    print("="*80)
     print("="*80)
     print("[WEB] AI Game Viewer Starting...")
     print("="*80)
