@@ -28,9 +28,11 @@ This opens the normal board/unified view with video-like timeline controls:
 play/pause, previous/next, jump to start/end, and a draggable slider. The replay
 is rebuilt from recorded parsed actions, so board state, action log, resources,
 and chat can be scrubbed backward and forward. Recorded `say_outloud` messages
-are shown with the action. If TTS is enabled in `.env`, forward playback also
-speaks those messages; generated clips are cached under the replayed session's
-`tts_cache/` folder by default and reused on later runs of that same session.
+are shown just before the related action. If TTS is enabled in `.env`, forward
+playback speaks those messages before rendering the action; generated clips are
+cached under the replayed session's `tts_cache/` folder by default and reused
+on later runs of that same session. Use `--replay-text-lead 0.5` to make the
+chat appear a little earlier before the game action.
 
 ## How Replay Works
 
@@ -185,8 +187,10 @@ Visual replay options:
 ```
 
 Use `--replay-skip-chat` to hide old table talk, or `--replay-speak` to force
-speech during a non-watch replay. TTS cache is per session by default and can
-be controlled with `AI_TTS_CACHE_ENABLED` and `AI_TTS_CACHE_DIR` in `.env`.
+speech during a non-watch replay. In watch replay, `--replay-text-lead 0.25`
+controls how long chat is visible before the matching action appears. TTS cache
+is per session by default and can be controlled with `AI_TTS_CACHE_ENABLED` and
+`AI_TTS_CACHE_DIR` in `.env`.
 
 ## Recommended Debug Workflow
 

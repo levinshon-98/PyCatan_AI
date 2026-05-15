@@ -58,6 +58,15 @@ def _clean_player_env_name(player_name: str) -> str:
     return cleaned.upper()
 
 
+def _speaker_env_suffixes(player_name: str) -> list[str]:
+    suffix = _clean_player_env_name(player_name)
+    suffixes = [suffix] if suffix else []
+    compact = suffix.replace("_", "")
+    if compact and compact not in suffixes:
+        suffixes.append(compact)
+    return suffixes
+
+
 def _pcm_sample_rate(output_format: str) -> Optional[int]:
     match = re.match(r"pcm_(\d+)$", output_format or "")
     return int(match.group(1)) if match else None
@@ -258,12 +267,14 @@ class ElevenLabsTTS:
             print(f"[TTS] ElevenLabs prepare error: {exc}")
 
     def _voice_id_for_player(self, player_name: str) -> str:
-        suffix = _clean_player_env_name(player_name)
-        return (
-            os.environ.get(f"ELEVENLABS_TTS_VOICE_{suffix}")
-            or os.environ.get(f"ELEVENLABS_VOICE_{suffix}")
-            or self.config.default_voice_id
-        ).strip()
+        for suffix in _speaker_env_suffixes(player_name):
+            voice_id = (
+                os.environ.get(f"ELEVENLABS_TTS_VOICE_{suffix}")
+                or os.environ.get(f"ELEVENLABS_VOICE_{suffix}")
+            )
+            if voice_id:
+                return voice_id.strip()
+        return self.config.default_voice_id.strip()
 
     def _synthesize(self, player_name: str, text: str) -> bytes:
         voice_id = self._voice_id_for_player(player_name)

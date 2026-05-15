@@ -1,0 +1,229 @@
+[
+  {
+    "timestamp": "2026-05-16T00:21:50.224100",
+    "total_calls": 2,
+    "successful": 2,
+    "failed": 0,
+    "total_time_ms": 0.75,
+    "tokens": {
+      "input": 63,
+      "output": 117,
+      "total": 180
+    },
+    "calls": [
+      {
+        "id": "call_1",
+        "name": "find_best_nodes",
+        "parameters": {
+          "must_have_resource": "Wh",
+          "reasoning": "Looking for a strong Wheat/Ore spot for my second settlement to complement my Wood/Brick/Sheep start."
+        },
+        "result": {
+          "llm_reasoning": "Looking for a strong Wheat/Ore spot for my second settlement to complement my Wood/Brick/Sheep start.",
+          "query": {
+            "min_pips": 0,
+            "must_have_resource": "Wh",
+            "exclude_blocked": true,
+            "prefer_port": false
+          },
+          "total_found": 0,
+          "nodes": []
+        },
+        "success": true,
+        "error": null,
+        "execution_time_ms": 0.37,
+        "tokens": {
+          "input": 36,
+          "output": 63,
+          "total": 99
+        }
+      },
+      {
+        "id": "call_2",
+        "name": "find_best_nodes",
+        "parameters": {
+          "must_have_resource": "O",
+          "reasoning": "Looking for Ore to complete my resource coverage for the mid-game."
+        },
+        "result": {
+          "llm_reasoning": "Looking for Ore to complete my resource coverage for the mid-game.",
+          "query": {
+            "min_pips": 0,
+            "must_have_resource": "O",
+            "exclude_blocked": true,
+            "prefer_port": false
+          },
+          "total_found": 0,
+          "nodes": []
+        },
+        "success": true,
+        "error": null,
+        "execution_time_ms": 0.22,
+        "tokens": {
+          "input": 27,
+          "output": 54,
+          "total": 81
+        }
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-05-16T00:22:29.528270",
+    "total_calls": 1,
+    "successful": 1,
+    "failed": 0,
+    "total_time_ms": 0.23,
+    "tokens": {
+      "input": 35,
+      "output": 378,
+      "total": 413
+    },
+    "calls": [
+      {
+        "id": "call_1",
+        "name": "analyze_path_potential",
+        "parameters": {
+          "from_node": 44,
+          "reasoning": "Evaluating expansion options from my second settlement at node 44. Looking for better numbers or port access."
+        },
+        "result": {
+          "llm_reasoning": "Evaluating expansion options from my second settlement at node 44. Looking for better numbers or port access.",
+          "from_node": 44,
+          "total_directions": 3,
+          "paths": [
+            {
+              "direction": 43,
+              "depth_1": {
+                "node_id": 43,
+                "resources": {
+                  "Wheat": [
+                    9,
+                    6,
+                    9
+                  ]
+                },
+                "total_pips": 13,
+                "port": null,
+                "can_build": false,
+                "occupied": false
+              },
+              "depth_2": {
+                "reachable_nodes": [
+                  {
+                    "node_id": 42,
+                    "total_pips": 12,
+                    "port": null,
+                    "can_build": false
+                  },
+                  {
+                    "node_id": 33,
+                    "total_pips": 9,
+                    "port": null,
+                    "can_build": true
+                  }
+                ],
+                "best_node": 42,
+                "best_pips": 12
+              },
+              "highlights": [
+                "High-value node at depth 1",
+                "High-value node at depth 2 (node 42, 12 pips)"
+              ],
+              "score": 19.0
+            },
+            {
+              "direction": 45,
+              "depth_1": {
+                "node_id": 45,
+                "resources": {
+                  "Ore": [
+                    2
+                  ],
+                  "Sheep": [
+                    11
+                  ],
+                  "Wheat": [
+                    6
+                  ]
+                },
+                "total_pips": 8,
+                "port": null,
+                "can_build": false,
+                "occupied": false
+              },
+              "depth_2": {
+                "reachable_nodes": [
+                  {
+                    "node_id": 46,
+                    "total_pips": 3,
+                    "port": null,
+                    "can_build": true
+                  },
+                  {
+                    "node_id": 35,
+                    "total_pips": 9,
+                    "port": null,
+                    "can_build": true
+                  }
+                ],
+                "best_node": 35,
+                "best_pips": 9
+              },
+              "highlights": [],
+              "score": 12.5
+            },
+            {
+              "direction": 52,
+              "depth_1": {
+                "node_id": 52,
+                "resources": {
+                  "Ore": [
+                    2
+                  ],
+                  "Wheat": [
+                    9
+                  ]
+                },
+                "total_pips": 5,
+                "port": null,
+                "can_build": false,
+                "occupied": false
+              },
+              "depth_2": {
+                "reachable_nodes": [
+                  {
+                    "node_id": 51,
+                    "total_pips": 4,
+                    "port": "?3",
+                    "can_build": true
+                  },
+                  {
+                    "node_id": 53,
+                    "total_pips": 1,
+                    "port": "?3",
+                    "can_build": true
+                  }
+                ],
+                "best_node": 51,
+                "best_pips": 4
+              },
+              "highlights": [
+                "Port (?3) at depth 2 (node 51)",
+                "Port (?3) at depth 2 (node 53)"
+              ],
+              "score": 10.0
+            }
+          ]
+        },
+        "success": true,
+        "error": null,
+        "execution_time_ms": 0.15,
+        "tokens": {
+          "input": 35,
+          "output": 378,
+          "total": 413
+        }
+      }
+    ]
+  }
+]

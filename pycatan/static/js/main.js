@@ -4,6 +4,7 @@ let gameState = null;
 let eventSource = null;
 let pointMapping = null; // Point mapping - will be loaded from server
 let playerNames = {}; // Store player names from game
+window.replayServerEventsConnected = false;
 
 // Global functions for control buttons
 function zoomIn() {
@@ -139,6 +140,11 @@ function connectToServer() {
 function connectToSSE() {
     try {
         eventSource = new EventSource('/api/events');
+
+            eventSource.onopen = function() {
+                window.replayServerEventsConnected = true;
+                document.dispatchEvent(new Event('server-events-connected'));
+            };
             
             eventSource.onmessage = function(event) {
                 const data = JSON.parse(event.data);
@@ -198,6 +204,15 @@ function handleReplaySeek(payload) {
 
     renderActionHistory(payload.action_history || []);
     renderChatHistory(payload.chat_history || []);
+
+    if (payload.phase === 'speech' && Array.isArray(payload.chat_history) && payload.chat_history.length) {
+        const latestChat = payload.chat_history[payload.chat_history.length - 1];
+        const playerName = latestChat.player_name || latestChat.from || latestChat.player;
+        const message = latestChat.message || latestChat.text;
+        if (playerName && message && typeof showPlayerChatBubble === 'function') {
+            showPlayerChatBubble(playerName, message);
+        }
+    }
 
     if (window.replayControls && typeof window.replayControls.updateFromPayload === 'function') {
         window.replayControls.updateFromPayload(payload);
