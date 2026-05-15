@@ -234,8 +234,82 @@ class AILogger:
         
         with open(self.llm_log_file, 'a', encoding='utf-8') as f:
             f.write(line)
-            f.flush()  # Ensure immediate write
-    
+            f.flush()  # Ensure immediate write    
+    def log_stream_chunk(self, player_name: str, chunk_type: str, content: str = None, function_call: dict = None) -> None:
+        """
+        Log a streaming chunk to the LLM communication file.
+        
+        Args:
+            player_name: Name of the player
+            chunk_type: Type of chunk ('thought', 'text', 'function_call', 'done')
+            content: Text content of the chunk
+            function_call: Function call details if applicable
+        """
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        
+        # Format chunk based on type
+        if chunk_type == 'thought':
+            emoji = '💭'
+            display = f"💭 THOUGHT: {content[:150]}..." if content and len(content) > 150 else f"💭 THOUGHT: {content}"
+            line = f"[{timestamp}] [STREAM] [{player_name}] {display}\n"
+            with open(self.llm_log_file, 'a', encoding='utf-8') as f:
+                f.write(line)
+                f.flush()
+                
+        elif chunk_type == 'function_call':
+            # For function calls: first log reasoning, then function with params
+            if function_call:
+                fn_name = function_call.get('name', 'unknown')
+                params = function_call.get('parameters', {})
+                
+                # Extract and log reasoning first
+                reasoning = params.get('reasoning', '')
+                if reasoning:
+                    reasoning_display = reasoning[:150] + "..." if len(reasoning) > 150 else reasoning
+                    reasoning_line = f"[{timestamp}] [REASONING] [{player_name}] 💭 {reasoning_display}\n"
+                    with open(self.llm_log_file, 'a', encoding='utf-8') as f:
+                        f.write(reasoning_line)
+                        f.flush()
+                
+                # Then log function call with parameters (excluding reasoning)
+                params_without_reasoning = {k: v for k, v in params.items() if k != 'reasoning'}
+                if params_without_reasoning:
+                    # Format parameters nicely
+                    params_str = ', '.join(f"{k}={v}" for k, v in params_without_reasoning.items())
+                    display = f"🔧 FUNCTION: {fn_name}({params_str})"
+                else:
+                    display = f"🔧 FUNCTION: {fn_name}()"
+            else:
+                display = f"🔧 FUNCTION CALL"
+            
+            line = f"[{timestamp}] [STREAM] [{player_name}] {display}\n"
+            with open(self.llm_log_file, 'a', encoding='utf-8') as f:
+                f.write(line)
+                f.flush()
+                
+        elif chunk_type == 'text':
+            emoji = '💬'
+            display = f"💬 TEXT: {content[:100]}..." if content and len(content) > 100 else f"💬 TEXT: {content}"
+            line = f"[{timestamp}] [STREAM] [{player_name}] {display}\n"
+            with open(self.llm_log_file, 'a', encoding='utf-8') as f:
+                f.write(line)
+                f.flush()
+                
+        elif chunk_type == 'done':
+            emoji = '✅'
+            display = f"✅ STREAM COMPLETE"
+            line = f"[{timestamp}] [STREAM] [{player_name}] {display}\n"
+            with open(self.llm_log_file, 'a', encoding='utf-8') as f:
+                f.write(line)
+                f.flush()
+                
+        else:
+            emoji = '🌊'
+            display = f"🌊 {chunk_type.upper()}: {content[:100] if content else 'N/A'}"
+            line = f"[{timestamp}] [STREAM] [{player_name}] {display}\n"
+            with open(self.llm_log_file, 'a', encoding='utf-8') as f:
+                f.write(line)
+                f.flush()    
     def _update_cumulative_header(self) -> None:
         """
         Update the cumulative cost summary at the top of the log file.

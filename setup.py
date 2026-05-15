@@ -11,7 +11,8 @@ setup(name='pycatan',
       license='MIT',
       install_requires=[
             "flask>=2.0.0",
-            "colorama>=0.4.0"
+            "colorama>=0.4.0",
+            "requests>=2.25.0"  # For streaming broadcaster HTTP calls
       ],
       packages=find_packages(),
       package_data={

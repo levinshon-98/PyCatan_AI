@@ -28,7 +28,18 @@ Usage:
 
 import sys
 import os
+import ssl
 from pathlib import Path
+
+# Fix SSL certificate verification on Windows (must be before any other imports)
+try:
+    import certifi
+    os.environ['SSL_CERT_FILE'] = certifi.where()
+    os.environ['REQUESTS_CA_BUNDLE'] = certifi.where()
+    os.environ['GRPC_DEFAULT_SSL_ROOTS_FILE_PATH'] = certifi.where()
+    ssl._create_default_https_context = ssl._create_unverified_context
+except Exception:
+    pass
 
 # Add parent directories to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))

@@ -18,13 +18,14 @@ from typing import Dict, Any, Optional, List, Callable
 
 from pycatan.ai.config import AIConfig
 from pycatan.ai.prompt_manager import PromptManager
-from pycatan.ai.llm_client import LLMResponse, create_llm_client, GeminiClient
+from pycatan.ai.llm_client import LLMResponse, StreamChunk, create_llm_client, GeminiClient
 from pycatan.ai.response_parser import ResponseParser, ParseResult
 from pycatan.ai.schemas import ResponseType, SchemaVersion, get_schema_for_response_type
 from pycatan.ai.agent_state import AgentState, compute_state_hash
 from pycatan.ai.ai_logger import AILogger
 from pycatan.ai.agent_tools import AgentTools
 from pycatan.ai.tool_executor import ToolExecutor
+from pycatan.ai.stream_broadcaster import StreamBroadcaster
 from pycatan.management.actions import Action, ActionType
 
 
@@ -79,6 +80,9 @@ class AIManager:
         self.agent_tools = AgentTools()
         self.tool_executor = ToolExecutor(self.agent_tools)
         
+        # Stream broadcaster for real-time web updates
+        self.stream_broadcaster = StreamBroadcaster()
+        
         # LLM client (created lazily when needed)
         self._llm_client: Optional[GeminiClient] = None
         
@@ -98,6 +102,9 @@ class AIManager:
         
         # Last LLM response (for display)
         self._last_llm_response: Optional[Dict[str, Any]] = None
+        
+        # Streaming callbacks
+        self._stream_callback: Optional[Callable[[str, StreamChunk], None]] = None  # (player_name, chunk)
         
         print(f"[AI] AIManager initialized")
         print(f"   Session: {self.logger.get_session_path()}")
@@ -247,11 +254,22 @@ class AIManager:
         if self.send_to_llm:
             try:
                 self.logger.log_llm_communication(f"Sending prompt #{log_info['number']} for {player_name}", "SEND")
-                response = self._send_to_llm(
-                    prompt, schema, ResponseType.ACTIVE_TURN,
-                    player_name=player_name,
-                    prompt_number=log_info["number"]
-                )
+                
+                # 🌊 Use streaming if enabled in config
+                use_streaming = getattr(self.config.llm, 'enable_streaming', True)  # Default to True
+                
+                if use_streaming:
+                    response = self._send_to_llm_stream(
+                        prompt, schema, ResponseType.ACTIVE_TURN,
+                        player_name=player_name,
+                        prompt_number=log_info["number"]
+                    )
+                else:
+                    response = self._send_to_llm(
+                        prompt, schema, ResponseType.ACTIVE_TURN,
+                        player_name=player_name,
+                        prompt_number=log_info["number"]
+                    )
                 
                 if response and response.success and response.content:
                     self.logger.log_llm_communication(f"Received response for {player_name} ({response.total_tokens} tokens)", "RECV")
@@ -274,8 +292,13 @@ class AIManager:
                     # Broadcast done after reasoning is shown
                     self._broadcast_status(player_name, "done")
                 else:
-                    error_msg = response.error if response else "No response"
-                    self.logger.log_llm_communication(f"LLM error: {error_msg}", "ERROR")
+                    # Only log error if there actually is one
+                    if response and response.error:
+                        self.logger.log_llm_communication(f"LLM error: {response.error}", "ERROR")
+                    elif not response:
+                        self.logger.log_llm_communication("LLM error: No response received", "ERROR")
+                    elif not response.content:
+                        self.logger.log_llm_communication("LLM error: Empty response content", "ERROR")
                     self._broadcast_status(player_name, "done")
                 
                 # Log response
@@ -777,12 +800,6 @@ class AIManager:
             iteration += 1
             is_tool_followup = iteration > 1
             
-            # Broadcast thinking status
-            if iteration == 1:
-                self._broadcast_status(player_name, "thinking", "Analyzing situation...")
-            else:
-                self._broadcast_status(player_name, "thinking", f"Re-evaluating (iteration {iteration})...")
-            
             # Set thinking budget for this iteration
             if self.config.llm.enable_thinking:
                 current_budget = thinking_budgets[iteration - 1] if iteration <= len(thinking_budgets) else thinking_budgets[-1]
@@ -887,9 +904,6 @@ class AIManager:
                 
                 # Execute tools
                 batch = self.tool_executor.execute_tool_calls(response.tool_calls)
-                
-                # Broadcast processing status after tool execution
-                self._broadcast_status(player_name, "processing", "Analyzing results...")
                 
                 # Log tool execution
                 self.logger.log_tool_execution(batch)
@@ -997,6 +1011,236 @@ class AIManager:
         # Should not reach here normally, but return last response as fallback
         self.logger.log_llm_communication(
             f"⚠️ Loop ended unexpectedly after {iteration} iterations",
+            "WARNING"
+        )
+        return response
+    
+    def _send_to_llm_stream(
+        self,
+        prompt: Dict[str, Any],
+        schema: Dict[str, Any],
+        response_type: ResponseType,
+        player_name: str = "unknown",
+        prompt_number: int = 0
+    ) -> LLMResponse:
+        """
+        Send prompt to LLM with STREAMING support.
+        
+        This version broadcasts real-time updates:
+        - Thoughts as they arrive
+        - Function calls as they're made  
+        - Text chunks as they're generated
+        
+        Same tool calling loop as _send_to_llm but with streaming.
+        """
+        self.logger.log_llm_communication("🌊 Streaming mode ACTIVE", "INFO")
+        
+        # Convert prompt to string
+        prompt_str = json.dumps(prompt, indent=2, ensure_ascii=False)
+        
+        # Get tool schemas
+        tool_schemas = self.agent_tools.get_tools_schema()
+        
+        # Build generation kwargs
+        kwargs = {
+            "response_schema": schema,
+            "tools": tool_schemas,
+            "enable_thinking": self.config.llm.enable_thinking,
+            "max_tokens": self.config.llm.max_tokens,
+        }
+        
+        # Determine thinking budgets and max iterations
+        if self.config.llm.thinking_budgets:
+            thinking_budgets = self.config.llm.thinking_budgets
+            max_tool_iterations = len(thinking_budgets)
+        else:
+            thinking_budgets = [self.config.llm.thinking_budget] * 3
+            max_tool_iterations = 3
+        
+        # Tool calling loop
+        iteration = 0
+        conversation_context = prompt_str
+        
+        # Accumulated tokens across all iterations
+        accumulated_prompt_tokens = 0
+        accumulated_completion_tokens = 0
+        accumulated_thinking_tokens = 0
+        accumulated_tool_tokens = 0
+        response = None
+        
+        while iteration < max_tool_iterations:
+            iteration += 1
+            is_tool_followup = iteration > 1
+            
+            # Set thinking budget for this iteration
+            if self.config.llm.enable_thinking:
+                current_budget = thinking_budgets[iteration - 1] if iteration <= len(thinking_budgets) else thinking_budgets[-1]
+                kwargs["thinking_budget"] = current_budget
+                self.logger.log_llm_communication(
+                    f"💭 Thinking budget for iteration {iteration}: {current_budget} tokens",
+                    "INFO"
+                )
+            
+            # Log API call start
+            current_tools = kwargs.get("tools", [])
+            api_call_id = self.logger.log_api_call_start(
+                player_name=player_name,
+                prompt_number=prompt_number,
+                iteration=iteration,
+                tools_schema=current_tools if current_tools else None,
+                is_tool_followup=is_tool_followup
+            )
+            
+            # Broadcast initial thinking status IMMEDIATELY after sending API call
+            self._broadcast_status(player_name, "thinking", "Thinking...")
+            
+            # === STREAMING: Use generate_stream instead of generate ===
+            accumulated_text = ""
+            accumulated_thoughts = ""
+            tool_calls = []
+            
+            # Define callback for each chunk
+            def on_chunk(chunk: StreamChunk):
+                nonlocal accumulated_text, accumulated_thoughts
+                
+                # Broadcast chunk (this logs and sends to web viewer)
+                self._broadcast_stream_chunk(player_name, chunk)
+                
+                # Also accumulate for final response
+                if chunk.chunk_type == 'thought' and chunk.content:
+                    accumulated_thoughts += chunk.content
+                elif chunk.chunk_type == 'text' and chunk.content:
+                    accumulated_text += chunk.content
+            
+            # Stream the response
+            try:
+                stream_generator = self.llm_client.generate_stream(
+                    conversation_context,
+                    on_chunk=on_chunk,
+                    **kwargs
+                )
+                
+                # Consume the generator to get all chunks and final response
+                final_chunk = None
+                for chunk in stream_generator:
+                    final_chunk = chunk
+                    if chunk.chunk_type == 'function_call' and chunk.function_call:
+                        tool_calls.append(chunk.function_call)
+                
+                # Get the final response from the generator
+                # The generator returns LLMResponse at the end
+                if hasattr(stream_generator, 'gi_retval'):
+                    response = stream_generator.gi_retval
+                else:
+                    # Build response from accumulated data
+                    response = LLMResponse(
+                        success=True,
+                        content=accumulated_text,
+                        tool_calls=tool_calls,
+                        model=self.llm_client.model,
+                        prompt_tokens=self.llm_client._estimate_tokens(conversation_context),
+                        completion_tokens=self.llm_client._estimate_tokens(accumulated_text),
+                        thinking_tokens=self.llm_client._estimate_tokens(accumulated_thoughts),
+                        total_tokens=0  # Will be calculated
+                    )
+                    response.total_tokens = response.prompt_tokens + response.completion_tokens + response.thinking_tokens
+                
+                # Make sure tool_calls are in response
+                if tool_calls and not response.tool_calls:
+                    response.tool_calls = tool_calls
+                    
+            except Exception as e:
+                self.logger.log_llm_communication(f"❌ Streaming error: {e}", "ERROR")
+                response = LLMResponse(
+                    success=False,
+                    error=str(e),
+                    model=self.llm_client.model
+                )
+            
+            # Accumulate tokens from this iteration
+            accumulated_prompt_tokens += response.prompt_tokens
+            accumulated_completion_tokens += response.completion_tokens
+            accumulated_thinking_tokens += response.thinking_tokens
+            
+            # Log API call end
+            self.logger.log_api_call_end(
+                call_id=api_call_id,
+                success=response.success,
+                tokens=response.total_tokens,
+                prompt_tokens=response.prompt_tokens,
+                completion_tokens=response.completion_tokens,
+                has_tool_calls=bool(response.tool_calls),
+                tool_calls_count=len(response.tool_calls) if response.tool_calls else 0,
+                error=response.error
+            )
+            
+            if not response.success:
+                response.prompt_tokens = accumulated_prompt_tokens
+                response.completion_tokens = accumulated_completion_tokens
+                response.thinking_tokens = accumulated_thinking_tokens
+                response.total_tokens = accumulated_prompt_tokens + accumulated_completion_tokens + accumulated_thinking_tokens + accumulated_tool_tokens
+                return response
+            
+            # Check if LLM requested tools
+            if response.tool_calls:
+                # Log intermediate response
+                self.logger.log_intermediate_response(
+                    player_name=player_name,
+                    request_number=prompt_number,
+                    iteration=iteration,
+                    response=response
+                )
+                
+                self.logger.log_llm_communication(
+                    f"🔧 LLM requested {len(response.tool_calls)} tool(s) (iteration {iteration})",
+                    "TOOL_REQUEST"
+                )
+                
+                # Broadcast tool execution status
+                tool_names = [tc.get('name', 'unknown') for tc in response.tool_calls[:3]]
+                if len(response.tool_calls) > 3:
+                    tool_msg = f"Executing {', '.join(tool_names)} + {len(response.tool_calls)-3} more..."
+                else:
+                    tool_msg = f"Executing {', '.join(tool_names)}..."
+                self._broadcast_status(player_name, "executing_tools", tool_msg, min_display_time=0.5)
+                
+                # Execute tools
+                batch = self.tool_executor.execute_tool_calls(response.tool_calls)
+                
+                # Log tool execution
+                self.logger.log_tool_execution(batch)
+                
+                # Add tool tokens
+                accumulated_tool_tokens += batch.total_tokens
+                self.llm_client.stats.add_tool_tokens(batch.total_tokens)
+                
+                # Format results for LLM
+                tool_results = self.tool_executor.format_tool_results_for_llm(batch)
+                
+                # Add tool results to conversation
+                conversation_context = f"{conversation_context}\n\n{tool_results}\n\nNow provide your final answer based on the tool results:"
+                
+                self.logger.log_llm_communication(
+                    f"✅ Tool results sent back to LLM ({batch.total_tokens} tokens)",
+                    "TOOL_RESULTS"
+                )
+                
+            else:
+                # No tool calls - this is the final answer
+                response.prompt_tokens = accumulated_prompt_tokens
+                response.completion_tokens = accumulated_completion_tokens
+                response.thinking_tokens = accumulated_thinking_tokens
+                response.total_tokens = accumulated_prompt_tokens + accumulated_completion_tokens + accumulated_thinking_tokens + accumulated_tool_tokens
+                
+                # Send done chunk
+                done_chunk = StreamChunk(chunk_type='done', is_complete=True)
+                self._broadcast_stream_chunk(player_name, done_chunk)
+                
+                return response
+        
+        # Loop ended unexpectedly
+        self.logger.log_llm_communication(
+            f"⚠️ Streaming loop ended after {iteration} iterations",
             "WARNING"
         )
         return response
@@ -1155,6 +1399,68 @@ class AIManager:
             
             # Give Flask time to actually send the SSE event before we block on API call
             time.sleep(0.1)
+    
+    def _broadcast_stream_chunk(self, player_name: str, chunk: StreamChunk) -> None:
+        """Broadcast streaming chunk to callback and status system.
+        
+        Args:
+            player_name: Name of the player
+            chunk: StreamChunk object
+        """
+        # Log the chunk to file
+        self.logger.log_stream_chunk(
+            player_name=player_name,
+            chunk_type=chunk.chunk_type,
+            content=chunk.content,
+            function_call=chunk.function_call
+        )
+        
+        # Send to web viewer via HTTP
+        self.stream_broadcaster.broadcast(player_name, chunk)
+        
+        # Broadcast as status update for UI
+        if chunk.chunk_type == 'thought':
+            # Real thinking from Gemini 2.0 Thinking
+            if chunk.content:
+                preview = chunk.content[:100] + "..." if len(chunk.content) > 100 else chunk.content
+                self._broadcast_status(player_name, "thinking", preview, min_display_time=0.3)
+        
+        elif chunk.chunk_type == 'function_call' and chunk.function_call:
+            # Extract reasoning if present
+            params = chunk.function_call.get('parameters', {})
+            reasoning = params.get('reasoning', '')
+            
+            if reasoning:
+                # Show reasoning first (without emoji - UI adds it)
+                reasoning_preview = reasoning[:120] + "..." if len(reasoning) > 120 else reasoning
+                self._broadcast_status(player_name, "reasoning", reasoning_preview, min_display_time=0.5)
+            
+            # Show function call
+            fn_name = chunk.function_call.get('name', 'unknown')
+            params_clean = {k: v for k, v in params.items() if k != 'reasoning'}
+            
+            if params_clean:
+                # Format parameters nicely
+                params_display = ', '.join(f"{k}={v}" for k, v in list(params_clean.items())[:3])
+                if len(params_clean) > 3:
+                    params_display += ', ...'
+                display = f"{fn_name}({params_display})"
+            else:
+                display = f"{fn_name}()"
+            
+            self._broadcast_status(player_name, "tool_call", display, min_display_time=0.5)
+        
+        elif chunk.chunk_type == 'text' and chunk.content:
+            # Streaming text response - update continuously in a box
+            self._broadcast_status(player_name, "text_stream", chunk.content, min_display_time=0.0)
+        
+        elif chunk.chunk_type == 'done':
+            # Stream complete
+            self._broadcast_status(player_name, "stream_done", "", min_display_time=0.3)
+        
+        # Also call local callback if registered
+        if hasattr(self, '_stream_callback') and self._stream_callback:
+            self._stream_callback(player_name, chunk)
     
     # === Utilities ===
     

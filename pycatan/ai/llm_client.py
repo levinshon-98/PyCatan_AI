@@ -9,12 +9,31 @@ Currently supports:
 import logging
 import time
 import json
+import os
+import ssl
 from abc import ABC, abstractmethod
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 
+# Fix SSL certificate verification on Windows
+try:
+    import certifi
+    os.environ.setdefault('SSL_CERT_FILE', certifi.where())
+    os.environ.setdefault('REQUESTS_CA_BUNDLE', certifi.where())
+except ImportError:
+    pass
+
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class StreamChunk:
+    """Single chunk from streaming response."""
+    chunk_type: str  # 'thought', 'text', 'function_call', 'done'
+    content: Optional[str] = None
+    function_call: Optional[Dict[str, Any]] = None
+    is_complete: bool = False
 
 
 @dataclass
@@ -412,6 +431,198 @@ class GeminiClient(LLMClient):
                 cleaned[key] = value
         
         return cleaned
+    
+    def generate_stream(self, prompt: str, on_chunk: Optional[Callable[[StreamChunk], None]] = None, **kwargs):
+        """
+        Generate response with streaming support.
+        
+        Yields chunks in real-time with thoughts, text, and function calls.
+        
+        Args:
+            prompt: Prompt text
+            on_chunk: Optional callback for each chunk
+            **kwargs: Same as generate() - supports thinking, tools, etc.
+            
+        Yields:
+            StreamChunk objects with type, content, and metadata
+            
+        Returns:
+            Final LLMResponse when streaming completes
+        """
+        start_time = time.time()
+        
+        # Build generation config (same as generate)
+        config_dict = {
+            "temperature": kwargs.get("temperature", self.temperature),
+        }
+        
+        if self.max_tokens:
+            config_dict["max_output_tokens"] = kwargs.get("max_tokens", self.max_tokens)
+        
+        # Thinking mode with includeThoughts for streaming
+        if kwargs.get("enable_thinking", False):
+            thinking_budget = kwargs.get("thinking_budget", 16000)
+            config_dict["thinking_config"] = self.types.ThinkingConfig(
+                thinking_budget=thinking_budget,
+                include_thoughts=True  # ✨ This enables thought summaries in stream!
+            )
+            logger.info(f"Streaming with thinking enabled (budget: {thinking_budget})")
+        
+        # Add tools if provided
+        tools = kwargs.get("tools", [])
+        if tools:
+            try:
+                gemini_tools = []
+                for tool_dict in tools:
+                    func_decl = self.types.FunctionDeclaration(
+                        name=tool_dict.get("name", ""),
+                        description=tool_dict.get("description", ""),
+                        parameters=self._remove_unsupported_fields(tool_dict.get("parameters", {}))
+                    )
+                    gemini_tools.append(func_decl)
+                
+                config_dict["tools"] = [self.types.Tool(function_declarations=gemini_tools)]
+                logger.info(f"Streaming with {len(tools)} tool(s)")
+            except Exception as e:
+                logger.warning(f"Failed to create tools: {e}")
+        
+        # Set response format
+        response_format = kwargs.get("response_format", self.response_format)
+        if response_format == "json":
+            config_dict["response_mime_type"] = "application/json"
+            if "response_schema" in kwargs:
+                schema = kwargs["response_schema"]
+                cleaned_schema = self._remove_unsupported_fields(schema)
+                config_dict["response_json_schema"] = cleaned_schema
+        
+        try:
+            logger.info(f"🌊 Starting streaming request to {self.model}...")
+            
+            generation_config = self.types.GenerateContentConfig(**config_dict)
+            
+            # Stream response!
+            accumulated_thoughts = ""
+            accumulated_text = ""
+            tool_calls = []
+            
+            for chunk in self.client.models.generate_content_stream(
+                model=self.model,
+                contents=prompt,
+                config=generation_config
+            ):
+                if not hasattr(chunk, 'candidates') or not chunk.candidates:
+                    continue
+                    
+                candidate = chunk.candidates[0]
+                if not hasattr(candidate, 'content') or not hasattr(candidate.content, 'parts'):
+                    continue
+                
+                for part in candidate.content.parts:
+                    # Check for function call FIRST (function_calls don't have text)
+                    if hasattr(part, 'function_call') and part.function_call:
+                        func_call = part.function_call
+                        if hasattr(func_call, 'name') and func_call.name:
+                            tool_call_dict = {
+                                "id": f"call_{len(tool_calls)+1}",
+                                "name": func_call.name,
+                                "parameters": dict(func_call.args) if hasattr(func_call, 'args') else {}
+                            }
+                            tool_calls.append(tool_call_dict)
+                            
+                            stream_chunk = StreamChunk(
+                                chunk_type='function_call',
+                                function_call=tool_call_dict,
+                                is_complete=False
+                            )
+                            if on_chunk:
+                                on_chunk(stream_chunk)
+                            yield stream_chunk
+                        continue
+                    
+                    # Skip parts without text
+                    if not hasattr(part, 'text') or not part.text:
+                        continue
+                    
+                    # Check if this is a thought
+                    if hasattr(part, 'thought') and part.thought:
+                        accumulated_thoughts += part.text
+                        stream_chunk = StreamChunk(
+                            chunk_type='thought',
+                            content=part.text,
+                            is_complete=False
+                        )
+                        if on_chunk:
+                            on_chunk(stream_chunk)
+                        yield stream_chunk
+                    
+                    # Regular text (not a thought, not a function call)
+                    else:
+                        accumulated_text += part.text
+                        stream_chunk = StreamChunk(
+                            chunk_type='text',
+                            content=part.text,
+                            is_complete=False
+                        )
+                        if on_chunk:
+                            on_chunk(stream_chunk)
+                        yield stream_chunk
+            
+            latency = time.time() - start_time
+            
+            # Try to get token counts from the last chunk
+            prompt_tokens = self._estimate_tokens(prompt)
+            completion_tokens = self._estimate_tokens(accumulated_text)
+            thinking_tokens = self._estimate_tokens(accumulated_thoughts)
+            total_tokens = prompt_tokens + completion_tokens + thinking_tokens
+            
+            # Calculate cost
+            cost = ((prompt_tokens + thinking_tokens) / 1000 * 0.00001875) + (completion_tokens / 1000 * 0.000075)
+            
+            # Build final response
+            final_response = LLMResponse(
+                success=True,
+                content=accumulated_text,
+                tool_calls=tool_calls,
+                model=self.model,
+                prompt_tokens=prompt_tokens,
+                completion_tokens=completion_tokens,
+                thinking_tokens=thinking_tokens,
+                total_tokens=total_tokens,
+                latency_seconds=latency
+            )
+            
+            self.stats.add_request(final_response, cost)
+            
+            logger.info(f"✅ Stream complete: {completion_tokens} tokens (+{thinking_tokens} thinking), {latency:.2f}s")
+            if tool_calls:
+                logger.info(f"   🔧 {len(tool_calls)} tool call(s)")
+            
+            # Send completion chunk
+            done_chunk = StreamChunk(
+                chunk_type='done',
+                is_complete=True
+            )
+            if on_chunk:
+                on_chunk(done_chunk)
+            yield done_chunk
+            
+            return final_response
+            
+        except Exception as e:
+            latency = time.time() - start_time
+            error_msg = str(e)
+            
+            logger.error(f"❌ Streaming error: {error_msg}")
+            
+            error_response = LLMResponse(
+                success=False,
+                error=error_msg,
+                model=self.model,
+                latency_seconds=latency
+            )
+            
+            self.stats.add_request(error_response, 0.0)
+            return error_response
     
     def generate_with_retry(self, 
                            prompt: str, 

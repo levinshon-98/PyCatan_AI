@@ -475,11 +475,46 @@ function handleAIStatus(data) {
     }
     
     // Create status entry
-    const entry = document.createElement('div');
-    entry.className = `thinking-entry thinking-${status}`;
-    
+    let entry;
     let icon = '';
     let text = '';
+    
+    // Handle text_stream specially - replace content in a box
+    if (status === 'text_stream') {
+        // Find or create the streaming text box
+        let textBox = logElement.querySelector('.streaming-text-box');
+        if (!textBox) {
+            textBox = document.createElement('div');
+            textBox.className = 'thinking-entry streaming-text-box';
+            textBox.innerHTML = '<span class="thinking-icon">📝</span><span class="thinking-text streaming-text"></span>';
+            logElement.appendChild(textBox);
+        }
+        // Update the content (REPLACE, not append)
+        const textSpan = textBox.querySelector('.streaming-text');
+        textSpan.textContent = details;
+        
+        // Scroll to show latest
+        logElement.scrollTop = logElement.scrollHeight;
+        return; // Don't create new entry
+    }
+    
+    // Handle stream_done - remove the streaming box
+    if (status === 'stream_done') {
+        const textBox = logElement.querySelector('.streaming-text-box');
+        if (textBox) {
+            textBox.remove();
+        }
+        // Add completion icon
+        entry = document.createElement('div');
+        entry.className = 'thinking-entry thinking-done';
+        entry.innerHTML = '<span class="thinking-icon">✅</span><span class="thinking-text">Ready</span>';
+        logElement.appendChild(entry);
+        return;
+    }
+    
+    // Regular status entries
+    entry = document.createElement('div');
+    entry.className = `thinking-entry thinking-${status}`;
     
     if (status === 'thinking') {
         icon = '💭';
@@ -488,6 +523,9 @@ function handleAIStatus(data) {
         icon = '🔧';
         // Handle multiline tool calls (reasoning on separate line)
         text = (details || 'Using tools...').replace(/\n/g, '<br>');
+    } else if (status === 'executing_tools') {
+        icon = '⚙️';
+        text = details || 'Executing tools...';
     } else if (status === 'processing') {
         icon = '⚙️';
         text = details || 'Processing...';

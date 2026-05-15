@@ -280,6 +280,106 @@
             padding: 20px;
         }
 
+        /* Streaming Status Box */
+        .streaming-container {
+            background: #1e1e1e;
+            border: 2px solid #007acc;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            padding: 15px;
+            animation: pulse-border 2s infinite;
+        }
+
+        .streaming-container.done {
+            border-color: #4ec9b0;
+            animation: none;
+        }
+
+        @keyframes pulse-border {
+            0%, 100% { border-color: #007acc; box-shadow: 0 0 5px rgba(0, 122, 204, 0.3); }
+            50% { border-color: #4fc1ff; box-shadow: 0 0 15px rgba(79, 193, 255, 0.5); }
+        }
+
+        .streaming-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #3e3e42;
+        }
+
+        .streaming-header .player-name {
+            font-weight: bold;
+            color: #4fc1ff;
+            font-size: 16px;
+        }
+
+        .streaming-header .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #007acc;
+            animation: blink-status 1.5s infinite;
+        }
+
+        .streaming-header .status-indicator.done {
+            background: #4ec9b0;
+            animation: none;
+        }
+
+        @keyframes blink-status {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .streaming-content {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .stream-chunk {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            animation: fade-in-chunk 0.3s ease-out;
+        }
+
+        @keyframes fade-in-chunk {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .stream-thought {
+            background: #2d2d30;
+            border-left: 3px solid #c586c0;
+            color: #c586c0;
+            font-style: italic;
+        }
+
+        .stream-text {
+            background: #252526;
+            border-left: 3px solid #4ec9b0;
+            color: #d4d4d4;
+        }
+
+        .stream-function {
+            background: #2d2d30;
+            border-left: 3px solid #f48771;
+            color: #f48771;
+            font-family: 'Consolas', monospace;
+            font-size: 13px;
+        }
+
+        .stream-status {
+            background: #1e1e1e;
+            border-left: 3px solid #4fc1ff;
+            color: #4fc1ff;
+            text-align: center;
+            font-weight: bold;
+        }
+
         /* Request Cards */
         .request-card {
             background: #252526;
@@ -746,6 +846,10 @@
         let refreshInterval = null;
         let newRequestIds = new Set();
         let isRefreshing = false;
+        
+        // Streaming state
+        let streamingSources = {};  // player_name -> EventSource
+        let streamingContainers = {};  // player_name -> HTMLElement
 
         async function loadData() {
             const isInitialLoad = sessionData === null;
@@ -783,6 +887,11 @@
                 
                 updateSidebar();
                 updateView();
+                
+                // Initialize streaming connections on first load
+                if (isInitialLoad) {
+                    initStreaming();
+                }
                 
                 // Restore scroll position
                 if (!isInitialLoad) {
@@ -1545,6 +1654,140 @@
                 </div>
             `;
         }
+        
+        // ============================================================================
+        // STREAMING FUNCTIONS
+        // ============================================================================
+        
+        function initStreaming() {
+            // Connect to SSE streams for all known players
+            if (!sessionData || !sessionData.requests) return;
+            
+            // Get unique player names
+            const players = new Set();
+            sessionData.requests.forEach(req => players.add(req.player_name));
+            
+            // Connect to each player's stream
+            players.forEach(playerName => {
+                connectPlayerStream(playerName);
+            });
+        }
+        
+        function connectPlayerStream(playerName) {
+            // Check if already connected
+            if (streamingSources[playerName]) return;
+            
+            console.log(`🌊 Connecting to stream for ${playerName}...`);
+            
+            // Create EventSource for SSE
+            const eventSource = new EventSource(`/api/stream/${playerName}`);
+            streamingSources[playerName] = eventSource;
+            
+            eventSource.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    handleStreamChunk(playerName, data);
+                } catch (e) {
+                    console.error('Stream parse error:', e);
+                }
+            };
+            
+            eventSource.onerror = (error) => {
+                console.error(`Stream error for ${playerName}:`, error);
+                // Reconnect after delay
+                setTimeout(() => {
+                    if (streamingSources[playerName]) {
+                        streamingSources[playerName].close();
+                        delete streamingSources[playerName];
+                        connectPlayerStream(playerName);
+                    }
+                }, 5000);
+            };
+        }
+        
+        function handleStreamChunk(playerName, chunk) {
+            console.log('🌊 Stream chunk:', playerName, chunk);
+            
+            // Get or create streaming container
+            let container = streamingContainers[playerName];
+            if (!container || !document.body.contains(container)) {
+                container = createStreamingContainer(playerName);
+                streamingContainers[playerName] = container;
+                
+                // Insert at top of content body
+                const contentBody = document.getElementById('content-body');
+                if (contentBody) {
+                    contentBody.insertBefore(container, contentBody.firstChild);
+                }
+            }
+            
+            // Handle different chunk types
+            const contentDiv = container.querySelector('.streaming-content');
+            
+            switch (chunk.type) {
+                case 'connected':
+                    console.log(`✅ Connected to ${chunk.player} stream`);
+                    break;
+                    
+                case 'thought':
+                    addStreamChunk(contentDiv, 'thought', '💭 ' + chunk.content);
+                    break;
+                    
+                case 'text':
+                    addStreamChunk(contentDiv, 'text', chunk.content);
+                    break;
+                    
+                case 'function_call':
+                    const funcName = chunk.function_call.name;
+                    const funcParams = JSON.stringify(chunk.function_call.parameters, null, 2);
+                    addStreamChunk(contentDiv, 'function', `🔧 ${funcName}(\\n${funcParams}\\n)`);
+                    break;
+                    
+                case 'done':
+                    container.classList.add('done');
+                    container.querySelector('.status-indicator')?.classList.add('done');
+                    addStreamChunk(contentDiv, 'status', '✅ Stream complete');
+                    
+                    // Remove after delay
+                    setTimeout(() => {
+                        container.style.opacity = '0';
+                        setTimeout(() => container.remove(), 500);
+                        delete streamingContainers[playerName];
+                    }, 3000);
+                    break;
+            }
+            
+            // Auto-scroll to bottom of streaming content
+            contentDiv.scrollTop = contentDiv.scrollHeight;
+        }
+        
+        function createStreamingContainer(playerName) {
+            const div = document.createElement('div');
+            div.className = 'streaming-container';
+            div.style.transition = 'opacity 0.5s';
+            div.innerHTML = `
+                <div class="streaming-header">
+                    <span class="status-indicator"></span>
+                    <span class="player-name">${playerName}</span>
+                    <span style="color: #858585; font-size: 12px;">• Streaming...</span>
+                </div>
+                <div class="streaming-content"></div>
+            `;
+            return div;
+        }
+        
+        function addStreamChunk(container, type, content) {
+            const chunk = document.createElement('div');
+            chunk.className = `stream-chunk stream-${type}`;
+            chunk.textContent = content;
+            container.appendChild(chunk);
+        }
+        
+        function disconnectAllStreams() {
+            Object.values(streamingSources).forEach(source => source.close());
+            streamingSources = {};
+            streamingContainers = {};
+        }
 
         function escapeHtml(text) {
             const div = document.createElement('div');
@@ -1634,6 +1877,11 @@
         if (autoRefreshEnabled) {
             refreshInterval = setInterval(loadData, 2000);
         }
+        
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            disconnectAllStreams();
+        });
     </script>
 </body>
 </html>

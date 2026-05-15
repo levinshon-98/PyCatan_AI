@@ -58,6 +58,9 @@ class LLMConfig:
     enable_thinking: bool = False  # Disabled - thinking tokens eat into output budget
     thinking_budget: int = 2000  # Max tokens for thinking (2k default) - used if thinking_budgets is empty
     
+    # Streaming mode - enables real-time updates
+    enable_streaming: bool = True  # Default to enabled for better UX
+    
     # Dynamic thinking budgets per tool iteration
     # Each element = budget for that iteration (1st, 2nd, 3rd, etc.)
     # List length determines max tool iterations
