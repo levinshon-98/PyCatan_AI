@@ -563,6 +563,28 @@ class WebVisualization(Visualization):
                         card_name = card_name.split(".")[-1]
                     cards_list.append(card_name)
             
+            resources = {
+                'wood': 0,
+                'brick': 0,
+                'sheep': 0,
+                'wheat': 0,
+                'ore': 0,
+            }
+            resource_names = {
+                'wood': 'wood',
+                'lumber': 'wood',
+                'brick': 'brick',
+                'sheep': 'sheep',
+                'wool': 'sheep',
+                'wheat': 'wheat',
+                'grain': 'wheat',
+                'ore': 'ore',
+            }
+            for card_name in cards_list:
+                normalized = resource_names.get(card_name.lower())
+                if normalized:
+                    resources[normalized] += 1
+            
             # Get dev cards list
             dev_cards_list = []
             if hasattr(player, 'dev_cards'):
@@ -583,6 +605,7 @@ class WebVisualization(Visualization):
                 'name': player_name,
                 'victory_points': getattr(player, 'victory_points', 0),
                 'total_cards': len(getattr(player, 'cards', [])),
+                'resources': resources,
                 'cards_list': cards_list,
                 'dev_cards_list': dev_cards_list,
                 'settlements': len(getattr(player, 'settlements', [])),

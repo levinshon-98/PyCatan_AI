@@ -52,6 +52,8 @@ class AgentState:
     
     # === Memory ===
     memory: Optional[str] = None  # note_to_self from last response
+    memory_updated_at: Optional[float] = None
+    memory_history: List[Dict[str, Any]] = field(default_factory=list)
     
     # === Chat Summaries (for future use) ===
     chat_summaries: List[str] = field(default_factory=list)
@@ -149,6 +151,12 @@ class AgentState:
         """
         if note_to_self:
             self.memory = note_to_self
+            self.memory_updated_at = time.time()
+            self.memory_history.append({
+                "note": note_to_self,
+                "timestamp": self.memory_updated_at,
+            })
+            self.memory_history = self.memory_history[-10:]
     
     def update_state_hash(self, state_hash: str) -> bool:
         """
@@ -196,6 +204,8 @@ class AgentState:
             "player_id": self.player_id,
             "player_color": self.player_color,
             "memory": self.memory,
+            "memory_updated_at": self.memory_updated_at,
+            "memory_history": self.memory_history,
             "chat_summaries": self.chat_summaries,
             "recent_events": self.recent_events,
             "last_prompt_number": self.last_prompt_number,

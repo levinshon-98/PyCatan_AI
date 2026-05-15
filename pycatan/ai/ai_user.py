@@ -10,7 +10,7 @@ AIUser is the bridge between GameManager and the AI system:
 - AIManager handles all AI logic (prompts, LLM, parsing)
 """
 
-from typing import List, Optional, Dict, Any, TYPE_CHECKING
+from typing import List, Optional, Dict, Any, TYPE_CHECKING, Union
 from pycatan.players.user import User
 from pycatan.management.actions import Action, ActionType, GameState
 from pycatan.ai.state_optimizer import game_state_to_dict, optimize_state_for_ai
@@ -220,6 +220,7 @@ class AIUser(User):
             "build_road": ActionType.BUILD_ROAD,
             "roll_dice": ActionType.ROLL_DICE,
             "end_turn": ActionType.END_TURN,
+            "wait_for_response": ActionType.END_TURN,
             "buy_dev_card": ActionType.BUY_DEV_CARD,
             "use_dev_card": ActionType.USE_DEV_CARD,
             "trade_bank": ActionType.TRADE_BANK,
@@ -341,15 +342,42 @@ class AIUser(User):
         elif action_type == ActionType.STEAL_CARD:
             # AI uses "target_player" or "victim"
             if "target_player" in parameters:
-                return {"target_player": parameters["target_player"]}
+                return {"target_player": self._resolve_player_identifier(parameters["target_player"])}
             elif "victim" in parameters:
-                return {"target_player": parameters["victim"]}
+                return {"target_player": self._resolve_player_identifier(parameters["victim"])}
             else:
                 return parameters
+
+        elif action_type == ActionType.TRADE_PROPOSE:
+            result = dict(parameters)
+            for key in ("target_player", "target", "to", "player"):
+                if key in result:
+                    result["target_player"] = self._resolve_player_identifier(result.pop(key))
+                    break
+            if "offer" in result:
+                result["offer"] = self._normalize_resource_bundle(result["offer"])
+            if "request" in result:
+                result["request"] = self._normalize_resource_bundle(result["request"])
+            return result
         
         elif action_type == ActionType.TRADE_BANK:
-            # Keep give/receive format
-            return parameters
+            if "give" in parameters or "receive" in parameters:
+                offer_resource = self._normalize_resource_name(parameters.get("give"))
+                request_resource = self._normalize_resource_name(parameters.get("receive"))
+                offer_amount = int(parameters.get("give_amount", parameters.get("amount", 4)))
+                request_amount = int(parameters.get("receive_amount", 1))
+                result = {}
+                if offer_resource:
+                    result["offer"] = {offer_resource: offer_amount}
+                if request_resource:
+                    result["request"] = {request_resource: request_amount}
+                return result
+            result = dict(parameters)
+            if "offer" in result:
+                result["offer"] = self._normalize_resource_bundle(result["offer"])
+            if "request" in result:
+                result["request"] = self._normalize_resource_bundle(result["request"])
+            return result
         
         elif action_type == ActionType.USE_DEV_CARD:
             # Keep card_type
@@ -360,6 +388,74 @@ class AIUser(User):
             return parameters
         
         return parameters
+
+    def _normalize_resource_bundle(self, resources: Dict[str, Any]) -> Dict[str, Any]:
+        """Normalize AI-facing resource keys to engine-facing lowercase names."""
+        if not isinstance(resources, dict):
+            return resources
+
+        normalized: Dict[str, Any] = {}
+        for resource, amount in resources.items():
+            resource_name = self._normalize_resource_name(resource)
+            if not resource_name:
+                resource_name = str(resource).lower()
+            normalized[resource_name] = normalized.get(resource_name, 0) + int(amount)
+        return normalized
+
+    def _normalize_resource_name(self, resource: Any) -> Optional[str]:
+        """Accept compact prompt codes and natural names for resources."""
+        if resource is None:
+            return None
+
+        key = str(resource).strip().lower()
+        mapping = {
+            "w": "wood",
+            "wood": "wood",
+            "lumber": "wood",
+            "b": "brick",
+            "brick": "brick",
+            "s": "sheep",
+            "sheep": "sheep",
+            "wool": "sheep",
+            "wh": "wheat",
+            "wheat": "wheat",
+            "grain": "wheat",
+            "o": "ore",
+            "ore": "ore",
+            "stone": "ore",
+        }
+        return mapping.get(key)
+
+    def _resolve_player_identifier(self, value: Union[int, str]) -> int:
+        """
+        Resolve an AI-facing player identifier to the numeric player id expected
+        by GameManager.
+
+        The LLM is often prompted with human names/colors, while the engine uses
+        zero-based ids. Accept both to keep prompts natural and actions valid.
+        """
+        if isinstance(value, int):
+            return value
+
+        if isinstance(value, str):
+            raw = value.strip()
+            if raw.isdigit():
+                return int(raw)
+
+            normalized = raw.lower()
+            if normalized.startswith("player "):
+                suffix = normalized.replace("player ", "", 1).strip()
+                if suffix.isdigit():
+                    return int(suffix) - 1
+
+            for agent in self.ai_manager.agents.values():
+                if agent.player_name.lower() == normalized:
+                    return agent.player_id
+                if agent.player_color and agent.player_color.lower() == normalized:
+                    return agent.player_id
+
+        print(f"    [!] Unknown player identifier for target_player: {value!r}")
+        return -1
     
     def _game_state_to_dict(self, game_state: GameState) -> Dict[str, Any]:
         """
@@ -410,9 +506,59 @@ class AIUser(User):
             success: Whether it succeeded
             message: Additional message
         """
-        # Could be used for learning or logging
         if not success and message:
             print(f"    [!] Action failed: {message}")
+            agent = self.ai_manager.get_agent(self.name)
+            if agent:
+                action_name = action.action_type.name if hasattr(action.action_type, "name") else str(action.action_type)
+                agent.add_event(
+                    "action_failed",
+                    f"Your previous action failed: {action_name} {action.parameters}. Error: {message}",
+                    {
+                        "action_type": action_name,
+                        "parameters": action.parameters,
+                        "error": message,
+                    }
+                )
+
+    def notify_action_processing_error(
+        self,
+        message: str,
+        decision: Optional[Dict[str, Any]] = None
+    ) -> None:
+        """
+        Notify the agent about a failure that happened before an Action object
+        could be created, such as missing required parameters.
+        """
+        print(f"    [!] Action processing failed: {message}")
+        agent = self.ai_manager.get_agent(self.name)
+        if not agent:
+            return
+
+        agent.add_event(
+            "action_failed",
+            f"Your previous action could not be processed. Error: {message}. "
+            "Correct the action type and required parameters before trying again.",
+            {
+                "error": message,
+                "decision": decision or {},
+            }
+        )
+
+    def notify_trade_offer(
+        self,
+        trade_id: str,
+        proposer: str,
+        target: str,
+        offer: Dict[str, Any],
+        request: Dict[str, Any]
+    ) -> None:
+        """Forward structured trade offer information to the shared AI manager."""
+        self.ai_manager.record_trade_offer(trade_id, proposer, target, offer, request)
+
+    def notify_trade_response(self, trade_id: str, status: str, responder: str) -> None:
+        """Forward structured trade response information to the shared AI manager."""
+        self.ai_manager.record_trade_response(trade_id, status, responder)
     
     def __str__(self) -> str:
         return f"AIUser(name='{self.name}', id={self.user_id}, color='{self.color}')"

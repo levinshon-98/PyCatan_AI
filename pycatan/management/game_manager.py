@@ -80,6 +80,7 @@ class GameManager:
         # Action history and pending operations
         self._action_history: List[Action] = []
         self._pending_actions: List[Action] = []
+        self._trade_counter = 0
         
         # Error tracking per player to prevent infinite loops
         self._player_error_count = [0] * self.num_players
@@ -131,6 +132,8 @@ class GameManager:
         game_state.current_player = self._current_game_state.current_player
         game_state.game_phase = self._current_game_state.game_phase
         game_state.turn_phase = self._current_game_state.turn_phase
+        game_state.dice_rolled = self._current_game_state.dice_rolled
+        game_state.pending_trades = list(self._current_game_state.pending_trades)
         
         # Add allowed actions for current player
         game_state.allowed_actions = self.get_available_actions()
@@ -216,6 +219,14 @@ class GameManager:
             return ActionResult.failure_result(
                 f"Not player {action.player_id}'s turn",
                 "NOT_YOUR_TURN"
+            )
+
+        allowed_actions = self.get_available_actions()
+        if allowed_actions and action.action_type.name not in allowed_actions:
+            allowed_display = ", ".join(allowed_actions)
+            return ActionResult.failure_result(
+                f"Action {action.action_type.name} is not allowed in the current phase. Allowed actions: {allowed_display}",
+                "ACTION_NOT_ALLOWED"
             )
         
         # Log the action attempt
@@ -526,10 +537,23 @@ class GameManager:
             target_id = action.parameters['target_player']
             offer = action.parameters['offer']  # {resource: amount}
             request = action.parameters['request']  # {resource: amount}
+
+            if not isinstance(target_id, int) or target_id < 0 or target_id >= self.num_players:
+                return ActionResult.failure_result(
+                    f"Invalid trade target player id: {target_id}",
+                    "INVALID_PLAYER_ID"
+                )
+            if target_id == proposer_id:
+                return ActionResult.failure_result(
+                    "Cannot propose a trade to yourself",
+                    "INVALID_TRADE_TARGET"
+                )
             
             # Get player names for messages
             proposer_name = self.users[proposer_id].name
             target_name = self.users[target_id].name
+            trade_id = action.parameters.get('trade_id') or self._next_trade_id()
+            action.parameters['trade_id'] = trade_id
             
             # Convert offer/request dicts to card lists for Game.trade()
             from pycatan.core.card import ResCard
@@ -537,12 +561,12 @@ class GameManager:
             offer_cards = []
             for resource, amount in offer.items():
                 card_type = self._resource_name_to_card(resource)
-                offer_cards.extend([card_type] * amount)
+                offer_cards.extend([card_type] * int(amount))
             
             request_cards = []
             for resource, amount in request.items():
                 card_type = self._resource_name_to_card(resource)
-                request_cards.extend([card_type] * amount)
+                request_cards.extend([card_type] * int(amount))
             
             # Validate that both players have the required cards
             if not self.game.players[proposer_id].has_cards(offer_cards):
@@ -562,9 +586,16 @@ class GameManager:
             # Format the trade offer message
             offer_str = ", ".join([f"{amt} {res}" for res, amt in offer.items()])
             request_str = ", ".join([f"{amt} {res}" for res, amt in request.items()])
+            trade_message = (
+                f"Trade offer {trade_id}: {proposer_name} offers {offer_str} "
+                f"to {target_name} for {request_str}."
+            )
+
+            self._record_trade_offer(trade_id, proposer_name, target_name, offer, request)
+            self._notify_all_users("trade_offer", trade_message, [proposer_id, target_id])
             
             # Ask the target player to accept or reject
-            print(f"\n📢 Trade Proposal:")
+            print(f"\n[TRADE] Trade Proposal:")
             print(f"    {proposer_name} offers: {offer_str}")
             print(f"    {proposer_name} wants: {request_str}")
             print(f"    {target_name}, do you accept? (yes/no)")
@@ -573,7 +604,10 @@ class GameManager:
             target_user = self.users[target_id]
             response = target_user.get_input(
                 self.get_full_state(),
-                f"{target_name}, accept trade?",
+                (
+                    f"{trade_message} Choose trade_accept to accept or "
+                    "trade_reject to reject."
+                ),
                 allowed_actions=[ActionType.TRADE_ACCEPT.name, ActionType.TRADE_REJECT.name]
             )
             
@@ -583,7 +617,9 @@ class GameManager:
                 status = self.game.trade(proposer_id, target_id, offer_cards, request_cards)
                 
                 if status == Statuses.ALL_GOOD:
-                    print(f"    ✓ Trade completed between {proposer_name} and {target_name}!")
+                    print(f"    [OK] Trade completed between {proposer_name} and {target_name}!")
+                    self._resolve_trade(trade_id, "accepted", target_name)
+                    action.parameters['trade_status'] = 'accepted'
                     return ActionResult.success_result(
                         self.get_full_state(),
                         affected_players=[proposer_id, target_id]
@@ -592,7 +628,9 @@ class GameManager:
                     return self._map_status_to_result(status)
             else:
                 # Trade rejected
-                print(f"    ✗ {target_name} rejected the trade")
+                print(f"    [X] {target_name} rejected the trade")
+                self._resolve_trade(trade_id, "rejected", target_name)
+                action.parameters['trade_status'] = 'rejected'
                 return ActionResult.failure_result(
                     f"{target_name} rejected your trade offer",
                     "TRADE_REJECTED"
@@ -603,6 +641,57 @@ class GameManager:
                 f"Error executing trade: {str(e)}",
                 "EXECUTION_ERROR"
             )
+
+    def _next_trade_id(self) -> str:
+        """Create a stable id for a player-to-player trade offer."""
+        self._trade_counter += 1
+        return f"trade_{self._current_game_state.turn_number}_{self._trade_counter}"
+
+    def _record_trade_offer(
+        self,
+        trade_id: str,
+        proposer_name: str,
+        target_name: str,
+        offer: Dict[str, Any],
+        request: Dict[str, Any]
+    ) -> None:
+        """Record a pending trade on game state and AI users."""
+        trade = {
+            "trade_id": trade_id,
+            "from": proposer_name,
+            "to": target_name,
+            "offer": dict(offer),
+            "request": dict(request),
+            "status": "pending",
+            "turn": self._current_game_state.turn_number,
+        }
+
+        self._current_game_state.pending_trades = [
+            existing for existing in self._current_game_state.pending_trades
+            if existing.get("trade_id") != trade_id
+        ]
+        self._current_game_state.pending_trades.append(trade)
+
+        for user in self.users:
+            if hasattr(user, "notify_trade_offer"):
+                user.notify_trade_offer(trade_id, proposer_name, target_name, offer, request)
+
+    def _resolve_trade(self, trade_id: str, status: str, responder_name: str) -> None:
+        """Mark a pending trade as resolved and notify AI users."""
+        for trade in self._current_game_state.pending_trades:
+            if trade.get("trade_id") == trade_id:
+                trade["status"] = status
+                trade["responded_by"] = responder_name
+                break
+
+        self._current_game_state.pending_trades = [
+            trade for trade in self._current_game_state.pending_trades
+            if trade.get("status") == "pending"
+        ]
+
+        for user in self.users:
+            if hasattr(user, "notify_trade_response"):
+                user.notify_trade_response(trade_id, status, responder_name)
     
     def _execute_trade_bank(self, action: Action) -> ActionResult:
         """Execute a trade with the bank."""
@@ -647,13 +736,24 @@ class GameManager:
     def _resource_name_to_card(self, resource_name: str):
         """Convert resource name string to ResCard enum."""
         from pycatan.core.card import ResCard
+        if resource_name is None:
+            return None
         
         resource_map = {
             'wood': ResCard.Wood,
+            'w': ResCard.Wood,
+            'lumber': ResCard.Wood,
             'brick': ResCard.Brick,
+            'b': ResCard.Brick,
             'sheep': ResCard.Sheep,
+            's': ResCard.Sheep,
+            'wool': ResCard.Sheep,
             'wheat': ResCard.Wheat,
-            'ore': ResCard.Ore
+            'wh': ResCard.Wheat,
+            'grain': ResCard.Wheat,
+            'ore': ResCard.Ore,
+            'o': ResCard.Ore,
+            'stone': ResCard.Ore
         }
         
         return resource_map.get(resource_name.lower())
@@ -1389,6 +1489,7 @@ class GameManager:
         Returns:
             ActionResult: The result of executing the action
         """
+        current_user = None
         try:
             # Get the current user
             current_user = self.current_user
@@ -1426,6 +1527,8 @@ class GameManager:
             return result
             
         except Exception as e:
+            if current_user and hasattr(current_user, "notify_action_processing_error"):
+                current_user.notify_action_processing_error(str(e))
             # Handle any errors during action processing
             return ActionResult.failure_result(
                 f"Error processing user action: {str(e)}",
@@ -1849,6 +1952,7 @@ class GameManager:
         
         # Distribute resources or handle robber
         if total != 7:
+            self._current_game_state.turn_phase = TurnPhase.PLAYER_ACTIONS
             distribution = self.game.add_yield_for_roll(total)
             
             # Add distribution to action parameters for logging
@@ -1908,7 +2012,9 @@ class GameManager:
                             self.visualization_manager.log_event(log_entry)
             
             if distribution:
-                message = f"Rolled {total} ({die1}+{die2}). Resources distributed."
+                distribution_summary = self._format_distribution_summary(distribution)
+                message = f"Rolled {total} ({die1}+{die2}). Resources distributed: {distribution_summary}."
+                action.parameters['distribution_summary'] = distribution_summary
             else:
                 message = f"Rolled {total} ({die1}+{die2}). No settlements on this number."
         else:
@@ -1922,6 +2028,48 @@ class GameManager:
         return ActionResult.success_result(
             self.get_full_state()
         )
+
+    def _format_distribution_summary(self, distribution: Dict[Any, List[Any]]) -> str:
+        """Format dice resource distribution for logs and AI prompts."""
+        if not distribution:
+            return "none"
+
+        entries = []
+        for player_key, resources in distribution.items():
+            if not resources:
+                continue
+
+            player_name = self._resolve_distribution_player_name(player_key)
+            counts = {}
+            for resource in resources:
+                resource_name = self._format_resource_for_message(resource)
+                counts[resource_name] = counts.get(resource_name, 0) + 1
+
+            resource_text = ", ".join(
+                f"{amount} {name}" for name, amount in sorted(counts.items())
+            )
+            entries.append(f"{player_name} +{resource_text}")
+
+        return "; ".join(entries) if entries else "none"
+
+    def _resolve_distribution_player_name(self, player_key: Any) -> str:
+        """Resolve a distribution key such as 'Player 1' to the displayed user name."""
+        key = str(player_key)
+        if key.startswith("Player "):
+            try:
+                player_id = int(key.split()[-1]) - 1
+                if 0 <= player_id < len(self.users):
+                    return self.users[player_id].name if hasattr(self.users[player_id], 'name') else key
+            except ValueError:
+                pass
+        return key
+
+    def _format_resource_for_message(self, resource: Any) -> str:
+        """Normalize resource enum/string values for human-readable messages."""
+        name = resource.name if hasattr(resource, "name") else str(resource)
+        if "." in name:
+            name = name.split(".")[-1]
+        return name.lower()
     
     def _handle_rolled_seven(self) -> None:
         """
@@ -2254,7 +2402,17 @@ class GameManager:
         Returns:
             str: A helpful message explaining what the player should do
         """
+        game_phase = self._current_game_state.game_phase
         phase = self._current_game_state.turn_phase
+
+        if game_phase in [GamePhase.SETUP_FIRST_ROUND, GamePhase.SETUP_SECOND_ROUND]:
+            if not self._setup_turn_progress['settlement']:
+                if game_phase == GamePhase.SETUP_SECOND_ROUND:
+                    return "Place your second starting settlement. Resources from adjacent hexes will be granted after this placement."
+                return "Place your starting settlement."
+            if not self._setup_turn_progress['road']:
+                return "Place your starting road adjacent to your new settlement."
+            return "Setup placement is complete for this turn."
         
         if phase == TurnPhase.ROBBER_STEAL:
             # Get the list of stealable players

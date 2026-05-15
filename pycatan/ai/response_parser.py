@@ -331,12 +331,6 @@ class ResponseParser:
                 else:
                     return None  # Can't repair
         
-        # Try to fix internal_thinking if too short
-        if "internal_thinking" in repaired:
-            min_length = schema["properties"]["internal_thinking"].get("minLength", 0)
-            if len(repaired["internal_thinking"]) < min_length:
-                repaired["internal_thinking"] += " [Response was too brief]"
-        
         return repaired
     
     def get_statistics(self) -> Dict[str, Any]:

@@ -1,0 +1,26 @@
+{
+  "request_number": 10,
+  "timestamp": "2026-05-15T19:31:39.981853",
+  "player_name": "Bob",
+  "type": "final",
+  "success": true,
+  "raw_content": "{\n  \"internal_thinking\": \"I rolled a seven and moved the robber to Hex 5, which is Charlie's Brick 6. Charlie currently has 4 cards in hand (1 Sheep, 1 Ore, 2 Wheat) while Alice only has 1 Wheat. Since Charlie has more resources and I've already blocked his production, stealing from him is the most logical move to slow him down and potentially get a resource I need.\",\n  \"note_to_self\": \"Blocked Charlie's Brick 6 and stole from him. He's ahead on card count.\",\n  \"say_outloud\": \"sorry charlie, just looking to even things out a bit since you've got a few more cards in hand.\",\n  \"action\": {\n    \"type\": \"steal_card\",\n    \"parameters\": \"{\\\"target_player\\\": \\\"Charlie\\\"}\"\n  }\n} ",
+  "parsed": {
+    "internal_thinking": "I rolled a seven and moved the robber to Hex 5, which is Charlie's Brick 6. Charlie currently has 4 cards in hand (1 Sheep, 1 Ore, 2 Wheat) while Alice only has 1 Wheat. Since Charlie has more resources and I've already blocked his production, stealing from him is the most logical move to slow him down and potentially get a resource I need. [Response was too brief]",
+    "note_to_self": "Blocked Charlie's Brick 6 and stole from him. He's ahead on card count.",
+    "say_outloud": "sorry charlie, just looking to even things out a bit since you've got a few more cards in hand.",
+    "action_type": "steal_card",
+    "parameters": {
+      "target_player": "Charlie"
+    }
+  },
+  "model": "gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 1405,
+    "completion": 169,
+    "thinking": 0,
+    "total": 1574
+  },
+  "latency_seconds": 0.0,
+  "error": null
+}

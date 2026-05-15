@@ -587,6 +587,7 @@ Started: {self.start_time.isoformat()}
                 "thinking": response.thinking_tokens if hasattr(response, 'thinking_tokens') else 0,
                 "total": response.total_tokens
             },
+            "finish_reason": getattr(response, "finish_reason", None),
             "latency_seconds": response.latency_seconds,
             "error": response.error
         }
@@ -635,6 +636,7 @@ Started: {self.start_time.isoformat()}
                 "thinking": response.thinking_tokens if hasattr(response, 'thinking_tokens') else 0,
                 "total": response.total_tokens
             },
+            "finish_reason": getattr(response, "finish_reason", None),
             "latency_seconds": response.latency_seconds,
             "error": response.error
         }
@@ -840,9 +842,14 @@ See: [prompt_{original_prompt_number}_iter{iteration}.json](prompts/iterations/p
         memories = {}
         for name, agent in agents.items():
             if hasattr(agent, 'memory') and agent.memory:
+                updated_at = getattr(agent, "memory_updated_at", None)
                 memories[name] = {
                     "note_to_self": agent.memory,
-                    "last_updated": datetime.now().isoformat()
+                    "recent_notes": getattr(agent, "memory_history", []),
+                    "last_updated": (
+                        datetime.fromtimestamp(updated_at).isoformat()
+                        if updated_at else None
+                    )
                 }
         
         memory_file = self.session_dir / "agent_memories.json"

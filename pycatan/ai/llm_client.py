@@ -52,6 +52,7 @@ class LLMResponse:
     thinking_tokens: int = 0  # For thinking mode
     total_tokens: int = 0
     latency_seconds: float = 0.0
+    finish_reason: Optional[str] = None
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
     
     def to_dict(self) -> Dict[str, Any]:
@@ -71,6 +72,7 @@ class LLMResponse:
             "model": self.model,
             "tokens": tokens_dict,
             "latency_seconds": round(self.latency_seconds, 2),
+            "finish_reason": self.finish_reason,
             "timestamp": self.timestamp
         }
         
@@ -283,10 +285,13 @@ class GeminiClient(LLMClient):
             # Extract content and tool calls
             content = response.text if hasattr(response, 'text') else ""
             tool_calls = []
+            finish_reason = None
             
             # Check for function calls in response
             if hasattr(response, 'candidates') and response.candidates:
                 candidate = response.candidates[0]
+                if hasattr(candidate, 'finish_reason') and candidate.finish_reason is not None:
+                    finish_reason = str(candidate.finish_reason)
                 if hasattr(candidate, 'content') and hasattr(candidate.content, 'parts'):
                     for part in candidate.content.parts:
                         if hasattr(part, 'function_call'):
@@ -346,7 +351,8 @@ class GeminiClient(LLMClient):
                 completion_tokens=completion_tokens,
                 thinking_tokens=thinking_tokens,
                 total_tokens=total_tokens,
-                latency_seconds=latency
+                latency_seconds=latency,
+                finish_reason=finish_reason
             )
             
             self.stats.add_request(llm_response, cost)
@@ -362,6 +368,8 @@ class GeminiClient(LLMClient):
             
             if content:
                 logger.debug(f"Response preview: {content[:100]}...")
+            if finish_reason and "STOP" not in finish_reason:
+                logger.warning(f"Gemini finish_reason={finish_reason}")
             
             return llm_response
             
@@ -504,6 +512,7 @@ class GeminiClient(LLMClient):
             accumulated_thoughts = ""
             accumulated_text = ""
             tool_calls = []
+            finish_reason = None
             
             for chunk in self.client.models.generate_content_stream(
                 model=self.model,
@@ -514,6 +523,8 @@ class GeminiClient(LLMClient):
                     continue
                     
                 candidate = chunk.candidates[0]
+                if hasattr(candidate, 'finish_reason') and candidate.finish_reason is not None:
+                    finish_reason = str(candidate.finish_reason)
                 if not hasattr(candidate, 'content') or not hasattr(candidate.content, 'parts'):
                     continue
                 
@@ -588,11 +599,14 @@ class GeminiClient(LLMClient):
                 completion_tokens=completion_tokens,
                 thinking_tokens=thinking_tokens,
                 total_tokens=total_tokens,
-                latency_seconds=latency
+                latency_seconds=latency,
+                finish_reason=finish_reason
             )
             
             self.stats.add_request(final_response, cost)
             
+            if finish_reason and "STOP" not in finish_reason:
+                logger.warning(f"Gemini stream finish_reason={finish_reason}")
             logger.info(f"✅ Stream complete: {completion_tokens} tokens (+{thinking_tokens} thinking), {latency:.2f}s")
             if tool_calls:
                 logger.info(f"   🔧 {len(tool_calls)} tool call(s)")
