@@ -29,6 +29,7 @@ Usage:
 import sys
 import os
 import ssl
+import json
 from pathlib import Path
 
 # Fix SSL certificate verification on Windows (must be before any other imports)
@@ -44,7 +45,7 @@ except Exception:
 # Add parent directories to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 import webbrowser
 import threading
 import time
@@ -59,6 +60,216 @@ import sys
 import io
 if sys.platform == 'win32':
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+
+
+LOGS_DIR = Path("examples") / "ai_testing" / "my_games"
+
+
+def resolve_session_path(session_ref: str) -> Path:
+    """Resolve a replay session name/path."""
+    path = Path(session_ref)
+    if path.is_absolute() and path.exists():
+        return path
+    if path.exists():
+        return path
+
+    session_path = LOGS_DIR / session_ref
+    if session_path.exists():
+        return session_path
+
+    raise FileNotFoundError(f"Replay session not found: {session_ref}")
+
+
+def _parse_replay_marker(value: Optional[str]) -> Optional[tuple[str, int]]:
+    """Parse a replay marker in the form Player:request_number."""
+    if not value:
+        return None
+    if ":" not in value:
+        raise ValueError("Replay marker must be in the form Player:request_number")
+    player, request_number = value.split(":", 1)
+    return player.strip(), int(request_number.strip())
+
+
+def _marker_matches(decision: Dict[str, Any], marker: tuple[str, int]) -> bool:
+    player_name, request_number = marker
+    return (
+        decision["player_name"].lower() == player_name.lower()
+        and decision["request_number"] == request_number
+    )
+
+
+def _first_response_timestamp(player_dir: Path) -> str:
+    responses_dir = player_dir / "responses"
+    if not responses_dir.exists():
+        return ""
+
+    timestamps = []
+    for response_file in responses_dir.glob("response_*.json"):
+        try:
+            data = json.loads(response_file.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        if data.get("timestamp"):
+            timestamps.append(str(data["timestamp"]))
+
+    return min(timestamps) if timestamps else ""
+
+
+def infer_players_from_session(session_dir: Path) -> List[str]:
+    """Infer player names from session folders, preserving original turn order when possible."""
+    ignored = {"prompts", "responses", "intermediate"}
+    players = []
+    for child in sorted(session_dir.iterdir(), key=lambda p: p.name.lower()):
+        if child.is_dir() and child.name not in ignored:
+            if (child / "responses").exists() or (child / "prompts").exists():
+                players.append((child.name, _first_response_timestamp(child)))
+
+    # In setup, first response order is the player order. Fall back to name order for
+    # empty/incomplete folders.
+    players.sort(key=lambda item: (item[1] == "", item[1], item[0].lower()))
+    return [name for name, _timestamp in players]
+
+
+def load_replay_decisions(
+    session_dir: Path,
+    max_decisions: Optional[int] = None,
+    replay_through: Optional[str] = None,
+    replay_stop_before: Optional[str] = None
+) -> List[Dict[str, Any]]:
+    """Load parsed final responses from a previous session in chronological order."""
+    through_marker = _parse_replay_marker(replay_through)
+    stop_before_marker = _parse_replay_marker(replay_stop_before)
+    decisions = []
+
+    for player_dir in session_dir.iterdir():
+        responses_dir = player_dir / "responses"
+        if not responses_dir.exists():
+            continue
+
+        for response_file in responses_dir.glob("response_*.json"):
+            if response_file.parent.name == "intermediate":
+                continue
+            try:
+                data = json.loads(response_file.read_text(encoding="utf-8"))
+            except Exception:
+                continue
+
+            parsed = data.get("parsed")
+            if not parsed or not parsed.get("action_type"):
+                continue
+
+            decisions.append({
+                "player_name": data.get("player_name") or player_dir.name,
+                "request_number": int(data.get("request_number", 0)),
+                "timestamp": data.get("timestamp", ""),
+                "parsed": parsed,
+                "source_file": str(response_file),
+            })
+
+    decisions.sort(key=lambda item: (item.get("timestamp", ""), item.get("player_name", ""), item.get("request_number", 0)))
+
+    for marker_name, marker in [("replay-through", through_marker), ("replay-stop-before", stop_before_marker)]:
+        if marker and not any(_marker_matches(decision, marker) for decision in decisions):
+            raise ValueError(
+                f"{marker_name} marker not found in session: {marker[0]}:{marker[1]}"
+            )
+
+    selected = []
+    for decision in decisions:
+        if stop_before_marker and _marker_matches(decision, stop_before_marker):
+            break
+
+        selected.append(decision)
+
+        if through_marker and _marker_matches(decision, through_marker):
+            break
+        if max_decisions and len(selected) >= max_decisions:
+            break
+
+    return selected
+
+
+def group_replay_decisions(decisions: List[Dict[str, Any]]) -> Dict[str, List[Dict[str, Any]]]:
+    """Group replay decisions by player, preserving chronological order per player."""
+    grouped: Dict[str, List[Dict[str, Any]]] = {}
+    for decision in decisions:
+        grouped.setdefault(decision["player_name"], []).append(decision)
+    return grouped
+
+
+def annotate_replay_session(
+    ai_manager: AIManager,
+    source_session: Path,
+    decisions: List[Dict[str, Any]],
+    replay_through: Optional[str],
+    replay_stop_before: Optional[str]
+) -> None:
+    """Write lineage metadata into the newly created session."""
+    metadata_file = ai_manager.get_session_path() / "session_metadata.json"
+    metadata = {}
+    if metadata_file.exists():
+        metadata = json.loads(metadata_file.read_text(encoding="utf-8"))
+
+    metadata["derived_from"] = str(source_session)
+    metadata["replay"] = {
+        "source_session": source_session.name,
+        "decisions_loaded": len(decisions),
+        "replay_through": replay_through,
+        "replay_stop_before": replay_stop_before,
+        "mode": "fast_action_replay_then_live_ai",
+    }
+
+    metadata_file.write_text(json.dumps(metadata, indent=2, ensure_ascii=False), encoding="utf-8")
+
+
+class ReplayAIUser(AIUser):
+    """AI user that first replays recorded parsed decisions, then falls back to live AI."""
+
+    def __init__(
+        self,
+        name: str,
+        user_id: int,
+        ai_manager: AIManager,
+        color: str = "",
+        replay_decisions: Optional[List[Dict[str, Any]]] = None
+    ):
+        super().__init__(name=name, user_id=user_id, ai_manager=ai_manager, color=color)
+        self.replay_decisions = list(replay_decisions or [])
+
+    def get_input(self, game_state, prompt_message: str, allowed_actions: Optional[List[str]] = None):
+        if self.replay_decisions:
+            replay_item = self.replay_decisions[0]
+            decision = dict(replay_item["parsed"])
+            action = self._decision_to_action(decision, allowed_actions)
+
+            if allowed_actions and action.action_type.name not in allowed_actions:
+                print(
+                    f"[REPLAY] {self.name} #{replay_item['request_number']} no longer matches "
+                    f"allowed actions {allowed_actions}; switching {self.name} to live AI."
+                )
+                self.replay_decisions.clear()
+                return super().get_input(game_state, prompt_message, allowed_actions)
+
+            self.replay_decisions.pop(0)
+            self._apply_replay_memory_and_chat(decision)
+            print(
+                f"[REPLAY] {self.name} #{replay_item['request_number']}: "
+                f"{decision.get('action_type')} {decision.get('parameters', {})}"
+            )
+            return action
+
+        return super().get_input(game_state, prompt_message, allowed_actions)
+
+    def _apply_replay_memory_and_chat(self, decision: Dict[str, Any]) -> None:
+        agent = self.ai_manager.agents.get(self.name)
+        note_to_self = decision.get("note_to_self")
+        if agent and note_to_self:
+            agent.update_memory(note_to_self)
+            self.ai_manager.logger.save_agent_memories(self.ai_manager.agents)
+
+        say_outloud = decision.get("say_outloud")
+        if say_outloud:
+            self.ai_manager._broadcast_chat(self.name, say_outloud)
 
 
 def load_env_file(env_path: Path = Path(".env")) -> None:
@@ -154,7 +365,8 @@ def create_game(
     player_configs: List[dict],
     send_to_llm: bool = True,
     manual_actions: bool = True,
-    config: Optional[AIConfig] = None
+    config: Optional[AIConfig] = None,
+    replay_decisions: Optional[Dict[str, List[Dict[str, Any]]]] = None
 ) -> tuple:
     """
     Create the game with configured players.
@@ -176,15 +388,25 @@ def create_game(
     
     # Create user objects
     users = []
+    replay_decisions = replay_decisions or {}
     for i, cfg in enumerate(player_configs):
         if cfg["is_ai"]:
-            # Create AI user
-            user = AIUser(
-                name=cfg["name"],
-                user_id=i,
-                ai_manager=ai_manager,
-                color=cfg["color"]
-            )
+            if cfg["name"] in replay_decisions:
+                user = ReplayAIUser(
+                    name=cfg["name"],
+                    user_id=i,
+                    ai_manager=ai_manager,
+                    color=cfg["color"],
+                    replay_decisions=replay_decisions[cfg["name"]]
+                )
+            else:
+                # Create AI user
+                user = AIUser(
+                    name=cfg["name"],
+                    user_id=i,
+                    ai_manager=ai_manager,
+                    color=cfg["color"]
+                )
         else:
             # Create human user
             user = HumanUser(cfg["name"], i)
@@ -292,10 +514,36 @@ def main():
                        help="Custom names for AI players (e.g., --names Alice Bob Charlie). Also sets player count.")
     parser.add_argument("--config", type=str,
                        help="Path to AI config YAML. Defaults to pycatan/ai/config_dev.yaml when present.")
+    parser.add_argument("--replay-session", type=str,
+                       help="Fast-replay parsed actions from an existing session, then continue live.")
+    parser.add_argument("--resume-session", type=str,
+                       help="Alias for --replay-session.")
+    parser.add_argument("--replay-max-decisions", type=int,
+                       help="Maximum number of parsed decisions to replay.")
+    parser.add_argument("--replay-through", type=str,
+                       help="Replay through a marker like Alice:5, inclusive.")
+    parser.add_argument("--replay-stop-before", type=str,
+                       help="Stop replay before a marker like Alice:6.")
     args = parser.parse_args()
 
     load_env_file()
     ai_config = load_ai_config(args.config)
+    replay_session_ref = args.replay_session or args.resume_session
+    replay_session_path = resolve_session_path(replay_session_ref) if replay_session_ref else None
+    replay_decision_list: List[Dict[str, Any]] = []
+    replay_decisions_by_player: Dict[str, List[Dict[str, Any]]] = {}
+    replay_player_names: List[str] = []
+    if replay_session_path:
+        replay_decision_list = load_replay_decisions(
+            replay_session_path,
+            max_decisions=args.replay_max_decisions,
+            replay_through=args.replay_through,
+            replay_stop_before=args.replay_stop_before
+        )
+        replay_decisions_by_player = group_replay_decisions(replay_decision_list)
+        replay_player_names = infer_players_from_session(replay_session_path)
+        print(f"[REPLAY] Source: {replay_session_path}")
+        print(f"[REPLAY] Loaded {len(replay_decision_list)} parsed decisions")
     
     # Quick setup mode - either explicit --players or inferred from --names
     num_players = args.players
@@ -307,6 +555,10 @@ def main():
             if num_players < 2:
                 num_players = 2  # Min 2 players
         args.all_ai = True  # Names implies all-ai mode
+    elif replay_session_path and replay_player_names:
+        num_players = min(len(replay_player_names), 4)
+        args.names = replay_player_names[:num_players]
+        args.all_ai = True
     
     if num_players and args.all_ai:
         colors = ["Red", "Blue", "White", "Orange"]
@@ -343,8 +595,18 @@ def main():
         player_configs,
         send_to_llm=send_to_llm,
         manual_actions=manual_actions,
-        config=ai_config
+        config=ai_config,
+        replay_decisions=replay_decisions_by_player
     )
+    if replay_session_path:
+        annotate_replay_session(
+            ai_manager,
+            replay_session_path,
+            replay_decision_list,
+            args.replay_through,
+            args.replay_stop_before
+        )
+        print(f"[REPLAY] New derived session: {ai_manager.get_session_path()}")
     
     # Run game
     run_game(game_manager, ai_manager, web_viz)

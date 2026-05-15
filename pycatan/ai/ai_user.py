@@ -380,14 +380,117 @@ class AIUser(User):
             return result
         
         elif action_type == ActionType.USE_DEV_CARD:
-            # Keep card_type
-            return parameters
+            return self._normalize_dev_card_parameters(parameters)
         
         elif action_type == ActionType.DISCARD_CARDS:
             # Keep cards list
             return parameters
         
         return parameters
+
+    def _normalize_dev_card_parameters(self, parameters: Dict[str, Any]) -> Dict[str, Any]:
+        """Normalize AI-facing development-card params to GameManager format."""
+        result = dict(parameters)
+
+        card_type = self._normalize_dev_card_name(result.get("card_type") or result.get("card"))
+        if card_type:
+            result["card_type"] = card_type
+
+        if card_type == "Road":
+            road_one = result.pop("road_1", None) or result.pop("road_one", None)
+            road_two = result.pop("road_2", None) or result.pop("road_two", None)
+            roads = result.pop("roads", None)
+            if roads and isinstance(roads, list):
+                if len(roads) > 0 and road_one is None:
+                    road_one = roads[0]
+                if len(roads) > 1 and road_two is None:
+                    road_two = roads[1]
+
+            if road_one is not None:
+                result["road_one_coords"] = self._road_param_to_coords(road_one)
+            if road_two is not None:
+                result["road_two_coords"] = self._road_param_to_coords(road_two)
+
+        elif card_type == "Knight":
+            if "hex" in result and "tile_coords" not in result:
+                coords = board_definition.hex_id_to_game_coords(result.pop("hex"))
+                if coords:
+                    result["tile_coords"] = list(coords)
+            for key in ("target_player", "victim", "steal_from"):
+                if key in result and "victim_id" not in result:
+                    result["victim_id"] = self._resolve_player_identifier(result.pop(key))
+                    break
+
+        elif card_type == "Monopoly":
+            resource = (
+                result.get("resource_type")
+                or result.get("resource")
+                or result.get("target_resource")
+            )
+            normalized = self._normalize_resource_name(resource)
+            if normalized:
+                result["resource_type"] = normalized.title()
+
+        elif card_type == "YearOfPlenty":
+            resources = result.pop("resources", None)
+            if isinstance(resources, list):
+                if len(resources) > 0 and "resource1" not in result:
+                    result["resource1"] = resources[0]
+                if len(resources) > 1 and "resource2" not in result:
+                    result["resource2"] = resources[1]
+
+            for key in ("resource1", "resource2"):
+                normalized = self._normalize_resource_name(result.get(key))
+                if normalized:
+                    result[key] = normalized.title()
+
+        return result
+
+    def _normalize_dev_card_name(self, card_type: Any) -> Optional[str]:
+        """Accept prompt-facing and natural dev-card names."""
+        if card_type is None:
+            return None
+
+        key = str(card_type).strip().lower().replace("-", "_").replace(" ", "_")
+        mapping = {
+            "k": "Knight",
+            "knight": "Knight",
+            "road": "Road",
+            "road_building": "Road",
+            "roadbuilding": "Road",
+            "roads": "Road",
+            "monopoly": "Monopoly",
+            "year": "YearOfPlenty",
+            "plenty": "YearOfPlenty",
+            "year_of_plenty": "YearOfPlenty",
+            "yearofplenty": "YearOfPlenty",
+            "victory": "VictoryPoint",
+            "victory_point": "VictoryPoint",
+            "victorypoint": "VictoryPoint",
+        }
+        return mapping.get(key, str(card_type))
+
+    def _road_param_to_coords(self, road: Any) -> Dict[str, Any]:
+        """Convert AI road references like [45, 35] to GameManager coord dicts."""
+        start_node = None
+        end_node = None
+
+        if isinstance(road, dict):
+            start_node = road.get("from") or road.get("start") or road.get("start_node")
+            end_node = road.get("to") or road.get("end") or road.get("end_node")
+        elif isinstance(road, (list, tuple)) and len(road) >= 2:
+            start_node, end_node = road[0], road[1]
+
+        def convert(node: Any) -> Any:
+            if isinstance(node, (list, tuple)) and len(node) == 2:
+                return list(node)
+            coords = board_definition.point_id_to_game_coords(node)
+            return list(coords) if coords else node
+
+        return {
+            "start": convert(start_node),
+            "end": convert(end_node),
+        }
 
     def _normalize_resource_bundle(self, resources: Dict[str, Any]) -> Dict[str, Any]:
         """Normalize AI-facing resource keys to engine-facing lowercase names."""

@@ -1,0 +1,27 @@
+{
+  "request_number": 8,
+  "timestamp": "2026-05-15T21:30:45.353874",
+  "player_name": "Bob",
+  "type": "final",
+  "success": true,
+  "raw_content": "{\n  \"internal_thinking\": \"Charlie has 4 cards while Alice only has 1. Charlie also has a more diverse hand (Ore, Wheat, Sheep) which is more valuable to me right now since I'm lacking Sheep and Ore. Stealing from Charlie is the statistically superior choice.\",\n  \"note_to_self\": \"Stole from Charlie because he had 4 cards compared to Alice's 1. I need to keep an eye on his Ore production.\",\n  \"say_outloud\": \"sorry charlie, but you're looking a bit too loaded over there. i'll take one of those off your hands.\",\n  \"action\": {\n    \"type\": \"steal_card\",\n    \"parameters\": \"{\\\"target_player\\\": \\\"Charlie\\\"}\"\n  }\n}",
+  "parsed": {
+    "internal_thinking": "Charlie has 4 cards while Alice only has 1. Charlie also has a more diverse hand (Ore, Wheat, Sheep) which is more valuable to me right now since I'm lacking Sheep and Ore. Stealing from Charlie is the statistically superior choice.",
+    "note_to_self": "Stole from Charlie because he had 4 cards compared to Alice's 1. I need to keep an eye on his Ore production.",
+    "say_outloud": "sorry charlie, but you're looking a bit too loaded over there. i'll take one of those off your hands.",
+    "action_type": "steal_card",
+    "parameters": {
+      "target_player": "Charlie"
+    }
+  },
+  "model": "gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 1783,
+    "completion": 153,
+    "thinking": 0,
+    "total": 1936
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}

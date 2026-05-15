@@ -1,0 +1,25 @@
+{
+  "request_number": 1,
+  "timestamp": "2026-05-15T22:08:50.536050",
+  "player_name": "Charlie",
+  "type": "final",
+  "success": true,
+  "raw_content": "{\n  \"internal_thinking\": \"Bob is offering 1 Wheat for 1 Sheep. I currently have 1 Wheat and 1 Sheep. Accepting this trade would leave me with 2 Wheat and 0 Sheep, which doesn't actually help me towards a settlement (needs 1 of each) or a development card (needs 1 of each plus an Ore). Bob, however, has 2 Wheat and 1 Ore. If I give him a Sheep, he'll have exactly what he needs to buy a development card. Given that I just blocked his Wheat 9, he's almost certainly fishing for a Knight to move the robber back onto my Brick 6. I'm going to reject this to keep him from retaliating and because the trade doesn't benefit my immediate goals.\",\n  \"note_to_self\": \"Bob is looking for sheep to buy a dev card, likely to get a knight and move the robber off his 9 wheat. Keep an eye on his ore/wheat supply.\",\n  \"say_outloud\": \"tempting bob, but i think i'll hold onto my sheep for now. gotta keep my options open after that brick robbery.\",\n  \"action\": {\n    \"type\": \"trade_reject\",\n    \"parameters\": \"{}\"\n  }\n} ",
+  "parsed": {
+    "internal_thinking": "Bob is offering 1 Wheat for 1 Sheep. I currently have 1 Wheat and 1 Sheep. Accepting this trade would leave me with 2 Wheat and 0 Sheep, which doesn't actually help me towards a settlement (needs 1 of each) or a development card (needs 1 of each plus an Ore). Bob, however, has 2 Wheat and 1 Ore. If I give him a Sheep, he'll have exactly what he needs to buy a development card. Given that I just blocked his Wheat 9, he's almost certainly fishing for a Knight to move the robber back onto my Brick 6. I'm going to reject this to keep him from retaliating and because the trade doesn't benefit my immediate goals.",
+    "note_to_self": "Bob is looking for sheep to buy a dev card, likely to get a knight and move the robber off his 9 wheat. Keep an eye on his ore/wheat supply.",
+    "say_outloud": "tempting bob, but i think i'll hold onto my sheep for now. gotta keep my options open after that brick robbery.",
+    "action_type": "trade_reject",
+    "parameters": {}
+  },
+  "model": "gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 1779,
+    "completion": 252,
+    "thinking": 0,
+    "total": 2031
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}
