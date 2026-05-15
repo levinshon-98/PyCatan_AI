@@ -271,11 +271,35 @@ class AIUser(User):
         
         # Convert parameters to expected format
         converted_params = self._convert_parameters(action_type, parameters)
+        if decision.get("say_outloud"):
+            converted_params["_ai_say_outloud"] = decision["say_outloud"]
         
         return Action(
             action_type=action_type,
             player_id=self.user_id,
             parameters=converted_params
+        )
+
+    def react_to_game_event(
+        self,
+        game_state: GameState,
+        prompt_message: str,
+        source_player: Optional[str] = None,
+        event_group_id: Optional[str] = None
+    ) -> None:
+        """
+        Give this AI a no-board-action opportunity to react socially.
+
+        The GameManager passes the real current GameState here, so reactions use
+        the same filtered/compact board view as normal turns.
+        """
+        state_dict = self._game_state_to_dict(game_state)
+        self.ai_manager.process_agent_reaction(
+            player_name=self.name,
+            game_state=state_dict,
+            prompt_message=prompt_message,
+            source_player=source_player,
+            event_group_id=event_group_id,
         )
     
     def _convert_parameters(

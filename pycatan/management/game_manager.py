@@ -81,6 +81,7 @@ class GameManager:
         self._action_history: List[Action] = []
         self._pending_actions: List[Action] = []
         self._trade_counter = 0
+        self._processed_reaction_keys: List[str] = []
         
         # Error tracking per player to prevent infinite loops
         self._player_error_count = [0] * self.num_players
@@ -1104,6 +1105,13 @@ class GameManager:
                 self.get_full_state(),
                 affected_players=[player_id] if victim_id is None else [player_id, victim_id]
             )
+            if victim_id is not None:
+                result.reaction_events = [{
+                    "type": "robber_steal",
+                    "actor_id": player_id,
+                    "victim_id": victim_id,
+                    "message": f"{player_name} stole a card from you with a Knight.",
+                }]
             
             # Mark that we already logged this action (to prevent double logging in _update_all_systems)
             result.already_logged = True
@@ -1531,7 +1539,7 @@ class GameManager:
             allowed_actions = self.get_available_actions()
             
             # Create context-aware prompt message
-            prompt_message = self._get_prompt_message_for_phase()
+            prompt_message = self._get_prompt_message_for_phase(allowed_actions)
             
             # Request action from the current user
             action = current_user.get_input(
@@ -1744,6 +1752,78 @@ class GameManager:
             # Only print if debug config is explicitly enabled
             pass
 
+        if result.success:
+            self._process_ai_reactions(action, result)
+
+    def _process_ai_reactions(self, action: Action, result: ActionResult) -> None:
+        """
+        Offer AI players a no-board-action chance to react to table talk or
+        direct hostile events. The prompt is sent after the board state has
+        already been updated, so observers see the real current state.
+        """
+        reaction_prompts: Dict[int, List[str]] = {}
+        source_name = self.users[action.player_id].name if hasattr(self.users[action.player_id], 'name') else f"Player {action.player_id}"
+        say_outloud = ""
+        if hasattr(action, "parameters") and isinstance(action.parameters, dict):
+            say_outloud = (action.parameters.get("_ai_say_outloud") or "").strip()
+
+        if say_outloud and action.action_type != ActionType.TRADE_PROPOSE:
+            for user_id, user in enumerate(self.users):
+                if user_id != action.player_id and user.is_active:
+                    reaction_prompts.setdefault(user_id, []).append(
+                        f"{source_name} said: \"{say_outloud}\""
+                    )
+
+        for event in getattr(result, "reaction_events", []) or []:
+            event_type = event.get("type", "")
+            victim_id = event.get("victim_id")
+            if event_type == "robber_steal" and isinstance(victim_id, int):
+                if 0 <= victim_id < len(self.users) and victim_id != action.player_id:
+                    victim_name = self.users[victim_id].name if hasattr(self.users[victim_id], 'name') else f"Player {victim_id}"
+                    reaction_prompts.setdefault(victim_id, []).append(
+                        event.get("message")
+                        or f"{source_name} stole a card from you with the robber."
+                    )
+                    if say_outloud and action.action_type == ActionType.TRADE_PROPOSE:
+                        reaction_prompts[victim_id].append(
+                            f"{source_name} also said: \"{say_outloud}\""
+                        )
+
+        if not reaction_prompts:
+            return
+
+        current_state = self.get_full_state()
+        event_group_id = (
+            f"{self._current_game_state.turn_number}:"
+            f"{action.player_id}:{action.action_type.name}:{len(self._action_history)}"
+        )
+
+        for user_id, messages in reaction_prompts.items():
+            user = self.users[user_id]
+            if not hasattr(user, "react_to_game_event"):
+                continue
+
+            reaction_key = f"{event_group_id}:{user_id}"
+            if reaction_key in self._processed_reaction_keys:
+                continue
+
+            self._processed_reaction_keys.append(reaction_key)
+            self._processed_reaction_keys = self._processed_reaction_keys[-100:]
+
+            prompt_message = (
+                "\n".join(messages)
+                + "\nYou may react only with table talk or memory. Do not choose a board action."
+            )
+            try:
+                user.react_to_game_event(
+                    current_state,
+                    prompt_message,
+                    source_player=source_name,
+                    event_group_id=reaction_key,
+                )
+            except Exception as exc:
+                print(f"[AI] Reaction prompt failed for {getattr(user, 'name', user_id)}: {exc}")
+
     def _gamestate_to_dict(self, game_state) -> Dict[str, Any]:
         """Convert GameState object to dict format expected by visualizations."""
         try:
@@ -1856,6 +1936,9 @@ class GameManager:
         
         else: # Normal Play
              self._current_game_state.current_player = (self._current_game_state.current_player + 1) % self.num_players
+
+        if self._current_game_state.game_phase == GamePhase.NORMAL_PLAY:
+            self._current_game_state.turn_phase = TurnPhase.ROLL_DICE
         
         # Display turn start
         self._display_current_turn_start()
@@ -2307,6 +2390,14 @@ class GameManager:
                 # Proceed to normal play
                 self._current_game_state.turn_phase = TurnPhase.PLAYER_ACTIONS
                 self._current_game_state.steal_pending = False
+                result = ActionResult.success_result(self.get_full_state())
+                result.reaction_events = [{
+                    "type": "robber_steal",
+                    "actor_id": action.player_id,
+                    "victim_id": target_player,
+                    "message": f"{thief_name} stole a card from you with the robber.",
+                }]
+                return result
             else:
                 # Multiple players - ask user to choose
                 self._current_game_state.turn_phase = TurnPhase.ROBBER_STEAL
@@ -2426,9 +2517,16 @@ class GameManager:
             f"You stole a {stolen_card.name}!"
         )
         
-        return ActionResult.success_result(self.get_full_state())
+        result = ActionResult.success_result(self.get_full_state())
+        result.reaction_events = [{
+            "type": "robber_steal",
+            "actor_id": action.player_id,
+            "victim_id": target_player,
+            "message": f"{thief_name} stole a card from you with the robber.",
+        }]
+        return result
     
-    def _get_prompt_message_for_phase(self) -> str:
+    def _get_prompt_message_for_phase(self, allowed_actions: Optional[List[str]] = None) -> str:
         """
         Get a context-appropriate prompt message based on current game phase.
         
@@ -2437,6 +2535,7 @@ class GameManager:
         """
         game_phase = self._current_game_state.game_phase
         phase = self._current_game_state.turn_phase
+        allowed_set = set(allowed_actions or self.get_available_actions())
 
         if game_phase in [GamePhase.SETUP_FIRST_ROUND, GamePhase.SETUP_SECOND_ROUND]:
             if not self._setup_turn_progress['settlement']:
@@ -2474,9 +2573,25 @@ class GameManager:
         elif phase == TurnPhase.ROBBER_MOVE:
             return "Move the robber to a tile. Use: robber <tile_id> (click tiles in web view to see IDs)"
         
-        elif phase == TurnPhase.ROLL_DICE:
+        elif (
+            ActionType.ROLL_DICE.name in allowed_set
+            and not any(action in allowed_set for action in [
+                ActionType.BUILD_SETTLEMENT.name,
+                ActionType.BUILD_CITY.name,
+                ActionType.BUILD_ROAD.name,
+                ActionType.TRADE_PROPOSE.name,
+                ActionType.TRADE_BANK.name,
+                ActionType.BUY_DEV_CARD.name,
+                ActionType.END_TURN.name,
+            ])
+        ):
+            if ActionType.USE_DEV_CARD.name in allowed_set:
+                return "Start your turn by rolling the dice. You may use a development card before rolling if it is useful."
             return "Roll the dice to start your turn. Use: roll"
         
+        elif phase == TurnPhase.ROLL_DICE:
+            return "Roll the dice to start your turn. Use: roll"
+
         elif phase == TurnPhase.PLAYER_ACTIONS:
             return "Your turn - build, trade, or end turn. Type 'help' for commands."
         
