@@ -59,6 +59,7 @@ class PromptManager:
         available_actions: Optional[List[Dict[str, Any]]] = None,
         chat_history: Optional[List[Dict[str, str]]] = None,
         agent_memory: Optional[Dict[str, Any]] = None,
+        pending_trades: Optional[List[Dict[str, Any]]] = None,
         custom_instructions: Optional[str] = None
     ) -> Dict[str, Any]:
         """
@@ -100,10 +101,12 @@ class PromptManager:
         
         # Build social context section
         social_context = None
-        if chat_history:
-            social_context = {
-                "recent_chat": chat_history[-self.config.memory.chat_history_size:]
-            }
+        if chat_history or pending_trades:
+            social_context = {}
+            if chat_history:
+                social_context["recent_chat"] = chat_history[-self.config.memory.chat_history_size:]
+            if pending_trades:
+                social_context["pending_trades"] = pending_trades
         
         # Build memory section
         memory = agent_memory if agent_memory else None
@@ -271,18 +274,33 @@ class PromptManager:
             "Analyze the game state and select the optimal move from 'allowed_actions'. "
         )
         
-        wait_info = (
-            "If you wish to negotiate or wait for other players, select the 'wait_for_response' action."
+        action_types = {action.get("type") for action in available_actions or []}
+        extra_guidance = []
+        if "wait_for_response" in action_types:
+            extra_guidance.append(
+                "If you wish to negotiate or wait for other players, select the 'wait_for_response' action."
+            )
+        if {"place_starting_road", "build_road"} & action_types:
+            extra_guidance.append(
+                "For road placement, use analyze_path_potential to compare where candidate roads lead before choosing."
+            )
+        if {"place_starting_settlement", "build_settlement"} & action_types:
+            extra_guidance.append(
+                "For settlement placement, use find_best_nodes and inspect_node instead of manually decoding the board arrays. Treat nodes in state.bld and all adjacent nodes as unavailable."
+            )
+        extra_guidance.append(
+            "Do not state node resources or opponent settlement facts unless they come from the filtered game_state or a tool result."
         )
+        guidance = " ".join(extra_guidance)
         
         if available_actions:
             num_actions = len(available_actions)
             if num_actions == 1:
-                return base_instructions + "Only one action is currently available. " + wait_info
+                return base_instructions + "Only one action is currently available. " + guidance
             else:
-                return base_instructions + f"You have {num_actions} possible actions. " + wait_info
+                return base_instructions + f"You have {num_actions} possible actions. " + guidance
         
-        return base_instructions + wait_info
+        return base_instructions + guidance
     
     def clear_cache(self):
         """Clear the filter cache. Useful when starting a new game."""

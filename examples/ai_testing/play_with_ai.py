@@ -61,6 +61,34 @@ if sys.platform == 'win32':
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 
 
+def load_env_file(env_path: Path = Path(".env")) -> None:
+    """Load simple KEY=VALUE entries from .env without requiring python-dotenv."""
+    if not env_path.exists():
+        return
+
+    for raw_line in env_path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        if key and key not in os.environ:
+            os.environ[key] = value
+
+
+def load_ai_config(config_path: Optional[str] = None) -> AIConfig:
+    """Load explicit config, then config_dev.yaml, then defaults."""
+    if config_path:
+        return AIConfig.from_file(config_path)
+
+    default_config = Path("pycatan") / "ai" / "config_dev.yaml"
+    if default_config.exists():
+        return AIConfig.from_file(str(default_config))
+
+    return AIConfig()
+
+
 def print_banner():
     """Print the welcome banner."""
     print("=" * 70)
@@ -122,7 +150,12 @@ def setup_game() -> tuple:
     return num_players, player_configs
 
 
-def create_game(player_configs: List[dict], send_to_llm: bool = True, manual_actions: bool = True) -> tuple:
+def create_game(
+    player_configs: List[dict],
+    send_to_llm: bool = True,
+    manual_actions: bool = True,
+    config: Optional[AIConfig] = None
+) -> tuple:
     """
     Create the game with configured players.
     
@@ -136,7 +169,7 @@ def create_game(player_configs: List[dict], send_to_llm: bool = True, manual_act
     """
     # Create AIManager (shared between all AI players)
     ai_manager = AIManager(
-        config=AIConfig(),
+        config=config or AIConfig(),
         send_to_llm=send_to_llm,
         manual_actions=manual_actions
     )
@@ -257,7 +290,12 @@ def main():
                        help="Make all players AI (skip setup)")
     parser.add_argument("--names", type=str, nargs="+",
                        help="Custom names for AI players (e.g., --names Alice Bob Charlie). Also sets player count.")
+    parser.add_argument("--config", type=str,
+                       help="Path to AI config YAML. Defaults to pycatan/ai/config_dev.yaml when present.")
     args = parser.parse_args()
+
+    load_env_file()
+    ai_config = load_ai_config(args.config)
     
     # Quick setup mode - either explicit --players or inferred from --names
     num_players = args.players
@@ -298,12 +336,14 @@ def main():
     manual_actions = not args.auto  # Default: manual input
     
     print(f"[MODE] LLM: {'ON' if send_to_llm else 'OFF'} | Actions: {'Manual' if manual_actions else 'Auto'}")
+    print(f"[CONFIG] {ai_config.llm.provider}/{ai_config.llm.model_name}")
     
     # Create game
     game_manager, ai_manager, web_viz = create_game(
         player_configs,
         send_to_llm=send_to_llm,
-        manual_actions=manual_actions
+        manual_actions=manual_actions,
+        config=ai_config
     )
     
     # Run game

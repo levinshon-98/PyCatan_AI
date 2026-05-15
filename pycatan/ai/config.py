@@ -29,7 +29,7 @@ Usage:
 import os
 import yaml
 from typing import Dict, Any, Optional
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, field, asdict, fields
 from pathlib import Path
 
 
@@ -177,7 +177,7 @@ class AIConfig:
             raise FileNotFoundError(f"Configuration file not found: {file_path}")
         
         with open(config_path, 'r', encoding='utf-8') as f:
-            data = yaml.safe_load(f)
+            data = yaml.safe_load(f) or {}
         
         return cls.from_dict(data)
     
@@ -199,13 +199,19 @@ class AIConfig:
         debug_data = data.get('debug', {})
         
         return cls(
-            llm=LLMConfig(**llm_data),
-            agent=AgentConfig(**agent_data),
-            memory=MemoryConfig(**memory_data),
-            debug=DebugConfig(**debug_data),
+            llm=LLMConfig(**cls._filter_config_section(LLMConfig, llm_data)),
+            agent=AgentConfig(**cls._filter_config_section(AgentConfig, agent_data)),
+            memory=MemoryConfig(**cls._filter_config_section(MemoryConfig, memory_data)),
+            debug=DebugConfig(**cls._filter_config_section(DebugConfig, debug_data)),
             config_version=data.get('config_version', '1.0'),
             agent_name=data.get('agent_name', 'AI Agent')
         )
+
+    @staticmethod
+    def _filter_config_section(config_cls, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Ignore unknown YAML keys so richer config files stay backward-compatible."""
+        valid_fields = {field.name for field in fields(config_cls)}
+        return {key: value for key, value in (data or {}).items() if key in valid_fields}
     
     def to_dict(self) -> Dict[str, Any]:
         """

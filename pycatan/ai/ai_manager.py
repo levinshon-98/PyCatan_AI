@@ -12,6 +12,7 @@ The AIManager bridges between GameManager (through AIUser) and the LLM.
 """
 
 import json
+import re
 import time
 from pathlib import Path
 from typing import Dict, Any, Optional, List, Callable
@@ -92,6 +93,7 @@ class AIManager:
         # Chat history (shared between all agents)
         self.chat_history: List[Dict[str, Any]] = []
         self.max_chat_history: int = 20
+        self.trade_history: List[Dict[str, Any]] = []
         
         # Current game state (updated by AIUser)
         self._current_game_state: Optional[Dict[str, Any]] = None
@@ -218,8 +220,8 @@ class AIManager:
         # Update agent tools with current game state
         self.agent_tools.update_game_state(game_state)
         
-        # Build "what happened" from recent events
-        what_happened = self._build_what_happened(agent)
+        # Build "what happened" from recent events plus the current phase prompt.
+        what_happened = self._build_what_happened(agent, prompt_message)
         
         # Create prompt
         prompt, schema = self._create_prompt(
@@ -274,6 +276,17 @@ class AIManager:
                 if response and response.success and response.content:
                     self.logger.log_llm_communication(f"Received response for {player_name} ({response.total_tokens} tokens)", "RECV")
                     llm_suggestion = self._parse_response(response, ResponseType.ACTIVE_TURN)
+                    if llm_suggestion is None:
+                        llm_suggestion = self._fallback_decision_from_unparsed_response(
+                            response.content,
+                            allowed_actions,
+                            game_state
+                        )
+                        if llm_suggestion:
+                            self.logger.log_llm_communication(
+                                f"Recovered fallback decision after parse failure: {llm_suggestion}",
+                                "WARNING"
+                            )
                     self._last_llm_response = llm_suggestion
                     
                     # Log the action suggestion with details
@@ -355,7 +368,203 @@ class AIManager:
             if parsed.get("say_outloud"):
                 self._broadcast_chat(player_name, parsed["say_outloud"])
         
-        return parsed or {"action_type": "end_turn", "parameters": {}}
+        if parsed:
+            return parsed
+
+        agent.add_event(
+            "response_parse_failed",
+            "Your previous response could not be parsed as valid JSON. "
+            f"Use exactly one of these allowed actions: {allowed_actions}.",
+            {"allowed_actions": allowed_actions}
+        )
+        fallback_action = self._fallback_decision_from_allowed_actions(allowed_actions)
+        if fallback_action:
+            return fallback_action
+
+        if len(allowed_actions) == 1:
+            return {
+                "internal_thinking": "Unable to recover full parameters after parse failure; retrying the required action.",
+                "action_type": self._action_name_for_allowed(allowed_actions[0]),
+                "parameters": {},
+            }
+
+        return {
+            "internal_thinking": "Unable to recover a safe action after parse failure.",
+            "action_type": "end_turn",
+            "parameters": {},
+        }
+
+    def _fallback_decision_from_unparsed_response(
+        self,
+        raw_content: str,
+        allowed_actions: List[str],
+        game_state: Optional[Dict[str, Any]] = None
+    ) -> Optional[Dict[str, Any]]:
+        """Recover a minimal action from a truncated response when it is safe."""
+        if not raw_content or not allowed_actions:
+            return None
+
+        action_text = self._action_name_for_allowed(allowed_actions[0])
+        if len(allowed_actions) != 1:
+            return None
+
+        if allowed_actions[0] in {"PLACE_STARTING_SETTLEMENT", "BUILD_SETTLEMENT"}:
+            node_id = self._extract_legal_node_id(raw_content, game_state)
+            if node_id is not None:
+                return {
+                    "internal_thinking": "Recovered from an incomplete JSON response by using a legal node explicitly discussed.",
+                    "action_type": action_text,
+                    "parameters": {"node": node_id},
+                }
+
+        if allowed_actions[0] == "PLACE_STARTING_ROAD":
+            road = self._extract_legal_starting_road(raw_content, game_state)
+            if road is not None:
+                from_node, to_node = road
+                return {
+                    "internal_thinking": "Recovered from an incomplete JSON response by using a legal starting road explicitly discussed.",
+                    "action_type": action_text,
+                    "parameters": {"from": from_node, "to": to_node},
+                }
+
+        return None
+
+    def _fallback_decision_from_allowed_actions(
+        self,
+        allowed_actions: List[str]
+    ) -> Optional[Dict[str, Any]]:
+        """Return a no-parameter fallback only when the allowed action is safe."""
+        if len(allowed_actions) != 1:
+            return None
+
+        no_param_actions = {
+            "ROLL_DICE",
+            "BUY_DEV_CARD",
+            "END_TURN",
+            "TRADE_ACCEPT",
+            "TRADE_REJECT",
+        }
+        if allowed_actions[0] not in no_param_actions:
+            return None
+
+        return {
+            "internal_thinking": "Fallback after parse failure.",
+            "action_type": self._action_name_for_allowed(allowed_actions[0]),
+            "parameters": {},
+        }
+
+    def _extract_legal_node_id(
+        self,
+        text: str,
+        game_state: Optional[Dict[str, Any]] = None
+    ) -> Optional[int]:
+        """Extract the first mentioned node that is not already blocked."""
+        candidates = [
+            int(match.group(1))
+            for match in re.finditer(r"\bnode\s+(\d+)\b", text, flags=re.IGNORECASE)
+        ]
+        if not candidates:
+            return None
+
+        blocked_nodes = self._blocked_settlement_nodes(game_state)
+        for node_id in candidates:
+            if node_id not in blocked_nodes:
+                return node_id
+
+        return None
+
+    def _extract_legal_starting_road(
+        self,
+        text: str,
+        game_state: Optional[Dict[str, Any]] = None
+    ) -> Optional[tuple[int, int]]:
+        """Extract a legal setup road from mentioned nodes and compact state."""
+        if not text or not game_state:
+            return None
+
+        current_player = game_state.get("meta", {}).get("curr")
+        nodes = game_state.get("N", [])
+        state = game_state.get("state", {})
+        buildings = state.get("bld", [])
+        roads = state.get("rds", [])
+
+        own_settlements = [
+            building[0]
+            for building in buildings
+            if isinstance(building, list)
+            and len(building) >= 2
+            and building[1] == current_player
+            and isinstance(building[0], int)
+        ]
+        if not own_settlements:
+            return None
+
+        all_road_edges = set()
+        own_road_edges = set()
+        for road in roads:
+            if not isinstance(road, list) or len(road) < 2:
+                continue
+            edge = road[0]
+            if isinstance(edge, (list, tuple)) and len(edge) == 2:
+                normalized_edge = tuple(sorted(edge))
+                all_road_edges.add(normalized_edge)
+                if road[1] == current_player:
+                    own_road_edges.add(normalized_edge)
+
+        candidate_sources = [
+            node_id
+            for node_id in own_settlements
+            if not any(node_id in edge for edge in own_road_edges)
+        ] or list(reversed(own_settlements))
+
+        mentioned_nodes = [
+            int(match.group(1))
+            for match in re.finditer(r"\bnode\s+(\d+)\b", text, flags=re.IGNORECASE)
+        ]
+
+        def is_valid_edge(from_node: int, to_node: int) -> bool:
+            if from_node <= 0 or from_node >= len(nodes) or not nodes[from_node]:
+                return False
+            if to_node not in nodes[from_node][0]:
+                return False
+            return tuple(sorted((from_node, to_node))) not in all_road_edges
+
+        for source in candidate_sources:
+            for target in reversed(mentioned_nodes):
+                if is_valid_edge(source, target):
+                    return source, target
+
+        for source in candidate_sources:
+            if source <= 0 or source >= len(nodes) or not nodes[source]:
+                continue
+            for target in nodes[source][0]:
+                if is_valid_edge(source, target):
+                    return source, target
+
+        return None
+
+    def _blocked_settlement_nodes(self, game_state: Optional[Dict[str, Any]]) -> set[int]:
+        """Return occupied nodes and their neighbors from compact AI state."""
+        if not game_state:
+            return set()
+
+        buildings = game_state.get("state", {}).get("bld", [])
+        nodes = game_state.get("N", [])
+        blocked = set()
+        for building in buildings:
+            if not building:
+                continue
+            node_id = building[0]
+            blocked.add(node_id)
+            if isinstance(node_id, int) and 0 <= node_id < len(nodes) and nodes[node_id]:
+                blocked.update(nodes[node_id][0])
+
+        return blocked
+
+    def _action_name_for_allowed(self, allowed_action: str) -> str:
+        """Convert engine action names to AI-facing action names."""
+        action = self._format_allowed_actions([allowed_action])
+        return action[0]["type"] if action else allowed_action.lower()
     
     def _display_llm_response(
         self,
@@ -502,7 +711,14 @@ class AIManager:
         # Get agent's memory
         agent_memory = None
         if agent.memory:
-            agent_memory = {"note_from_last_turn": agent.memory}
+            recent_notes = [
+                note.get("note", str(note))
+                for note in getattr(agent, "memory_history", [])[-self.config.memory.short_term_turns:]
+            ]
+            agent_memory = {
+                "note_from_last_turn": agent.memory,
+                "recent_notes": recent_notes
+            }
         
         # Create prompt through PromptManager
         prompt = self.prompt_manager.create_prompt(
@@ -513,7 +729,8 @@ class AIManager:
             what_happened=what_happened,
             available_actions=formatted_actions,
             chat_history=self.chat_history[-self.max_chat_history:] if self.chat_history else None,
-            agent_memory=agent_memory
+            agent_memory=agent_memory,
+            pending_trades=self._get_relevant_trades(agent.player_name)
         )
         
         # Get appropriate schema based on config version
@@ -577,7 +794,7 @@ class AIManager:
             "TRADE_PROPOSE": {
                 "type": "trade_propose",
                 "description": "Propose a trade to other players",
-                "example_parameters": "{\"offer\": {\"wood\": X}, \"request\": {\"brick\": Y}}"
+                "example_parameters": "{\"target_player\": \"Charlie\", \"offer\": {\"wood\": X}, \"request\": {\"brick\": Y}}"
             },
             "ROBBER_MOVE": {
                 "type": "robber_move",
@@ -623,15 +840,15 @@ class AIManager:
                     "example_parameters": {}
                 })
         
-        # Always add WAIT_FOR_RESPONSE as an option (for communication)
-        if "WAIT_FOR_RESPONSE" not in allowed_actions:
-            result.append(action_templates["WAIT_FOR_RESPONSE"])
-        
         return result
     
-    def _build_what_happened(self, agent: AgentState) -> str:
+    def _build_what_happened(self, agent: AgentState, prompt_message: str = "") -> str:
         """
-        Build the 'what happened' message - only the LAST action in clear format.
+        Build the 'what happened' message for the next prompt.
+
+        Recent events explain what changed; the phase prompt explains what the
+        engine needs right now. Both matter after forced actions such as robber
+        steal and after failed actions.
         
         Args:
             agent: The agent to build message for
@@ -639,12 +856,18 @@ class AIManager:
         Returns:
             Clear description of the most recent action relevant to this agent
         """
+        phase_prompt = (prompt_message or "").strip()
         if not agent.recent_events:
-            return "Game is starting. Place your first settlement."
+            return phase_prompt or "It's your turn."
         
         # Get only the last event and format it clearly
         last_event = agent.recent_events[-1]
-        return self._format_event_for_agent(last_event, agent)
+        event_summary = self._format_event_for_agent(last_event, agent)
+
+        if phase_prompt and phase_prompt not in event_summary:
+            return f"{event_summary}\nCurrent required action: {phase_prompt}"
+
+        return event_summary
     
     def _format_event_for_agent(self, event: Dict[str, Any], agent: AgentState) -> str:
         """
@@ -662,6 +885,9 @@ class AIManager:
         
         # Replace "Player X" with actual player name
         message = self._replace_player_numbers_with_names(message)
+
+        if event_type == "action_failed":
+            return message
         
         # Parse common event patterns and make them clearer
         if 'PLACE_STARTING_SETTLEMENT' in message:
@@ -1327,6 +1553,72 @@ class AIManager:
             
             # Add event to all agents (they all see what happens)
             agent.add_event(event_type, message)
+
+    def record_trade_offer(
+        self,
+        trade_id: str,
+        proposer: str,
+        target: str,
+        offer: Dict[str, Any],
+        request: Dict[str, Any]
+    ) -> None:
+        """Record a structured player-to-player trade offer for prompts."""
+        existing = next((trade for trade in self.trade_history if trade.get("trade_id") == trade_id), None)
+        trade = {
+            "trade_id": trade_id,
+            "from": proposer,
+            "to": target,
+            "offer": offer,
+            "request": request,
+            "status": "pending",
+            "timestamp": time.time(),
+        }
+
+        if existing:
+            existing.update(trade)
+        else:
+            self.trade_history.append(trade)
+            self.trade_history = self.trade_history[-20:]
+
+        message = (
+            f"Trade offer {trade_id}: {proposer} offers "
+            f"{self._format_resource_bundle(offer)} to {target} for "
+            f"{self._format_resource_bundle(request)}."
+        )
+        for agent in self.agents.values():
+            if not agent.recent_events or agent.recent_events[-1].get("message") != message:
+                agent.add_event("trade_offer", message, {"trade_id": trade_id})
+
+    def record_trade_response(self, trade_id: str, status: str, responder: str) -> None:
+        """Record acceptance or rejection of a structured trade offer."""
+        trade = next((item for item in self.trade_history if item.get("trade_id") == trade_id), None)
+        if trade:
+            trade["status"] = status
+            trade["responded_by"] = responder
+            trade["resolved_at"] = time.time()
+
+        message = f"Trade {trade_id} was {status} by {responder}."
+        for agent in self.agents.values():
+            if not agent.recent_events or agent.recent_events[-1].get("message") != message:
+                agent.add_event("trade_response", message, {"trade_id": trade_id, "status": status})
+
+    def _get_relevant_trades(self, player_name: str) -> List[Dict[str, Any]]:
+        """Return recent/pending trades relevant to a prompt."""
+        relevant = []
+        for trade in self.trade_history[-10:]:
+            if (
+                trade.get("status") == "pending"
+                or trade.get("from") == player_name
+                or trade.get("to") == player_name
+            ):
+                relevant.append(trade)
+        return relevant[-5:]
+
+    def _format_resource_bundle(self, resources: Dict[str, Any]) -> str:
+        """Format a resource-count dict for event messages."""
+        if not resources:
+            return "nothing"
+        return ", ".join(f"{amount} {resource}" for resource, amount in resources.items())
     
     def _broadcast_chat(self, from_player: str, message: str) -> None:
         """

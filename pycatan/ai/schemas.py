@@ -41,8 +41,8 @@ ACTIVE_TURN_RESPONSE_SCHEMA_V1 = {
     "properties": {
         "internal_thinking": {
             "type": "string",
-            "description": "Private strategy. What's your plan and why? Do not invent resources. Verify indices in Array N carefully. Write a detailed analysis (600+ chars) only AFTER verifying the node data",
-            "minLength": 1000
+            "description": "Private strategy. What's your plan and why? Do not invent resources. Verify indices in Array N carefully before citing board facts.",
+            "minLength": 120
         },
         "note_to_self": {
             "type": "string",
@@ -117,7 +117,7 @@ ACTIVE_TURN_RESPONSE_SCHEMA_V2 = {
         "internal_thinking": {
             "type": "string",
             "description": "Private strategy. Plan your move logically here. Analyze the board, probabilities, and opponents. NOTE: Keep your logic HERE. Do not leak technical explanations into 'say_outloud'.",
-            "minLength": 1000
+            "minLength": 120
         },
         "note_to_self": {
             "type": "string",
@@ -239,7 +239,7 @@ def get_schema_description(response_type: ResponseType, version: SchemaVersion =
         if version == SchemaVersion.V1:
             return (
                 "Response must include:\n"
-                "- internal_thinking: VERIFY data from Arrays N/H first, then write 1000+ char analysis\n"
+                "- internal_thinking: Verify board facts first, then write concise strategy reasoning\n"
                 "- action: {type: action_name, parameters: {...}}\n"
                 "Encouraged (use frequently!):\n"
                 "- note_to_self: Save key observations for future turns (max 100 chars)\n"
@@ -248,7 +248,7 @@ def get_schema_description(response_type: ResponseType, version: SchemaVersion =
         else:  # V2
             return (
                 "Response must include:\n"
-                "- internal_thinking: Plan your move logically (1000+ chars). Keep technical analysis HERE.\n"
+                "- internal_thinking: Plan your move logically. Keep technical analysis HERE.\n"
                 "- action: {type: action_name, parameters: {...}}\n"
                 "Optional:\n"
                 "- note_to_self: Save observations for later (max 100 chars)\n"
@@ -333,9 +333,27 @@ ACTION_PARAMETER_SCHEMAS = {
             "receive": {"type": "string", "description": "Resource to receive"}
         }
     },
-    "propose_trade": {
-        "required": ["offer", "request"],
+    "trade_bank": {
+        "required": ["give", "receive"],
         "properties": {
+            "give": {"type": "string", "description": "Resource to give"},
+            "receive": {"type": "string", "description": "Resource to receive"},
+            "give_amount": {"type": "number", "description": "Amount to give, usually 4 unless using a port"},
+            "receive_amount": {"type": "number", "description": "Amount to receive, usually 1"}
+        }
+    },
+    "trade_propose": {
+        "required": ["target_player", "offer", "request"],
+        "properties": {
+            "target_player": {"description": "Target player name, color, or id"},
+            "offer": {"type": "object", "description": "Resources offered"},
+            "request": {"type": "object", "description": "Resources requested"}
+        }
+    },
+    "propose_trade": {
+        "required": ["target_player", "offer", "request"],
+        "properties": {
+            "target_player": {"description": "Target player name, color, or id"},
             "offer": {"type": "object", "description": "Resources offered"},
             "request": {"type": "object", "description": "Resources requested"}
         }

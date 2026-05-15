@@ -101,7 +101,7 @@ function renderPlayerHub(players) {
         const totalCards = player.total_cards || getTotalCards(player);
         
         // Get resources - handle different formats
-        const resources = player.resources || {};
+        const resources = player.resources || getResourcesFromCardsList(player.cards_list);
         const woodCount = resources.wood || resources.lumber || 0;
         const brickCount = resources.brick || 0;
         const sheepCount = resources.sheep || resources.wool || 0;
@@ -158,6 +158,31 @@ function getTotalCards(player) {
         return Object.values(player.resources).reduce((sum, val) => sum + (val || 0), 0);
     }
     return 0;
+}
+
+function getResourcesFromCardsList(cardsList) {
+    const resources = { wood: 0, brick: 0, sheep: 0, wheat: 0, ore: 0 };
+    if (!Array.isArray(cardsList)) return resources;
+
+    const aliases = {
+        wood: 'wood',
+        lumber: 'wood',
+        brick: 'brick',
+        sheep: 'sheep',
+        wool: 'sheep',
+        wheat: 'wheat',
+        grain: 'wheat',
+        ore: 'ore'
+    };
+
+    cardsList.forEach(card => {
+        const normalized = aliases[String(card).toLowerCase()];
+        if (normalized) {
+            resources[normalized] += 1;
+        }
+    });
+
+    return resources;
 }
 
 function renderResourceItem(type, count) {
@@ -420,11 +445,22 @@ function showAIMemories() {
     const memoriesHTML = Object.entries(aiSessionData.memories).map(([player, memory]) => `
         <div class="memory-card">
             <div class="memory-player">${player.toUpperCase()}</div>
-            <div class="memory-text">"${escapeHtml(memory)}"</div>
+            <div class="memory-text">"${escapeHtml(getMemoryText(memory))}"</div>
         </div>
     `).join('');
     
     document.getElementById('ai-content-body').innerHTML = memoriesHTML;
+}
+
+function getMemoryText(memory) {
+    if (memory === null || memory === undefined) return '';
+    if (typeof memory === 'string') return memory;
+    if (memory.note_to_self) return memory.note_to_self;
+    if (memory.current_note) return memory.current_note;
+    if (Array.isArray(memory.recent_notes) && memory.recent_notes.length > 0) {
+        return memory.recent_notes[memory.recent_notes.length - 1].note || String(memory.recent_notes[memory.recent_notes.length - 1]);
+    }
+    return JSON.stringify(memory);
 }
 
 // Track expanded state for requests

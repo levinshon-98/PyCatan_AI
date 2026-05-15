@@ -1,0 +1,29 @@
+{
+  "request_number": 1,
+  "iteration": 1,
+  "timestamp": "2026-05-15T19:46:09.070641",
+  "player_name": "Bob",
+  "type": "intermediate",
+  "success": true,
+  "raw_content": "",
+  "has_tool_calls": true,
+  "tool_calls": [
+    {
+      "id": "call_1",
+      "name": "find_best_nodes",
+      "parameters": {
+        "reasoning": "Looking for high-pip locations with good resource diversity for the first settlement. Priority on Wood/Brick and Wheat/Ore.",
+        "min_pips": 10
+      }
+    }
+  ],
+  "model": "gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 891,
+    "completion": 0,
+    "thinking": 0,
+    "total": 891
+  },
+  "latency_seconds": 0.0,
+  "error": null
+}

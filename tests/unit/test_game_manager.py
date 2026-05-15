@@ -11,6 +11,7 @@ import uuid
 from pycatan.management.actions import Action, ActionType, ActionResult, GameState, GamePhase
 from pycatan.players.user import create_test_user, UserInputError
 from pycatan.management.game_manager import GameManager
+from pycatan.core.card import ResCard
 
 
 class TestGameManagerInitialization:
@@ -137,6 +138,86 @@ class TestGameManagerActions:
             create_test_user("Bob", 1)
         ]
         self.gm = GameManager(self.users)
+
+    def test_trade_propose_records_pending_trade_and_accepts(self):
+        alice = create_test_user("Alice", 0)
+        bob = create_test_user("Bob", 1)
+        trade_offers = []
+        trade_responses = []
+
+        for user in [alice, bob]:
+            user.notify_trade_offer = lambda trade_id, proposer, target, offer, request: trade_offers.append(
+                (trade_id, proposer, target, offer, request)
+            )
+            user.notify_trade_response = lambda trade_id, status, responder: trade_responses.append(
+                (trade_id, status, responder)
+            )
+
+        bob.set_next_action(Action(ActionType.TRADE_ACCEPT, 1, {}))
+        gm = GameManager([alice, bob], random_seed=0)
+        gm.game.players[0].cards = [ResCard.Sheep]
+        gm.game.players[1].cards = [ResCard.Wood]
+
+        action = Action(
+            ActionType.TRADE_PROPOSE,
+            0,
+            {"target_player": 1, "offer": {"sheep": 1}, "request": {"wood": 1}},
+        )
+        result = gm._execute_trade_propose(action)
+
+        assert result.success
+        assert ResCard.Wood in gm.game.players[0].cards
+        assert ResCard.Sheep in gm.game.players[1].cards
+        assert action.parameters["trade_status"] == "accepted"
+        assert action.parameters["trade_id"].startswith("trade_")
+        assert "Trade offer" in bob.last_input_call["prompt_message"]
+        assert bob.last_input_call["allowed_actions"] == ["TRADE_ACCEPT", "TRADE_REJECT"]
+        assert trade_offers
+        assert trade_responses[-1][1] == "accepted"
+        assert gm._current_game_state.pending_trades == []
+
+    def test_trade_propose_rejects_invalid_target_id(self):
+        gm = GameManager(self.users, random_seed=0)
+        action = Action(
+            ActionType.TRADE_PROPOSE,
+            0,
+            {"target_player": -1, "offer": {"sheep": 1}, "request": {"wood": 1}},
+        )
+
+        result = gm._execute_trade_propose(action)
+
+        assert not result.success
+        assert result.status_code == "INVALID_PLAYER_ID"
+
+    def test_execute_action_rejects_action_not_allowed_in_phase(self):
+        """Test that actions outside the current phase do not execute."""
+        self.gm.start_game()
+
+        result = self.gm.execute_action(Action(ActionType.END_TURN, player_id=0))
+
+        assert result.success is False
+        assert result.status_code == "ACTION_NOT_ALLOWED"
+        assert "PLACE_STARTING_SETTLEMENT" in result.error_message
+
+    def test_get_full_state_includes_current_dice_roll(self):
+        """Test that AI-facing game state keeps the current turn dice roll."""
+        self.gm._current_game_state.dice_rolled = (5, 3)
+
+        state = self.gm.get_full_state()
+
+        assert state.dice_rolled == (5, 3)
+
+    def test_distribution_summary_uses_player_names_and_counts(self):
+        """Test resource distribution summary is useful for AI prompts."""
+        summary = self.gm._format_distribution_summary(
+            {
+                "Player 1": ["sheep", "wheat", "wheat"],
+                "Player 2": ["ore"],
+            }
+        )
+
+        assert "Alice +1 sheep, 2 wheat" in summary
+        assert "Bob +1 ore" in summary
     
     def test_execute_action_game_not_running(self):
         """Test executing action when game is not running."""
