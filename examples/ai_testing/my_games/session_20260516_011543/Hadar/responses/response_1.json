@@ -1,0 +1,25 @@
+{
+  "request_number": 1,
+  "timestamp": "2026-05-16T01:16:02.014793",
+  "player_name": "Hadar",
+  "type": "final",
+  "success": true,
+  "raw_content": "{\n  \"internal_thinking\": \"Shon is offering me 1 Wheat for 1 Brick. Looking at my current resources, I have 1 Brick, 1 Wood, 2 Wheat, and 3 Sheep. A settlement costs 1 Brick, 1 Wood, 1 Wheat, and 1 Sheep. I already have exactly what I need to build a settlement at Node 14 on my next turn (I have a road leading there). Trading away my only Brick would prevent me from building and give Shon a resource he needs to expand. Given our history (he betrayed me last game) and the fact that this trade actively hurts my immediate progress, I must reject it.\",\n  \"note_to_self\": \"I have the resources for a settlement at Node 14. Do not trade away the Brick or Wood. Shon is trying to get resources for his own expansion.\",\n  \"say_outloud\": \"שון, אני ממש צריכה את הלבנה הזאת לבנייה הבאה שלי, אז אני לא יכולה לוותר עליה כרגע. אולי בהמשך אם המצב ישתנה.\",\n  \"action\": {\n    \"type\": \"trade_reject\",\n    \"parameters\": \"{}\"\n  }\n}",
+  "parsed": {
+    "internal_thinking": "Shon is offering me 1 Wheat for 1 Brick. Looking at my current resources, I have 1 Brick, 1 Wood, 2 Wheat, and 3 Sheep. A settlement costs 1 Brick, 1 Wood, 1 Wheat, and 1 Sheep. I already have exactly what I need to build a settlement at Node 14 on my next turn (I have a road leading there). Trading away my only Brick would prevent me from building and give Shon a resource he needs to expand. Given our history (he betrayed me last game) and the fact that this trade actively hurts my immediate progress, I must reject it.",
+    "note_to_self": "I have the resources for a settlement at Node 14. Do not trade away the Brick or Wood. Shon is trying to get resources for his own expansion.",
+    "say_outloud": "שון, אני ממש צריכה את הלבנה הזאת לבנייה הבאה שלי, אז אני לא יכולה לוותר עליה כרגע. אולי בהמשך אם המצב ישתנה.",
+    "action_type": "trade_reject",
+    "parameters": {}
+  },
+  "model": "gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 2243,
+    "completion": 229,
+    "thinking": 0,
+    "total": 2472
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}

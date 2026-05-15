@@ -61,6 +61,18 @@ examples\ai_testing\my_games\session_YYYYMMDD_HHMMSS
 .\PLAY_WITH_SET_SETTINGS.bat --hebrew-chat
 ```
 
+Key modes for the browser setup:
+
+```powershell
+.\PLAY_WITH_SET_SETTINGS.bat --use-env-keys
+.\PLAY_WITH_SET_SETTINGS.bat --ask-api-keys
+```
+
+Default is `--use-env-keys`: empty key fields use `GEMINI_API_KEY`,
+`ELEVENLABS_API_KEY`, and `ELEVENLABS_DEFAULT_VOICE_ID` from ENV or `.env`.
+Use `--ask-api-keys` / `--ask-keys` when you want the browser form to require
+typed keys for this run.
+
 ## לראות מה הסשן הנוכחי
 
 ```powershell

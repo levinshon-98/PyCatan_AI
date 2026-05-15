@@ -1,0 +1,25 @@
+{
+  "request_number": 1,
+  "timestamp": "2026-05-16T01:16:56.410619",
+  "player_name": "Ziv",
+  "type": "final",
+  "success": true,
+  "raw_content": "{\n  \"internal_thinking\": \"Shon is offering 1 Wheat for 1 Brick. Looking at my current resources, I have 1 Brick, 1 Wood, and 1 Sheep. My immediate goal is to build a road from node 13 to node 14 to compete with Hadar for that spot, or to expand towards the Wood port at node 40. Both options require Wood and Brick. If I trade away my only Brick for Wheat, I will be unable to build the road I need. Although I have a city on a Wheat hex (node 41, Hex 14), my Brick production is limited. Shon is also trying to stir the pot by calling Hadar stingy, which aligns with his opportunistic background. I'll decline the trade to prioritize my own expansion plans.\",\n  \"note_to_self\": \"Shon is trying to manipulate the table talk to get resources. I need to keep my Brick to reach node 14 before Hadar or to build towards node 40.\",\n  \"say_outloud\": \"מצטער שון, אני ממש חייב את הלבנה הזאת כרגע כדי להתקדם בעצמי. אולי בפעם אחרת.\",\n  \"action\": {\n    \"type\": \"trade_reject\",\n    \"parameters\": \"{}\"\n  }\n}",
+  "parsed": {
+    "internal_thinking": "Shon is offering 1 Wheat for 1 Brick. Looking at my current resources, I have 1 Brick, 1 Wood, and 1 Sheep. My immediate goal is to build a road from node 13 to node 14 to compete with Hadar for that spot, or to expand towards the Wood port at node 40. Both options require Wood and Brick. If I trade away my only Brick for Wheat, I will be unable to build the road I need. Although I have a city on a Wheat hex (node 41, Hex 14), my Brick production is limited. Shon is also trying to stir the pot by calling Hadar stingy, which aligns with his opportunistic background. I'll decline the trade to prioritize my own expansion plans.",
+    "note_to_self": "Shon is trying to manipulate the table talk to get resources. I need to keep my Brick to reach node 14 before Hadar or to build towards node 40.",
+    "say_outloud": "מצטער שון, אני ממש חייב את הלבנה הזאת כרגע כדי להתקדם בעצמי. אולי בפעם אחרת.",
+    "action_type": "trade_reject",
+    "parameters": {}
+  },
+  "model": "gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 2197,
+    "completion": 248,
+    "thinking": 0,
+    "total": 2445
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}

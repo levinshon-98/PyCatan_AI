@@ -4,7 +4,7 @@ REM PyCatan with AI Agents - Browser Settings Mode
 REM ============================================
 REM Opens a setup page where the user chooses:
 REM   - Gemini model
-REM   - Gemini API key
+REM   - API key mode: environment keys or typed keys
 REM   - Player count and names
 REM Then starts the same full-auto AI game flow.
 REM ============================================
@@ -61,7 +61,10 @@ echo.
 echo ================================================================================
 echo    PLAY_WITH_SET_SETTINGS
 echo ================================================================================
-echo    A browser page will ask for Gemini model, API key, player count, and names.
+echo    A browser page will ask for model, player count, names, and optional keys.
+echo    Default key mode: use GEMINI_API_KEY / ELEVENLABS_* from ENV or .env when blank.
+echo    Force typed keys: add --ask-api-keys
+echo    Explicit ENV mode: add --use-env-keys
 echo    The setup page also lets you choose English or Hebrew table talk.
 echo    After you submit, the board will load automatically in that same tab.
 echo    Press Ctrl+C here to stop the game.

@@ -415,6 +415,9 @@ class ReplayAIUser(AIUser):
             replay_item = self.replay_decisions[0]
             decision = dict(replay_item["parsed"])
             action = self._decision_to_action(decision, allowed_actions)
+            if hasattr(action, "parameters") and isinstance(action.parameters, dict):
+                action.parameters.pop("_ai_say_outloud", None)
+                action.parameters["_ai_replay"] = True
 
             if allowed_actions and action.action_type.name not in allowed_actions:
                 if self.replay_only:
@@ -500,7 +503,11 @@ def _render_browser_settings_page(
     selected_gemini_tts_model: str = "gemini-2.5-flash-preview-tts",
     selected_gemini_tts_voice: str = "Kore",
     player_count: int = 3,
-    player_names: Optional[List[str]] = None
+    player_names: Optional[List[str]] = None,
+    key_mode: str = "env",
+    gemini_env_available: bool = False,
+    elevenlabs_env_available: bool = False,
+    elevenlabs_voice_env_available: bool = False
 ) -> str:
     """Render the temporary browser setup form."""
     player_names = player_names or DEFAULT_PLAYER_NAMES
@@ -508,6 +515,26 @@ def _render_browser_settings_page(
     if errors:
         error_items = "".join(f"<li>{html_lib.escape(error)}</li>" for error in errors)
         errors_html = f"<div class=\"errors\"><ul>{error_items}</ul></div>"
+    use_env_keys = key_mode == "env"
+    gemini_key_required = "" if use_env_keys and gemini_env_available else " required"
+    elevenlabs_key_required = "" if use_env_keys and elevenlabs_env_available else " required"
+    elevenlabs_voice_required = "" if use_env_keys and elevenlabs_voice_env_available else " required"
+    gemini_key_hint = (
+        "Using GEMINI_API_KEY from environment if this is left blank."
+        if use_env_keys and gemini_env_available
+        else "Enter a Gemini API key for this run."
+    )
+    elevenlabs_key_hint = (
+        "Using ELEVENLABS_API_KEY from environment if this is left blank."
+        if use_env_keys and elevenlabs_env_available
+        else "Enter an ElevenLabs API key when ElevenLabs voice is selected."
+    )
+    elevenlabs_voice_hint = (
+        "Using ELEVENLABS_DEFAULT_VOICE_ID from environment if this is left blank."
+        if use_env_keys and elevenlabs_voice_env_available
+        else "Enter the default ElevenLabs voice ID for this run."
+    )
+    key_mode_label = "Environment keys" if use_env_keys else "Ask for keys"
 
     model_options = []
     for model in GEMINI_TEXT_MODELS:
@@ -705,6 +732,20 @@ def _render_browser_settings_page(
             line-height: 1.4;
         }}
         .hint {{ margin: 6px 0 0; font-size: 13px; }}
+        .key-mode {{
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            padding: 7px 11px;
+            color: var(--muted);
+            background: #fbfcfd;
+            font-size: 13px;
+            font-weight: 700;
+            margin-top: 12px;
+        }}
+        .key-mode strong {{ color: var(--accent); }}
         @media (max-width: 820px) {{
             main {{ grid-template-columns: 1fr; }}
             .players-grid {{ grid-template-columns: 1fr; }}
@@ -715,7 +756,8 @@ def _render_browser_settings_page(
     <main>
         <section>
             <h1>PyCatan AI Setup</h1>
-            <p>Choose the Gemini model, enter your API key, then set the AI players for this run.</p>
+            <p>Choose the Gemini model, configure keys, then set the AI players for this run.</p>
+            <div class="key-mode">Key mode: <strong>{html_lib.escape(key_mode_label)}</strong></div>
             {errors_html}
             <form method="post" action="/start">
                 <fieldset>
@@ -728,9 +770,9 @@ def _render_browser_settings_page(
                     </label>
                     <label style="margin-top: 12px;">
                         API key
-                        <input name="api_key" type="password" autocomplete="off" required>
+                        <input name="api_key" type="password" autocomplete="off"{gemini_key_required} data-env-optional="{'true' if use_env_keys and gemini_env_available else 'false'}" placeholder="{html_lib.escape('ENV key available' if use_env_keys and gemini_env_available else '')}">
                     </label>
-                    <p class="hint">The key is only placed in this game process environment as GEMINI_API_KEY.</p>
+                    <p class="hint">{html_lib.escape(gemini_key_hint)} The key is only placed in this game process environment as GEMINI_API_KEY.</p>
                 </fieldset>
 
                 <fieldset>
@@ -779,13 +821,13 @@ def _render_browser_settings_page(
                     </label>
                     <label style="margin-top: 12px;">
                         API key
-                        <input name="elevenlabs_api_key" type="password" autocomplete="off" required>
+                        <input name="elevenlabs_api_key" type="password" autocomplete="off"{elevenlabs_key_required} data-env-optional="{'true' if use_env_keys and elevenlabs_env_available else 'false'}" placeholder="{html_lib.escape('ENV key available' if use_env_keys and elevenlabs_env_available else '')}">
                     </label>
                     <label style="margin-top: 12px;">
                         Default voice ID
-                        <input name="elevenlabs_default_voice_id" autocomplete="off" required>
+                        <input name="elevenlabs_default_voice_id" autocomplete="off"{elevenlabs_voice_required} data-env-optional="{'true' if use_env_keys and elevenlabs_voice_env_available else 'false'}" placeholder="{html_lib.escape('ENV voice available' if use_env_keys and elevenlabs_voice_env_available else '')}">
                     </label>
-                    <p class="hint">Used only for this run as ELEVENLABS_API_KEY and ELEVENLABS_DEFAULT_VOICE_ID.</p>
+                    <p class="hint">{html_lib.escape(elevenlabs_key_hint)} {html_lib.escape(elevenlabs_voice_hint)} Used only for this run.</p>
                     </div>
                 </fieldset>
 
@@ -829,10 +871,10 @@ def _render_browser_settings_page(
             geminiTtsFields.style.display = provider === 'gemini' ? 'block' : 'none';
             elevenLabsFields.style.display = provider === 'elevenlabs' ? 'block' : 'none';
             geminiTtsFields.querySelectorAll('select, input').forEach((field) => {{
-                field.required = provider === 'gemini';
+                field.required = provider === 'gemini' && field.dataset.envOptional !== 'true';
             }});
             elevenLabsFields.querySelectorAll('select, input').forEach((field) => {{
-                field.required = provider === 'elevenlabs';
+                field.required = provider === 'elevenlabs' && field.dataset.envOptional !== 'true';
             }});
         }}
         radios.forEach((radio) => radio.addEventListener('change', refreshPlayers));
@@ -900,7 +942,7 @@ def _render_game_starting_page(model: str, player_names: List[str]) -> bytes:
 </html>""".encode("utf-8")
 
 
-def collect_browser_settings(port: int = 5000) -> Dict[str, Any]:
+def collect_browser_settings(port: int = 5000, key_mode: str = "env") -> Dict[str, Any]:
     """Open a temporary localhost setup page and wait for the selected run settings."""
     settings: Dict[str, Any] = {}
     settings_ready = threading.Event()
@@ -914,6 +956,19 @@ def collect_browser_settings(port: int = 5000) -> Dict[str, Any]:
         "gemini-3.1-flash-tts-preview",
         "gemini-3.1-pro-tts-preview",
     }
+    use_env_keys = key_mode == "env"
+
+    def env_has(name: str) -> bool:
+        return bool(os.environ.get(name))
+
+    def render_settings_page(**kwargs) -> str:
+        return _render_browser_settings_page(
+            key_mode=key_mode,
+            gemini_env_available=env_has("GEMINI_API_KEY"),
+            elevenlabs_env_available=env_has("ELEVENLABS_API_KEY"),
+            elevenlabs_voice_env_available=env_has("ELEVENLABS_DEFAULT_VOICE_ID"),
+            **kwargs
+        )
 
     class ReusableThreadingHTTPServer(ThreadingHTTPServer):
         allow_reuse_address = True
@@ -936,7 +991,7 @@ def collect_browser_settings(port: int = 5000) -> Dict[str, Any]:
                 self.send_header("Location", "/settings")
                 self.end_headers()
                 return
-            self._send_html(_render_browser_settings_page())
+            self._send_html(render_settings_page())
 
         def do_POST(self):
             if self.path != "/start":
@@ -954,6 +1009,9 @@ def collect_browser_settings(port: int = 5000) -> Dict[str, Any]:
             elevenlabs_tts_model = fields.get("elevenlabs_tts_model", ["eleven_v3"])[0].strip()
             elevenlabs_api_key = fields.get("elevenlabs_api_key", [""])[0].strip()
             elevenlabs_default_voice_id = fields.get("elevenlabs_default_voice_id", [""])[0].strip()
+            effective_api_key = api_key or (os.environ.get("GEMINI_API_KEY", "") if use_env_keys else "")
+            effective_elevenlabs_api_key = elevenlabs_api_key or (os.environ.get("ELEVENLABS_API_KEY", "") if use_env_keys else "")
+            effective_elevenlabs_voice_id = elevenlabs_default_voice_id or (os.environ.get("ELEVENLABS_DEFAULT_VOICE_ID", "") if use_env_keys else "")
             player_count_raw = fields.get("player_count", ["3"])[0].strip()
             names = [
                 fields.get(f"player_{index + 1}", [DEFAULT_PLAYER_NAMES[index]])[0].strip()
@@ -965,8 +1023,8 @@ def collect_browser_settings(port: int = 5000) -> Dict[str, Any]:
                 errors.append("Choose one of the available Gemini text models.")
             if chat_language not in valid_chat_languages:
                 errors.append("Choose English or Hebrew for table talk.")
-            if not api_key:
-                errors.append("Enter a Gemini API key.")
+            if not effective_api_key:
+                errors.append("Enter a Gemini API key or run with --use-env-keys after setting GEMINI_API_KEY.")
             if tts_provider not in valid_tts_providers:
                 errors.append("Choose a valid voice provider.")
             if tts_provider == "gemini":
@@ -977,10 +1035,10 @@ def collect_browser_settings(port: int = 5000) -> Dict[str, Any]:
             if tts_provider == "elevenlabs":
                 if elevenlabs_tts_model not in valid_tts_models:
                     errors.append("Choose one of the available ElevenLabs speech models.")
-                if not elevenlabs_api_key:
-                    errors.append("Enter an ElevenLabs API key.")
-                if not elevenlabs_default_voice_id:
-                    errors.append("Enter an ElevenLabs default voice ID.")
+                if not effective_elevenlabs_api_key:
+                    errors.append("Enter an ElevenLabs API key or set ELEVENLABS_API_KEY.")
+                if not effective_elevenlabs_voice_id:
+                    errors.append("Enter an ElevenLabs default voice ID or set ELEVENLABS_DEFAULT_VOICE_ID.")
             try:
                 player_count = int(player_count_raw)
             except ValueError:
@@ -1000,7 +1058,7 @@ def collect_browser_settings(port: int = 5000) -> Dict[str, Any]:
 
             if errors:
                 self._send_html(
-                    _render_browser_settings_page(
+                    render_settings_page(
                         errors=errors,
                         selected_model=selected_model if selected_model in valid_models else "gemini-3-flash-preview",
                         selected_chat_language=chat_language if chat_language in valid_chat_languages else "english",
@@ -1018,12 +1076,12 @@ def collect_browser_settings(port: int = 5000) -> Dict[str, Any]:
             settings.update({
                 "model": selected_model,
                 "chat_language": chat_language,
-                "api_key": api_key,
+                "api_key": effective_api_key,
                 "tts_provider": tts_provider,
                 "gemini_tts_model": gemini_tts_model,
                 "gemini_tts_voice": gemini_tts_voice,
-                "elevenlabs_api_key": elevenlabs_api_key,
-                "elevenlabs_default_voice_id": elevenlabs_default_voice_id,
+                "elevenlabs_api_key": effective_elevenlabs_api_key,
+                "elevenlabs_default_voice_id": effective_elevenlabs_voice_id,
                 "elevenlabs_tts_model": elevenlabs_tts_model,
                 "player_configs": [
                     {"name": selected_names[index], "is_ai": True, "color": PLAYER_COLORS[index]}
@@ -1417,6 +1475,10 @@ def main():
                        help="Path to AI config YAML. Defaults to pycatan/ai/config_dev.yaml when present.")
     parser.add_argument("--browser-settings", action="store_true",
                        help="Open a browser setup screen for Gemini model/API key and player names before starting.")
+    parser.add_argument("--use-env-keys", action="store_true",
+                       help="In browser settings, use API keys from environment/.env when form fields are left blank.")
+    parser.add_argument("--ask-api-keys", "--ask-keys", action="store_true",
+                       help="In browser settings, require API keys to be entered in the browser form.")
     parser.add_argument("--chat-language", choices=["english", "hebrew"], default=None,
                        help="Language for public say_outloud table talk.")
     parser.add_argument("--hebrew-chat", action="store_true",
@@ -1460,8 +1522,12 @@ def main():
     )
     browser_player_configs: Optional[List[dict]] = None
 
+    if args.use_env_keys and args.ask_api_keys:
+        parser.error("--use-env-keys and --ask-api-keys cannot be used together")
+
     if args.browser_settings:
-        browser_settings = collect_browser_settings(port=5000)
+        key_mode = "ask" if args.ask_api_keys else "env"
+        browser_settings = collect_browser_settings(port=5000, key_mode=key_mode)
         ai_config.agent.chat_language = browser_settings["chat_language"]
         os.environ["GEMINI_API_KEY"] = browser_settings["api_key"]
         os.environ["TTS_PROVIDER"] = browser_settings["tts_provider"]

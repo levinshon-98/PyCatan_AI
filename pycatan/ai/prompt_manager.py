@@ -92,6 +92,9 @@ class PromptManager:
             "agent_name": player_name,
             "role": custom_instructions or self.config.agent.custom_instructions
         }
+        relationship_background = self._build_relationship_background(player_name, game_state)
+        if relationship_background:
+            meta_data["relationship_background"] = relationship_background
         
         # Build task context section
         task_context = {
@@ -309,6 +312,126 @@ class PromptManager:
         if language == "hebrew":
             return "Any say_outloud chat message must be written in natural Hebrew only."
         return "Any say_outloud chat message must be written in natural English only."
+
+    def _build_relationship_background(
+        self,
+        player_name: str,
+        game_state: Dict[str, Any]
+    ) -> Optional[str]:
+        """Return a short hardcoded social fallback for the current table."""
+        player_names = self._extract_player_names(game_state)
+        if player_name not in player_names:
+            player_names = [player_name] + [name for name in player_names if name != player_name]
+
+        opponents = [name for name in player_names if name != player_name]
+        if not opponents:
+            return None
+
+        strategic_guardrail = (
+            "Use this only for table talk, trust, trades, and tie-breakers; "
+            "your board decisions should still prioritize strong legal Catan play."
+        )
+
+        if len(player_names) == 3:
+            first, second, third = player_names
+            if player_name == first:
+                story = (
+                    f"{second} is an old friend; you played many games together and they "
+                    f"were usually loyal, but in the last game they betrayed you at the "
+                    f"final moment. {third} is a sharp, fair-minded rival who noticed "
+                    f"that betrayal; you trust their warnings more than their generosity."
+                )
+            elif player_name == second:
+                story = (
+                    f"{first} is an old friend; you played many games together and you "
+                    f"were usually loyal, but in the last game you betrayed them at the "
+                    f"final moment. {third} saw what happened and may treat your promises "
+                    f"as useful but not fully reliable."
+                )
+            else:
+                story = (
+                    f"{first} and {second} have history: {second} betrayed {first} late "
+                    f"in the last game after being trusted for a long time. {first} may "
+                    f"be cautious, and {second} can be charming but opportunistic."
+                )
+            return f"Relationship background: {story} {strategic_guardrail}"
+
+        notes = []
+        for opponent in opponents:
+            notes.append(self._fallback_relationship_note(player_name, opponent, player_names))
+        return (
+            "Relationship background: "
+            + " ".join(notes)
+            + " "
+            + strategic_guardrail
+        )
+
+    def _extract_player_names(self, game_state: Dict[str, Any]) -> List[str]:
+        """Extract stable player names from the compact game state."""
+        players = game_state.get("players", {}) if isinstance(game_state, dict) else {}
+        if isinstance(players, dict):
+            names = list(players.keys())
+        elif isinstance(players, list):
+            names = [
+                player.get("name")
+                for player in players
+                if isinstance(player, dict) and player.get("name")
+            ]
+        else:
+            names = []
+
+        result = []
+        seen = set()
+        for name in names:
+            if not name:
+                continue
+            key = str(name).lower()
+            if key in seen:
+                continue
+            result.append(str(name))
+            seen.add(key)
+        return result
+
+    def _fallback_relationship_note(
+        self,
+        player_name: str,
+        opponent_name: str,
+        player_names: List[str]
+    ) -> str:
+        """Generic coordinated pair notes for non-3-player tables."""
+        try:
+            my_index = player_names.index(player_name)
+            other_index = player_names.index(opponent_name)
+        except ValueError:
+            return f"{opponent_name} is familiar from previous games; keep trust cautious but flexible."
+
+        low_index = min(my_index, other_index)
+        high_index = max(my_index, other_index)
+        low_name = player_names[low_index]
+        high_name = player_names[high_index]
+        pattern = (low_index + high_index) % 3
+
+        if pattern == 0:
+            if player_name == low_name:
+                return (
+                    f"{high_name} is an old friend who was loyal for many games, "
+                    "but betrayed you near the end of the last one."
+                )
+            return (
+                f"{low_name} is an old friend; you betrayed them near the end of "
+                "the last game, so they may test your loyalty."
+            )
+
+        if pattern == 1:
+            return (
+                f"{opponent_name} is a practical rival: fair in trades, but quick "
+                "to punish obvious weakness."
+            )
+
+        return (
+            f"{opponent_name} helped you once in a previous game, but only because "
+            "it served their position too."
+        )
     
     def clear_cache(self):
         """Clear the filter cache. Useful when starting a new game."""

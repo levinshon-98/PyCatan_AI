@@ -584,6 +584,12 @@ class GameManager:
                 f"Trade offer {trade_id}: {proposer_name} offers {offer_str} "
                 f"to {target_name} for {request_str}."
             )
+            trade_reaction_event = {
+                "type": "trade_offer",
+                "actor_id": proposer_id,
+                "target_id": target_id,
+                "message": trade_message,
+            }
 
             self._record_trade_offer(trade_id, proposer_name, target_name, offer, request)
             self._notify_all_users("trade_offer", trade_message, [proposer_id, target_id])
@@ -602,10 +608,12 @@ class GameManager:
                 )
                 self._resolve_trade(trade_id, "rejected", target_name)
                 action.parameters['trade_status'] = 'rejected'
-                return ActionResult.failure_result(
+                result = ActionResult.failure_result(
                     f"{target_name} doesn't have the required cards",
                     "INSUFFICIENT_RESOURCES"
                 )
+                result.reaction_events = [trade_reaction_event]
+                return result
             
             # Ask the target player to accept or reject
             print(f"\n[TRADE] Trade Proposal:")
@@ -633,21 +641,27 @@ class GameManager:
                     print(f"    [OK] Trade completed between {proposer_name} and {target_name}!")
                     self._resolve_trade(trade_id, "accepted", target_name)
                     action.parameters['trade_status'] = 'accepted'
-                    return ActionResult.success_result(
+                    result = ActionResult.success_result(
                         self.get_full_state(),
                         affected_players=[proposer_id, target_id]
                     )
+                    result.reaction_events = [trade_reaction_event]
+                    return result
                 else:
-                    return self._map_status_to_result(status)
+                    result = self._map_status_to_result(status)
+                    result.reaction_events = [trade_reaction_event]
+                    return result
             else:
                 # Trade rejected
                 print(f"    [X] {target_name} rejected the trade")
                 self._resolve_trade(trade_id, "rejected", target_name)
                 action.parameters['trade_status'] = 'rejected'
-                return ActionResult.failure_result(
+                result = ActionResult.failure_result(
                     f"{target_name} rejected your trade offer",
                     "TRADE_REJECTED"
                 )
+                result.reaction_events = [trade_reaction_event]
+                return result
                 
         except Exception as e:
             return ActionResult.failure_result(
@@ -1752,7 +1766,7 @@ class GameManager:
             # Only print if debug config is explicitly enabled
             pass
 
-        if result.success:
+        if result.success or getattr(result, "reaction_events", None):
             self._process_ai_reactions(action, result)
 
     def _process_ai_reactions(self, action: Action, result: ActionResult) -> None:
@@ -1765,11 +1779,19 @@ class GameManager:
         source_name = self.users[action.player_id].name if hasattr(self.users[action.player_id], 'name') else f"Player {action.player_id}"
         say_outloud = ""
         if hasattr(action, "parameters") and isinstance(action.parameters, dict):
+            if action.parameters.get("_ai_replay"):
+                return
             say_outloud = (action.parameters.get("_ai_say_outloud") or "").strip()
 
-        if say_outloud and action.action_type != ActionType.TRADE_PROPOSE:
+        skip_chat_reaction_ids = set()
+        if action.action_type == ActionType.TRADE_PROPOSE and isinstance(getattr(action, "parameters", None), dict):
+            target_id = action.parameters.get("target_player")
+            if isinstance(target_id, int):
+                skip_chat_reaction_ids.add(target_id)
+
+        if say_outloud:
             for user_id, user in enumerate(self.users):
-                if user_id != action.player_id and user.is_active:
+                if user_id != action.player_id and user_id not in skip_chat_reaction_ids and user.is_active:
                     reaction_prompts.setdefault(user_id, []).append(
                         f"{source_name} said: \"{say_outloud}\""
                     )
@@ -1777,6 +1799,17 @@ class GameManager:
         for event in getattr(result, "reaction_events", []) or []:
             event_type = event.get("type", "")
             victim_id = event.get("victim_id")
+            if event_type == "trade_offer":
+                target_id = event.get("target_id")
+                for user_id, user in enumerate(self.users):
+                    if user_id in {action.player_id, target_id} or not user.is_active:
+                        continue
+                    reaction_prompts.setdefault(user_id, []).append(
+                        event.get("message")
+                        or f"{source_name} proposed a trade."
+                    )
+                continue
+
             if event_type == "robber_steal" and isinstance(victim_id, int):
                 if 0 <= victim_id < len(self.users) and victim_id != action.player_id:
                     victim_name = self.users[victim_id].name if hasattr(self.users[victim_id], 'name') else f"Player {victim_id}"
@@ -1784,10 +1817,6 @@ class GameManager:
                         event.get("message")
                         or f"{source_name} stole a card from you with the robber."
                     )
-                    if say_outloud and action.action_type == ActionType.TRADE_PROPOSE:
-                        reaction_prompts[victim_id].append(
-                            f"{source_name} also said: \"{say_outloud}\""
-                        )
 
         if not reaction_prompts:
             return
