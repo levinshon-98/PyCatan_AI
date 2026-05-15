@@ -104,12 +104,16 @@ class PromptManager:
         
         # Build social context section
         social_context = None
-        if chat_history or pending_trades:
+        trade_context = self._build_trade_context(player_name, pending_trades or [])
+        open_trades = self._get_open_trade_details(pending_trades or [])
+        if chat_history or trade_context or open_trades:
             social_context = {}
             if chat_history:
                 social_context["recent_chat"] = chat_history[-self.config.memory.chat_history_size:]
-            if pending_trades:
-                social_context["pending_trades"] = pending_trades
+            if trade_context:
+                social_context["trade_context"] = trade_context
+            if open_trades:
+                social_context["pending_trades"] = open_trades
         
         # Build memory section
         memory = agent_memory if agent_memory else None
@@ -138,6 +142,69 @@ class PromptManager:
         )
         
         return prompt
+
+    def _build_trade_context(self, player_name: str, trades: List[Dict[str, Any]]) -> Optional[str]:
+        """Summarize resolved trades without spending prompt tokens on raw metadata."""
+        resolved = [trade for trade in trades if trade.get("status") != "pending"]
+        if not resolved:
+            return None
+
+        sentences = []
+        for trade in resolved[-5:]:
+            proposer = trade.get("from", "Someone")
+            target = trade.get("to", "someone")
+            offer = self._format_trade_bundle(trade.get("offer") or {})
+            request = self._format_trade_bundle(trade.get("request") or {})
+            status = trade.get("status", "resolved")
+            responder = trade.get("responded_by") or target
+
+            if status == "accepted":
+                outcome = "you accepted" if responder == player_name else f"{responder} accepted"
+            elif status == "rejected":
+                outcome = "you rejected" if responder == player_name else f"{responder} rejected"
+            else:
+                outcome = f"it was {status}"
+
+            if proposer == player_name:
+                actor = "You offered"
+                target_text = target
+            elif target == player_name:
+                actor = f"{proposer} offered you"
+                target_text = None
+            else:
+                actor = f"{proposer} offered"
+                target_text = target
+
+            if target_text:
+                sentence = f"{actor} {target_text} {offer} for {request}; {outcome}."
+            else:
+                sentence = f"{actor} {offer} for {request}; {outcome}."
+            sentences.append(sentence)
+
+        return "Recent trade history: " + " ".join(sentences)
+
+    def _get_open_trade_details(self, trades: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Keep only actionable open trades in structured form."""
+        open_trades = []
+        for trade in trades:
+            if trade.get("status") != "pending":
+                continue
+            open_trades.append({
+                "trade_id": trade.get("trade_id"),
+                "from": trade.get("from"),
+                "to": trade.get("to"),
+                "offer": trade.get("offer"),
+                "request": trade.get("request"),
+                "status": "pending",
+            })
+        return open_trades
+
+    def _format_trade_bundle(self, resources: Dict[str, Any]) -> str:
+        if not resources:
+            return "nothing"
+        return ", ".join(
+            f"{amount} {resource}" for resource, amount in resources.items()
+        )
     
     def create_action_prompt(
         self,
@@ -318,52 +385,96 @@ class PromptManager:
         player_name: str,
         game_state: Dict[str, Any]
     ) -> Optional[str]:
-        """Return a short hardcoded social fallback for the current table."""
+        """Return a short coordinated social fallback for the current table."""
         player_names = self._extract_player_names(game_state)
         if player_name not in player_names:
             player_names = [player_name] + [name for name in player_names if name != player_name]
 
-        opponents = [name for name in player_names if name != player_name]
-        if not opponents:
+        if len(player_names) < 2:
             return None
 
+        shared_story = self._build_shared_table_history(player_names)
+        personal_angle = self._build_personal_relationship_angle(player_name, player_names)
         strategic_guardrail = (
             "Use this only for table talk, trust, trades, and tie-breakers; "
             "your board decisions should still prioritize strong legal Catan play."
         )
+        return f"Relationship background: {shared_story} {personal_angle} {strategic_guardrail}"
 
-        if len(player_names) == 3:
-            first, second, third = player_names
-            if player_name == first:
-                story = (
-                    f"{second} is an old friend; you played many games together and they "
-                    f"were usually loyal, but in the last game they betrayed you at the "
-                    f"final moment. {third} is a sharp, fair-minded rival who noticed "
-                    f"that betrayal; you trust their warnings more than their generosity."
-                )
-            elif player_name == second:
-                story = (
-                    f"{first} is an old friend; you played many games together and you "
-                    f"were usually loyal, but in the last game you betrayed them at the "
-                    f"final moment. {third} saw what happened and may treat your promises "
-                    f"as useful but not fully reliable."
-                )
-            else:
-                story = (
-                    f"{first} and {second} have history: {second} betrayed {first} late "
-                    f"in the last game after being trusted for a long time. {first} may "
-                    f"be cautious, and {second} can be charming but opportunistic."
-                )
-            return f"Relationship background: {story} {strategic_guardrail}"
+    def _build_shared_table_history(self, player_names: List[str]) -> str:
+        """Build one deterministic group story that includes every player."""
+        first = player_names[0]
+        second = player_names[1]
 
-        notes = []
-        for opponent in opponents:
-            notes.append(self._fallback_relationship_note(player_name, opponent, player_names))
+        if len(player_names) == 2:
+            return (
+                f"{first} and {second} have played together before. {second} was usually "
+                f"loyal, but in the last game broke a final-turn promise to {first}."
+            )
+
+        third = player_names[2]
+        sentences = [
+            f"{first} usually tries to keep the table fair and remembers loyalty.",
+            f"{second} is a charming dealmaker who betrayed {first} late in the last game.",
+            f"{third} warned {first} about {second}, but also took a useful side trade from {second}.",
+        ]
+
+        extra_templates = [
+            (
+                "{name} stayed quiet for most of that game, then used robber pressure "
+                "at the end to decide who could still win."
+            ),
+            (
+                "{name} once saved a stalled trade chain, but only after extracting "
+                "a better price from everyone involved."
+            ),
+            (
+                "{name} tends to mediate arguments, while quietly tracking who owes "
+                "them favors."
+            ),
+        ]
+        for index, name in enumerate(player_names[3:]):
+            template = extra_templates[index % len(extra_templates)]
+            sentences.append(template.format(name=name))
+
+        return "This table has shared history. " + " ".join(sentences)
+
+    def _build_personal_relationship_angle(
+        self,
+        player_name: str,
+        player_names: List[str]
+    ) -> str:
+        """Describe the coordinated story from this agent's own angle."""
+        index = player_names.index(player_name)
+        first = player_names[0]
+        second = player_names[1]
+        third = player_names[2] if len(player_names) > 2 else None
+
+        if len(player_names) == 2:
+            if index == 0:
+                return f"Your angle: you like {second}, but you have not forgotten that betrayal."
+            return f"Your angle: you betrayed {first} once, so your promises may need proof."
+
+        if index == 0:
+            return (
+                f"Your angle: {second} hurt your trust; {third} warned you, but their "
+                "side trade means they are not completely neutral."
+            )
+        if index == 1:
+            return (
+                f"Your angle: {first} has reason to distrust you; {third} exposed the "
+                "betrayal but also profited from dealing with you."
+            )
+        if index == 2:
+            return (
+                f"Your angle: you warned {first} about {second}, then still made a "
+                f"profitable side trade with {second}; both may see you as useful but slippery."
+            )
+
+        previous_player = player_names[index - 1]
         return (
-            "Relationship background: "
-            + " ".join(notes)
-            + " "
-            + strategic_guardrail
+            f"Your angle: you were part of the same messy table history, and {previous_player} "
+            "remembers that you can shift the balance when pressure rises."
         )
 
     def _extract_player_names(self, game_state: Dict[str, Any]) -> List[str]:
@@ -392,47 +503,6 @@ class PromptManager:
             seen.add(key)
         return result
 
-    def _fallback_relationship_note(
-        self,
-        player_name: str,
-        opponent_name: str,
-        player_names: List[str]
-    ) -> str:
-        """Generic coordinated pair notes for non-3-player tables."""
-        try:
-            my_index = player_names.index(player_name)
-            other_index = player_names.index(opponent_name)
-        except ValueError:
-            return f"{opponent_name} is familiar from previous games; keep trust cautious but flexible."
-
-        low_index = min(my_index, other_index)
-        high_index = max(my_index, other_index)
-        low_name = player_names[low_index]
-        high_name = player_names[high_index]
-        pattern = (low_index + high_index) % 3
-
-        if pattern == 0:
-            if player_name == low_name:
-                return (
-                    f"{high_name} is an old friend who was loyal for many games, "
-                    "but betrayed you near the end of the last one."
-                )
-            return (
-                f"{low_name} is an old friend; you betrayed them near the end of "
-                "the last game, so they may test your loyalty."
-            )
-
-        if pattern == 1:
-            return (
-                f"{opponent_name} is a practical rival: fair in trades, but quick "
-                "to punish obvious weakness."
-            )
-
-        return (
-            f"{opponent_name} helped you once in a previous game, but only because "
-            "it served their position too."
-        )
-    
     def clear_cache(self):
         """Clear the filter cache. Useful when starting a new game."""
         self._filter_cache.clear()

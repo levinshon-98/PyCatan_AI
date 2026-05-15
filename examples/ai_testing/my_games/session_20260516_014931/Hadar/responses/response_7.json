@@ -1,0 +1,25 @@
+{
+  "request_number": 7,
+  "timestamp": "2026-05-16T01:58:59.359109",
+  "player_name": "Hadar",
+  "type": "final",
+  "success": true,
+  "raw_content": "{\n  \"internal_thinking\": \"Shon is offering me 1 sheep for my 1 wood. Looking at the game state, I only have 1 wood and no other resources. Wood is essential for my expansion (roads and settlements), and sheep is generally less valuable at this stage of the game, especially since I don't have wheat or brick to pair with it for a settlement. Shon is also trying to expand into the 'corner', and giving him my only resource would help him while stalling me. Given our history (he betrayed me in the last game) and the current board position where I need that wood for my own progress, I will reject the trade.\",\n  \"note_to_self\": \"שון לחוץ על עץ כדי להתרחב לפינה. זיו שומר על הלבנים שלו. כרגע יש לי רק עץ אחד, אני חייבת לשמור אותו להתקדמות שלי ולא לתת לשון יתרון, במיוחד אחרי הבגידה שלו במשחק הקודם.\",\n  \"say_outloud\": \"שון, מצטערת, אבל העץ הזה הוא המשאב היחיד שיש לי כרגע ואני חייבת לשמור אותו כדי לנסות להתקדם בתור שלי. אולי בהמשך כשיהיה לי קצת יותר מרווח נשימה.\",\n  \"action\": {\n    \"type\": \"trade_reject\",\n    \"parameters\": \"{}\"\n  }\n}",
+  "parsed": {
+    "internal_thinking": "Shon is offering me 1 sheep for my 1 wood. Looking at the game state, I only have 1 wood and no other resources. Wood is essential for my expansion (roads and settlements), and sheep is generally less valuable at this stage of the game, especially since I don't have wheat or brick to pair with it for a settlement. Shon is also trying to expand into the 'corner', and giving him my only resource would help him while stalling me. Given our history (he betrayed me in the last game) and the current board position where I need that wood for my own progress, I will reject the trade.",
+    "note_to_self": "שון לחוץ על עץ כדי להתרחב לפינה. זיו שומר על הלבנים שלו. כרגע יש לי רק עץ אחד, אני חייבת לשמור אותו להתקדמות שלי ולא לתת לשון יתרון, במיוחד אחרי הבגידה שלו במשחק הקודם.",
+    "say_outloud": "שון, מצטערת, אבל העץ הזה הוא המשאב היחיד שיש לי כרגע ואני חייבת לשמור אותו כדי לנסות להתקדם בתור שלי. אולי בהמשך כשיהיה לי קצת יותר מרווח נשימה.",
+    "action_type": "trade_reject",
+    "parameters": {}
+  },
+  "model": "gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 1904,
+    "completion": 259,
+    "thinking": 0,
+    "total": 2163
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}

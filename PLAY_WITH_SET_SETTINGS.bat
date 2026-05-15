@@ -61,10 +61,12 @@ echo.
 echo ================================================================================
 echo    PLAY_WITH_SET_SETTINGS
 echo ================================================================================
-echo    A browser page will ask for model, player count, names, and optional keys.
+echo    A browser page will ask for model, run mode, replay/session options, players, and keys.
 echo    Default key mode: use GEMINI_API_KEY / ELEVENLABS_* from ENV or .env when blank.
 echo    Force typed keys: add --ask-api-keys
 echo    Explicit ENV mode: add --use-env-keys
+echo    Run modes include new game, resume old session, watch replay, and analyse game.
+echo    Reactions can run async, sync/no parallel, or be disabled.
 echo    The setup page also lets you choose English or Hebrew table talk.
 echo    After you submit, the board will load automatically in that same tab.
 echo    Press Ctrl+C here to stop the game.

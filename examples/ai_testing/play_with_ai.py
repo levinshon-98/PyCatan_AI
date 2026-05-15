@@ -504,6 +504,19 @@ def _render_browser_settings_page(
     selected_gemini_tts_voice: str = "Kore",
     player_count: int = 3,
     player_names: Optional[List[str]] = None,
+    selected_run_mode: str = "new_game",
+    selected_replay_session: str = "",
+    selected_replay_max_decisions: str = "",
+    selected_replay_through: str = "",
+    selected_replay_stop_before: str = "",
+    selected_replay_skip_chat: bool = False,
+    selected_replay_delay: str = "2.5",
+    selected_replay_text_lead: str = "0.25",
+    selected_replay_speak: bool = False,
+    selected_no_llm: bool = False,
+    selected_reaction_mode: str = "default",
+    selected_reaction_batch_size: str = "",
+    selected_config_path: str = "",
     key_mode: str = "env",
     gemini_env_available: bool = False,
     elevenlabs_env_available: bool = False,
@@ -535,6 +548,16 @@ def _render_browser_settings_page(
         else "Enter the default ElevenLabs voice ID for this run."
     )
     key_mode_label = "Environment keys" if use_env_keys else "Ask for keys"
+    recent_session_options = []
+    if LOGS_DIR.exists():
+        recent_sessions = sorted(
+            [path.name for path in LOGS_DIR.iterdir() if path.is_dir() and path.name.startswith("session_")],
+            reverse=True
+        )[:30]
+        recent_session_options = [
+            f"<option value=\"{html_lib.escape(session_name)}\"></option>"
+            for session_name in recent_sessions
+        ]
 
     model_options = []
     for model in GEMINI_TEXT_MODELS:
@@ -710,6 +733,44 @@ def _render_browser_settings_page(
             border-radius: 8px;
             padding: 10px 14px;
         }}
+        .form-grid {{
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }}
+        .checkbox-row {{
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            font-weight: 650;
+            color: var(--ink);
+        }}
+        .checkbox-row input {{
+            width: auto;
+        }}
+        .advanced-panel {{
+            display: grid;
+            gap: 12px;
+        }}
+        #run-mode-section {{ order: 1; }}
+        #table-talk-section {{ order: 2; }}
+        #execution-section {{ order: 3; }}
+        #gemini-section {{ order: 4; }}
+        #voice-section {{ order: 5; }}
+        #players-section {{ order: 6; }}
+        button[type="submit"] {{ order: 7; }}
+        .hidden-section {{
+            display: none;
+        }}
+        .setup-path {{
+            margin: 0 0 20px;
+            padding-left: 20px;
+            color: var(--muted);
+            display: grid;
+            gap: 8px;
+            font-size: 13px;
+            line-height: 1.4;
+        }}
         .errors ul {{ margin: 0; padding-left: 18px; }}
         button {{
             border: 0;
@@ -748,7 +809,7 @@ def _render_browser_settings_page(
         .key-mode strong {{ color: var(--accent); }}
         @media (max-width: 820px) {{
             main {{ grid-template-columns: 1fr; }}
-            .players-grid {{ grid-template-columns: 1fr; }}
+            .players-grid, .form-grid {{ grid-template-columns: 1fr; }}
         }}
     </style>
 </head>
@@ -760,8 +821,8 @@ def _render_browser_settings_page(
             <div class="key-mode">Key mode: <strong>{html_lib.escape(key_mode_label)}</strong></div>
             {errors_html}
             <form method="post" action="/start">
-                <fieldset>
-                    <legend>Gemini</legend>
+                <fieldset id="gemini-section">
+                    <legend>Step 4 - Gemini model and key</legend>
                     <label>
                         Model
                         <select name="model" required>
@@ -775,8 +836,8 @@ def _render_browser_settings_page(
                     <p class="hint">{html_lib.escape(gemini_key_hint)} The key is only placed in this game process environment as GEMINI_API_KEY.</p>
                 </fieldset>
 
-                <fieldset>
-                    <legend>Table talk</legend>
+                <fieldset id="table-talk-section">
+                    <legend>Step 2 - Table talk</legend>
                     <label>
                         Chat language
                         <select name="chat_language" required>
@@ -787,8 +848,89 @@ def _render_browser_settings_page(
                     <p class="hint">Controls only public say_outloud chat. Private reasoning stays in English.</p>
                 </fieldset>
 
-                <fieldset>
-                    <legend>Voice</legend>
+                <fieldset id="run-mode-section">
+                    <legend>Step 1 - Run mode</legend>
+                    <label>
+                        Mode
+                        <select name="run_mode" required>
+                            <option value="new_game" {'selected' if selected_run_mode == 'new_game' else ''}>New live game</option>
+                            <option value="resume_session" {'selected' if selected_run_mode == 'resume_session' else ''}>Fast replay, then continue live</option>
+                            <option value="watch_replay" {'selected' if selected_run_mode == 'watch_replay' else ''}>Watch recorded session only</option>
+                            <option value="analyse_game" {'selected' if selected_run_mode == 'analyse_game' else ''}>Analyse recorded session</option>
+                        </select>
+                    </label>
+                    <div id="replay-fields" class="advanced-panel" style="margin-top: 12px;">
+                        <label>
+                            Session
+                            <input name="replay_session" list="recent-sessions" value="{html_lib.escape(selected_replay_session)}" placeholder="session_YYYYMMDD_HHMMSS">
+                            <datalist id="recent-sessions">
+                                {''.join(recent_session_options)}
+                            </datalist>
+                        </label>
+                        <div class="form-grid">
+                            <label>
+                                Stop before marker
+                                <input name="replay_stop_before" value="{html_lib.escape(selected_replay_stop_before)}" placeholder="Shon:4">
+                            </label>
+                            <label>
+                                Replay through marker
+                                <input name="replay_through" value="{html_lib.escape(selected_replay_through)}" placeholder="Ziv:8">
+                            </label>
+                            <label>
+                                Max decisions
+                                <input name="replay_max_decisions" type="number" min="1" step="1" value="{html_lib.escape(selected_replay_max_decisions)}">
+                            </label>
+                            <label>
+                                Replay delay
+                                <input name="replay_delay" type="number" min="0" step="0.1" value="{html_lib.escape(selected_replay_delay)}">
+                            </label>
+                            <label>
+                                Text lead
+                                <input name="replay_text_lead" type="number" min="0" step="0.05" value="{html_lib.escape(selected_replay_text_lead)}">
+                            </label>
+                        </div>
+                        <label class="checkbox-row">
+                            <input name="replay_skip_chat" type="checkbox" {'checked' if selected_replay_skip_chat else ''}>
+                            Skip recorded chat during fast replay
+                        </label>
+                        <label class="checkbox-row">
+                            <input name="replay_speak" type="checkbox" {'checked' if selected_replay_speak else ''}>
+                            Speak recorded replay chat from cache
+                        </label>
+                    </div>
+                </fieldset>
+
+                <fieldset id="execution-section">
+                    <legend>Step 3 - Execution</legend>
+                    <div class="advanced-panel">
+                        <label class="checkbox-row">
+                            <input name="no_llm" type="checkbox" {'checked' if selected_no_llm else ''}>
+                            Offline mode, no new LLM calls
+                        </label>
+                        <label>
+                            Off-turn reactions
+                            <select name="reaction_mode">
+                                <option value="default" {'selected' if selected_reaction_mode == 'default' else ''}>Use config default</option>
+                                <option value="off" {'selected' if selected_reaction_mode == 'off' else ''}>Off</option>
+                                <option value="sync" {'selected' if selected_reaction_mode == 'sync' else ''}>Synchronous, no parallel background reactions</option>
+                                <option value="async" {'selected' if selected_reaction_mode == 'async' else ''}>Asynchronous background reactions</option>
+                            </select>
+                        </label>
+                        <div class="form-grid">
+                            <label>
+                                Reaction batch size
+                                <input name="reaction_batch_size" type="number" min="1" step="1" value="{html_lib.escape(selected_reaction_batch_size)}" placeholder="5">
+                            </label>
+                            <label>
+                                Config file
+                                <input name="config_path" value="{html_lib.escape(selected_config_path)}" placeholder="pycatan/ai/config_dev.yaml">
+                            </label>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <fieldset id="voice-section">
+                    <legend>Step 5 - Voice</legend>
                     <label>
                         Provider
                         <select name="tts_provider" required>
@@ -831,8 +973,8 @@ def _render_browser_settings_page(
                     </div>
                 </fieldset>
 
-                <fieldset>
-                    <legend>Players</legend>
+                <fieldset id="players-section">
+                    <legend>Step 6 - Players</legend>
                     <div class="radio-row">
                         <label class="radio-pill"><input type="radio" name="player_count" value="2" {'checked' if player_count == 2 else ''}> 2 players</label>
                         <label class="radio-pill"><input type="radio" name="player_count" value="3" {'checked' if player_count == 3 else ''}> 3 players</label>
@@ -846,6 +988,8 @@ def _render_browser_settings_page(
             </form>
         </section>
         <aside>
+            <h2>Setup path</h2>
+            <ol id="setup-path" class="setup-path"></ol>
             <h2>Text models in this setup</h2>
             <ul class="model-list">{model_notes}</ul>
             <h2 style="margin-top: 22px;">Speech models</h2>
@@ -858,29 +1002,87 @@ def _render_browser_settings_page(
         const providerSelect = document.querySelector('select[name="tts_provider"]');
         const geminiTtsFields = document.getElementById('gemini-tts-fields');
         const elevenLabsFields = document.getElementById('elevenlabs-tts-fields');
+        const runModeSelect = document.querySelector('select[name="run_mode"]');
+        const replayFields = document.getElementById('replay-fields');
+        const replaySessionInput = document.querySelector('input[name="replay_session"]');
+        const replaySpeakInput = document.querySelector('input[name="replay_speak"]');
+        const noLlmInput = document.querySelector('input[name="no_llm"]');
+        const geminiApiKeyInput = document.querySelector('input[name="api_key"]');
+        const geminiSection = document.getElementById('gemini-section');
+        const voiceSection = document.getElementById('voice-section');
+        const playersSection = document.getElementById('players-section');
+        const setupPath = document.getElementById('setup-path');
         function refreshPlayers() {{
+            const newGame = runModeSelect.value === 'new_game';
             const count = Number(document.querySelector('input[name="player_count"]:checked').value);
+            playersSection.classList.toggle('hidden-section', !newGame);
             playerFields.forEach((field) => {{
-                const visible = Number(field.dataset.playerIndex) <= count;
+                const visible = newGame && Number(field.dataset.playerIndex) <= count;
                 field.style.display = visible ? 'grid' : 'none';
                 field.querySelector('input').required = visible;
             }});
         }}
         function refreshTtsProvider() {{
             const provider = providerSelect.value;
+            const liveMode = runModeSelect.value === 'new_game' || runModeSelect.value === 'resume_session';
+            const replaySpeak = replaySpeakInput.checked;
+            const needsVoice = liveMode || replaySpeak;
+            const showGeminiSettings = liveMode || (provider === 'gemini' && replaySpeak);
+            geminiSection.classList.toggle('hidden-section', !showGeminiSettings);
+            voiceSection.classList.toggle('hidden-section', !needsVoice);
             geminiTtsFields.style.display = provider === 'gemini' ? 'block' : 'none';
             elevenLabsFields.style.display = provider === 'elevenlabs' ? 'block' : 'none';
+            const needsGeminiKey = (!noLlmInput.checked && liveMode) || (provider === 'gemini' && needsVoice);
+            geminiApiKeyInput.required = needsGeminiKey && geminiApiKeyInput.dataset.envOptional !== 'true';
             geminiTtsFields.querySelectorAll('select, input').forEach((field) => {{
-                field.required = provider === 'gemini' && field.dataset.envOptional !== 'true';
+                field.required = provider === 'gemini' && needsVoice && field.dataset.envOptional !== 'true';
             }});
             elevenLabsFields.querySelectorAll('select, input').forEach((field) => {{
-                field.required = provider === 'elevenlabs' && field.dataset.envOptional !== 'true';
+                field.required = provider === 'elevenlabs' && needsVoice && field.dataset.envOptional !== 'true';
             }});
+        }}
+        function refreshRunMode() {{
+            const mode = runModeSelect.value;
+            const needsSession = mode !== 'new_game';
+            replayFields.style.display = needsSession ? 'grid' : 'none';
+            replaySessionInput.required = needsSession;
+            refreshPlayers();
+            refreshTtsProvider();
+            refreshSetupPath();
+        }}
+        function refreshSetupPath() {{
+            const mode = runModeSelect.value;
+            const items = [];
+            if (mode === 'new_game') {{
+                items.push('Choose New live game.');
+                items.push('Pick language, reaction mode, Gemini model, voice, and player names.');
+                items.push('Click Start game.');
+            }} else if (mode === 'resume_session') {{
+                items.push('Choose Fast replay, then continue live.');
+                items.push('Pick the recorded session. Player names are loaded from that session.');
+                items.push('Set replay markers only if you want to stop or skip to a specific decision.');
+                items.push('Pick language, reaction mode, Gemini model, and voice for the live continuation.');
+                items.push('Click Start game.');
+            }} else if (mode === 'watch_replay') {{
+                items.push('Choose Watch recorded session only.');
+                items.push('Pick the recorded session. No player names or new LLM calls are needed.');
+                items.push('Set replay delay/text lead, and enable replay speech only if you want audio.');
+                items.push('Click Start game.');
+            }} else {{
+                items.push('Choose Analyse recorded session.');
+                items.push('Pick the recorded session. The analysis view reads recorded prompts, memory, tools, and responses.');
+                items.push('Set replay delay/text lead if useful.');
+                items.push('Click Start game, then use Analyse in the replay controls.');
+            }}
+            setupPath.innerHTML = items.map((item) => `<li>${{item}}</li>`).join('');
         }}
         radios.forEach((radio) => radio.addEventListener('change', refreshPlayers));
         providerSelect.addEventListener('change', refreshTtsProvider);
+        runModeSelect.addEventListener('change', refreshRunMode);
+        replaySpeakInput.addEventListener('change', refreshTtsProvider);
+        noLlmInput.addEventListener('change', refreshTtsProvider);
         refreshPlayers();
-        refreshTtsProvider();
+        refreshRunMode();
     </script>
 </body>
 </html>"""
@@ -950,6 +1152,8 @@ def collect_browser_settings(port: int = 5000, key_mode: str = "env") -> Dict[st
     valid_chat_languages = {"english", "hebrew"}
     valid_tts_models = {model["id"] for model in ELEVENLABS_TTS_MODELS}
     valid_tts_providers = {"off", "gemini", "elevenlabs"}
+    valid_run_modes = {"new_game", "resume_session", "watch_replay", "analyse_game"}
+    valid_reaction_modes = {"default", "off", "sync", "async"}
     valid_gemini_tts_models = {
         "gemini-2.5-flash-preview-tts",
         "gemini-2.5-pro-preview-tts",
@@ -1003,6 +1207,19 @@ def collect_browser_settings(port: int = 5000, key_mode: str = "env") -> Dict[st
             selected_model = fields.get("model", [""])[0].strip()
             chat_language = normalize_chat_language(fields.get("chat_language", ["english"])[0])
             api_key = fields.get("api_key", [""])[0].strip()
+            run_mode = fields.get("run_mode", ["new_game"])[0].strip()
+            replay_session = fields.get("replay_session", [""])[0].strip()
+            replay_max_decisions_raw = fields.get("replay_max_decisions", [""])[0].strip()
+            replay_through = fields.get("replay_through", [""])[0].strip()
+            replay_stop_before = fields.get("replay_stop_before", [""])[0].strip()
+            replay_skip_chat = "replay_skip_chat" in fields
+            replay_delay_raw = fields.get("replay_delay", ["2.5"])[0].strip() or "2.5"
+            replay_text_lead_raw = fields.get("replay_text_lead", ["0.25"])[0].strip() or "0.25"
+            replay_speak = "replay_speak" in fields
+            no_llm = "no_llm" in fields
+            reaction_mode = fields.get("reaction_mode", ["default"])[0].strip()
+            reaction_batch_size_raw = fields.get("reaction_batch_size", [""])[0].strip()
+            config_path = fields.get("config_path", [""])[0].strip()
             tts_provider = fields.get("tts_provider", ["gemini"])[0].strip()
             gemini_tts_model = fields.get("gemini_tts_model", ["gemini-2.5-flash-preview-tts"])[0].strip()
             gemini_tts_voice = fields.get("gemini_tts_voice", ["Kore"])[0].strip()
@@ -1023,7 +1240,50 @@ def collect_browser_settings(port: int = 5000, key_mode: str = "env") -> Dict[st
                 errors.append("Choose one of the available Gemini text models.")
             if chat_language not in valid_chat_languages:
                 errors.append("Choose English or Hebrew for table talk.")
-            if not effective_api_key:
+            if run_mode not in valid_run_modes:
+                errors.append("Choose a valid run mode.")
+            needs_session = run_mode in {"resume_session", "watch_replay", "analyse_game"}
+            if needs_session and not replay_session:
+                errors.append("Choose a recorded session for replay/resume/analyse mode.")
+            if replay_through and replay_stop_before:
+                errors.append("Use either replay-through or replay-stop-before, not both.")
+            if reaction_mode not in valid_reaction_modes:
+                errors.append("Choose a valid reaction mode.")
+            if config_path and not Path(config_path).exists():
+                errors.append("Config file was not found.")
+            replay_max_decisions = None
+            if replay_max_decisions_raw:
+                try:
+                    replay_max_decisions = int(replay_max_decisions_raw)
+                    if replay_max_decisions < 1:
+                        errors.append("Replay max decisions must be at least 1.")
+                except ValueError:
+                    errors.append("Replay max decisions must be a number.")
+            try:
+                replay_delay = float(replay_delay_raw)
+                if replay_delay < 0:
+                    errors.append("Replay delay cannot be negative.")
+            except ValueError:
+                replay_delay = 2.5
+                errors.append("Replay delay must be a number.")
+            try:
+                replay_text_lead = float(replay_text_lead_raw)
+                if replay_text_lead < 0:
+                    errors.append("Replay text lead cannot be negative.")
+            except ValueError:
+                replay_text_lead = 0.25
+                errors.append("Replay text lead must be a number.")
+            reaction_batch_size = None
+            if reaction_batch_size_raw:
+                try:
+                    reaction_batch_size = int(reaction_batch_size_raw)
+                    if reaction_batch_size < 1:
+                        errors.append("Reaction batch size must be at least 1.")
+                except ValueError:
+                    errors.append("Reaction batch size must be a number.")
+            live_mode = run_mode in {"new_game", "resume_session"}
+            needs_gemini_key = (live_mode and not no_llm) or (tts_provider == "gemini" and (live_mode or replay_speak))
+            if needs_gemini_key and not effective_api_key:
                 errors.append("Enter a Gemini API key or run with --use-env-keys after setting GEMINI_API_KEY.")
             if tts_provider not in valid_tts_providers:
                 errors.append("Choose a valid voice provider.")
@@ -1035,9 +1295,9 @@ def collect_browser_settings(port: int = 5000, key_mode: str = "env") -> Dict[st
             if tts_provider == "elevenlabs":
                 if elevenlabs_tts_model not in valid_tts_models:
                     errors.append("Choose one of the available ElevenLabs speech models.")
-                if not effective_elevenlabs_api_key:
+                if (live_mode or replay_speak) and not effective_elevenlabs_api_key:
                     errors.append("Enter an ElevenLabs API key or set ELEVENLABS_API_KEY.")
-                if not effective_elevenlabs_voice_id:
+                if (live_mode or replay_speak) and not effective_elevenlabs_voice_id:
                     errors.append("Enter an ElevenLabs default voice ID or set ELEVENLABS_DEFAULT_VOICE_ID.")
             try:
                 player_count = int(player_count_raw)
@@ -1048,13 +1308,14 @@ def collect_browser_settings(port: int = 5000, key_mode: str = "env") -> Dict[st
                 errors.append("Choose 2, 3, or 4 players.")
 
             selected_names = names[:player_count]
-            for index, name in enumerate(selected_names):
-                if not name:
-                    errors.append(f"Player {index + 1} needs a name.")
+            if run_mode == "new_game":
+                for index, name in enumerate(selected_names):
+                    if not name:
+                        errors.append(f"Player {index + 1} needs a name.")
 
-            lowered_names = [name.lower() for name in selected_names if name]
-            if len(lowered_names) != len(set(lowered_names)):
-                errors.append("Player names must be unique.")
+                lowered_names = [name.lower() for name in selected_names if name]
+                if len(lowered_names) != len(set(lowered_names)):
+                    errors.append("Player names must be unique.")
 
             if errors:
                 self._send_html(
@@ -1067,7 +1328,20 @@ def collect_browser_settings(port: int = 5000, key_mode: str = "env") -> Dict[st
                         selected_gemini_tts_model=gemini_tts_model if gemini_tts_model in valid_gemini_tts_models else "gemini-2.5-flash-preview-tts",
                         selected_gemini_tts_voice=gemini_tts_voice or "Kore",
                         player_count=player_count if player_count in (2, 3, 4) else 3,
-                        player_names=names
+                        player_names=names,
+                        selected_run_mode=run_mode if run_mode in valid_run_modes else "new_game",
+                        selected_replay_session=replay_session,
+                        selected_replay_max_decisions=replay_max_decisions_raw,
+                        selected_replay_through=replay_through,
+                        selected_replay_stop_before=replay_stop_before,
+                        selected_replay_skip_chat=replay_skip_chat,
+                        selected_replay_delay=replay_delay_raw,
+                        selected_replay_text_lead=replay_text_lead_raw,
+                        selected_replay_speak=replay_speak,
+                        selected_no_llm=no_llm,
+                        selected_reaction_mode=reaction_mode if reaction_mode in valid_reaction_modes else "default",
+                        selected_reaction_batch_size=reaction_batch_size_raw,
+                        selected_config_path=config_path
                     ),
                     status=400
                 )
@@ -1083,12 +1357,26 @@ def collect_browser_settings(port: int = 5000, key_mode: str = "env") -> Dict[st
                 "elevenlabs_api_key": effective_elevenlabs_api_key,
                 "elevenlabs_default_voice_id": effective_elevenlabs_voice_id,
                 "elevenlabs_tts_model": elevenlabs_tts_model,
+                "run_mode": run_mode,
+                "replay_session": replay_session,
+                "replay_max_decisions": replay_max_decisions,
+                "replay_through": replay_through or None,
+                "replay_stop_before": replay_stop_before or None,
+                "replay_skip_chat": replay_skip_chat,
+                "replay_delay": replay_delay,
+                "replay_text_lead": replay_text_lead,
+                "replay_speak": replay_speak,
+                "no_llm": no_llm,
+                "reaction_mode": reaction_mode,
+                "reaction_batch_size": reaction_batch_size,
+                "config_path": config_path or None,
                 "player_configs": [
                     {"name": selected_names[index], "is_ai": True, "color": PLAYER_COLORS[index]}
                     for index in range(player_count)
-                ],
+                ] if run_mode == "new_game" else [],
             })
-            self._send_html(_render_game_starting_page(selected_model, selected_names))
+            starting_names = selected_names if run_mode == "new_game" else [replay_session]
+            self._send_html(_render_game_starting_page(selected_model, starting_names))
             settings_ready.set()
 
     server = ReusableThreadingHTTPServer(("127.0.0.1", port), SettingsHandler)
@@ -1310,8 +1598,13 @@ def run_game(game_manager: GameManager, ai_manager: AIManager, web_viz: WebVisua
     finally:
         # Save session
         print("\n[SAVE] Saving session...")
+        if getattr(ai_manager.config.agent, "async_reactions", False):
+            print("[SAVE] Waiting briefly for queued social reactions...")
+            ai_manager.wait_for_reactions(timeout_seconds=10.0)
         ai_manager.save_session()
         print(f"[LOG] Session saved to: {ai_manager.get_session_path()}")
+        if hasattr(ai_manager.tts, "close"):
+            ai_manager.tts.close()
         
         # Show stats
         print("\n[STATS] AI Agent Statistics:")
@@ -1485,6 +1778,14 @@ def main():
                        help="Shortcut for --chat-language hebrew.")
     parser.add_argument("--english-chat", action="store_true",
                        help="Shortcut for --chat-language english.")
+    parser.add_argument("--no-reactions", action="store_true",
+                       help="Disable off-turn social reaction prompts.")
+    parser.add_argument("--async-reactions", action="store_true",
+                       help="Queue off-turn social reactions in per-player background workers.")
+    parser.add_argument("--sync-reactions", action="store_true",
+                       help="Force off-turn social reactions to run synchronously.")
+    parser.add_argument("--reaction-batch-size", type=int, default=None,
+                       help="Maximum queued social reaction events to combine into one observer prompt.")
     parser.add_argument("--replay-session", type=str,
                        help="Fast-replay parsed actions from an existing session, then continue live.")
     parser.add_argument("--resume-session", type=str,
@@ -1520,6 +1821,18 @@ def main():
         or os.environ.get("PYCATAN_CHAT_LANGUAGE")
         or ai_config.agent.chat_language
     )
+    if args.no_reactions:
+        ai_config.agent.enable_reactions = False
+    if args.async_reactions and args.sync_reactions:
+        parser.error("--async-reactions and --sync-reactions cannot be used together")
+    if args.async_reactions:
+        ai_config.agent.async_reactions = True
+    if args.sync_reactions:
+        ai_config.agent.async_reactions = False
+    if args.reaction_batch_size is not None:
+        if args.reaction_batch_size < 1:
+            parser.error("--reaction-batch-size must be at least 1")
+        ai_config.agent.reaction_max_batch_messages = args.reaction_batch_size
     browser_player_configs: Optional[List[dict]] = None
 
     if args.use_env_keys and args.ask_api_keys:
@@ -1528,8 +1841,34 @@ def main():
     if args.browser_settings:
         key_mode = "ask" if args.ask_api_keys else "env"
         browser_settings = collect_browser_settings(port=5000, key_mode=key_mode)
+        if browser_settings.get("config_path"):
+            ai_config = load_ai_config(browser_settings["config_path"])
+        args.no_llm = browser_settings["no_llm"]
+        args.replay_session = browser_settings["replay_session"] or None
+        args.resume_session = None
+        args.replay_max_decisions = browser_settings["replay_max_decisions"]
+        args.replay_through = browser_settings["replay_through"]
+        args.replay_stop_before = browser_settings["replay_stop_before"]
+        args.replay_skip_chat = browser_settings["replay_skip_chat"]
+        args.watch_replay = browser_settings["run_mode"] in {"watch_replay", "analyse_game"}
+        args.analyse_game = browser_settings["run_mode"] == "analyse_game"
+        args.replay_delay = browser_settings["replay_delay"]
+        args.replay_text_lead = browser_settings["replay_text_lead"]
+        args.replay_speak = browser_settings["replay_speak"]
+        reaction_mode = browser_settings["reaction_mode"]
+        if reaction_mode == "off":
+            ai_config.agent.enable_reactions = False
+        elif reaction_mode == "async":
+            ai_config.agent.enable_reactions = True
+            ai_config.agent.async_reactions = True
+        elif reaction_mode == "sync":
+            ai_config.agent.enable_reactions = True
+            ai_config.agent.async_reactions = False
+        if browser_settings["reaction_batch_size"] is not None:
+            ai_config.agent.reaction_max_batch_messages = browser_settings["reaction_batch_size"]
         ai_config.agent.chat_language = browser_settings["chat_language"]
-        os.environ["GEMINI_API_KEY"] = browser_settings["api_key"]
+        if browser_settings["api_key"]:
+            os.environ["GEMINI_API_KEY"] = browser_settings["api_key"]
         os.environ["TTS_PROVIDER"] = browser_settings["tts_provider"]
         if browser_settings["tts_provider"] == "gemini":
             os.environ["GEMINI_TTS_ENABLED"] = "true"

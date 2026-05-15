@@ -73,6 +73,17 @@ Default is `--use-env-keys`: empty key fields use `GEMINI_API_KEY`,
 Use `--ask-api-keys` / `--ask-keys` when you want the browser form to require
 typed keys for this run.
 
+The setup screen also exposes the important AUTO options:
+
+- New live game.
+- Fast replay from an old session, then continue live.
+- Watch a recorded session without new LLM calls.
+- Analyse a recorded session with the decision trace popup.
+- Replay markers: `replay-through`, `replay-stop-before`, max decisions,
+  skip recorded chat, replay delay, text lead, and replay speech.
+- Off-turn reactions: config default, disabled, synchronous/no parallel, or
+  asynchronous background reactions.
+
 ## לראות מה הסשן הנוכחי
 
 ```powershell

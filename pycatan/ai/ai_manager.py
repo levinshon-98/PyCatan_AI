@@ -14,6 +14,7 @@ The AIManager bridges between GameManager (through AIUser) and the LLM.
 import json
 import os
 import re
+import threading
 import time
 from pathlib import Path
 from typing import Dict, Any, Optional, List, Callable
@@ -24,6 +25,7 @@ from pycatan.ai.llm_client import LLMResponse, StreamChunk, create_llm_client, G
 from pycatan.ai.response_parser import ResponseParser, ParseResult
 from pycatan.ai.schemas import ResponseType, SchemaVersion, get_schema_for_response_type
 from pycatan.ai.agent_state import AgentState, compute_state_hash
+from pycatan.ai.state_optimizer import game_state_to_dict, optimize_state_for_ai
 from pycatan.ai.ai_logger import AILogger
 from pycatan.ai.agent_tools import AgentTools
 from pycatan.ai.memory_compactor import MemoryCompactor
@@ -99,6 +101,7 @@ class AIManager:
         # Agent state management
         self.agents: Dict[str, AgentState] = {}
         self._tts_speaker_keys: Dict[str, str] = {}
+        self._agent_request_locks: Dict[str, threading.RLock] = {}
         
         # Chat history (shared between all agents)
         self.chat_history: List[Dict[str, Any]] = []
@@ -117,12 +120,22 @@ class AIManager:
         
         # Streaming callbacks
         self._stream_callback: Optional[Callable[[str, StreamChunk], None]] = None  # (player_name, chunk)
+
+        # Async social reaction mailboxes. Board actions stay synchronous; only
+        # observation-only reactions can use these workers.
+        self._reaction_mailbox_lock = threading.RLock()
+        self._reaction_mailboxes: Dict[str, List[Dict[str, Any]]] = {}
+        self._reaction_workers_running: Dict[str, bool] = {}
+        self._reaction_worker_threads: Dict[str, threading.Thread] = {}
+        self._media_broadcast_lock = threading.RLock()
         
         print(f"[AI] AIManager initialized")
         print(f"   Session: {self.logger.get_session_path()}")
         print(f"   Send to LLM: {self.send_to_llm}")
         print(f"   Manual actions: {self.manual_actions}")
         print(f"   Chat language: {getattr(self.config.agent, 'chat_language', 'english')}")
+        print(f"   Reactions: {getattr(self.config.agent, 'enable_reactions', True)}")
+        print(f"   Async reactions: {getattr(self.config.agent, 'async_reactions', False)}")
         print(f"   TTS: {self.tts.describe()}")
 
     def _configure_session_tts_cache(self) -> None:
@@ -233,6 +246,7 @@ class AIManager:
         )
         self.agents[player_name] = agent
         self._tts_speaker_keys[player_name] = f"player_{player_id + 1}"
+        self._agent_request_locks.setdefault(player_name, threading.RLock())
         self._sync_legacy_tts_voice_env(player_name, player_id)
         
         print(f"[AI] Registered AI agent: {player_name} (ID: {player_id}, Color: {player_color})")
@@ -241,12 +255,17 @@ class AIManager:
     def get_agent(self, player_name: str) -> Optional[AgentState]:
         """Get agent state by name."""
         return self.agents.get(player_name)
+
+    def get_agent_request_lock(self, player_name: str) -> threading.RLock:
+        """Return the per-agent lock used to serialize that agent's LLM requests."""
+        return self._agent_request_locks.setdefault(player_name, threading.RLock())
     
     def unregister_agent(self, player_name: str) -> None:
         """Remove an agent."""
         if player_name in self.agents:
             del self.agents[player_name]
             self._tts_speaker_keys.pop(player_name, None)
+            self._agent_request_locks.pop(player_name, None)
             print(f"[AI] Unregistered agent: {player_name}")
 
     def get_tts_speaker_key(self, player_name: str) -> str:
@@ -517,13 +536,165 @@ class AIManager:
         if not getattr(self.config.agent, "enable_reactions", True):
             return None
 
+        if getattr(self.config.agent, "async_reactions", False):
+            self._enqueue_agent_reaction(
+                player_name=player_name,
+                game_state=game_state,
+                prompt_message=prompt_message,
+                source_player=source_player,
+                event_group_id=event_group_id,
+            )
+            return None
+
+        return self._process_agent_reaction_now(
+            player_name=player_name,
+            game_state=game_state,
+            prompt_message=prompt_message,
+            source_player=source_player,
+            event_group_id=event_group_id,
+        )
+
+    def _enqueue_agent_reaction(
+        self,
+        player_name: str,
+        game_state: Dict[str, Any],
+        prompt_message: str,
+        source_player: Optional[str] = None,
+        event_group_id: Optional[str] = None,
+    ) -> None:
+        """Queue a social reaction event for an agent-specific worker."""
+        event = {
+            "game_state": game_state,
+            "prompt_message": prompt_message,
+            "source_player": source_player,
+            "event_group_id": event_group_id,
+            "queued_at": time.time(),
+        }
+
+        should_start = False
+        with self._reaction_mailbox_lock:
+            mailbox = self._reaction_mailboxes.setdefault(player_name, [])
+            mailbox.append(event)
+            max_batch = max(1, int(getattr(self.config.agent, "reaction_max_batch_messages", 5)))
+            if len(mailbox) > max_batch:
+                del mailbox[:-max_batch]
+
+            if not self._reaction_workers_running.get(player_name):
+                self._reaction_workers_running[player_name] = True
+                should_start = True
+
+        self.logger.log_llm_communication(
+            f"Queued social reaction for {player_name}: {prompt_message[:120]}",
+            "REACTION",
+        )
+
+        if should_start:
+            worker = threading.Thread(
+                target=self._reaction_worker_loop,
+                args=(player_name,),
+                daemon=True,
+                name=f"reaction-{player_name}",
+            )
+            with self._reaction_mailbox_lock:
+                self._reaction_worker_threads[player_name] = worker
+            worker.start()
+
+    def wait_for_reactions(self, timeout_seconds: float = 10.0) -> None:
+        """Wait briefly for queued background social reactions to finish."""
+        deadline = time.time() + max(0.0, timeout_seconds)
+        while time.time() < deadline:
+            with self._reaction_mailbox_lock:
+                threads = [
+                    thread for thread in self._reaction_worker_threads.values()
+                    if thread.is_alive()
+                ]
+                queued = any(self._reaction_mailboxes.values())
+            if not threads and not queued:
+                return
+            remaining = max(0.0, deadline - time.time())
+            if not threads:
+                time.sleep(min(0.05, remaining))
+                continue
+            for thread in threads:
+                thread.join(timeout=min(0.2, remaining))
+
+    def _reaction_worker_loop(self, player_name: str) -> None:
+        """Drain one player's reaction mailbox, batching events that accumulated."""
+        while True:
+            with self._reaction_mailbox_lock:
+                events = list(self._reaction_mailboxes.get(player_name, []))
+                self._reaction_mailboxes[player_name] = []
+                if not events:
+                    self._reaction_workers_running[player_name] = False
+                    return
+
+            latest_state = events[-1]["game_state"]
+            combined_message = self._combine_reaction_events_for_prompt(events)
+            source_players = {
+                event.get("source_player")
+                for event in events
+                if event.get("source_player")
+            }
+            source_player = next(iter(source_players)) if len(source_players) == 1 else None
+            event_group_id = "+".join(
+                str(event.get("event_group_id") or "reaction")
+                for event in events[-3:]
+            )
+
+            self._process_agent_reaction_now(
+                player_name=player_name,
+                game_state=latest_state,
+                prompt_message=combined_message,
+                source_player=source_player,
+                event_group_id=event_group_id,
+            )
+
+    def _combine_reaction_events_for_prompt(self, events: List[Dict[str, Any]]) -> str:
+        """Merge queued social events into one concise observer prompt."""
+        max_batch = max(1, int(getattr(self.config.agent, "reaction_max_batch_messages", 5)))
+        selected = events[-max_batch:]
+        lines = []
+        for index, event in enumerate(selected, start=1):
+            message = (event.get("prompt_message") or "").strip()
+            if message:
+                lines.append(f"Event {index}: {message}")
+
+        if len(events) > len(selected):
+            lines.insert(0, f"{len(events) - len(selected)} older social events were skipped.")
+
+        return "\n".join(lines)
+
+    def _process_agent_reaction_now(
+        self,
+        player_name: str,
+        game_state: Dict[str, Any],
+        prompt_message: str,
+        source_player: Optional[str] = None,
+        event_group_id: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        """Process a social reaction immediately in the current thread."""
+        with self.get_agent_request_lock(player_name):
+            return self._process_agent_reaction_now_locked(
+                player_name=player_name,
+                game_state=game_state,
+                prompt_message=prompt_message,
+                source_player=source_player,
+                event_group_id=event_group_id,
+            )
+
+    def _process_agent_reaction_now_locked(
+        self,
+        player_name: str,
+        game_state: Dict[str, Any],
+        prompt_message: str,
+        source_player: Optional[str] = None,
+        event_group_id: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        """Process a social reaction while holding the per-agent request lock."""
+
         agent = self.get_agent(player_name)
         if not agent:
             raise ValueError(f"Agent '{player_name}' not registered!")
-
-        self._current_game_state = game_state
-        self._current_allowed_actions = []
-        self.agent_tools.update_game_state(game_state)
 
         what_happened = (prompt_message or "").strip()
         if source_player:
@@ -539,7 +710,7 @@ class AIManager:
             is_active_turn=False,
         )
 
-        tool_schemas = self.agent_tools.get_tools_schema()
+        tool_schemas = None
         log_info = self.logger.log_prompt(
             player_name=player_name,
             prompt=prompt,
@@ -568,6 +739,7 @@ class AIManager:
                         ResponseType.OBSERVING,
                         player_name=player_name,
                         prompt_number=log_info["number"],
+                        tools_enabled=False,
                     )
                 else:
                     response = self._send_to_llm(
@@ -576,11 +748,11 @@ class AIManager:
                         ResponseType.OBSERVING,
                         player_name=player_name,
                         prompt_number=log_info["number"],
+                        tools_enabled=False,
                     )
 
                 if response and response.success and response.content:
                     parsed = self._parse_response(response, ResponseType.OBSERVING)
-                    self._last_llm_response = parsed
                     self._broadcast_status(player_name, "done")
                 else:
                     if response and response.error:
@@ -931,7 +1103,9 @@ class AIManager:
             )
             return
 
-        compact_state = game_state or self._current_game_state
+        compact_state = self._normalize_compaction_game_state(
+            game_state or self._current_game_state
+        )
         if not compact_state:
             self.logger.log_llm_communication(
                 f"Skipping memory compaction for {agent.player_name}: no game state available",
@@ -986,6 +1160,29 @@ class AIManager:
             f"See {artifact_paths.get('txt')}.{discarded_text}",
             "MEMORY"
         )
+
+    def _normalize_compaction_game_state(
+        self,
+        game_state: Optional[Any]
+    ) -> Optional[Dict[str, Any]]:
+        """Return the compact H/N/state/players/meta format used by prompts."""
+        if not game_state:
+            return None
+
+        if isinstance(game_state, dict) and {"H", "N", "state", "players", "meta"} <= set(game_state):
+            return game_state
+
+        try:
+            verbose_state = game_state_to_dict(game_state)
+            if isinstance(verbose_state, dict) and {"H", "N", "state", "players", "meta"} <= set(verbose_state):
+                return verbose_state
+            return optimize_state_for_ai(verbose_state)
+        except Exception as e:
+            self.logger.log_llm_communication(
+                f"Could not normalize game state for memory compaction: {e}",
+                "ERROR"
+            )
+            return None
     
     def _create_prompt(
         self,
@@ -1001,6 +1198,8 @@ class AIManager:
         Returns:
             Tuple of (prompt_dict, schema_dict)
         """
+        what_happened = self._append_dice_total_context(what_happened, game_state)
+
         # Format allowed actions
         formatted_actions = self._format_allowed_actions(allowed_actions)
         
@@ -1051,15 +1250,51 @@ class AIManager:
         
         return prompt, schema
 
+    def _append_dice_total_context(self, what_happened: str, game_state: Dict[str, Any]) -> str:
+        """Add the activated dice total to the prompt when a roll is visible."""
+        meta = (game_state or {}).get("meta") or {}
+        dice = meta.get("dice")
+        if not isinstance(dice, (list, tuple)) or len(dice) < 2:
+            return what_happened
+
+        try:
+            dice_values = [int(die) for die in dice[:2]]
+        except (TypeError, ValueError):
+            return what_happened
+
+        dice_total = meta.get("dice_total")
+        try:
+            dice_total = int(dice_total) if dice_total is not None else sum(dice_values)
+        except (TypeError, ValueError):
+            dice_total = sum(dice_values)
+
+        dice_breakdown = "+".join(str(die) for die in dice_values)
+        dice_line = (
+            f"Current dice result: {dice_total} ({dice_breakdown}). "
+            "Resource production uses this total."
+        )
+
+        current_text = (what_happened or "").strip()
+        if dice_line in current_text:
+            return what_happened
+        if f"Rolled {dice_total} ({dice_breakdown})" in current_text:
+            return what_happened
+        if f"dice result: {dice_total} ({dice_breakdown})" in current_text.lower():
+            return what_happened
+
+        return f"{current_text}\n{dice_line}" if current_text else dice_line
+
     def _get_reaction_instructions(self) -> str:
         """Instructions for observation-only social reactions."""
         language = getattr(self.config.agent, "chat_language", "english")
         language_name = "Hebrew" if str(language).lower() in {"hebrew", "he", "heb", "iw"} else "English"
         return (
             "You are not taking a board action now. You may only react socially. "
-            "Usually leave say_outloud empty. Reply only if you were addressed, "
-            "insulted, threatened, directly harmed, or if the event matters for "
-            "relationships or long-term strategy. If you do speak, write natural "
+            "Usually leave say_outloud empty; silence is the normal and preferred "
+            "response to generic table talk. Reply only if you were addressed, "
+            "insulted, threatened, directly harmed, offered a meaningful deal, "
+            "or if the event matters for relationships or long-term strategy. "
+            "Do not answer every message. If you do speak, write natural "
             f"{language_name} only, keep it brief, human, and non-technical. "
             "You may update note_to_self with useful relationship or strategy context."
         )
@@ -1314,7 +1549,8 @@ class AIManager:
         schema: Dict[str, Any],
         response_type: ResponseType,
         player_name: str = "unknown",
-        prompt_number: int = 0
+        prompt_number: int = 0,
+        tools_enabled: bool = True
     ) -> LLMResponse:
         """
         Send prompt to LLM and get response.
@@ -1336,12 +1572,12 @@ class AIManager:
         prompt_str = json.dumps(prompt, indent=2, ensure_ascii=False)
         
         # Get tool schemas
-        tool_schemas = self.agent_tools.get_tools_schema()
+        tool_schemas = self.agent_tools.get_tools_schema() if tools_enabled else []
         
         # Build generation kwargs
         kwargs = {
             "response_schema": schema,
-            "tools": tool_schemas,  # Enable function calling
+            "tools": tool_schemas,  # Enable function calling when requested
             "enable_thinking": self.config.llm.enable_thinking,
             "max_tokens": self.config.llm.max_tokens,
         }
@@ -1592,7 +1828,8 @@ class AIManager:
         schema: Dict[str, Any],
         response_type: ResponseType,
         player_name: str = "unknown",
-        prompt_number: int = 0
+        prompt_number: int = 0,
+        tools_enabled: bool = True
     ) -> LLMResponse:
         """
         Send prompt to LLM with STREAMING support.
@@ -1610,7 +1847,7 @@ class AIManager:
         prompt_str = json.dumps(prompt, indent=2, ensure_ascii=False)
         
         # Get tool schemas
-        tool_schemas = self.agent_tools.get_tools_schema()
+        tool_schemas = self.agent_tools.get_tools_schema() if tools_enabled else []
         
         # Build generation kwargs
         kwargs = {
@@ -1971,6 +2208,38 @@ class AIManager:
         if not resources:
             return "nothing"
         return ", ".join(f"{amount} {resource}" for resource, amount in resources.items())
+
+    def _should_wait_for_tts_before_chat(self, speak: bool) -> bool:
+        """Return True when chat should wait until TTS audio is prepared."""
+        if not speak:
+            return False
+
+        tts = getattr(self, "tts", None)
+        if not tts or not callable(getattr(tts, "prepare_blocking", None)):
+            return False
+
+        enabled = getattr(tts, "enabled", None)
+        if enabled is False:
+            return False
+
+        is_configured = getattr(tts, "_is_configured", None)
+        if callable(is_configured):
+            try:
+                if not is_configured():
+                    return False
+            except Exception:
+                return False
+
+        if enabled is None:
+            describe = getattr(tts, "describe", None)
+            try:
+                description = describe() if callable(describe) else ""
+            except Exception:
+                description = ""
+            if str(description).strip().lower().startswith("disabled"):
+                return False
+
+        return True
     
     def _broadcast_chat(self, from_player: str, message: str, speak: bool = True) -> None:
         """
@@ -1981,30 +2250,40 @@ class AIManager:
             message: The chat message
             speak: If True, send the message to the configured TTS provider.
         """
-        # Add to chat history (no timestamp - cleaner for LLM)
-        chat_entry = {
-            "from": from_player,
-            "message": message
-        }
-        self.chat_history.append(chat_entry)
-        
-        # Trim history if needed
-        if len(self.chat_history) > self.max_chat_history * 2:
-            self.chat_history = self.chat_history[-self.max_chat_history:]
-        
-        # Log the chat
-        self.logger.log_chat(from_player, message)
-        
-        # Call chat callback if registered (for web visualization)
-        if hasattr(self, '_chat_callback') and self._chat_callback:
-            self._chat_callback(from_player, message)
+        with self._media_broadcast_lock:
+            speaker_key = self.get_tts_speaker_key(from_player)
 
-        # Optional non-blocking text-to-speech.
-        if speak:
-            self.tts.speak(self.get_tts_speaker_key(from_player), message)
-        
-        # Display to console
-        print(f"[CHAT] {from_player}: \"{message}\"")
+            # If TTS is enabled, keep the visual chat/bubble in sync with the
+            # media pipeline by waiting until the clip has been synthesized.
+            if self._should_wait_for_tts_before_chat(speak):
+                self.tts.prepare_blocking(speaker_key, message)
+
+            # Add to chat history (no timestamp - cleaner for LLM)
+            chat_entry = {
+                "from": from_player,
+                "message": message
+            }
+            self.chat_history.append(chat_entry)
+
+            # Trim history if needed
+            if len(self.chat_history) > self.max_chat_history * 2:
+                self.chat_history = self.chat_history[-self.max_chat_history:]
+
+            # Log the chat
+            self.logger.log_chat(from_player, message)
+
+            # Call chat callback if registered (for web visualization)
+            if hasattr(self, '_chat_callback') and self._chat_callback:
+                self._chat_callback(from_player, message)
+
+            # Optional non-blocking text-to-speech. The provider owns a single
+            # playback worker, so even async reaction chat is spoken one clip at
+            # a time and with the speaker key resolved for the correct player.
+            if speak:
+                self.tts.speak(speaker_key, message)
+
+            # Display to console
+            print(f"[CHAT] {from_player}: \"{message}\"")
     
     def set_chat_callback(self, callback) -> None:
         """

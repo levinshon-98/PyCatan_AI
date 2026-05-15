@@ -6,6 +6,7 @@ H/N lookup arrays, state.bld/state.rds, players, and meta with the embedded lege
 """
 
 import json
+import re
 from typing import Any, Dict, List, Optional
 
 from pycatan.ai.agent_state import AgentState
@@ -190,7 +191,18 @@ class MemoryCompactor:
         if not response.success or not response.content:
             return None
 
+        content = response.content.strip()
+        if content.startswith("```"):
+            content = re.sub(r"^```(?:json)?\s*", "", content, flags=re.IGNORECASE)
+            content = re.sub(r"\s*```$", "", content)
+
         try:
-            return json.loads(response.content)
+            return json.loads(content)
         except json.JSONDecodeError:
-            return None
+            match = re.search(r"\{.*\}", content, flags=re.DOTALL)
+            if not match:
+                return None
+            try:
+                return json.loads(match.group(0))
+            except json.JSONDecodeError:
+                return None

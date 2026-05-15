@@ -107,6 +107,11 @@ class AgentConfig:
     chat_language: str = "english"
     # Allow off-turn social reactions to table talk and direct hostile events.
     enable_reactions: bool = True
+    # If enabled, off-turn social reactions are queued per agent and processed
+    # in background workers so the main game loop does not wait for them.
+    async_reactions: bool = False
+    # Maximum queued social events to combine into one observer prompt.
+    reaction_max_batch_messages: int = 5
 
 @dataclass
 class MemoryConfig:
