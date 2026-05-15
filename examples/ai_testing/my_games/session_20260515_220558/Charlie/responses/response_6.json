@@ -1,0 +1,25 @@
+{
+  "request_number": 6,
+  "timestamp": "2026-05-15T22:15:30.251815",
+  "player_name": "Charlie",
+  "type": "final",
+  "success": true,
+  "raw_content": "{\n  \"internal_thinking\": \"Bob is offering 1 Wheat for 1 Wood. Looking at my resources, I have 1 Wood, 1 Ore, and 2 Sheep. I need Wood and Brick to build a road to node 14, which is my primary goal for expansion. Wood is currently scarce for me (only produced on a 3), while I already have a settlement on Wheat 8. Furthermore, I am holding a Monopoly card and planning to use it on Wheat once a 9 rolls, as both Alice and Bob are heavily invested in Wheat 9. Trading my only Wood for Wheat right now would be counterproductive to my expansion strategy and would likely help Bob more than me.\",\n  \"note_to_self\": \"Bob is persistent about trading for my resources. I need to keep my Wood for the road to node 14. Still waiting for a 9 to roll to maximize the Monopoly card on Wheat.\",\n  \"say_outloud\": \"sorry bob, but i really need to hold onto that wood. it's way too hard for me to come by right now and i've got roads to build.\",\n  \"action\": {\n    \"type\": \"trade_reject\",\n    \"parameters\": \"{}\"\n  }\n}",
+  "parsed": {
+    "internal_thinking": "Bob is offering 1 Wheat for 1 Wood. Looking at my resources, I have 1 Wood, 1 Ore, and 2 Sheep. I need Wood and Brick to build a road to node 14, which is my primary goal for expansion. Wood is currently scarce for me (only produced on a 3), while I already have a settlement on Wheat 8. Furthermore, I am holding a Monopoly card and planning to use it on Wheat once a 9 rolls, as both Alice and Bob are heavily invested in Wheat 9. Trading my only Wood for Wheat right now would be counterproductive to my expansion strategy and would likely help Bob more than me.",
+    "note_to_self": "Bob is persistent about trading for my resources. I need to keep my Wood for the road to node 14. Still waiting for a 9 to roll to maximize the Monopoly card on Wheat.",
+    "say_outloud": "sorry bob, but i really need to hold onto that wood. it's way too hard for me to come by right now and i've got roads to build.",
+    "action_type": "trade_reject",
+    "parameters": {}
+  },
+  "model": "gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 1861,
+    "completion": 250,
+    "thinking": 0,
+    "total": 2111
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}

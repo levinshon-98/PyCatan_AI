@@ -27,6 +27,7 @@ from pycatan.ai.ai_logger import AILogger
 from pycatan.ai.agent_tools import AgentTools
 from pycatan.ai.tool_executor import ToolExecutor
 from pycatan.ai.stream_broadcaster import StreamBroadcaster
+from pycatan.ai.tts import create_tts_from_env
 from pycatan.management.actions import Action, ActionType
 
 
@@ -83,6 +84,9 @@ class AIManager:
         
         # Stream broadcaster for real-time web updates
         self.stream_broadcaster = StreamBroadcaster()
+
+        # Optional speech synthesis for say_outloud chat.
+        self.tts = create_tts_from_env()
         
         # LLM client (created lazily when needed)
         self._llm_client: Optional[GeminiClient] = None
@@ -112,6 +116,8 @@ class AIManager:
         print(f"   Session: {self.logger.get_session_path()}")
         print(f"   Send to LLM: {self.send_to_llm}")
         print(f"   Manual actions: {self.manual_actions}")
+        print(f"   Chat language: {getattr(self.config.agent, 'chat_language', 'english')}")
+        print(f"   TTS: {self.tts.describe()}")
     
     @property
     def llm_client(self) -> GeminiClient:
@@ -743,7 +749,11 @@ class AIManager:
                 schema_version = SchemaVersion.V2
         
         response_type = ResponseType.ACTIVE_TURN if is_active_turn else ResponseType.OBSERVING
-        schema = get_schema_for_response_type(response_type, schema_version)
+        schema = get_schema_for_response_type(
+            response_type,
+            schema_version,
+            getattr(self.config.agent, "chat_language", "english")
+        )
         
         return prompt, schema
     
@@ -797,8 +807,12 @@ class AIManager:
             },
             "TRADE_BANK": {
                 "type": "trade_bank",
-                "description": "Trade resources with the bank",
-                "example_parameters": "{\"give\": \"wood\", \"receive\": \"brick\"}"
+                "description": (
+                    "Trade resources with the bank. Default bank trade is 4:1 unless you have "
+                    "a matching 2:1 port or a 3:1 port. Only choose this when you have enough "
+                    "of the resource you give."
+                ),
+                "example_parameters": "{\"give\": \"wheat\", \"give_amount\": 4, \"receive\": \"brick\"}"
             },
             "TRADE_PROPOSE": {
                 "type": "trade_propose",
@@ -1654,6 +1668,9 @@ class AIManager:
         # Call chat callback if registered (for web visualization)
         if hasattr(self, '_chat_callback') and self._chat_callback:
             self._chat_callback(from_player, message)
+
+        # Optional non-blocking text-to-speech.
+        self.tts.speak(from_player, message)
         
         # Display to console
         print(f"[CHAT] {from_player}: \"{message}\"")
