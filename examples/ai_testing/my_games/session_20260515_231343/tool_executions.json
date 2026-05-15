@@ -1,0 +1,162 @@
+[
+  {
+    "timestamp": "2026-05-15T23:14:22.972779",
+    "total_calls": 1,
+    "successful": 1,
+    "failed": 0,
+    "total_time_ms": 0.35,
+    "tokens": {
+      "input": 43,
+      "output": 376,
+      "total": 419
+    },
+    "calls": [
+      {
+        "id": "call_1",
+        "name": "analyze_path_potential",
+        "parameters": {
+          "reasoning": "I want to build a road towards node 14 to settle there. I'm checking if there are better alternatives from node 13 or further down the path.",
+          "from_node": 13
+        },
+        "result": {
+          "llm_reasoning": "I want to build a road towards node 14 to settle there. I'm checking if there are better alternatives from node 13 or further down the path.",
+          "from_node": 13,
+          "total_directions": 3,
+          "paths": [
+            {
+              "direction": 12,
+              "depth_1": {
+                "node_id": 12,
+                "resources": {
+                  "Wood": [
+                    3
+                  ],
+                  "Brick": [
+                    6
+                  ],
+                  "Sheep": [
+                    5
+                  ]
+                },
+                "total_pips": 11,
+                "port": null,
+                "can_build": false,
+                "occupied": true
+              },
+              "depth_2": {
+                "reachable_nodes": [
+                  {
+                    "node_id": 11,
+                    "total_pips": 10,
+                    "port": null,
+                    "can_build": false
+                  },
+                  {
+                    "node_id": 22,
+                    "total_pips": 7,
+                    "port": null,
+                    "can_build": false
+                  }
+                ],
+                "best_node": 11,
+                "best_pips": 10
+              },
+              "highlights": [],
+              "score": 16.0
+            },
+            {
+              "direction": 14,
+              "depth_1": {
+                "node_id": 14,
+                "resources": {
+                  "Wheat": [
+                    8
+                  ],
+                  "Wood": [
+                    3,
+                    4
+                  ]
+                },
+                "total_pips": 10,
+                "port": null,
+                "can_build": true,
+                "occupied": false
+              },
+              "depth_2": {
+                "reachable_nodes": [
+                  {
+                    "node_id": 15,
+                    "total_pips": 8,
+                    "port": null,
+                    "can_build": true
+                  },
+                  {
+                    "node_id": 24,
+                    "total_pips": 9,
+                    "port": null,
+                    "can_build": false
+                  }
+                ],
+                "best_node": 24,
+                "best_pips": 9
+              },
+              "highlights": [
+                "Can build settlement at depth 1"
+              ],
+              "score": 15.5
+            },
+            {
+              "direction": 5,
+              "depth_1": {
+                "node_id": 5,
+                "resources": {
+                  "Wood": [
+                    4
+                  ],
+                  "Sheep": [
+                    5
+                  ]
+                },
+                "total_pips": 7,
+                "port": null,
+                "can_build": true,
+                "occupied": false
+              },
+              "depth_2": {
+                "reachable_nodes": [
+                  {
+                    "node_id": 4,
+                    "total_pips": 4,
+                    "port": null,
+                    "can_build": true
+                  },
+                  {
+                    "node_id": 6,
+                    "total_pips": 3,
+                    "port": "B2",
+                    "can_build": true
+                  }
+                ],
+                "best_node": 4,
+                "best_pips": 4
+              },
+              "highlights": [
+                "Can build settlement at depth 1",
+                "Port (B2) at depth 2 (node 6)"
+              ],
+              "score": 11.5
+            }
+          ]
+        },
+        "success": true,
+        "error": null,
+        "execution_time_ms": 0.2,
+        "tokens": {
+          "input": 43,
+          "output": 376,
+          "total": 419
+        }
+      }
+    ]
+  }
+]

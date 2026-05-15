@@ -62,6 +62,7 @@ echo ===========================================================================
 echo    PLAY_WITH_SET_SETTINGS
 echo ================================================================================
 echo    A browser page will ask for Gemini model, API key, player count, and names.
+echo    The setup page also lets you choose English or Hebrew table talk.
 echo    After you submit, the board will load automatically in that same tab.
 echo    Press Ctrl+C here to stop the game.
 echo ================================================================================

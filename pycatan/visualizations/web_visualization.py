@@ -4,6 +4,7 @@ Provides real-time board updates and interactive web interface.
 """
 
 import json
+import copy
 import threading
 import time
 from datetime import datetime
@@ -12,7 +13,7 @@ from queue import Queue, Empty
 import webbrowser
 
 try:
-    from flask import Flask, render_template, jsonify, Response
+    from flask import Flask, render_template, jsonify, Response, request
     FLASK_AVAILABLE = True
 except ImportError:
     FLASK_AVAILABLE = False
@@ -73,6 +74,18 @@ class WebVisualization(Visualization):
         self.action_history: List[Dict[str, Any]] = []
         self.event_history: List[Dict[str, Any]] = []  # Track all events (turn starts, dice rolls, etc.)
         self.log_entries: List[LogEntry] = []  # Structured log entries
+        self.chat_history: List[Dict[str, Any]] = []
+        self.player_chat_messages: Dict[str, str] = {}
+
+        # Watch-replay timeline support. Snapshots are full UI states that can
+        # be restored by the browser scrubber without re-running game logic.
+        self.replay_enabled = False
+        self.replay_source_session: Optional[str] = None
+        self.replay_delay_seconds: float = 2.5
+        self.replay_timeline: List[Dict[str, Any]] = []
+        self.replay_index: int = 0
+        self.replay_speech_prepare_callback = None
+        self.replay_speech_play_callback = None
         
         # SSE (Server-Sent Events) for real-time updates
         self.sse_clients: List[Queue] = []
@@ -139,17 +152,20 @@ class WebVisualization(Visualization):
     def display_chat(self, player_name: str, message: str) -> None:
         """Display chat message (say_outloud) via web interface."""
         # Store the latest chat message for each player
-        if not hasattr(self, 'player_chat_messages'):
-            self.player_chat_messages = {}
         self.player_chat_messages[player_name] = message
-        
+
+        chat_data = {
+            'player_name': player_name,
+            'message': message,
+            'timestamp': datetime.now().strftime("%H:%M:%S")
+        }
+        self.chat_history.append(chat_data)
+        if len(self.chat_history) > 200:
+            self.chat_history = self.chat_history[-200:]
+
         self._broadcast_to_clients({
             'type': 'player_chat',
-            'payload': {
-                'player_name': player_name,
-                'message': message,
-                'timestamp': datetime.now().strftime("%H:%M:%S")
-            }
+            'payload': chat_data
         })
     
     def display_ai_status(self, player_name: str, status: str, details: str = "") -> None:
@@ -213,6 +229,25 @@ class WebVisualization(Visualization):
         def get_action_history():
             """Get action history."""
             return jsonify(self.action_history)
+
+        @self.app.route('/api/chat')
+        def get_chat_history():
+            """Get chat history."""
+            return jsonify(self.chat_history)
+
+        @self.app.route('/api/replay/status')
+        def get_replay_status():
+            """Get replay timeline metadata for browser controls."""
+            return jsonify(self.get_replay_status())
+
+        @self.app.route('/api/replay/seek/<int:index>', methods=['GET', 'POST'])
+        def seek_replay(index: int):
+            """Restore a replay snapshot and broadcast it to connected clients."""
+            speak = str(request.args.get("speak", "")).lower() in {"1", "true", "yes", "on"}
+            snapshot = self.seek_replay(index, speak=speak)
+            if snapshot is None:
+                return jsonify({"error": "Replay snapshot not found"}), 404
+            return jsonify(snapshot)
         
         @self.app.route('/api/board_mapping')
         def get_board_mapping():
@@ -725,6 +760,129 @@ class WebVisualization(Visualization):
         for client in disconnected_clients:
             if client in self.sse_clients:
                 self.sse_clients.remove(client)
+
+    def enable_replay_mode(
+        self,
+        source_session: str = "",
+        delay_seconds: float = 2.5,
+        speech_callback=None,
+        speech_prepare_callback=None,
+        speech_play_callback=None
+    ) -> None:
+        """Enable browser-controlled replay timeline mode."""
+        self.replay_enabled = True
+        self.replay_source_session = source_session
+        self.replay_delay_seconds = delay_seconds
+        self.replay_speech_prepare_callback = speech_prepare_callback or speech_callback
+        self.replay_speech_play_callback = speech_play_callback or speech_callback
+        self.replay_timeline = []
+        self.replay_index = 0
+
+    def capture_replay_snapshot(
+        self,
+        label: str = "",
+        decision: Optional[Dict[str, Any]] = None
+    ) -> None:
+        """Capture the current board/log/chat UI state as a seekable snapshot."""
+        if not self.replay_enabled:
+            return
+
+        snapshot = {
+            "index": len(self.replay_timeline),
+            "label": label,
+            "decision": copy.deepcopy(decision or {}),
+            "game_state": copy.deepcopy(self.current_game_state),
+            "action_history": copy.deepcopy(self.action_history),
+            "chat_history": copy.deepcopy(self.chat_history),
+            "timestamp": datetime.now().isoformat(),
+        }
+        self.replay_timeline.append(snapshot)
+
+    def get_replay_status(self) -> Dict[str, Any]:
+        """Return replay metadata and lightweight snapshot labels."""
+        return {
+            "enabled": self.replay_enabled,
+            "source_session": self.replay_source_session,
+            "delay_seconds": self.replay_delay_seconds,
+            "index": self.replay_index,
+            "total": len(self.replay_timeline),
+            "snapshots": [
+                {
+                    "index": item["index"],
+                    "label": item.get("label", ""),
+                    "decision": item.get("decision", {}),
+                    "action_count": len(item.get("action_history") or []),
+                    "chat_count": len(item.get("chat_history") or []),
+                }
+                for item in self.replay_timeline
+            ],
+        }
+
+    def seek_replay(self, index: int, speak: bool = False) -> Optional[Dict[str, Any]]:
+        """Restore a captured replay snapshot and broadcast the restored UI state."""
+        if not self.replay_enabled or not self.replay_timeline:
+            return None
+
+        index = max(0, min(index, len(self.replay_timeline) - 1))
+        previous_index = self.replay_index
+        previous_chat_count = (
+            len(self.replay_timeline[previous_index].get("chat_history") or [])
+            if 0 <= previous_index < len(self.replay_timeline)
+            else 0
+        )
+
+        snapshot = self.replay_timeline[index]
+        self.replay_index = index
+        self.current_game_state = copy.deepcopy(snapshot.get("game_state"))
+        self.action_history = copy.deepcopy(snapshot.get("action_history") or [])
+        self.chat_history = copy.deepcopy(snapshot.get("chat_history") or [])
+
+        self.player_chat_messages = {}
+        for chat in self.chat_history[-20:]:
+            player_name = chat.get("player_name")
+            message = chat.get("message")
+            if player_name and message:
+                self.player_chat_messages[player_name] = message
+
+        payload = {
+            "index": self.replay_index,
+            "total": len(self.replay_timeline),
+            "label": snapshot.get("label", ""),
+            "decision": snapshot.get("decision", {}),
+            "game_state": self.current_game_state,
+            "action_history": self.action_history,
+            "chat_history": self.chat_history,
+            "delay_seconds": self.replay_delay_seconds,
+        }
+
+        # For forward playback with speech, keep the board/log render behind the
+        # audio step. Otherwise SSE can paint the action before the recording
+        # request finishes, which makes replay feel out of sync.
+        messages_to_speak = []
+        if speak and index > previous_index:
+            new_messages = self.chat_history[previous_chat_count:]
+            for chat in new_messages:
+                player_name = chat.get("player_name")
+                message = chat.get("message")
+                if player_name and message:
+                    messages_to_speak.append((player_name, message))
+
+        # Wait until the audio is available before painting the action. Playback
+        # itself stays async below, so a long voice line does not freeze Flask.
+        if messages_to_speak and self.replay_speech_prepare_callback:
+            for player_name, message in messages_to_speak:
+                self.replay_speech_prepare_callback(player_name, message)
+
+        self._broadcast_to_clients({
+            "type": "replay_seek",
+            "payload": payload,
+        })
+
+        if messages_to_speak and self.replay_speech_play_callback:
+            for player_name, message in messages_to_speak:
+                self.replay_speech_play_callback(player_name, message)
+
+        return payload
     
     def _map_action_to_event(self, action: Action, result: ActionResult) -> tuple:
         """

@@ -120,6 +120,58 @@
     font-weight: 600;
 }
 
+.replay-controls {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 420px;
+    max-width: 560px;
+    padding: 8px 10px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 8px;
+}
+
+.replay-controls + .nav-status {
+    margin-left: 14px;
+}
+
+.replay-btn {
+    height: 32px;
+    min-width: 36px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.14);
+    color: white;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.replay-btn:hover {
+    background: rgba(255, 255, 255, 0.24);
+}
+
+.replay-play {
+    min-width: 58px;
+    background: var(--accent-green);
+    border-color: rgba(255, 255, 255, 0.35);
+}
+
+.replay-slider {
+    flex: 1;
+    min-width: 130px;
+}
+
+.replay-label {
+    min-width: 58px;
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: right;
+}
+
 .status-dot {
     width: 10px;
     height: 10px;

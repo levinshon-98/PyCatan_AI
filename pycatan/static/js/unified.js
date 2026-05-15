@@ -9,6 +9,15 @@ let currentAIView = null;
 let currentAIPlayer = null;
 let aiSessionData = null;
 let lastAIUpdate = null;
+let replayState = {
+    enabled: false,
+    index: 0,
+    total: 0,
+    delayMs: 2500,
+    playing: false,
+    timer: null,
+    snapshots: []
+};
 
 // Resource icons mapping
 const RESOURCE_ICONS = {
@@ -930,7 +939,167 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initial AI data load
     setTimeout(loadAIData, 1000);
+
+    // Replay controls are shown only when the server is in watch-replay mode.
+    initReplayControls();
 });
+
+// ========== Replay Timeline Controls ==========
+async function initReplayControls() {
+    try {
+        const response = await fetch('/api/replay/status');
+        if (!response.ok) return;
+
+        const status = await response.json();
+        if (!status.enabled || !status.total) return;
+
+        replayState.enabled = true;
+        replayState.index = status.index || 0;
+        replayState.total = status.total || 0;
+        replayState.delayMs = Math.max(250, Number(status.delay_seconds || 2.5) * 1000);
+        replayState.snapshots = status.snapshots || [];
+
+        const controls = document.getElementById('replay-controls');
+        const slider = document.getElementById('replay-slider');
+        if (controls) controls.style.display = 'flex';
+        if (slider) {
+            slider.min = 0;
+            slider.max = Math.max(0, replayState.total - 1);
+            slider.value = replayState.index;
+            slider.addEventListener('input', () => {
+                pauseReplay();
+                seekReplay(Number(slider.value), false);
+            });
+        }
+
+        bindReplayButton('replay-start', () => {
+            pauseReplay();
+            seekReplay(0, false);
+        });
+        bindReplayButton('replay-prev', () => {
+            pauseReplay();
+            seekReplay(replayState.index - 1, false);
+        });
+        bindReplayButton('replay-play', toggleReplayPlayback);
+        bindReplayButton('replay-next', () => {
+            pauseReplay();
+            seekReplay(replayState.index + 1, true);
+        });
+        bindReplayButton('replay-end', () => {
+            pauseReplay();
+            seekReplay(replayState.total - 1, false);
+        });
+
+        updateReplayLabel();
+        await seekReplay(replayState.index, false);
+        if (replayState.total > 1) {
+            playReplay();
+        }
+    } catch (error) {
+        console.log('Replay controls unavailable:', error.message);
+    }
+}
+
+function bindReplayButton(id, handler) {
+    const button = document.getElementById(id);
+    if (button) button.addEventListener('click', handler);
+}
+
+async function seekReplay(index, speak) {
+    if (!replayState.enabled || replayState.total === 0) return;
+    const nextIndex = Math.max(0, Math.min(index, replayState.total - 1));
+
+    try {
+        const response = await fetch(`/api/replay/seek/${nextIndex}?speak=${speak ? '1' : '0'}`, {
+            method: 'POST'
+        });
+        if (!response.ok) return;
+
+        const payload = await response.json();
+        if (typeof handleReplaySeek === 'function') {
+            handleReplaySeek(payload);
+        } else {
+            updateReplayControlsFromPayload(payload);
+        }
+    } catch (error) {
+        console.warn('Replay seek failed:', error);
+        pauseReplay();
+    }
+}
+
+function toggleReplayPlayback() {
+    if (replayState.playing) {
+        pauseReplay();
+    } else {
+        playReplay();
+    }
+}
+
+function playReplay() {
+    if (!replayState.enabled || replayState.playing) return;
+    replayState.playing = true;
+    updateReplayPlayButton();
+    scheduleReplayStep();
+}
+
+function pauseReplay() {
+    replayState.playing = false;
+    if (replayState.timer) {
+        clearTimeout(replayState.timer);
+        replayState.timer = null;
+    }
+    updateReplayPlayButton();
+}
+
+function scheduleReplayStep() {
+    if (!replayState.playing) return;
+    replayState.timer = setTimeout(async () => {
+        if (!replayState.playing) return;
+        if (replayState.index >= replayState.total - 1) {
+            pauseReplay();
+            return;
+        }
+        await seekReplay(replayState.index + 1, true);
+        scheduleReplayStep();
+    }, replayState.delayMs);
+}
+
+function updateReplayControlsFromPayload(payload) {
+    if (!payload) return;
+    replayState.index = payload.index ?? replayState.index;
+    replayState.total = payload.total ?? replayState.total;
+    if (payload.delay_seconds) {
+        replayState.delayMs = Math.max(250, Number(payload.delay_seconds) * 1000);
+    }
+    const slider = document.getElementById('replay-slider');
+    if (slider) {
+        slider.max = Math.max(0, replayState.total - 1);
+        slider.value = replayState.index;
+    }
+    updateReplayLabel(payload.label);
+    updateReplayPlayButton();
+}
+
+function updateReplayLabel(label) {
+    const labelEl = document.getElementById('replay-label');
+    if (!labelEl) return;
+    const current = replayState.total ? replayState.index + 1 : 0;
+    const total = replayState.total || 0;
+    labelEl.textContent = `${current} / ${total}`;
+    labelEl.title = label || '';
+}
+
+function updateReplayPlayButton() {
+    const button = document.getElementById('replay-play');
+    if (!button) return;
+    button.textContent = replayState.playing ? 'Pause' : 'Play';
+}
+
+window.replayControls = {
+    updateFromPayload: updateReplayControlsFromPayload,
+    pause: pauseReplay,
+    play: playReplay
+};
 
 // ========== Game Details Panel ==========
 function updateGameDetails(data) {

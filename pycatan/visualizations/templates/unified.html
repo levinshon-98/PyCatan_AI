@@ -26,6 +26,15 @@
                     <span class="badge new-badge" id="ai-new-badge" style="display: none;">NEW</span>
                 </button>
             </div>
+            <div class="replay-controls" id="replay-controls" style="display: none;">
+                <button class="replay-btn" id="replay-start" title="Start">|&lt;</button>
+                <button class="replay-btn" id="replay-prev" title="Previous">&lt;</button>
+                <button class="replay-btn replay-play" id="replay-play" title="Play">Play</button>
+                <button class="replay-btn" id="replay-next" title="Next">&gt;</button>
+                <button class="replay-btn" id="replay-end" title="End">&gt;|</button>
+                <input id="replay-slider" class="replay-slider" type="range" min="0" max="0" value="0">
+                <span class="replay-label" id="replay-label">0 / 0</span>
+            </div>
             <div class="nav-status">
                 <span class="status-dot live"></span>
                 <span class="status-text">LIVE</span>
