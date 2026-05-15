@@ -757,6 +757,39 @@ class GameManager:
         }
         
         return resource_map.get(resource_name.lower())
+
+    def _dev_card_name_to_card(self, card_name):
+        """Convert AI/human dev-card aliases to DevCard enum."""
+        from pycatan.core.card import DevCard
+        if card_name is None:
+            return None
+        if isinstance(card_name, DevCard):
+            return card_name
+
+        key = str(card_name).strip().lower().replace("-", "_").replace(" ", "_")
+        card_map = {
+            "k": DevCard.Knight,
+            "knight": DevCard.Knight,
+            "road": DevCard.Road,
+            "road_building": DevCard.Road,
+            "roadbuilding": DevCard.Road,
+            "roads": DevCard.Road,
+            "monopoly": DevCard.Monopoly,
+            "year": DevCard.YearOfPlenty,
+            "plenty": DevCard.YearOfPlenty,
+            "year_of_plenty": DevCard.YearOfPlenty,
+            "yearofplenty": DevCard.YearOfPlenty,
+            "victory": DevCard.VictoryPoint,
+            "victory_point": DevCard.VictoryPoint,
+            "victorypoint": DevCard.VictoryPoint,
+        }
+        if key in card_map:
+            return card_map[key]
+
+        try:
+            return DevCard[str(card_name)]
+        except KeyError:
+            return None
     
     def _execute_buy_dev_card(self, action: Action) -> ActionResult:
         """Execute buying a development card."""
@@ -800,15 +833,15 @@ class GameManager:
                     "MISSING_PARAMETER"
                 )
             
-            # Convert string to DevCard enum
+            # Convert prompt-facing/human-friendly names to DevCard enum.
             from pycatan.core.card import DevCard
-            try:
-                card_type = DevCard[card_type_str]
-            except KeyError:
+            card_type = self._dev_card_name_to_card(card_type_str)
+            if card_type is None:
                 return ActionResult.failure_result(
                     f"Invalid card type: {card_type_str}",
                     "INVALID_CARD_TYPE"
                 )
+            action.parameters['card_type'] = card_type.name
             
             # Check if player has the card
             if not self.game.players[player_id].has_dev_cards([card_type]):
@@ -1079,16 +1112,7 @@ class GameManager:
                 )
             
             # Convert resource name to ResCard enum
-            from pycatan.core.card import ResCard
-            resource_map = {
-                'Wood': ResCard.Wood,
-                'Brick': ResCard.Brick,
-                'Sheep': ResCard.Sheep,
-                'Wheat': ResCard.Wheat,
-                'Ore': ResCard.Ore
-            }
-            
-            card_type = resource_map.get(resource_type)
+            card_type = self._resource_name_to_card(resource_type)
             if not card_type:
                 return ActionResult.failure_result(
                     f"Invalid resource type: {resource_type}",
@@ -1147,17 +1171,8 @@ class GameManager:
                 )
             
             # Convert resource names to ResCard enums
-            from pycatan.core.card import ResCard
-            resource_map = {
-                'Wood': ResCard.Wood,
-                'Brick': ResCard.Brick,
-                'Sheep': ResCard.Sheep,
-                'Wheat': ResCard.Wheat,
-                'Ore': ResCard.Ore
-            }
-            
-            card_one = resource_map.get(resource1_str)
-            card_two = resource_map.get(resource2_str)
+            card_one = self._resource_name_to_card(resource1_str)
+            card_two = self._resource_name_to_card(resource2_str)
             
             if not card_one or not card_two:
                 return ActionResult.failure_result(

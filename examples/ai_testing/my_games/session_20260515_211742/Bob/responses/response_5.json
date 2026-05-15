@@ -1,0 +1,25 @@
+{
+  "request_number": 5,
+  "timestamp": "2026-05-15T21:28:16.979607",
+  "player_name": "Bob",
+  "type": "final",
+  "success": true,
+  "raw_content": "{\n  \"internal_thinking\": \"Alice is offering wheat for my brick. Looking at my resources, I have 1 wood, 1 brick, and 1 wheat. I need that brick to build a road toward the wood port (node 40) or the 3:1 port (node 50). Furthermore, I already have strong wheat production from nodes 31 and 42 (Wheat 9 and 14), so I don't really need to trade for more wheat right now. Alice has node 20 which gives her brick on 6s, but she's clearly short. I'll pass on this to keep my expansion options open.\",\n  \"note_to_self\": \"Alice is hunting for brick to probably extend her road from node 20. I need to prioritize building my road to node 40 or 50 before I get blocked. I have a good wheat engine, so I should look for a port soon.\",\n  \"say_outloud\": \"sorry alice, i'm actually holding onto this brick to get a road down myself. i've got plenty of wheat coming in anyway!\",\n  \"action\": {\n    \"type\": \"trade_reject\",\n    \"parameters\": \"{}\"\n  }\n}",
+  "parsed": {
+    "internal_thinking": "Alice is offering wheat for my brick. Looking at my resources, I have 1 wood, 1 brick, and 1 wheat. I need that brick to build a road toward the wood port (node 40) or the 3:1 port (node 50). Furthermore, I already have strong wheat production from nodes 31 and 42 (Wheat 9 and 14), so I don't really need to trade for more wheat right now. Alice has node 20 which gives her brick on 6s, but she's clearly short. I'll pass on this to keep my expansion options open.",
+    "note_to_self": "Alice is hunting for brick to probably extend her road from node 20. I need to prioritize building my road to node 40 or 50 before I get blocked. I have a good wheat engine, so I should look for a port soon.",
+    "say_outloud": "sorry alice, i'm actually holding onto this brick to get a road down myself. i've got plenty of wheat coming in anyway!",
+    "action_type": "trade_reject",
+    "parameters": {}
+  },
+  "model": "gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 1788,
+    "completion": 233,
+    "thinking": 0,
+    "total": 2021
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}

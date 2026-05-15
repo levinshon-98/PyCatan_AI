@@ -783,8 +783,17 @@ class AIManager:
             },
             "USE_DEV_CARD": {
                 "type": "use_dev_card",
-                "description": "Play a development card",
-                "example_parameters": "{\"card_type\": \"knight\"}"
+                "description": (
+                    "Play a development card. Use exact card_type values: "
+                    "knight, road_building, monopoly, year_of_plenty. "
+                    "Victory points are counted automatically."
+                ),
+                "example_parameters": (
+                    "{\"card_type\": \"knight\", \"hex\": X, \"target_player\": \"Bob\"} OR "
+                    "{\"card_type\": \"road_building\", \"road_1\": [A, B], \"road_2\": [C, D]} OR "
+                    "{\"card_type\": \"monopoly\", \"resource\": \"wheat\"} OR "
+                    "{\"card_type\": \"year_of_plenty\", \"resources\": [\"wood\", \"brick\"]}"
+                )
             },
             "TRADE_BANK": {
                 "type": "trade_bank",

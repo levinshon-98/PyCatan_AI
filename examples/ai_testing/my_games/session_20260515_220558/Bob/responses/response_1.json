@@ -1,0 +1,25 @@
+{
+  "request_number": 1,
+  "timestamp": "2026-05-15T22:07:25.579300",
+  "player_name": "Bob",
+  "type": "final",
+  "success": true,
+  "raw_content": "{\n  \"internal_thinking\": \"It's the start of my turn and I haven't rolled yet. My current resources are 1 Ore and 1 Wheat. My goal is to eventually build a settlement on node 40 to secure the Wood port and gain access to Brick 10 and Ore 5. My Wheat 9 production is currently blocked by the robber at hex 14, so I'm hoping for a 5, 10, or 11 to get some resources moving. Since I have no development cards to play, my only logical move is to roll.\",\n  \"note_to_self\": \"I've reached the Wood port at node 40. I need to collect Wood, Brick, and Sheep to build the settlement there. Charlie has a Knight card, so I should be prepared for the robber to move soon.\",\n  \"say_outloud\": \"alright, let's see some big numbers. daddy needs a new pair of shoes... or at least some wood for this port.\",\n  \"action\": {\n    \"type\": \"roll_dice\",\n    \"parameters\": \"{}\"\n  }\n}",
+  "parsed": {
+    "internal_thinking": "It's the start of my turn and I haven't rolled yet. My current resources are 1 Ore and 1 Wheat. My goal is to eventually build a settlement on node 40 to secure the Wood port and gain access to Brick 10 and Ore 5. My Wheat 9 production is currently blocked by the robber at hex 14, so I'm hoping for a 5, 10, or 11 to get some resources moving. Since I have no development cards to play, my only logical move is to roll.",
+    "note_to_self": "I've reached the Wood port at node 40. I need to collect Wood, Brick, and Sheep to build the settlement there. Charlie has a Knight card, so I should be prepared for the robber to move soon.",
+    "say_outloud": "alright, let's see some big numbers. daddy needs a new pair of shoes... or at least some wood for this port.",
+    "action_type": "roll_dice",
+    "parameters": {}
+  },
+  "model": "gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 3972,
+    "completion": 214,
+    "thinking": 0,
+    "total": 4329
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}
