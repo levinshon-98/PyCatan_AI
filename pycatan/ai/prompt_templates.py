@@ -179,6 +179,9 @@ JSON:
             result["role"] = custom_instructions
         else:
             result["role"] = meta_data.get("role", "You are a Catan player.")
+
+        if meta_data.get("relationship_background"):
+            result["relationship_background"] = meta_data["relationship_background"]
         
         return result
     

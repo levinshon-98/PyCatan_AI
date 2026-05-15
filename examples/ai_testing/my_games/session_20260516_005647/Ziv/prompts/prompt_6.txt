@@ -1,0 +1,208 @@
+=== Prompt #6 for Ziv ===
+Timestamp: 2026-05-16T01:04:00.295708
+Active Turn: True
+
+--- What Happened ---
+Ziv performed action: rolled the dice
+Current required action: Your turn - build, trade, or end turn. Type 'help' for commands.
+
+--- Tools Available ---
+  - inspect_node: Get detailed information about a specific node on the board. USE THIS to verify ...
+  - find_best_nodes: Search for the best available nodes matching specific criteria. USE THIS instead...
+  - analyze_path_potential: Analyze where a road path leads and what opportunities exist ahead. USE THIS to ...
+
+--- Response Schema ---
+{
+  "type": "object",
+  "required": [
+    "internal_thinking",
+    "action"
+  ],
+  "properties": {
+    "internal_thinking": {
+      "type": "string",
+      "description": "Private strategy. Plan your move logically here. Analyze the board, probabilities, and opponents. NOTE: Keep your logic HERE. Do not leak technical explanations into 'say_outloud'.",
+      "minLength": 120
+    },
+    "note_to_self": {
+      "type": "string",
+      "description": "Save important observations for future turns (e.g., 'Player 3 is hoarding ore').",
+      "maxLength": 100
+    },
+    "say_outloud": {
+      "type": "string",
+      "description": "Table talk in natural Hebrew only. If nothing interesting happened, leave empty. If frustrated or happy, express it briefly. Keep it casual, human, and non-technical.",
+      "maxLength": 120
+    },
+    "action": {
+      "type": "object",
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "The action type (must match one from allowed_actions in constraints)"
+        },
+        "parameters": {
+          "type": "string",
+          "description": "Action parameters as JSON string. Example: {\"node\": 14} or {}"
+        }
+      },
+      "propertyOrdering": [
+        "type",
+        "parameters"
+      ]
+    }
+  },
+  "propertyOrdering": [
+    "internal_thinking",
+    "note_to_self",
+    "say_outloud",
+    "action"
+  ]
+}
+
+--- Prompt Content ---
+{
+  "meta_data": {
+    "agent_name": "Ziv",
+    "role": null
+  },
+  "task_context": {
+    "what_just_happened": "Ziv performed action: rolled the dice\nCurrent required action: Your turn - build, trade, or end turn. Type 'help' for commands.",
+    "instructions": "Analyze the game state and select the optimal move from 'allowed_actions'. Any say_outloud chat message must be written in natural Hebrew only. You have 8 possible actions. For road placement, use analyze_path_potential to compare where candidate roads lead before choosing. For settlement placement, use find_best_nodes and inspect_node instead of manually decoding the board arrays. Treat nodes in state.bld and all adjacent nodes as unavailable. Do not state node resources or opponent settlement facts unless they come from the filtered game_state or a tool result."
+  },
+  "game_state": "\n  1. LOOKUP TABLES:\n   • \"H\" (Hexes): Array where Index = HexID. Value = Resource+Num.\n     Example: H[1]=\"W12\" -> Hex 1 is Wood 12.\n   • \"N\" (Nodes): Array where Index = NodeID.\n     Format: [ [Neighbors], [HexIDs], Port? ]\n     Logic: To find yield of Node 10, check N[10]. Get HexIDs (e.g. [1,5]). Look up H[1] and H[5].\n\n2. CODES: W=Wood, B=Brick, S=Sheep, Wh=Wheat, O=Ore, D=Desert.\n          ?3=Any 3:1 port, X2=Specific Resource 2:1 port.\n\n3. STATE: \"bld\"=[NodeID, Owner, Type], \"rds\"=[[From,To], Owner].\n\n4. PLAYERS: \"res\"={Resource:Count}, \"dev\"={\"h\":[Hidden Cards], \"r\":[Revealed] (K=Knight)}, \n            \"stat\"=[\"LR\" (Longest Road), \"LA\" (Largest Army)].\n\n5. ROBBER: Located at HexID specified in \"meta.robber\". H[id] is blocked.\n\nJSON:\n{\"meta\":{\"curr\":\"Ziv\",\"phase\":\"NORMAL_PLAY\",\"robber\":15,\"dice\":[2,2]},\"H\":[\"\",\"W12\",\"S5\",\"W4\",\"S8\",\"B6\",\"W3\",\"Wh8\",\"B10\",\"W11\",\"D\",\"O3\",\"S4\",\"B10\",\"Wh9\",\"Wh6\",\"S11\",\"O5\",\"Wh9\",\"O2\"],\"N\":[null,[[2,9],[1]],[[1,3],[1],\"Wh2\"],[[2,4,11],[2,1],\"Wh2\"],[[3,5],[2]],[[4,6,13],[3,2]],[[5,7],[3],\"B2\"],[[6,15],[3],\"B2\"],[[9,18],[4],\"?3\"],[[8,10,1],[4,1],\"?3\"],[[9,11,20],[5,4,1]],[[10,12,3],[5,2,1]],[[11,13,22],[6,5,2]],[[12,14,5],[6,3,2]],[[13,15,24],[7,6,3]],[[14,16,7],[7,3]],[[15,26],[7],\"O2\"],[[18,28],[8],\"S2\"],[[17,19,8],[8,4]],[[18,20,30],[9,8,4]],[[19,21,10],[9,5,4]],[[20,22,32],[10,9,5]],[[21,23,12],[10,6,5]],[[22,24,34],[11,10,6]],[[23,25,14],[11,7,6]],[[24,26,36],[12,11,7]],[[25,27,16],[12,7],\"O2\"],[[26,38],[12]],[[29,17],[8],\"S2\"],[[28,30,39],[13,8]],[[29,31,19],[13,9,8]],[[30,32,41],[14,13,9]],[[31,33,21],[14,10,9]],[[32,34,43],[15,14,10]],[[33,35,23],[15,11,10]],[[34,36,45],[16,15,11]],[[35,37,25],[16,12,11]],[[36,38,47],[16,12],\"?3\"],[[37,27],[12],\"?3\"],[[40,29],[13]],[[39,41,48],[17,13],\"W2\"],[[40,42,31],[17,14,13]],[[41,43,50],[18,17,14]],[[42,44,33],[18,15,14]],[[43,45,52],[19,18,15]],[[44,46,35],[19,16,15]],[[45,47,54],[19,16]],[[46,37],[16]],[[49,40],[17],\"W2\"],[[48,50],[17]],[[49,51,42],[18,17],\"?3\"],[[50,52],[18],\"?3\"],[[51,53,44],[19,18]],[[52,54],[19],\"?3\"],[[53,46],[19],\"?3\"]],\"state\":{\"bld\":[[12,\"Ziv\",\"S\"],[20,\"Hadar\",\"S\"],[25,\"Hadar\",\"S\"],[30,\"Shon\",\"S\"],[41,\"Ziv\",\"S\"],[43,\"Shon\",\"S\"]],\"rds\":[[[20,10],\"Hadar\"],[[43,42],\"Shon\"],[[12,13],\"Ziv\"],[[41,31],\"Ziv\"],[[30,19],\"Shon\"],[[25,24],\"Hadar\"],[[42,50],\"Shon\"],[[24,14],\"Hadar\"],[[10,9],\"Hadar\"]]},\"players\":{\"Hadar\":{\"vp\":2,\"res\":{\"B\":1,\"Wh\":3,\"S\":4}},\"Shon\":{\"vp\":2,\"res\":{\"B\":1,\"Wh\":2}},\"Ziv\":{\"vp\":2,\"res\":{\"O\":3,\"Wh\":2,\"S\":2}}}}",
+  "social_context": {
+    "recent_chat": [
+      {
+        "from": "Ziv",
+        "message": "אין לי כל כך מה לעשות כרגע, אני אשמור את המשאבים ואראה מה יצא בסיבוב הבא. בהצלחה לכולם!"
+      },
+      {
+        "from": "Hadar",
+        "message": "טוב, בואו נראה מה הקוביות יגידו. אני ממש מקווה לצאת מהתקיעות הזאת ולבנות כבר את היישוב הבא. עץ יהיה נחמד מאוד עכשיו."
+      },
+      {
+        "from": "Hadar",
+        "message": "באסה, עדיין חסר לי עץ ליישוב. ה-8 הזה נחמד לחיטה ולצמר, אבל אני ממש צריכה 11 או 3 עכשיו. אין לי כל כך מה לעשות כרגע, אז אני אסיים את התור."
+      },
+      {
+        "from": "Shon",
+        "message": "יאללה, הגיע הזמן להוציא את ה-6 הזה מהחסימה. מקווה לתוצאה טובה."
+      },
+      {
+        "from": "Shon",
+        "message": "הדר, אני רואה שיש לך לא מעט כבשים. אולי תרצי להחליף כבשה אחת בחיטה? זה יכול לעזור לשנינו להתקדם."
+      },
+      {
+        "from": "Hadar",
+        "message": "תודה על ההצעה שון, אבל אני מעדיפה לשמור על הכבשים שלי כרגע."
+      },
+      {
+        "from": "Shon",
+        "message": "זיו, מה אומר על החלפה? אני אתן לך חיטה ואתה תיתן לי כבשה. ראיתי שיצא לך 5 מקודם, אולי זה יעזור לך לסגור איזה קלף פיתוח או משהו."
+      },
+      {
+        "from": "Ziv",
+        "message": "תודה על ההצעה שון, אבל אני כבר מסודר עם חיטה כרגע. מעדיף לשמור על הכבשים שלי לבינתיים."
+      },
+      {
+        "from": "Shon",
+        "message": "טוב, נראה שאין עם מי לדבר כרגע על החלפות. אני אסיים את התור ומקווה שהקוביות יהיו לטובתי בסיבוב הבא."
+      },
+      {
+        "from": "Ziv",
+        "message": "טוב, בואו נראה מה הקוביות יביאו לנו הפעם. מקווה לטוב."
+      }
+    ],
+    "pending_trades": [
+      {
+        "trade_id": "trade_11_1",
+        "from": "Ziv",
+        "to": "Hadar",
+        "offer": {
+          "wheat": 1
+        },
+        "request": {
+          "brick": 1
+        },
+        "status": "rejected",
+        "timestamp": 1778882263.7584922,
+        "responded_by": "Hadar",
+        "resolved_at": 1778882287.8649209
+      },
+      {
+        "trade_id": "trade_13_3",
+        "from": "Shon",
+        "to": "Ziv",
+        "offer": {
+          "wheat": 1
+        },
+        "request": {
+          "sheep": 1
+        },
+        "status": "rejected",
+        "timestamp": 1778882544.9525747,
+        "responded_by": "Ziv",
+        "resolved_at": 1778882572.1642847
+      }
+    ]
+  },
+  "memory": {
+    "note_from_last_turn": "I have the resources for a city at node 41. After upgrading, I'll focus on obtaining Wood and Brick to expand towards the Wood port at node 40.",
+    "recent_notes": [
+      "I am currently resource-starved and blocked on Brick. I need to prioritize getting a Knight to move the robber or securing a different source of Brick/Wood.",
+      "I have a surplus of Wheat. I'm one Ore away from a City at node 41. I need to keep an eye on Brick/Wood income to start moving toward the Wood port at node 40.",
+      "I am saving for a City at Node 41. I need 1 more Ore and currently have 2 Wheat. My next priority after the city is to acquire Wood and Brick to expand toward the Wood port at Node 40.",
+      "I have the resources for a city at node 41. I need to make sure I don't lose them to a 7 or a steal before my turn. After the city, I'll focus on getting Wood and Brick to expand towards the Wood port.",
+      "I have the resources for a city at node 41. After upgrading, I'll focus on obtaining Wood and Brick to expand towards the Wood port at node 40."
+    ]
+  },
+  "constraints": {
+    "usage_instructions": "Choose one action type from the list below. Populate the 'parameters' field in your response strictly according to the 'example_parameters' structure provided.",
+    "allowed_actions": [
+      {
+        "type": "build_settlement",
+        "description": "Build a settlement at a node",
+        "example_parameters": "{\"node\": X}"
+      },
+      {
+        "type": "build_city",
+        "description": "Upgrade a settlement to a city",
+        "example_parameters": "{\"node\": X}"
+      },
+      {
+        "type": "build_road",
+        "description": "Build a road between two nodes",
+        "example_parameters": "{\"from\": X, \"to\": Y}"
+      },
+      {
+        "type": "trade_propose",
+        "description": "Propose a trade to other players",
+        "example_parameters": "{\"target_player\": \"Charlie\", \"offer\": {\"wood\": X}, \"request\": {\"brick\": Y}}"
+      },
+      {
+        "type": "trade_bank",
+        "description": "Trade resources with the bank. Default bank trade is 4:1 unless you have a matching 2:1 port or a 3:1 port. Only choose this when you have enough of the resource you give.",
+        "example_parameters": "{\"give\": \"wheat\", \"give_amount\": 4, \"receive\": \"brick\"}"
+      },
+      {
+        "type": "buy_dev_card",
+        "description": "Buy a development card",
+        "example_parameters": "{}"
+      },
+      {
+        "type": "use_dev_card",
+        "description": "Play a development card. Use exact card_type values: knight, road_building, monopoly, year_of_plenty. Victory points are counted automatically.",
+        "example_parameters": "{\"card_type\": \"knight\", \"hex\": X, \"target_player\": \"Bob\"} OR {\"card_type\": \"road_building\", \"road_1\": [A, B], \"road_2\": [C, D]} OR {\"card_type\": \"monopoly\", \"resource\": \"wheat\"} OR {\"card_type\": \"year_of_plenty\", \"resources\": [\"wood\", \"brick\"]}"
+      },
+      {
+        "type": "end_turn",
+        "description": "End your turn",
+        "example_parameters": "{}"
+      }
+    ]
+  }
+}
