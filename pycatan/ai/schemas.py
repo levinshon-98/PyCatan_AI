@@ -11,8 +11,10 @@ Schema Versions:
 - SCHEMA_V2: Improved schema with natural language prompts (DEFAULT)
 """
 
+import copy
 from typing import Dict, Any, List, Optional
 from enum import Enum
+from pycatan.ai.config import normalize_chat_language
 
 
 class ResponseType(Enum):
@@ -51,7 +53,7 @@ ACTIVE_TURN_RESPONSE_SCHEMA_V1 = {
         },
         "say_outloud": {
             "type": "string",
-            "description": "Communicate with other players! Use for: trade proposals, warnings, bluffs, alliance hints, or strategic banter. Makes the game more interesting and can influence opponents.",
+            "description": "Communicate with other players in natural Hebrew only. Use for: trade proposals, warnings, bluffs, alliance hints, or strategic banter. Makes the game more interesting and can influence opponents.",
             "maxLength": 100
         },
         "action": {
@@ -94,7 +96,7 @@ OBSERVING_RESPONSE_SCHEMA_V1 = {
         },
         "say_outloud": {
             "type": "string",
-            "description": "Even when observing, you can negotiate! Propose trades, form alliances, or send strategic messages. Example: 'I'll trade ore for wheat next turn' or 'Nice move!'",
+            "description": "Even when observing, you can negotiate in natural Hebrew only. Propose trades, form alliances, or send strategic messages.",
             "maxLength": 100
         }
     },
@@ -126,7 +128,7 @@ ACTIVE_TURN_RESPONSE_SCHEMA_V2 = {
         },
         "say_outloud": {
             "type": "string",
-            "description": "Table talk. Must be natural. If nothing interesting happened, leave empty. If frustrated or happy, express it briefly. mimic real chat: no capitalization sometimes, slang allowed but not forced.",
+            "description": "Table talk in natural Hebrew only. If nothing interesting happened, leave empty. If frustrated or happy, express it briefly. Keep it casual, human, and non-technical.",
             "maxLength": 120
         },
         "action": {
@@ -169,7 +171,7 @@ OBSERVING_RESPONSE_SCHEMA_V2 = {
         },
         "say_outloud": {
             "type": "string",
-            "description": "React naturally to what's happening. Can be empty if nothing notable. Keep it casual.",
+            "description": "React naturally in Hebrew only. Can be empty if nothing notable. Keep it casual and non-technical.",
             "maxLength": 120
         }
     },
@@ -191,8 +193,9 @@ OBSERVING_RESPONSE_SCHEMA = OBSERVING_RESPONSE_SCHEMA_V2
 
 
 def get_schema_for_response_type(
-    response_type: ResponseType, 
-    version: SchemaVersion = None
+    response_type: ResponseType,
+    version: SchemaVersion = None,
+    chat_language: Optional[str] = None
 ) -> Dict[str, Any]:
     """
     Get the appropriate schema based on response type and version.
@@ -200,25 +203,69 @@ def get_schema_for_response_type(
     Args:
         response_type: Type of response expected (active turn or observing)
         version: Schema version to use (defaults to DEFAULT_SCHEMA_VERSION)
+        chat_language: Optional public table-talk language override.
         
     Returns:
         JSON schema dictionary
     """
     if version is None:
         version = DEFAULT_SCHEMA_VERSION
+
+    schema = None
     
     if version == SchemaVersion.V1:
         if response_type == ResponseType.ACTIVE_TURN:
-            return ACTIVE_TURN_RESPONSE_SCHEMA_V1
+            schema = ACTIVE_TURN_RESPONSE_SCHEMA_V1
         elif response_type == ResponseType.OBSERVING:
-            return OBSERVING_RESPONSE_SCHEMA_V1
+            schema = OBSERVING_RESPONSE_SCHEMA_V1
     elif version == SchemaVersion.V2:
         if response_type == ResponseType.ACTIVE_TURN:
-            return ACTIVE_TURN_RESPONSE_SCHEMA_V2
+            schema = ACTIVE_TURN_RESPONSE_SCHEMA_V2
         elif response_type == ResponseType.OBSERVING:
-            return OBSERVING_RESPONSE_SCHEMA_V2
+            schema = OBSERVING_RESPONSE_SCHEMA_V2
+
+    if schema is not None:
+        return _with_chat_language(schema, response_type, chat_language)
     
     raise ValueError(f"Unknown response type: {response_type} or version: {version}")
+
+
+def _with_chat_language(
+    schema: Dict[str, Any],
+    response_type: ResponseType,
+    chat_language: Optional[str]
+) -> Dict[str, Any]:
+    """Copy a response schema and align say_outloud with the configured language."""
+    language = normalize_chat_language(chat_language)
+    localized = copy.deepcopy(schema)
+    say_outloud = localized.get("properties", {}).get("say_outloud")
+    if not say_outloud:
+        return localized
+
+    if language == "hebrew":
+        if response_type == ResponseType.OBSERVING:
+            say_outloud["description"] = (
+                "React naturally in Hebrew only. Can be empty if nothing notable. "
+                "Keep it casual and non-technical."
+            )
+        else:
+            say_outloud["description"] = (
+                "Table talk in natural Hebrew only. If nothing interesting happened, leave empty. "
+                "If frustrated or happy, express it briefly. Keep it casual, human, and non-technical."
+            )
+    else:
+        if response_type == ResponseType.OBSERVING:
+            say_outloud["description"] = (
+                "React naturally in English only. Can be empty if nothing notable. "
+                "Keep it casual and non-technical."
+            )
+        else:
+            say_outloud["description"] = (
+                "Table talk in natural English only. If nothing interesting happened, leave empty. "
+                "If frustrated or happy, express it briefly. Keep it casual, human, and non-technical."
+            )
+
+    return localized
 
 
 def get_schema_description(response_type: ResponseType, version: SchemaVersion = None) -> str:

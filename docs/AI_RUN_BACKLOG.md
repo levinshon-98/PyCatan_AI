@@ -2,7 +2,7 @@
 
 Live observations from autonomous PyCatan AI runs.
 
-Current run: `examples/ai_testing/my_games/session_20260515_203358`
+Current run: `examples/ai_testing/my_games/session_20260515_220558`
 
 ## Observations
 
@@ -32,6 +32,7 @@ Current run: `examples/ai_testing/my_games/session_20260515_203358`
 | AI-RUN-022 | Fixed - smoke verified | Turn phase/trading | Critical | After a successful dice roll, `allowed_actions` moved to post-roll actions but `turn_phase` stayed `ROLL_DICE`, so prompts still told the agent to roll. Also AI trade resources used compact keys like `S`/`B`, causing valid offers to fail resource validation. | `session_20260515_205233/Alice/prompts/prompt_6.json` has post-roll actions and resources `S:1,O:1,Wh:2`, but `what_happened` still says `Roll the dice`. `Alice/response_6.json` proposes `offer: {"S":1}` for `{"B":1}` and the engine rejects it with `You don't have the required cards to offer`; prompts #7/#9 then repeat stale roll instructions, producing illegal `ROLL_DICE` failures and a misleading `[0,0]=0` failed-roll log entry. | `AIUser` now normalizes trade resource bundles from compact prompt codes (`W/B/S/Wh/O`) and natural aliases to engine names (`wood/brick/sheep/wheat/ore`). `GameManager._resource_name_to_card()` accepts the same aliases defensively. `_handle_roll_dice()` now sets `turn_phase = PLAYER_ACTIONS` after non-7 rolls so prompt text matches allowed actions. Compile and smoke checks passed. Requires a fresh run because the active process loaded old code. |
 | AI-RUN-023 | Fixed - replay smoke verified | Development cards | High | AI can hold and choose `use_dev_card` for Road Building, but the emitted card type `road_building` was rejected by the engine as invalid. The failure was fed back correctly, but the card could not be used and the agent could waste turns or loop around the same plan. | `session_20260515_211742/Alice/responses/response_10.json` emits `use_dev_card {"card_type": "road_building", "road_1": [45,35], "road_2": [35,34]}`. `Alice/prompts/prompt_11.json` says `Your previous action failed ... Error: Invalid card type: road_building`. | Added dev-card alias normalization in `AIUser` and defensive alias handling in `GameManager`: `road_building`/`road` -> `Road`, `year_of_plenty` -> `YearOfPlenty`, plus resource aliases for Monopoly/Year of Plenty. `AIUser` now converts AI road params like `road_1: [45,35]` into `road_one_coords`. Prompt examples now show exact parameter shapes for Knight, Road Building, Monopoly, and Year of Plenty. Replay smoke through `session_20260515_211742` `Alice:10` verifies Alice's Road card is consumed successfully instead of failing. |
 | AI-RUN-024 | Open | Debug workflow/session replay | Medium | Fast replay replays recorded `say_outloud` and `note_to_self` for replayed actions, so if the source session contained a wrong belief near the bug, the derived session can inherit stale chat/memory even though the fixed engine state is now correct. | In derived `session_20260515_220558`, `--replay-through Alice:10` correctly executes Road Building, but also replays Alice's old table-talk: `nice, a 5! that brick is exactly what i needed...`. The live follow-up immediately corrects the state with `darn, no resources for me on that 5...`, and memory is corrected afterward. | Add a replay mode option such as `--replay-skip-side-effects-after Player:N` or recommend `--replay-stop-before Player:N` for bug-point re-generation. Consider marking replayed chat/memory as replayed and optionally excluding it from live prompt history after the cut point. |
+| AI-RUN-025 | Fixed - smoke verified | Bank trade execution | Critical | Successful bank trades could corrupt a player's hand by adding the requested card as a nested list, then later UI/state code failed with `'list' object has no attribute 'name'`. On Windows, a Unicode success print could also turn the already-mutated trade into a reported failure. | `session_20260515_220558/Charlie/response_9.json` emitted valid `trade_bank {"give":"wheat","receive":"brick"}` after Monopoly. The session then logged repeated processing failures: `'list' object has no attribute 'name'`. Local smoke reproduced the issue in `_execute_trade_bank`. | `GameManager._execute_trade_bank()` now passes the single requested `ResCard` to `game.trade_to_bank()` instead of a list, validates that bank trades request exactly one card, and uses ASCII logging so console encoding cannot fail after state mutation. `TRADE_BANK` prompt text now says the default bank trade is 4:1 and shows `give_amount: 4`. Compile and direct bank-trade smoke passed with no nested cards. |
 
 ## Run Notes
 
@@ -145,3 +146,19 @@ Current run: `examples/ai_testing/my_games/session_20260515_203358`
   - `py_compile` passed for `pycatan/ai/ai_user.py`, `pycatan/ai/ai_manager.py`, `pycatan/management/game_manager.py`, and `examples/ai_testing/play_with_ai.py`.
   - Conversion smoke maps Alice's failed payload to `{'card_type': 'Road', 'road_one_coords': ..., 'road_two_coords': ...}`.
   - Fast replay through `session_20260515_211742 --replay-through Alice:10` consumes Alice's `Road` dev card successfully instead of returning `Invalid card type: road_building`.
+
+### 2026-05-15 - Replay verification run (`session_20260515_220558`)
+
+- Ran `play_ai_auto.bat --replay-session session_20260515_211742 --replay-through Alice:10`.
+- Derived session metadata is correct: source session is `session_20260515_211742`, `decisions_loaded: 28`, `replay_through: Alice:10`.
+- Road Building fix is live-verified: Alice starts the live portion after roads to nodes 35/34 are in place and chooses `end_turn`; no `Invalid card type` or `ACTION_FAILED` appears.
+- Structured trading still works after replay: Bob proposes Wheat for Charlie's Sheep, Charlie receives the targeted prompt and rejects with `trade_reject`, then control returns to Bob.
+- Logged `AI-RUN-024`: `--replay-through` can carry stale replayed chat/memory from the bug point; use `--replay-stop-before` when the goal is to regenerate the suspect action's communication and memory too.
+
+### 2026-05-15 - Bank trade execution blocker (`session_20260515_220558`)
+
+- Charlie's post-Monopoly bank trade was strategically valid: `trade_bank {"give": "wheat", "receive": "brick"}` with four Wheat available.
+- Root cause was execution-side, not decision-side: `GameManager` passed `request_cards` as a list into `game.trade_to_bank()`, while the core API expects a single requested `ResCard`. This inserted a nested list into Charlie's cards and later broke state rendering/logging with `'list' object has no attribute 'name'`.
+- Fixed `AI-RUN-025` by passing `request_cards[0]`, validating exactly one requested card, and replacing the Unicode bank-trade success print with ASCII to avoid Windows console encoding failures after mutation.
+- Prompt examples now make the 4:1 bank-trade amount explicit: `{"give": "wheat", "give_amount": 4, "receive": "brick"}`.
+- Verification: `py_compile` passed and a direct smoke trade leaves Charlie with `['Wood', 'Brick']`, `success=True`, and `nested_lists=False`.

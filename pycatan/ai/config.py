@@ -33,6 +33,22 @@ from dataclasses import dataclass, field, asdict, fields
 from pathlib import Path
 
 
+def normalize_chat_language(language: Optional[str]) -> str:
+    """Normalize table-talk language names used by prompts and schemas."""
+    value = (language or "english").strip().lower()
+    aliases = {
+        "en": "english",
+        "eng": "english",
+        "english": "english",
+        "he": "hebrew",
+        "heb": "hebrew",
+        "hebrew": "hebrew",
+        "iw": "hebrew",
+        "עברית": "hebrew",
+    }
+    return aliases.get(value, "english")
+
+
 @dataclass
 class LLMConfig:
     """Configuration for LLM provider and model settings."""
@@ -87,6 +103,8 @@ class AgentConfig:
     """Agent configuration - reserved for future use."""
     # Custom instructions for the agent (optional)
     custom_instructions: Optional[str] = None
+    # Language for public table talk in say_outloud. Supported: english, hebrew.
+    chat_language: str = "english"
 
 @dataclass
 class MemoryConfig:

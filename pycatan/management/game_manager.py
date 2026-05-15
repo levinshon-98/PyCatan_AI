@@ -712,14 +712,20 @@ class GameManager:
             for resource, amount in request.items():
                 card_type = self._resource_name_to_card(resource)
                 request_cards.extend([card_type] * amount)
+
+            if len(request_cards) != 1:
+                return ActionResult.failure_result(
+                    "Bank trades must request exactly one resource card",
+                    "INVALID_TRADE_REQUEST"
+                )
             
             # Execute bank trade
-            status = self.game.trade_to_bank(player_id, offer_cards, request_cards)
+            status = self.game.trade_to_bank(player_id, offer_cards, request_cards[0])
             
             if status == Statuses.ALL_GOOD:
                 offer_str = ", ".join([f"{amt} {res}" for res, amt in offer.items()])
                 request_str = ", ".join([f"{amt} {res}" for res, amt in request.items()])
-                print(f"    ✓ Bank trade: gave {offer_str}, received {request_str}")
+                print(f"    [OK] Bank trade: gave {offer_str}, received {request_str}")
                 return ActionResult.success_result(
                     self.get_full_state(),
                     affected_players=[player_id]

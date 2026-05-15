@@ -22,7 +22,7 @@ Usage:
 """
 
 from typing import Dict, Any, List, Optional
-from pycatan.ai.config import AIConfig
+from pycatan.ai.config import AIConfig, normalize_chat_language
 from pycatan.ai.state_filter import StateFilter, PlayerPerspective
 from pycatan.ai.prompt_templates import PromptBuilder, ActionTemplates
 
@@ -272,6 +272,7 @@ class PromptManager:
         """
         base_instructions = (
             "Analyze the game state and select the optimal move from 'allowed_actions'. "
+            f"{self._get_chat_language_instruction()} "
         )
         
         action_types = {action.get("type") for action in available_actions or []}
@@ -301,6 +302,13 @@ class PromptManager:
                 return base_instructions + f"You have {num_actions} possible actions. " + guidance
         
         return base_instructions + guidance
+
+    def _get_chat_language_instruction(self) -> str:
+        """Return the public chat language instruction for say_outloud."""
+        language = normalize_chat_language(getattr(self.config.agent, "chat_language", "english"))
+        if language == "hebrew":
+            return "Any say_outloud chat message must be written in natural Hebrew only."
+        return "Any say_outloud chat message must be written in natural English only."
     
     def clear_cache(self):
         """Clear the filter cache. Useful when starting a new game."""
