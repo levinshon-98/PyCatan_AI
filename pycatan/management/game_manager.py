@@ -598,22 +598,58 @@ class GameManager:
             for resource, amount in request.items():
                 card_type = self._resource_name_to_card(resource)
                 request_cards.extend([card_type] * int(amount))
-            
-            # Validate that the proposer has the cards before involving another player.
-            if not self.game.players[proposer_id].has_cards(offer_cards):
-                print(f"    [X] You don't have the required cards to offer")
-                return ActionResult.failure_result(
-                    f"You don't have the required cards to offer",
-                    "INSUFFICIENT_RESOURCES"
-                )
-            
-            # Format the trade offer message
+
+            # Format the trade offer message before validation so failed
+            # attempts can still be described privately to the target.
             offer_str = ", ".join([f"{amt} {res}" for res, amt in offer.items()])
             request_str = ", ".join([f"{amt} {res}" for res, amt in request.items()])
             trade_message = (
                 f"Trade offer {trade_id}: {proposer_name} offers {offer_str} "
                 f"to {target_name} for {request_str}."
             )
+            
+            # Validate that the proposer has the cards before involving another player.
+            if not self.game.players[proposer_id].has_cards(offer_cards):
+                print(f"    [X] You don't have the required cards to offer")
+                self._notify_invalid_trade_attempt(
+                    target_id,
+                    proposer_name,
+                    target_name,
+                    offer,
+                    request,
+                    f"{proposer_name} does not have the offered cards ({offer_str})",
+                )
+                return ActionResult.failure_result(
+                    f"You don't have the required cards to offer",
+                    "INSUFFICIENT_RESOURCES"
+                )
+
+            self._broadcast_action_say_outloud(action)
+
+            if not self.game.players[target_id].has_cards(request_cards):
+                print(f"    [X] {target_name} doesn't have the required cards")
+                self._notify_invalid_trade_attempt(
+                    target_id,
+                    proposer_name,
+                    target_name,
+                    offer,
+                    request,
+                    f"you do not have the requested cards ({request_str})",
+                )
+                self._prompt_invalid_trade_target_reaction(
+                    target_id=target_id,
+                    proposer_name=proposer_name,
+                    target_name=target_name,
+                    trade_message=trade_message,
+                    request_str=request_str,
+                    trade_id=trade_id,
+                )
+                action.parameters['trade_status'] = 'invalid_target_missing_cards'
+                return ActionResult.failure_result(
+                    f"{target_name} doesn't have the required cards",
+                    "INSUFFICIENT_RESOURCES"
+                )
+
             trade_reaction_event = {
                 "type": "trade_offer",
                 "actor_id": proposer_id,
@@ -623,27 +659,6 @@ class GameManager:
 
             self._record_trade_offer(trade_id, proposer_name, target_name, offer, request)
             self._notify_all_users("trade_offer", trade_message, [proposer_id, target_id])
-
-            if not self.game.players[target_id].has_cards(request_cards):
-                print(f"    [X] {target_name} doesn't have the required cards")
-                target_user = self.users[target_id]
-                target_user.get_input(
-                    self.get_full_state(),
-                    (
-                        f"{trade_message} You do not have the requested cards "
-                        f"({request_str}), so this trade cannot be accepted. "
-                        "Choose trade_reject and briefly explain that you cannot make this trade."
-                    ),
-                    allowed_actions=[ActionType.TRADE_REJECT.name]
-                )
-                self._resolve_trade(trade_id, "rejected", target_name)
-                action.parameters['trade_status'] = 'rejected'
-                result = ActionResult.failure_result(
-                    f"{target_name} doesn't have the required cards",
-                    "INSUFFICIENT_RESOURCES"
-                )
-                result.reaction_events = [trade_reaction_event]
-                return result
             
             # Ask the target player to accept or reject
             print(f"\n[TRADE] Trade Proposal:")
@@ -661,6 +676,7 @@ class GameManager:
                 ),
                 allowed_actions=[ActionType.TRADE_ACCEPT.name, ActionType.TRADE_REJECT.name]
             )
+            self._broadcast_action_say_outloud(response)
             
             # Handle response
             if response.action_type == ActionType.TRADE_ACCEPT:
@@ -703,6 +719,87 @@ class GameManager:
         """Create a stable id for a player-to-player trade offer."""
         self._trade_counter += 1
         return f"trade_{self._current_game_state.turn_number}_{self._trade_counter}"
+
+    def _broadcast_action_say_outloud(self, action: Action) -> bool:
+        """Broadcast an action's table-talk once, even for nested trade prompts."""
+        params = getattr(action, "parameters", None)
+        if not isinstance(params, dict) or params.get("_ai_say_outloud_public"):
+            return False
+
+        say_outloud = (params.get("_ai_say_outloud") or "").strip()
+        if not say_outloud:
+            return False
+
+        try:
+            user = self.users[action.player_id]
+            ai_manager = getattr(user, "ai_manager", None)
+            broadcaster = getattr(ai_manager, "_broadcast_chat", None)
+            if not broadcaster:
+                return False
+            player_name = user.name if hasattr(user, "name") else f"Player {action.player_id}"
+            broadcaster(player_name, say_outloud)
+            params["_ai_say_outloud_public"] = True
+            return True
+        except Exception as exc:
+            print(f"[AI] Could not broadcast action chat: {exc}")
+            return False
+
+    def _prompt_invalid_trade_target_reaction(
+        self,
+        target_id: int,
+        proposer_name: str,
+        target_name: str,
+        trade_message: str,
+        request_str: str,
+        trade_id: str
+    ) -> None:
+        """Let the target socially answer an impossible trade request."""
+        target_user = self.users[target_id]
+        if not hasattr(target_user, "react_to_game_event"):
+            return
+
+        prompt_message = (
+            f"{trade_message}\n"
+            f"You cannot accept this trade because you do not have the requested cards ({request_str}).\n"
+            "You may react only with table talk or memory. Do not choose a board action. "
+            "A brief natural reply is appropriate because the offer was addressed to you. "
+            "If you speak, say that you cannot make this trade because you do not have the requested resource. "
+            "Do not propose an alternative trade in this reaction."
+        )
+        event_group_id = (
+            f"{self._current_game_state.turn_number}:"
+            f"{proposer_name}:{target_name}:{trade_id}:invalid_trade"
+        )
+
+        try:
+            target_user.react_to_game_event(
+                self.get_full_state(),
+                prompt_message,
+                source_player=proposer_name,
+                event_group_id=event_group_id,
+            )
+        except Exception as exc:
+            print(f"[AI] Invalid-trade reaction prompt failed for {target_name}: {exc}")
+
+    def _notify_invalid_trade_attempt(
+        self,
+        target_id: int,
+        proposer_name: str,
+        target_name: str,
+        offer: Dict[str, Any],
+        request: Dict[str, Any],
+        reason: str
+    ) -> None:
+        """Tell the target privately that a proposed trade was invalid."""
+        target_user = self.users[target_id]
+        if hasattr(target_user, "notify_invalid_trade_attempt"):
+            target_user.notify_invalid_trade_attempt(
+                proposer_name,
+                target_name,
+                offer,
+                request,
+                reason,
+            )
 
     def _record_trade_offer(
         self,
@@ -980,6 +1077,16 @@ class GameManager:
             )
             
             if result == Statuses.ALL_GOOD:
+                road_edges = [
+                    self._format_coord_edge(road1_start_coords, road1_end_coords),
+                    self._format_coord_edge(road2_start_coords, road2_end_coords),
+                ]
+                action.parameters['roads'] = [
+                    self._coords_to_point_pair(road1_start_coords, road1_end_coords),
+                    self._coords_to_point_pair(road2_start_coords, road2_end_coords),
+                ]
+                action.parameters['road_edges'] = road_edges
+                action.parameters['details'] = f"built roads {', '.join(road_edges)}"
                 return ActionResult.success_result(
                     self.get_full_state(),
                     affected_players=[player_id]
@@ -1707,6 +1814,26 @@ class GameManager:
             if 'card_type' in params:
                 card_type = params['card_type']
                 params['card'] = card_type.name if hasattr(card_type, 'name') else str(card_type)
+            if (
+                ('road_one_coords' in params or 'road_two_coords' in params)
+                and 'road_edges' not in params
+            ):
+                road_one = params.get('road_one_coords') or {}
+                road_two = params.get('road_two_coords') or {}
+                road_one = road_one if isinstance(road_one, dict) else {}
+                road_two = road_two if isinstance(road_two, dict) else {}
+                road_edges = []
+                roads = []
+                if road_one.get('start') and road_one.get('end'):
+                    road_edges.append(self._format_coord_edge(road_one['start'], road_one['end']))
+                    roads.append(self._coords_to_point_pair(road_one['start'], road_one['end']))
+                if road_two.get('start') and road_two.get('end'):
+                    road_edges.append(self._format_coord_edge(road_two['start'], road_two['end']))
+                    roads.append(self._coords_to_point_pair(road_two['start'], road_two['end']))
+                if road_edges:
+                    params['road_edges'] = road_edges
+                    params['roads'] = roads
+                    params['details'] = f"built roads {', '.join(road_edges)}"
         
         # Dice roll
         elif action.action_type == ActionType.ROLL_DICE:
@@ -1862,10 +1989,22 @@ class GameManager:
                 skip_chat_reaction_ids.add(target_id)
 
         if say_outloud:
+            action_context = ""
+            if result.success:
+                try:
+                    action_context = self._get_action_description(action)
+                except Exception:
+                    action_context = ""
             for user_id, user in enumerate(self.users):
                 if user_id != action.player_id and user_id not in skip_chat_reaction_ids and user.is_active:
+                    message = (
+                        f"{source_name} said to the table while resolving their action: "
+                        f"\"{say_outloud}\""
+                    )
+                    if action_context:
+                        message = f"Action context: {action_context}\n{message}"
                     reaction_prompts.setdefault(user_id, []).append(
-                        f"{source_name} said: \"{say_outloud}\""
+                        message
                     )
 
         for event in getattr(result, "reaction_events", []) or []:
@@ -2063,6 +2202,54 @@ class GameManager:
                 end = params.get("end_coords")
         return f"{start}-{end}"
 
+    def _coords_to_point_id_display(self, coords: Any) -> Any:
+        """Convert internal point coordinates to the public node id when possible."""
+        if not isinstance(coords, (list, tuple)) or len(coords) < 2:
+            return coords
+        try:
+            from pycatan.config.board_definition import board_definition
+            point_id = board_definition.game_coords_to_point_id(coords[0], coords[1])
+            return point_id if point_id is not None else f"[{coords[0]},{coords[1]}]"
+        except Exception:
+            return f"[{coords[0]},{coords[1]}]"
+
+    def _coords_to_point_pair(self, start_coords: Any, end_coords: Any) -> List[Any]:
+        """Return a road as public node ids, falling back to raw coordinates."""
+        return [
+            self._coords_to_point_id_display(start_coords),
+            self._coords_to_point_id_display(end_coords),
+        ]
+
+    def _format_coord_edge(self, start_coords: Any, end_coords: Any) -> str:
+        """Format an internal-coordinate road as a public node-id edge."""
+        start, end = self._coords_to_point_pair(start_coords, end_coords)
+        return f"{start}-{end}"
+
+    def _format_road_building_edges(self, params: Dict[str, Any]) -> List[str]:
+        """Format the two Road Building roads from action parameters."""
+        if params.get("road_edges"):
+            return [str(edge) for edge in params.get("road_edges") or [] if edge]
+
+        roads = params.get("roads")
+        if isinstance(roads, list) and roads:
+            formatted = []
+            for road in roads:
+                if isinstance(road, (list, tuple)) and len(road) >= 2:
+                    formatted.append(f"{road[0]}-{road[1]}")
+                elif road:
+                    formatted.append(str(road))
+            if formatted:
+                return formatted
+
+        formatted = []
+        for key in ("road_one_coords", "road_two_coords", "road_1", "road_2"):
+            road = params.get(key)
+            if isinstance(road, dict) and road.get("start") and road.get("end"):
+                formatted.append(self._format_coord_edge(road["start"], road["end"]))
+            elif isinstance(road, (list, tuple)) and len(road) >= 2:
+                formatted.append(f"{road[0]}-{road[1]}")
+        return formatted
+
     def _format_action_tile(self, params: Dict[str, Any]) -> Any:
         """Format a robber tile id from action parameters."""
         if params.get("hex") is not None:
@@ -2080,10 +2267,9 @@ class GameManager:
         """Format development-card effects for compact prompt context."""
         card_name = str(card or "").replace("DevCard.", "")
         normalized = card_name.lower()
-        if normalized in {"road", "road_building"}:
-            road_one = params.get("road_one_coords") or params.get("road_1")
-            road_two = params.get("road_two_coords") or params.get("road_2")
-            return f"FACTS evt=use_dev actor={actor} card=RoadBuilding roads=[{road_one},{road_two}] dev_delta={{hidden:-1}}"
+        if normalized in {"road", "road_building", "roadbuilding"}:
+            roads = ",".join(self._format_road_building_edges(params)) or "unknown"
+            return f"FACTS evt=use_dev actor={actor} card=RoadBuilding roads=[{roads}] dev_delta={{hidden:-1}}"
         if normalized == "monopoly":
             resource = self._resource_key_for_fact(params.get("resource") or params.get("resource_type"))
             total = params.get("total_stolen", 0)
@@ -2754,7 +2940,7 @@ class GameManager:
                 # Notify the thief specifically what they got
                 self._notify_user(
                     action.player_id,
-                    None,
+                    action,
                     True,
                     f"You stole a {stolen_card.name}!"
                 )

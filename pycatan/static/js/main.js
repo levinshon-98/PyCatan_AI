@@ -536,6 +536,17 @@ function formatActionEventForDisplay(actionData) {
 
     if (eventType === 'USE_DEV_CARD') {
         const card = formatCardNameForLog(data.card || data.card_type || 'development card');
+        const normalizedCard = normalizeCardKeyForLog(data.card || data.card_type || '');
+        if ((normalizedCard === 'road' || normalizedCard === 'road_building' || normalizedCard === 'roadbuilding') && (data.road_edges || data.roads)) {
+            const roads = formatRoadEdgesForLog(data.road_edges || data.roads);
+            if (roads) {
+                return {
+                    icon: 'ג¨',
+                    message: `${player} used ${card} to build roads ${roads}`,
+                    details
+                };
+            }
+        }
         if (String(card).toLowerCase().includes('monopoly') && data.total_stolen) {
             details.push(`Took ${data.total_stolen} ${formatCardNameForLog(data.resource || data.resource_type || '')}`);
         }
@@ -550,6 +561,27 @@ function formatActionEventForDisplay(actionData) {
     }
 
     return { icon: '', message: fallback, details };
+}
+
+function formatRoadEdgesForLog(roads) {
+    if (!roads) return '';
+    if (typeof roads === 'string') return roads;
+    if (!Array.isArray(roads)) return String(roads || '');
+
+    return roads.map(road => {
+        if (typeof road === 'string') return road;
+        if (Array.isArray(road) && road.length >= 2) return `${road[0]}-${road[1]}`;
+        if (road && typeof road === 'object') {
+            const start = road.start ?? road.from;
+            const end = road.end ?? road.to;
+            if (start !== undefined && end !== undefined) return `${formatRoadEndpointForLog(start)}-${formatRoadEndpointForLog(end)}`;
+        }
+        return '';
+    }).filter(Boolean).join(', ');
+}
+
+function formatRoadEndpointForLog(endpoint) {
+    return Array.isArray(endpoint) ? endpoint.join(',') : String(endpoint);
 }
 
 function formatResourceBundleForLog(bundle) {
@@ -602,6 +634,7 @@ function formatCardNameForLog(card) {
         ore: 'Ore',
         knight: 'Knight',
         road: 'Road Building',
+        roadbuilding: 'Road Building',
         road_building: 'Road Building',
         monopoly: 'Monopoly',
         yearofplenty: 'Year of Plenty',

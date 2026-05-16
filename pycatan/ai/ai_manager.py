@@ -546,9 +546,9 @@ class AIManager:
             # Clear events since they've been processed
             agent.clear_events()
             
-            # Handle chat message if present
-            if parsed.get("say_outloud"):
-                self._broadcast_chat(player_name, parsed["say_outloud"])
+            # Active-turn table talk is attached to the Action and broadcast
+            # only after GameManager confirms the action succeeded. This keeps
+            # illegal attempts private to the correction loop.
         
         if parsed:
             return parsed
@@ -1360,10 +1360,17 @@ class AIManager:
 
         dice_breakdown = "+".join(str(die) for die in dice_values)
         if dice_total == 7:
-            dice_line = (
-                f"Current dice result: 7 ({dice_breakdown}). "
-                "No resource production happens on 7; resolve discard/robber flow."
-            )
+            turn_phase = str(meta.get("turn_phase") or "").upper()
+            if turn_phase in {"DISCARD_PHASE", "ROBBER_MOVE", "ROBBER_STEAL"}:
+                dice_line = (
+                    f"Current dice result: 7 ({dice_breakdown}). "
+                    "No resource production happens on 7; resolve the current discard/robber step."
+                )
+            else:
+                dice_line = (
+                    f"Current dice result: 7 ({dice_breakdown}). "
+                    "No resource production happened. The discard/robber step is already resolved; continue with normal build, trade, or end-turn actions."
+                )
         else:
             dice_line = (
                 f"Current dice result: {dice_total} ({dice_breakdown}). "
@@ -1414,17 +1421,17 @@ class AIManager:
         action_templates = {
             "BUILD_SETTLEMENT": {
                 "type": "build_settlement",
-                "description": "Build a settlement at a node",
+                "description": "Build a settlement at a node. Cost: wood 1, brick 1, sheep 1, wheat 1.",
                 "example_parameters": "{\"node\": X}"
             },
             "BUILD_CITY": {
                 "type": "build_city",
-                "description": "Upgrade a settlement to a city",
+                "description": "Upgrade one of your settlements to a city. Cost: ore 3, wheat 2.",
                 "example_parameters": "{\"node\": X}"
             },
             "BUILD_ROAD": {
                 "type": "build_road",
-                "description": "Build a road between two nodes",
+                "description": "Build a road between two nodes. Cost: wood 1, brick 1.",
                 "example_parameters": "{\"from\": X, \"to\": Y}"
             },
             "ROLL_DICE": {
@@ -1447,7 +1454,7 @@ class AIManager:
             },
             "BUY_DEV_CARD": {
                 "type": "buy_dev_card",
-                "description": "Buy a development card",
+                "description": "Buy a development card. Cost: sheep 1, wheat 1, ore 1.",
                 "example_parameters": "{}"
             },
             "USE_DEV_CARD": {
@@ -1455,6 +1462,7 @@ class AIManager:
                 "description": (
                     "Play a development card. Use exact card_type values: "
                     "knight, road_building, monopoly, year_of_plenty. "
+                    "Only choose this if game_state.players[your_name].dev.h contains a matching hidden card. "
                     "Victory points are counted automatically."
                 ),
                 "example_parameters": (

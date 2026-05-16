@@ -35,8 +35,9 @@ The entrypoint binds the setup/game server to the `PORT` supplied by Spaces, def
 
 Routes before a game starts:
 
-- `/` public landing page with links to start or watch replays.
-- `/settings` OpenRouter/replay setup form.
+- `/` public single-page app with `New game` and `Replay library`.
+- `/api/sessions` public replay sessions selected by the admin manifest.
+- `/api/admin/sessions` session availability list for the in-page admin panel.
 - `/healthz` lightweight health check.
 
 ## Optional CLI deploy
@@ -69,5 +70,7 @@ python scripts/deploy_hf_space.py <your-user>/PyCatan-AI --push
 ## Runtime notes
 
 - Users can watch/analyse public replay sessions without an OpenRouter key.
-- Starting a live AI game requires users to enter their own OpenRouter key unless you set `OPENROUTER_API_KEY` as a Space secret.
+- Starting a live AI game asks for OpenRouter and Gemini keys in the browser.
+- The Space entrypoint runs `play_public_entry.py`; when both `OPENROUTER_API_KEY` and `GEMINI_API_KEY` are configured as Space secrets, it adds `--use-env-keys` and the browser skips the API-key step.
+- Replay visibility is controlled by `examples/ai_testing/public_sessions.json`; the temporary admin unlock password in the client UI is `20209`.
 - The unified AI Analysis tab now reads `/api/current` from the same server, so the deployment does not need a second `5001` web viewer process.

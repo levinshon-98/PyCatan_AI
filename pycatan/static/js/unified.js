@@ -1081,13 +1081,18 @@ function handleBoardActionEvent(actionData) {
     if (eventType === 'USE_DEV_CARD' || actionType === 'USE_DEV_CARD') {
         const card = data.card || actionData.card || data.card_type || 'Development';
         const normalizedDev = normalizeDevCard(card);
+        const roadDetail = normalizedDev === 'road_building'
+            ? formatRoadEdgesForCardEvent(data.road_edges || data.roads)
+            : '';
         showBoardCardEvent({
             playerName,
             card,
             count: 1,
             mode: 'use',
             kind: 'dev',
-            detail: `used ${formatCardName(card, 'dev')}`
+            detail: roadDetail
+                ? `used ${formatCardName(card, 'dev')} to build roads ${roadDetail}`
+                : `used ${formatCardName(card, 'dev')}`
         });
 
         if (normalizedDev === 'year_of_plenty') {
@@ -1141,6 +1146,29 @@ function handleBoardActionEvent(actionData) {
             detail: `stole ${formatCardAmount(card, 1)} from ${data.victim}`
         });
     }
+}
+
+function formatRoadEdgesForCardEvent(roads) {
+    if (!roads) return '';
+    if (typeof roads === 'string') return roads;
+    if (!Array.isArray(roads)) return String(roads || '');
+
+    return roads.map(road => {
+        if (typeof road === 'string') return road;
+        if (Array.isArray(road) && road.length >= 2) return `${road[0]}-${road[1]}`;
+        if (road && typeof road === 'object') {
+            const start = road.start ?? road.from;
+            const end = road.end ?? road.to;
+            if (start !== undefined && end !== undefined) {
+                return `${formatRoadEndpointForCardEvent(start)}-${formatRoadEndpointForCardEvent(end)}`;
+            }
+        }
+        return '';
+    }).filter(Boolean).join(', ');
+}
+
+function formatRoadEndpointForCardEvent(endpoint) {
+    return Array.isArray(endpoint) ? endpoint.join(',') : String(endpoint);
 }
 
 function forEachResourceBundle(bundle, callback) {

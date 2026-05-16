@@ -328,6 +328,20 @@ class ConsoleVisualization(Visualization):
             return f"{player_name} bought a development card"
         elif action.action_type == ActionType.USE_DEV_CARD:
             card_type = action.parameters.get('card_type', 'development card')
+            road_edges = action.parameters.get('road_edges') or action.parameters.get('roads')
+            card_key = str(card_type).lower().replace(" ", "_")
+            if card_key in {"road", "road_building", "roadbuilding"} and road_edges:
+                if isinstance(road_edges, list):
+                    roads = []
+                    for road in road_edges:
+                        if isinstance(road, (list, tuple)) and len(road) >= 2:
+                            roads.append(f"{road[0]}-{road[1]}")
+                        else:
+                            roads.append(str(road))
+                    roads_text = ", ".join(roads)
+                else:
+                    roads_text = str(road_edges)
+                return f"{player_name} used Road Building to build roads {roads_text}"
             return f"{player_name} used {card_type}"
         elif action.action_type == ActionType.END_TURN:
             return f"{player_name} ended their turn"

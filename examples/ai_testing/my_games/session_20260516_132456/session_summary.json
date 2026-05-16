@@ -1,0 +1,1155 @@
+{
+  "session_id": "session_20260516_132456",
+  "start_time": "2026-05-16T13:24:56.516441",
+  "end_time": "2026-05-16T13:36:33.505333",
+  "duration_seconds": 696.988895,
+  "agents": {
+    "ג'מה": {
+      "player_name": "ג'מה",
+      "player_id": 0,
+      "player_color": "Red",
+      "memory": "Jimmy blocked Hex 5 (Brick 6). I am at 0 resources. Jimmy is no longer a reliable ally despite our early trade. Need to focus on getting Wheat/Wood to settle on N9 or N37 once the robber moves.",
+      "memory_updated_at": 1778927785.2007992,
+      "compacted_memory": "Settlements at N20 (B6, S8, W11) and N35 (Wh6, S11, O5). Road networks reached N9 and N37 (both 3:1 ports). Goal: Build settlements on N9 and N37. Resource strategy: High reliance on B6 and S8; need Wood and Wheat for expansion. Jimmy has strong Wheat (9, 6) and Brick; Gary is competitive at N43. Already used Road Building dev card. Current resource focus: Wood and Wheat/Sheep.",
+      "compacted_memory_updated_at": 1778927550.9830058,
+      "compaction_count": 1,
+      "memory_history": [
+        {
+          "note": "Used Road Building to reach 3:1 ports at nodes 9 and 37. Current resources: 1 Brick, 1 Sheep. Next goal: Get Wood and Wheat/Sheep to build settlements on those ports.",
+          "timestamp": 1778927522.9363163
+        },
+        {
+          "note": "I have reached nodes 9 and 37 (3:1 ports). I need Wood and Wheat to build. Just got a Sheep from the 8 roll. Proposing trade to Gary for Wheat.",
+          "timestamp": 1778927547.2843766
+        },
+        {
+          "note": "The 8 roll gave me a Sheep from node 20. I have 1 Brick and 1 Sheep. I need Wood and Wheat to build on my 3:1 ports at nodes 9 or 37.",
+          "timestamp": 1778927572.122116
+        },
+        {
+          "note": "I have 1 Brick and 1 Sheep. I just proposed a trade to Gary: 1 Sheep for 1 Wheat. My goal is to collect Wood and Wheat to build on my 3:1 ports at N9 or N37.",
+          "timestamp": 1778927596.8754826
+        },
+        {
+          "note": "Current resources: 1 Brick, 1 Sheep. Proposed Sheep for Wheat with Gary. Goal: Settlement on N9 (3:1 port). Need Wood and Wheat.",
+          "timestamp": 1778927616.899675
+        },
+        {
+          "note": "The 8 roll did not result in a Sheep in my inventory according to game_state.res, despite being on node 20. Need to monitor resource updates carefully. Current hand: 1 Brick.",
+          "timestamp": 1778927636.1734288
+        },
+        {
+          "note": "Gary stole from me. My hand is now empty (0 resources). I need to rebuild to get to nodes 9 or 37. Gary is currently at node 25 and 43, competing for space.",
+          "timestamp": 1778927736.6071773
+        },
+        {
+          "note": "Jimmy blocked Hex 5 (Brick 6). I am at 0 resources. Jimmy is no longer a reliable ally despite our early trade. Need to focus on getting Wheat/Wood to settle on N9 or N37 once the robber moves.",
+          "timestamp": 1778927785.2007992
+        }
+      ],
+      "relationship_context_updates": [
+        {
+          "note": "גרי: Holding a grudge/mistrust from a previous game; wary of betrayal.",
+          "timestamp": 1778927550.983009
+        },
+        {
+          "note": "ג'ימי: Established a baseline of fair trading (Sheep for Brick swap completed).",
+          "timestamp": 1778927550.9830103
+        }
+      ],
+      "relationship_context_updated_at": 1778927550.9830103,
+      "chat_summaries": [],
+      "recent_events": [
+        {
+          "type": "action_performed",
+          "message": "ג'מה ended their turn",
+          "timestamp": 1778927642.6300576,
+          "data": {
+            "affected_players": [
+              0
+            ]
+          }
+        },
+        {
+          "type": "turn_change",
+          "message": "Turn 7: Player 1's turn begins.",
+          "timestamp": 1778927642.6331596,
+          "data": {
+            "affected_players": []
+          }
+        },
+        {
+          "type": "robber",
+          "message": "🏴‍☠️ גרי must move the robber!",
+          "timestamp": 1778927682.6885407,
+          "data": {
+            "affected_players": []
+          }
+        },
+        {
+          "type": "dice_roll",
+          "message": "Rolled 7 (6+1)! 🏴‍☠️ Robber activated!",
+          "timestamp": 1778927682.6885471,
+          "data": {
+            "affected_players": []
+          }
+        },
+        {
+          "type": "action_performed",
+          "message": "FACTS evt=roll7 actor=גרי dice=7(6+1) prod={} next=discard_or_robber",
+          "timestamp": 1778927682.6890976,
+          "data": {
+            "affected_players": []
+          }
+        },
+        {
+          "type": "robber_moved",
+          "message": "🏴‍☠️ גרי moved the robber to [1, 0].",
+          "timestamp": 1778927731.4449825,
+          "data": {
+            "affected_players": []
+          }
+        },
+        {
+          "type": "steal_complete",
+          "message": "🎯 גרי stole a card from ג'מה (only adjacent player).",
+          "timestamp": 1778927731.445005,
+          "data": {
+            "affected_players": []
+          }
+        },
+        {
+          "type": "action_performed",
+          "message": "FACTS evt=robber actor=גרי hex=4 victim=ג'מה stolen=1",
+          "timestamp": 1778927731.4454384,
+          "data": {
+            "affected_players": [
+              1,
+              0
+            ]
+          }
+        },
+        {
+          "type": "action_performed",
+          "message": "גרי ended their turn",
+          "timestamp": 1778927753.7111633,
+          "data": {
+            "affected_players": [
+              1
+            ]
+          }
+        },
+        {
+          "type": "turn_change",
+          "message": "Turn 8: Player 2's turn begins.",
+          "timestamp": 1778927753.7117352,
+          "data": {
+            "affected_players": []
+          }
+        },
+        {
+          "type": "robber",
+          "message": "🏴‍☠️ ג'ימי must move the robber!",
+          "timestamp": 1778927759.4623616,
+          "data": {
+            "affected_players": []
+          }
+        },
+        {
+          "type": "dice_roll",
+          "message": "Rolled 7 (5+2)! 🏴‍☠️ Robber activated!",
+          "timestamp": 1778927759.4623652,
+          "data": {
+            "affected_players": []
+          }
+        },
+        {
+          "type": "action_performed",
+          "message": "FACTS evt=roll7 actor=ג'ימי dice=7(5+2) prod={} next=discard_or_robber",
+          "timestamp": 1778927759.4627545,
+          "data": {
+            "affected_players": []
+          }
+        },
+        {
+          "type": "robber_moved",
+          "message": "🏴‍☠️ ג'ימי moved the robber to [1, 1].",
+          "timestamp": 1778927778.9172764,
+          "data": {
+            "affected_players": []
+          }
+        },
+        {
+          "type": "robber_complete",
+          "message": "No players with cards adjacent to robber. Proceeding with turn.",
+          "timestamp": 1778927778.9172823,
+          "data": {
+            "affected_players": []
+          }
+        },
+        {
+          "type": "action_performed",
+          "message": "FACTS evt=robber actor=ג'ימי hex=5",
+          "timestamp": 1778927778.9176836,
+          "data": {
+            "affected_players": []
+          }
+        }
+      ],
+      "last_prompt_number": 16,
+      "stats": {
+        "player_name": "ג'מה",
+        "player_id": 0,
+        "total_requests": 16,
+        "successful_requests": 16,
+        "failed_requests": 0,
+        "total_tokens_used": 102113,
+        "success_rate": "100.0%"
+      }
+    },
+    "גרי": {
+      "player_name": "גרי",
+      "player_id": 1,
+      "player_color": "Blue",
+      "memory": "ג'מה distrusts me from past betrayal and is avoiding reliance on me. She has settlements at 20 and 35. Jimmy at 12 and 41. My settlements at 25 (yields S4/O3/Wh8) and 43. Resources: Wh:2, O:1, S:1, B:1. Robber now at 5 (B6 hex). Avoid proactive talk or trades unless clearly beneficial. Jimmy blocking ג'מה's progress.",
+      "memory_updated_at": 1778927785.602041,
+      "compacted_memory": "Board: H as provided; my settlements at 25 (S4/O3/Wh8, ~10 pips) & 43; ג'מה at 20 (B/S) & 35 (S/Wh/O); ג'ימי at 12 & 41 with roads 12-11, 41-42. Robber now at 4 (blocks ג'מה sheep at 20). My res: Wh2, O1, S1. Goal: upgrade settlements, reach port at 26 if possible. ג'מה distrusts me (past betrayal), avoids reliance, repeatedly offers sheep-for-wheat trades but miscounted 8 expecting sheep. Jimmy previously profited from deals with me; recently traded sheep-for-brick with ג'מה. Avoid proactive talk/trades unless clearly beneficial; no response to generic insults.",
+      "compacted_memory_updated_at": 1778927731.4373012,
+      "compaction_count": 1,
+      "memory_history": [
+        {
+          "note": "ג'מה distrusts me from past betrayal and is avoiding reliance on me. She has settlements at 20 and 35. Jimmy at 12 and 41. My settlements at 25 (yields S4/O3/Wh8) and 43. Resources: Wh:2, O:1, S:1. She miscounted on 8 expecting sheep but didn't get it. Avoid proactive talk or trades unless clearly beneficial.",
+          "timestamp": 1778927649.6063397
+        },
+        {
+          "note": "Robber moved to 4 blocking ג'מה's sheep at 20. Jimmy has settlement at 41 near 13/14 but not blocked now. ג'מה has 1B, I have Wh2 O1 S1.",
+          "timestamp": 1778927724.6202025
+        },
+        {
+          "note": "No build possible: missing wood for road/settlement, insufficient ore for city. No open high-pip nodes per find_best_nodes. Path 25-26 leads to O2 port but irrelevant now.",
+          "timestamp": 1778927753.7099833
+        },
+        {
+          "note": "ג'מה distrusts me from past betrayal and is avoiding reliance on me. She has settlements at 20 and 35. Jimmy at 12 and 41. My settlements at 25 (yields S4/O3/Wh8) and 43. Resources: Wh:2, O:1, S:1, B:1. Robber now at 5 (B6 hex). Avoid proactive talk or trades unless clearly beneficial. Jimmy blocking ג'מה's progress.",
+          "timestamp": 1778927785.602041
+        }
+      ],
+      "relationship_context_updates": [
+        {
+          "note": "ג'מה continues reinforcing distrust from past betrayal, repeatedly references it in chat and avoids reliance on me while",
+          "timestamp": 1778927731.4373062
+        }
+      ],
+      "relationship_context_updated_at": 1778927731.4373062,
+      "chat_summaries": [],
+      "recent_events": [
+        {
+          "type": "action_performed",
+          "message": "גרי ended their turn",
+          "timestamp": 1778927753.7111652,
+          "data": {
+            "affected_players": [
+              1
+            ]
+          }
+        },
+        {
+          "type": "turn_change",
+          "message": "Turn 8: Player 2's turn begins.",
+          "timestamp": 1778927753.7117362,
+          "data": {
+            "affected_players": []
+          }
+        },
+        {
+          "type": "robber",
+          "message": "🏴‍☠️ ג'ימי must move the robber!",
+          "timestamp": 1778927759.4623625,
+          "data": {
+            "affected_players": []
+          }
+        },
+        {
+          "type": "dice_roll",
+          "message": "Rolled 7 (5+2)! 🏴‍☠️ Robber activated!",
+          "timestamp": 1778927759.4623654,
+          "data": {
+            "affected_players": []
+          }
+        },
+        {
+          "type": "action_performed",
+          "message": "FACTS evt=roll7 actor=ג'ימי dice=7(5+2) prod={} next=discard_or_robber",
+          "timestamp": 1778927759.4627554,
+          "data": {
+            "affected_players": []
+          }
+        },
+        {
+          "type": "robber_moved",
+          "message": "🏴‍☠️ ג'ימי moved the robber to [1, 1].",
+          "timestamp": 1778927778.9172778,
+          "data": {
+            "affected_players": []
+          }
+        },
+        {
+          "type": "robber_complete",
+          "message": "No players with cards adjacent to robber. Proceeding with turn.",
+          "timestamp": 1778927778.9172828,
+          "data": {
+            "affected_players": []
+          }
+        },
+        {
+          "type": "action_performed",
+          "message": "FACTS evt=robber actor=ג'ימי hex=5",
+          "timestamp": 1778927778.9176846,
+          "data": {
+            "affected_players": []
+          }
+        }
+      ],
+      "last_prompt_number": 16,
+      "stats": {
+        "player_name": "גרי",
+        "player_id": 1,
+        "total_requests": 16,
+        "successful_requests": 16,
+        "failed_requests": 0,
+        "total_tokens_used": 107687,
+        "success_rate": "100.0%"
+      }
+    },
+    "ג'ימי": {
+      "player_name": "ג'ימי",
+      "player_id": 2,
+      "player_color": "White",
+      "memory": "Robber should go to hex 5. Verified: hex 5 = Brick 6, adjacent to nodes 12 (me) and 20 (Jemma); hex 11 = Ore 3 adjacent to 25 (Gary) and 35 (Jemma); hex 13 = Brick 10 adjacent to 41 (me) only.",
+      "memory_updated_at": 1778927773.7451882,
+      "compacted_memory": "Board facts: current turn is ג'מה, dice 8, robber on hex 10. My settlements are at nodes 12 and 41, with roads 12-11 and 41-42. Jemma’s settlements are at 20 and 35 with roads 20-10, 10-9, 35-36, 36-37. Gary’s settlements are at 25 and 43 with roads 25-26 and 43-42. My current hand is Wh:1, O:1, S:1; Jemma has B:1; Gary has Wh:2, O:1, S:1. Jemma bought a development card and is trying to advance; she previously used Road Building and extended toward 1-2↔1-1 and 3-8↔3-9. Strategic memory: the strongest verified opening/expansion line for me was node 42 from 41, so keep pushing that corridor if still available, with deeper access toward 43/50 and the ?3 port route. Jemma is likely resource-poor but active; Gary may be a trading/board threat and Jemma explicitly distrusts him. Social/trade memory: I have a confirmed good trade with Jemma (she offered sheep for my brick, which I accepted as fair earlier), so she is at least usable as a trading partner when not competing directly. Avoid overstating certainty about her plans beyond what she has said aloud.",
+      "compacted_memory_updated_at": 1778927540.496925,
+      "compaction_count": 1,
+      "memory_history": [
+        {
+          "note": "ג'מה קנתה קלף פיתוח וממשיכה לתכנן התקדמות. לא נדרשה תגובה חברתית.",
+          "timestamp": 1778927510.9076345
+        },
+        {
+          "note": "ג'מה כרגע בתור, קוביות 8, השודד על 10. מהלך אחרון: Road Building והנחת כבישים 1-2↔1-1 ו-3-8↔3-9. יש לי היסטוריית עסקה טובה איתה (כבשה תמורת טיט).",
+          "timestamp": 1778927536.845826
+        },
+        {
+          "note": "ג'מה אמרה שכנראה טעתה בספירה וסיימה תור. אין צורך בתגובה חברתית כרגע; נשמור על שקט. מצב ידוע: היא נראית עם מעט משאבים ושומרת מרחק מג'רי.",
+          "timestamp": 1778927647.7964451
+        },
+        {
+          "note": "My resources: Wh 1, O 1, S 1. My settlements at 12 and 41; roads 12-11 and 41-42. Robber currently on hex 10. No hidden dev cards shown for me.",
+          "timestamp": 1778927759.461751
+        },
+        {
+          "note": "Robber should go to hex 5. Verified: hex 5 = Brick 6, adjacent to nodes 12 (me) and 20 (Jemma); hex 11 = Ore 3 adjacent to 25 (Gary) and 35 (Jemma); hex 13 = Brick 10 adjacent to 41 (me) only.",
+          "timestamp": 1778927773.7451882
+        }
+      ],
+      "relationship_context_updates": [
+        {
+          "note": "Jemma is mildly more trustworthy as a trader with me after the sheep-for-brick deal, but remains suspicious of Gary and",
+          "timestamp": 1778927540.4969277
+        }
+      ],
+      "relationship_context_updated_at": 1778927540.4969277,
+      "chat_summaries": [],
+      "recent_events": [
+        {
+          "type": "robber_moved",
+          "message": "🏴‍☠️ ג'ימי moved the robber to [1, 1].",
+          "timestamp": 1778927778.9172783,
+          "data": {
+            "affected_players": []
+          }
+        },
+        {
+          "type": "robber_complete",
+          "message": "No players with cards adjacent to robber. Proceeding with turn.",
+          "timestamp": 1778927778.917283,
+          "data": {
+            "affected_players": []
+          }
+        },
+        {
+          "type": "action_performed",
+          "message": "FACTS evt=robber actor=ג'ימי hex=5",
+          "timestamp": 1778927778.9176853,
+          "data": {
+            "affected_players": []
+          }
+        }
+      ],
+      "last_prompt_number": 14,
+      "stats": {
+        "player_name": "ג'ימי",
+        "player_id": 2,
+        "total_requests": 14,
+        "successful_requests": 13,
+        "failed_requests": 0,
+        "total_tokens_used": 44124,
+        "success_rate": "92.9%"
+      }
+    }
+  },
+  "final_game_state": {
+    "meta": {
+      "curr": "ג'ימי",
+      "phase": "NORMAL_PLAY",
+      "turn_phase": "PLAYER_ACTIONS",
+      "robber": 5,
+      "dice": [
+        5,
+        2
+      ],
+      "vp_to_win": 5,
+      "dice_total": 7
+    },
+    "H": [
+      "",
+      "W12",
+      "S5",
+      "W4",
+      "S8",
+      "B6",
+      "W3",
+      "Wh8",
+      "B10",
+      "W11",
+      "D",
+      "O3",
+      "S4",
+      "B10",
+      "Wh9",
+      "Wh6",
+      "S11",
+      "O5",
+      "Wh9",
+      "O2"
+    ],
+    "N": [
+      null,
+      [
+        [
+          2,
+          9
+        ],
+        [
+          1
+        ]
+      ],
+      [
+        [
+          1,
+          3
+        ],
+        [
+          1
+        ],
+        "Wh2"
+      ],
+      [
+        [
+          2,
+          4,
+          11
+        ],
+        [
+          2,
+          1
+        ],
+        "Wh2"
+      ],
+      [
+        [
+          3,
+          5
+        ],
+        [
+          2
+        ]
+      ],
+      [
+        [
+          4,
+          6,
+          13
+        ],
+        [
+          3,
+          2
+        ]
+      ],
+      [
+        [
+          5,
+          7
+        ],
+        [
+          3
+        ],
+        "B2"
+      ],
+      [
+        [
+          6,
+          15
+        ],
+        [
+          3
+        ],
+        "B2"
+      ],
+      [
+        [
+          9,
+          18
+        ],
+        [
+          4
+        ],
+        "?3"
+      ],
+      [
+        [
+          8,
+          10,
+          1
+        ],
+        [
+          4,
+          1
+        ],
+        "?3"
+      ],
+      [
+        [
+          9,
+          11,
+          20
+        ],
+        [
+          5,
+          4,
+          1
+        ]
+      ],
+      [
+        [
+          10,
+          12,
+          3
+        ],
+        [
+          5,
+          2,
+          1
+        ]
+      ],
+      [
+        [
+          11,
+          13,
+          22
+        ],
+        [
+          6,
+          5,
+          2
+        ]
+      ],
+      [
+        [
+          12,
+          14,
+          5
+        ],
+        [
+          6,
+          3,
+          2
+        ]
+      ],
+      [
+        [
+          13,
+          15,
+          24
+        ],
+        [
+          7,
+          6,
+          3
+        ]
+      ],
+      [
+        [
+          14,
+          16,
+          7
+        ],
+        [
+          7,
+          3
+        ]
+      ],
+      [
+        [
+          15,
+          26
+        ],
+        [
+          7
+        ],
+        "O2"
+      ],
+      [
+        [
+          18,
+          28
+        ],
+        [
+          8
+        ],
+        "S2"
+      ],
+      [
+        [
+          17,
+          19,
+          8
+        ],
+        [
+          8,
+          4
+        ]
+      ],
+      [
+        [
+          18,
+          20,
+          30
+        ],
+        [
+          9,
+          8,
+          4
+        ]
+      ],
+      [
+        [
+          19,
+          21,
+          10
+        ],
+        [
+          9,
+          5,
+          4
+        ]
+      ],
+      [
+        [
+          20,
+          22,
+          32
+        ],
+        [
+          10,
+          9,
+          5
+        ]
+      ],
+      [
+        [
+          21,
+          23,
+          12
+        ],
+        [
+          10,
+          6,
+          5
+        ]
+      ],
+      [
+        [
+          22,
+          24,
+          34
+        ],
+        [
+          11,
+          10,
+          6
+        ]
+      ],
+      [
+        [
+          23,
+          25,
+          14
+        ],
+        [
+          11,
+          7,
+          6
+        ]
+      ],
+      [
+        [
+          24,
+          26,
+          36
+        ],
+        [
+          12,
+          11,
+          7
+        ]
+      ],
+      [
+        [
+          25,
+          27,
+          16
+        ],
+        [
+          12,
+          7
+        ],
+        "O2"
+      ],
+      [
+        [
+          26,
+          38
+        ],
+        [
+          12
+        ]
+      ],
+      [
+        [
+          29,
+          17
+        ],
+        [
+          8
+        ],
+        "S2"
+      ],
+      [
+        [
+          28,
+          30,
+          39
+        ],
+        [
+          13,
+          8
+        ]
+      ],
+      [
+        [
+          29,
+          31,
+          19
+        ],
+        [
+          13,
+          9,
+          8
+        ]
+      ],
+      [
+        [
+          30,
+          32,
+          41
+        ],
+        [
+          14,
+          13,
+          9
+        ]
+      ],
+      [
+        [
+          31,
+          33,
+          21
+        ],
+        [
+          14,
+          10,
+          9
+        ]
+      ],
+      [
+        [
+          32,
+          34,
+          43
+        ],
+        [
+          15,
+          14,
+          10
+        ]
+      ],
+      [
+        [
+          33,
+          35,
+          23
+        ],
+        [
+          15,
+          11,
+          10
+        ]
+      ],
+      [
+        [
+          34,
+          36,
+          45
+        ],
+        [
+          16,
+          15,
+          11
+        ]
+      ],
+      [
+        [
+          35,
+          37,
+          25
+        ],
+        [
+          16,
+          12,
+          11
+        ]
+      ],
+      [
+        [
+          36,
+          38,
+          47
+        ],
+        [
+          16,
+          12
+        ],
+        "?3"
+      ],
+      [
+        [
+          37,
+          27
+        ],
+        [
+          12
+        ],
+        "?3"
+      ],
+      [
+        [
+          40,
+          29
+        ],
+        [
+          13
+        ]
+      ],
+      [
+        [
+          39,
+          41,
+          48
+        ],
+        [
+          17,
+          13
+        ],
+        "W2"
+      ],
+      [
+        [
+          40,
+          42,
+          31
+        ],
+        [
+          17,
+          14,
+          13
+        ]
+      ],
+      [
+        [
+          41,
+          43,
+          50
+        ],
+        [
+          18,
+          17,
+          14
+        ]
+      ],
+      [
+        [
+          42,
+          44,
+          33
+        ],
+        [
+          18,
+          15,
+          14
+        ]
+      ],
+      [
+        [
+          43,
+          45,
+          52
+        ],
+        [
+          19,
+          18,
+          15
+        ]
+      ],
+      [
+        [
+          44,
+          46,
+          35
+        ],
+        [
+          19,
+          16,
+          15
+        ]
+      ],
+      [
+        [
+          45,
+          47,
+          54
+        ],
+        [
+          19,
+          16
+        ]
+      ],
+      [
+        [
+          46,
+          37
+        ],
+        [
+          16
+        ]
+      ],
+      [
+        [
+          49,
+          40
+        ],
+        [
+          17
+        ],
+        "W2"
+      ],
+      [
+        [
+          48,
+          50
+        ],
+        [
+          17
+        ]
+      ],
+      [
+        [
+          49,
+          51,
+          42
+        ],
+        [
+          18,
+          17
+        ],
+        "?3"
+      ],
+      [
+        [
+          50,
+          52
+        ],
+        [
+          18
+        ],
+        "?3"
+      ],
+      [
+        [
+          51,
+          53,
+          44
+        ],
+        [
+          19,
+          18
+        ]
+      ],
+      [
+        [
+          52,
+          54
+        ],
+        [
+          19
+        ],
+        "?3"
+      ],
+      [
+        [
+          53,
+          46
+        ],
+        [
+          19
+        ],
+        "?3"
+      ]
+    ],
+    "state": {
+      "bld": [
+        [
+          12,
+          "ג'ימי",
+          "S"
+        ],
+        [
+          20,
+          "ג'מה",
+          "S"
+        ],
+        [
+          25,
+          "גרי",
+          "S"
+        ],
+        [
+          35,
+          "ג'מה",
+          "S"
+        ],
+        [
+          41,
+          "ג'ימי",
+          "S"
+        ],
+        [
+          43,
+          "גרי",
+          "S"
+        ]
+      ],
+      "rds": [
+        [
+          [
+            20,
+            10
+          ],
+          "ג'מה"
+        ],
+        [
+          [
+            43,
+            42
+          ],
+          "גרי"
+        ],
+        [
+          [
+            12,
+            11
+          ],
+          "ג'ימי"
+        ],
+        [
+          [
+            41,
+            42
+          ],
+          "ג'ימי"
+        ],
+        [
+          [
+            25,
+            26
+          ],
+          "גרי"
+        ],
+        [
+          [
+            35,
+            36
+          ],
+          "ג'מה"
+        ],
+        [
+          [
+            10,
+            9
+          ],
+          "ג'מה"
+        ],
+        [
+          [
+            36,
+            37
+          ],
+          "ג'מה"
+        ]
+      ]
+    },
+    "players": {
+      "ג'מה": {
+        "vp": 2,
+        "res": {}
+      },
+      "גרי": {
+        "vp": 2,
+        "res": {
+          "Wh": 2,
+          "B": 1,
+          "O": 1,
+          "S": 1
+        }
+      },
+      "ג'ימי": {
+        "vp": 2,
+        "res": {
+          "Wh": 1,
+          "O": 1,
+          "S": 1
+        }
+      }
+    }
+  }
+}

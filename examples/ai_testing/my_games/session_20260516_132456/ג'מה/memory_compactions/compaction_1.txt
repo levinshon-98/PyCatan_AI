@@ -1,0 +1,65 @@
+Memory Compaction #1 for ג'מה
+Time: 2026-05-16T13:32:30.987584
+
+=== BEFORE: Existing Long-Term Summary ===
+(none)
+
+=== BEFORE: Old Notes Compacted ===
+- Placed first settlement on node 20 (Brick 6, Sheep 8, Wood 11). Strong expansion potential.
+- Started at node 20. Moving road towards node 10 to aim for the 11-pip node and the 3:1 port.
+- Jimmy has a strong Wheat setup (9, 6). Gari is nearby at node 43. I need to monitor if Jimmy or Gari block my path to the 3:1 port at node 9/10.
+- Second settlement placed on node 35. I now have access to all resources: Brick (6), Sheep (8, 11), Wood (11), Wheat (6), and Ore (3). Priority: build towards the 3:1 port or expand towards the Wheat 9 / Ore 5 area if possible.
+- Placed second road towards node 36, aiming for the 3:1 port at node 37. This complements my first settlement's path toward the other 3:1 port at node 9.
+- I have access to all resources. My next goals are to expand towards the 3:1 ports at nodes 9 or 37 to improve trading flexibility, especially since I have strong 6s and 8s for Brick, Sheep, and Wheat.
+- I am aiming for the 3:1 ports at nodes 9 or 37. I need Wood and Brick. ג'ימי has Brick from his initial placement.
+- Bought a dev card. Still need Wood to expand towards the 3:1 ports at node 9 or 37. Node 10 and 36 are blocked for settlements due to the distance rule.
+
+=== BEFORE: Recent Notes Kept Verbatim ===
+- Used Road Building to reach 3:1 ports at nodes 9 and 37. Current resources: 1 Brick, 1 Sheep. Next goal: Get Wood and Wheat/Sheep to build settlements on those ports.
+- I have reached nodes 9 and 37 (3:1 ports). I need Wood and Wheat to build. Just got a Sheep from the 8 roll. Proposing trade to Gary for Wheat.
+
+=== BEFORE: Relevant Chat Considered ===
+- ג'מה: טוב, אני אתחיל כאן על הטיט והכבשים. גרי, אני מקווה שהפעם תשחק הוגן ולא תנסה לעקוץ כמו במשחק הקודם.
+- ג'מה: אני אלך על הפינה הזאת של החיטה והאבן. ג'ימי, אני רואה שאתה כבר מסודר על ה-9, אז לפחות שיהיה לי קצת ממה שצריך כדי לא להיתקע מאחור.
+- ג'מה: יאללה, בואו נראה מה הקוביות אומרות. מקווה לראות הרבה 6 ו-8 על ההתחלה.
+- ג'מה: ג'ימי, יש לך טיט פנוי? אני מוכנה לתת כבשה בתמורה. גרי, אני עדיין זוכרת מה עשית פעם קודמת, אז אל תצפה למתנות.
+- ג'מה: יופי, הטיט הגיע בזמן. אני אנסה להתקדם עם קלף פיתוח בינתיים, נראה מה יצא.
+- ג'מה: הגיע הזמן לקצת תנועה על הלוח. אני אנצל את קלף הפיתוח שלי כדי להתקרב לנמלים, אולי ככה יהיה לי קצת יותר קל להסתדר בלי טובות מאחרים.
+- ג'ימי: נו, זה די ברור — אני לוקח את 42.
+- ג'ימי: בסדר, סגור. נראה לך חיטה ואבן—לא רע בכלל.
+- ג'ימי: סגור. כבשה על טיט זה הוגן.
+
+=== AFTER: New Long-Term Summary ===
+Settlements at N20 (B6, S8, W11) and N35 (Wh6, S11, O5). Road networks reached N9 and N37 (both 3:1 ports). Goal: Build settlements on N9 and N37. Resource strategy: High reliance on B6 and S8; need Wood and Wheat for expansion. Jimmy has strong Wheat (9, 6) and Brick; Gary is competitive at N43. Already used Road Building dev card. Current resource focus: Wood and Wheat/Sheep.
+
+=== AFTER: Fallback Status ===
+used=False
+reason=(none)
+
+=== AFTER: Relationship Updates ===
+["גרי: Holding a grudge/mistrust from a previous game; wary of betrayal.", "ג'ימי: Established a baseline of fair trading (Sheep for Brick swap completed)."]
+
+=== AFTER: Discarded As Irrelevant ===
+["Initial placement details", "Generic dice hopes", "Completed road building card usage", "Distance rule reminders"]
+
+=== RAW LLM RESPONSE PREVIEW ===
+{
+  "compacted_memory": "Settlements at N20 (B6, S8, W11) and N35 (Wh6, S11, O5). Road networks reached N9 and N37 (both 3:1 ports). Goal: Build settlements on N9 and N37. Resource strategy: High reliance on B6 and S8; need Wood and Wheat for expansion. Jimmy has strong Wheat (9, 6) and Brick; Gary is competitive at N43. Already used Road Building dev card. Current resource focus: Wood and Wheat/Sheep.",
+  "recent_notes_to_keep": [
+    "Used Road Building to reach 3:1 ports at nodes 9 and 37. Current resources: 1 Brick, 1 Sheep. Next goal: Get Wood and Wheat/Sheep to build settlements on those ports.",
+    "I have reached nodes 9 and 37 (3:1 ports). I need Wood and Wheat to build. Just got a Sheep from the 8 roll. Proposing trade to Gary for Wheat."
+  ],
+  "discarded_as_irrelevant": [
+    "Initial placement details",
+    "Generic dice hopes",
+    "Completed road building card usage",
+    "Distance rule reminders"
+  ],
+  "relationship_updates": [
+    "גרי: Holding a grudge/mistrust from a previous game; wary of betrayal.",
+    "ג'ימי: Established a baseline of fair trading (Sheep for Brick swap completed)."
+  ]
+}
+
+JSON artifact:
+examples\ai_testing\my_games\session_20260516_132456\ג'מה\memory_compactions\compaction_1.json

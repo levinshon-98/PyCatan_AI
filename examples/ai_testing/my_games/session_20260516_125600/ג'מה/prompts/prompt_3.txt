@@ -1,0 +1,74 @@
+=== Prompt #3 for ג'מה ===
+Timestamp: 2026-05-16T12:57:22.598520
+Active Turn: False
+
+--- What Happened ---
+Event 1: קלוד said: "אני לוקח את ה-43, שלוש חיטות טובות. בואו נראה מי יהיה לנו כאן."
+You may react only with table talk or memory. Do not choose a board action.
+Source player: קלוד
+Reaction event id: 1:1:PLACE_STARTING_SETTLEMENT:3:0
+
+--- Tools Available ---
+N/A
+
+--- Response Schema ---
+{
+  "type": "object",
+  "required": [
+    "internal_thinking"
+  ],
+  "properties": {
+    "internal_thinking": {
+      "type": "string",
+      "description": "Private thoughts while watching. What are opponents doing? Any threats? What's your plan for your next turn?",
+      "minLength": 30
+    },
+    "note_to_self": {
+      "type": "string",
+      "description": "Save only useful observations for future turns. Prefer facts verified by tools or explicit game_state; omit uncertain board facts.",
+      "maxLength": 100
+    },
+    "say_outloud": {
+      "type": "string",
+      "description": "React naturally in Hebrew only. You have emotions and may express them when it matters. דבר כמו בן אדם, לא כמו קריין. בלי פילרים, נרטיב מיותר ובלי להסביר את המובן מאליו. Can be empty if nothing notable. Catan manners are loose: be blunt or emotional when it matters. Keep it non-technical. Use exact Hebrew resource names: brick=טיט, ore=אבן, sheep=כבשה, wheat=חיטה. Avoid confident factual board claims unless verified by tools or explicit game_state.",
+      "maxLength": 120
+    }
+  },
+  "propertyOrdering": [
+    "internal_thinking",
+    "note_to_self",
+    "say_outloud"
+  ]
+}
+
+--- Prompt Content ---
+{
+  "meta_data": {
+    "agent_name": "ג'מה",
+    "game_context": "CONTEXT: You are playing Catan to 5 victory points. The first player to reach 5 VP wins.",
+    "relationship_context": "Relationship context: This table has shared history. ג'מה usually tries to keep the table fair and remembers loyalty. קלוד is a charming dealmaker who betrayed ג'מה late in the last game. ג'ימי warned ג'מה about קלוד, but also took a useful side trade from קלוד. Your angle: קלוד hurt your trust; ג'ימי warned you, but their side trade means they are not completely neutral. Use this only for table talk, trust, trades, and tie-breakers; your board decisions should still prioritize strong legal Catan play."
+  },
+  "task_context": {
+    "what_just_happened": "Event 1: קלוד said: \"אני לוקח את ה-43, שלוש חיטות טובות. בואו נראה מי יהיה לנו כאן.\"\nYou may react only with table talk or memory. Do not choose a board action.\nSource player: קלוד\nReaction event id: 1:1:PLACE_STARTING_SETTLEMENT:3:0",
+    "instructions": "You are not taking a board action now. You may only react socially. Usually leave say_outloud empty; silence is the normal and preferred response to generic table talk. Reply only if you were addressed, insulted, threatened, directly harmed, offered a meaningful deal, or if the event matters for relationships or long-term strategy. Do not answer every message. If you do speak, write natural Hebrew only, keep it brief, human, and non-technical. Use exact Hebrew resource names: brick=טיט, ore=אבן, sheep=כבשה, wheat=חיטה. You may update note_to_self with useful strategy context."
+  },
+  "game_state": "\n  1. LOOKUP TABLES:\n   • \"H\" (Hexes): Array where Index = HexID. Value = Resource+Num.\n     Example: H[1]=\"W12\" -> Hex 1 is Wood 12.\n   • \"N\" (Nodes): Array where Index = NodeID.\n     Format: [ [Neighbors], [HexIDs], Port? ]\n     Logic: To find yield of Node 10, check N[10]. Get HexIDs (e.g. [1,5]). Look up H[1] and H[5].\n\n2. CODES: W=Wood, B=Brick, S=Sheep, Wh=Wheat, O=Ore, D=Desert.\n          ?3=Any 3:1 port, X2=Specific Resource 2:1 port.\n\n3. STATE: \"bld\"=[NodeID, Owner, Type], \"rds\"=[[From,To], Owner].\n\n4. PLAYERS: \"res\"={Resource:Count}, \"dev\"={\"h\":[Hidden Cards], \"r\":[Revealed] (K=Knight)}, \n            \"stat\"=[\"LR\" (Longest Road), \"LA\" (Largest Army)].\n\n5. ROBBER: Located at HexID specified in \"meta.robber\". H[id] is blocked.\n\nJSON:\n{\"meta\":{\"curr\":\"קלוד\",\"phase\":\"SETUP_FIRST_ROUND\",\"robber\":10,\"dice\":null,\"vp_to_win\":5},\"H\":[\"\",\"W12\",\"S5\",\"W4\",\"S8\",\"B6\",\"W3\",\"Wh8\",\"B10\",\"W11\",\"D\",\"O3\",\"S4\",\"B10\",\"Wh9\",\"Wh6\",\"S11\",\"O5\",\"Wh9\",\"O2\"],\"N\":[null,[[2,9],[1]],[[1,3],[1],\"Wh2\"],[[2,4,11],[2,1],\"Wh2\"],[[3,5],[2]],[[4,6,13],[3,2]],[[5,7],[3],\"B2\"],[[6,15],[3],\"B2\"],[[9,18],[4],\"?3\"],[[8,10,1],[4,1],\"?3\"],[[9,11,20],[5,4,1]],[[10,12,3],[5,2,1]],[[11,13,22],[6,5,2]],[[12,14,5],[6,3,2]],[[13,15,24],[7,6,3]],[[14,16,7],[7,3]],[[15,26],[7],\"O2\"],[[18,28],[8],\"S2\"],[[17,19,8],[8,4]],[[18,20,30],[9,8,4]],[[19,21,10],[9,5,4]],[[20,22,32],[10,9,5]],[[21,23,12],[10,6,5]],[[22,24,34],[11,10,6]],[[23,25,14],[11,7,6]],[[24,26,36],[12,11,7]],[[25,27,16],[12,7],\"O2\"],[[26,38],[12]],[[29,17],[8],\"S2\"],[[28,30,39],[13,8]],[[29,31,19],[13,9,8]],[[30,32,41],[14,13,9]],[[31,33,21],[14,10,9]],[[32,34,43],[15,14,10]],[[33,35,23],[15,11,10]],[[34,36,45],[16,15,11]],[[35,37,25],[16,12,11]],[[36,38,47],[16,12],\"?3\"],[[37,27],[12],\"?3\"],[[40,29],[13]],[[39,41,48],[17,13],\"W2\"],[[40,42,31],[17,14,13]],[[41,43,50],[18,17,14]],[[42,44,33],[18,15,14]],[[43,45,52],[19,18,15]],[[44,46,35],[19,16,15]],[[45,47,54],[19,16]],[[46,37],[16]],[[49,40],[17],\"W2\"],[[48,50],[17]],[[49,51,42],[18,17],\"?3\"],[[50,52],[18],\"?3\"],[[51,53,44],[19,18]],[[52,54],[19],\"?3\"],[[53,46],[19],\"?3\"]],\"state\":{\"bld\":[[20,\"ג'מה\",\"S\"],[43,\"קלוד\",\"S\"]],\"rds\":[[[20,10],\"ג'מה\"]]},\"players\":{\"ג'מה\":{\"vp\":1,\"res\":{}},\"קלוד\":{\"vp\":1,\"res\":{}},\"ג'ימי\":{\"vp\":0,\"res\":{}}}}",
+  "social_context": {
+    "recent_chat": [
+      {
+        "from": "ג'מה",
+        "message": "טוב, בואו נתחיל. אני אלך על ה-6 וה-8, נראה לי כמו מקום טוב להתבסס עליו."
+      },
+      {
+        "from": "קלוד",
+        "message": "אני לוקח את ה-43, שלוש חיטות טובות. בואו נראה מי יהיה לנו כאן."
+      }
+    ]
+  },
+  "memory": {
+    "note_from_last_turn": "Placed starting road from 20 to 10. Planning to reach node 11 for Wood 12/Sheep 5/Brick 6 or node 9 for the 3:1 port.",
+    "recent_notes": [
+      "Placed first settlement on node 20 (Brick 6, Sheep 8, Wood 11). Strong starting production."
+    ]
+  }
+}

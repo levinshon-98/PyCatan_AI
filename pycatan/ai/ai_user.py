@@ -155,10 +155,11 @@ class AIUser(User):
     
     def _save_llm_memory_and_chat(self, llm_response: Dict[str, Any]) -> None:
         """
-        Save memory and chat from LLM response to agent state.
+        Save memory from an LLM response to agent state.
         
-        This ensures note_to_self and say_outloud are preserved even when
-        the user provides a manual action override.
+        Active-turn say_outloud is intentionally not broadcast here: it is
+        attached to the eventual Action and only spoken after that action
+        succeeds.
         """
         agent = self.ai_manager.get_agent(self.name)
         if not agent:
@@ -172,11 +173,6 @@ class AIUser(User):
             # Save memories to file for web viewer
             self.ai_manager.logger.save_agent_memories(self.ai_manager.agents)
 
-        # Broadcast say_outloud to chat
-        say_outloud = llm_response.get("say_outloud")
-        if say_outloud:
-            self.ai_manager._broadcast_chat(self.name, say_outloud)
-    
     def _show_help(self):
         """Show help for manual input."""
         print("""
@@ -630,7 +626,7 @@ class AIUser(User):
         # Forward to AIManager for storage
         self.ai_manager.on_game_event(event_type, message, affected_players)
     
-    def notify_action(self, action: Action, success: bool, message: str = "") -> None:
+    def notify_action(self, action: Optional[Action], success: bool, message: str = "") -> None:
         """
         Notify about an action result.
         
@@ -639,17 +635,39 @@ class AIUser(User):
             success: Whether it succeeded
             message: Additional message
         """
-        if not success and message:
+        action_player_id = getattr(action, "player_id", None)
+        action_parameters = getattr(action, "parameters", {})
+
+        if success:
+            if action_player_id != self.user_id:
+                return
+            say_outloud = ""
+            if isinstance(action_parameters, dict):
+                if action_parameters.get("_ai_say_outloud_public"):
+                    return
+                say_outloud = (action_parameters.get("_ai_say_outloud") or "").strip()
+            if say_outloud:
+                self.ai_manager._broadcast_chat(self.name, say_outloud)
+            return
+
+        if message:
             print(f"    [!] Action failed: {message}")
             agent = self.ai_manager.get_agent(self.name)
             if agent:
-                action_name = action.action_type.name if hasattr(action.action_type, "name") else str(action.action_type)
+                action_type = getattr(action, "action_type", None)
+                action_name = action_type.name if hasattr(action_type, "name") else str(action_type)
+                speech_note = "The say_outloud from that failed attempt was not said publicly; choose a new legal action."
+                if isinstance(action_parameters, dict) and action_parameters.get("_ai_say_outloud_public"):
+                    speech_note = "Your say_outloud was already said publicly; choose a new legal action."
                 agent.add_event(
                     "action_failed",
-                    f"Your previous action failed: {action_name} {action.parameters}. Error: {message}",
+                    (
+                        f"Your previous action failed: {action_name} {action_parameters}. Error: {message}. "
+                        f"{speech_note}"
+                    ),
                     {
                         "action_type": action_name,
-                        "parameters": action.parameters,
+                        "parameters": action_parameters,
                         "error": message,
                     }
                 )
@@ -689,9 +707,49 @@ class AIUser(User):
         """Forward structured trade offer information to the shared AI manager."""
         self.ai_manager.record_trade_offer(trade_id, proposer, target, offer, request)
 
+    def notify_invalid_trade_attempt(
+        self,
+        proposer: str,
+        target: str,
+        offer: Dict[str, Any],
+        request: Dict[str, Any],
+        reason: str
+    ) -> None:
+        """
+        Record a private event when someone tried to trade with this player
+        but the trade was not legally possible.
+        """
+        agent = self.ai_manager.get_agent(self.name)
+        if not agent:
+            return
+
+        offer_text = self._format_resource_bundle(offer)
+        request_text = self._format_resource_bundle(request)
+        agent.add_event(
+            "trade_attempt_failed",
+            (
+                f"{proposer} tried to propose a trade to you: "
+                f"[{offer_text}] for [{request_text}], but {reason}. "
+                "No trade is pending; you do not need to accept or reject it."
+            ),
+            {
+                "proposer": proposer,
+                "target": target,
+                "offer": offer,
+                "request": request,
+                "reason": reason,
+            }
+        )
+
     def notify_trade_response(self, trade_id: str, status: str, responder: str) -> None:
         """Forward structured trade response information to the shared AI manager."""
         self.ai_manager.record_trade_response(trade_id, status, responder)
+
+    def _format_resource_bundle(self, resources: Dict[str, Any]) -> str:
+        """Format a resource-count dict for private event messages."""
+        if not resources:
+            return "nothing"
+        return ", ".join(f"{amount}x {resource}" for resource, amount in resources.items())
     
     def __str__(self) -> str:
         return f"AIUser(name='{self.name}', id={self.user_id}, color='{self.color}')"

@@ -89,6 +89,28 @@ class LogEntry:
                 name = name.split(".")[-1]
             parts.append(f"{amount}x {name}")
         return ", ".join(parts) if parts else "nothing"
+
+    def _format_road_edges(self, roads: Any) -> str:
+        """Format road edge data for event text."""
+        if not roads:
+            return ""
+
+        if isinstance(roads, str):
+            return roads
+
+        parts = []
+        if isinstance(roads, list):
+            for road in roads:
+                if isinstance(road, (list, tuple)) and len(road) >= 2:
+                    parts.append(f"{road[0]}-{road[1]}")
+                elif isinstance(road, dict):
+                    start = road.get("start") or road.get("from")
+                    end = road.get("end") or road.get("to")
+                    if start is not None and end is not None:
+                        parts.append(f"{start}-{end}")
+                elif road:
+                    parts.append(str(road))
+        return ", ".join(parts)
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization"""
@@ -200,6 +222,14 @@ class LogEntry:
         
         elif self.event_type == EventType.USE_DEV_CARD:
             card = self.data.get('card', '?')
+            normalized_card = str(card).lower().replace("devcard.", "").replace(" ", "_")
+            if normalized_card in {"road", "road_building", "roadbuilding"}:
+                roads = (
+                    self._format_road_edges(self.data.get('road_edges'))
+                    or self._format_road_edges(self.data.get('roads'))
+                )
+                if roads:
+                    return f"✨ {player_str} used Road Building to build roads {roads}"
             return f"✨ {player_str} used {card}"
         
         elif self.event_type == EventType.TRADE_BANK:

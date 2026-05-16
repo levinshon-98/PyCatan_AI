@@ -1079,6 +1079,7 @@ class WebVisualization(Visualization):
                 'taken',
                 'total_stolen',
                 'roads',
+                'road_edges',
                 'robber_tile',
                 'victim',
                 'victim_id',

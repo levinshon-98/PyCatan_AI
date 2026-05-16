@@ -12,6 +12,7 @@ a cleaner interface for the new AIManager.
 """
 
 import json
+import threading
 import time
 from pathlib import Path
 from datetime import datetime
@@ -58,6 +59,7 @@ class AILogger:
             base_dir: Base directory for sessions. Default: examples/ai_testing/my_games/
         """
         self.base_dir = base_dir or Path("examples/ai_testing/my_games")
+        self._llm_log_lock = threading.RLock()
         
         if session_dir is not None:
             self.session_dir = Path(session_dir)
@@ -106,11 +108,12 @@ class AILogger:
         
         # Create LLM communication log file
         self.llm_log_file = self.session_dir / "llm_communication.log"
-        with open(self.llm_log_file, 'w', encoding='utf-8') as f:
-            f.write(f"=== LLM Communication Log ===\n")
-            f.write(f"Session: {self.session_dir.name}\n")
-            f.write(f"Started: {self.start_time.isoformat()}\n")
-            f.write("=" * 50 + "\n\n")
+        with self._llm_log_lock:
+            with open(self.llm_log_file, 'w', encoding='utf-8') as f:
+                f.write(f"=== LLM Communication Log ===\n")
+                f.write(f"Session: {self.session_dir.name}\n")
+                f.write(f"Started: {self.start_time.isoformat()}\n")
+                f.write("=" * 50 + "\n\n")
         
         # Save session path for other tools (like web_viewer)
         current_session_file = self.base_dir / "current_session.txt"
@@ -210,8 +213,14 @@ class AILogger:
                 msg = f"📥 API Call #{call_id} RECEIVED ✅ - {tokens} tokens (in:{prompt_tokens} out:{completion_tokens}) (final response) | 💰 ${total_cost:.6f}"
             self.log_llm_communication(msg, "API_RECV")
             
-            # Update cumulative summary at top of log file
-            self._update_cumulative_header()
+            # Keep cost header best-effort; logging should never abort a live LLM turn.
+            try:
+                self._update_cumulative_header()
+            except Exception as exc:
+                self.log_llm_communication(
+                    f"Could not update cumulative header: {exc}",
+                    "WARNING"
+                )
         else:
             msg = f"📥 API Call #{call_id} FAILED ❌ - Error: {error}"
             self.log_llm_communication(msg, "API_RECV")
@@ -232,9 +241,15 @@ class AILogger:
         timestamp = datetime.now().strftime("%H:%M:%S")
         line = f"[{timestamp}] [{msg_type}] {message}\n"
         
-        with open(self.llm_log_file, 'a', encoding='utf-8') as f:
-            f.write(line)
-            f.flush()  # Ensure immediate write    
+        self._append_llm_log_line(line)
+
+    def _append_llm_log_line(self, line: str) -> None:
+        """Append one already-formatted line to the shared LLM log."""
+        with self._llm_log_lock:
+            with open(self.llm_log_file, 'a', encoding='utf-8') as f:
+                f.write(line)
+                f.flush()
+
     def log_stream_chunk(self, player_name: str, chunk_type: str, content: str = None, function_call: dict = None) -> None:
         """
         Log a streaming chunk to the LLM communication file.
@@ -252,9 +267,7 @@ class AILogger:
             emoji = '💭'
             display = f"💭 THOUGHT: {content[:150]}..." if content and len(content) > 150 else f"💭 THOUGHT: {content}"
             line = f"[{timestamp}] [STREAM] [{player_name}] {display}\n"
-            with open(self.llm_log_file, 'a', encoding='utf-8') as f:
-                f.write(line)
-                f.flush()
+            self._append_llm_log_line(line)
                 
         elif chunk_type == 'function_call':
             # For function calls: first log reasoning, then function with params
@@ -267,9 +280,7 @@ class AILogger:
                 if reasoning:
                     reasoning_display = reasoning[:150] + "..." if len(reasoning) > 150 else reasoning
                     reasoning_line = f"[{timestamp}] [REASONING] [{player_name}] 💭 {reasoning_display}\n"
-                    with open(self.llm_log_file, 'a', encoding='utf-8') as f:
-                        f.write(reasoning_line)
-                        f.flush()
+                    self._append_llm_log_line(reasoning_line)
                 
                 # Then log function call with parameters (excluding reasoning)
                 params_without_reasoning = {k: v for k, v in params.items() if k != 'reasoning'}
@@ -283,33 +294,26 @@ class AILogger:
                 display = f"🔧 FUNCTION CALL"
             
             line = f"[{timestamp}] [STREAM] [{player_name}] {display}\n"
-            with open(self.llm_log_file, 'a', encoding='utf-8') as f:
-                f.write(line)
-                f.flush()
+            self._append_llm_log_line(line)
                 
         elif chunk_type == 'text':
             emoji = '💬'
             display = f"💬 TEXT: {content[:100]}..." if content and len(content) > 100 else f"💬 TEXT: {content}"
             line = f"[{timestamp}] [STREAM] [{player_name}] {display}\n"
-            with open(self.llm_log_file, 'a', encoding='utf-8') as f:
-                f.write(line)
-                f.flush()
+            self._append_llm_log_line(line)
                 
         elif chunk_type == 'done':
             emoji = '✅'
             display = f"✅ STREAM COMPLETE"
             line = f"[{timestamp}] [STREAM] [{player_name}] {display}\n"
-            with open(self.llm_log_file, 'a', encoding='utf-8') as f:
-                f.write(line)
-                f.flush()
+            self._append_llm_log_line(line)
                 
         else:
             emoji = '🌊'
             display = f"🌊 {chunk_type.upper()}: {content[:100] if content else 'N/A'}"
             line = f"[{timestamp}] [STREAM] [{player_name}] {display}\n"
-            with open(self.llm_log_file, 'a', encoding='utf-8') as f:
-                f.write(line)
-                f.flush()    
+            self._append_llm_log_line(line)
+
     def _update_cumulative_header(self) -> None:
         """
         Update the cumulative cost summary at the top of the log file.
@@ -317,20 +321,21 @@ class AILogger:
         """
         import re
         
-        # Read current content
-        with open(self.llm_log_file, 'r', encoding='utf-8') as f:
-            content = f.read()
-        
-        # Find where the actual log entries start (lines starting with [HH:MM:SS])
-        # Everything before that is header
-        log_entry_match = re.search(r'^\[\d{2}:\d{2}:\d{2}\]', content, re.MULTILINE)
-        if log_entry_match:
-            log_content = content[log_entry_match.start():]
-        else:
-            log_content = ""
-        
-        # Create new header with cumulative totals
-        new_header = f"""=== LLM Communication Log ===
+        with self._llm_log_lock:
+            # Read current content
+            with open(self.llm_log_file, 'r', encoding='utf-8', errors='replace') as f:
+                content = f.read()
+
+            # Find where the actual log entries start (lines starting with [HH:MM:SS])
+            # Everything before that is header
+            log_entry_match = re.search(r'^\[\d{2}:\d{2}:\d{2}\]', content, re.MULTILINE)
+            if log_entry_match:
+                log_content = content[log_entry_match.start():]
+            else:
+                log_content = ""
+
+            # Create new header with cumulative totals
+            new_header = f"""=== LLM Communication Log ===
 Session: {self.session_dir.name}
 Started: {self.start_time.isoformat()}
 {'=' * 50}
@@ -341,10 +346,10 @@ Started: {self.start_time.isoformat()}
 {'=' * 50}
 
 """
-        
-        # Write updated file
-        with open(self.llm_log_file, 'w', encoding='utf-8') as f:
-            f.write(new_header + log_content)
+
+            # Write updated file
+            with open(self.llm_log_file, 'w', encoding='utf-8') as f:
+                f.write(new_header + log_content)
     
     def _ensure_player_dirs(self, player_name: str) -> Dict[str, Path]:
         """

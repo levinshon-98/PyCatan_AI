@@ -1,0 +1,25 @@
+{
+  "request_number": 30,
+  "timestamp": "2026-05-16T13:57:06.510239",
+  "player_name": "זיו",
+  "type": "final",
+  "success": true,
+  "raw_content": "{\n  \"internal_thinking\": \"Sean is offering 2 wheat for 1 ore. I currently have 2 wheat and 0 ore (he stole my ore with the robber earlier, or I spent it). Regardless of the strategic value, I literally do not have the ore to complete this trade. I must reject it. Strategically, this is good anyway because Hadar is already suspicious of any deals with Sean, and giving him ore would likely lead to him building a city and winning.\",\n  \"action\": {\n    \"type\": \"trade_reject\",\n    \"parameters\": \"{}\"\n  },\n  \"note_to_self\": \"Sean tried to trade for ore I don't have. He's clearly still hunting for that city upgrade. I have 2 wheat and need to find a way to get ore or brick to expand toward the port or node 33.\",\n  \"say_outloud\": \"שון, אין לי אבן לתת לך גם אם הייתי רוצה. לקחת לי אותה עם השודד, זוכר?\"\n} ",
+  "parsed": {
+    "internal_thinking": "Sean is offering 2 wheat for 1 ore. I currently have 2 wheat and 0 ore (he stole my ore with the robber earlier, or I spent it). Regardless of the strategic value, I literally do not have the ore to complete this trade. I must reject it. Strategically, this is good anyway because Hadar is already suspicious of any deals with Sean, and giving him ore would likely lead to him building a city and winning.",
+    "note_to_self": "Sean tried to trade for ore I don't have. He's clearly still hunting for that city upgrade. I have 2 wheat and need to find a way to get ore or brick to expand toward the port or node 33.",
+    "say_outloud": "שון, אין לי אבן לתת לך גם אם הייתי רוצה. לקחת לי אותה עם השודד, זוכר?",
+    "action_type": "trade_reject",
+    "parameters": {}
+  },
+  "model": "google/gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 2395,
+    "completion": 201,
+    "thinking": 0,
+    "total": 2596
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}

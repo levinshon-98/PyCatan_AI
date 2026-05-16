@@ -56,6 +56,7 @@ def game_state_to_dict(game_state) -> Dict[str, Any]:
         'points': [],
         'current_player': getattr(game_state, 'current_player', 0),
         'current_phase': game_state.game_phase.name if hasattr(game_state.game_phase, 'name') else str(game_state.game_phase),
+        'turn_phase': game_state.turn_phase.name if hasattr(game_state.turn_phase, 'name') else str(getattr(game_state, 'turn_phase', '')),
         'dice_result': getattr(game_state, 'dice_rolled', None),
         'victory_points_to_win': getattr(game_state, 'victory_points_to_win', 5),
         'custom_game_context': getattr(game_state, 'custom_game_context', ''),
@@ -300,6 +301,7 @@ def optimize_state_for_ai(input_data: Dict[str, Any]) -> Dict[str, Any]:
     meta = {
         "curr": curr_name,
         "phase": data.get('current_phase'),
+        "turn_phase": data.get('turn_phase'),
         "robber": robber_hex,
         "dice": dice_result,
         "vp_to_win": data.get('victory_points_to_win', 5)

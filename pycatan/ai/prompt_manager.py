@@ -386,6 +386,10 @@ class PromptManager:
             extra_guidance.append(
                 "For robber placement, call the inspect_hex tool to verify the target hex resource, number, adjacent buildings, and current robber status before choosing."
             )
+        if {"build_settlement", "build_city", "build_road", "buy_dev_card", "use_dev_card", "trade_bank"} & action_types:
+            extra_guidance.append(
+                "Allowed actions are type-level possibilities, not a guarantee you can currently afford them. Before choosing build_settlement, build_city, build_road, buy_dev_card, use_dev_card, or trade_bank, verify your current resources and hidden development cards in game_state.players[agent_name]."
+            )
         extra_guidance.append(
             "Never put a tool name in action.type; action.type must be one of the allowed_actions entries. "
             "Use tools as a fact-checking habit, not only for choosing moves. Before saving or saying factual board claims, "

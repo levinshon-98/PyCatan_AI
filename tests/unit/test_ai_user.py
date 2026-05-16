@@ -5,7 +5,7 @@ from dataclasses import dataclass
 import pytest
 
 from pycatan.ai.ai_user import AIUser
-from pycatan.management.actions import ActionType
+from pycatan.management.actions import Action, ActionType
 
 
 @dataclass
@@ -29,12 +29,16 @@ class DummyAgent:
 class DummyAIManager:
     def __init__(self):
         self.agents = {}
+        self.chat = []
 
     def register_agent(self, name, user_id, color):
         self.agents[name] = DummyAgent(name, user_id, color)
 
     def get_agent(self, name):
         return self.agents.get(name)
+
+    def _broadcast_chat(self, from_player, message):
+        self.chat.append({"from": from_player, "message": message})
 
 
 def make_ai_user():
@@ -158,6 +162,64 @@ def test_failed_action_is_added_to_agent_events():
     assert event["type"] == "action_failed"
     assert "Invalid target" in event["message"]
     assert event["data"]["action_type"] == "STEAL_CARD"
+
+
+def test_success_notification_with_missing_action_is_ignored():
+    user = make_ai_user()
+
+    user.notify_action(None, success=True, message="You stole a Wood!")
+
+    assert user.ai_manager.get_agent("Bob").recent_events == []
+
+
+def test_success_notification_does_not_repeat_public_say_outloud():
+    user = make_ai_user()
+    action = Action(
+        ActionType.TRADE_PROPOSE,
+        1,
+        {
+            "offer": {"wheat": 2},
+            "request": {"brick": 1},
+            "target_player": 0,
+            "_ai_say_outloud": "Anyone have brick?",
+            "_ai_say_outloud_public": True,
+        },
+    )
+
+    user.notify_action(action, success=True)
+
+    assert user.ai_manager.chat == []
+
+
+def test_failed_notification_with_missing_action_is_recorded():
+    user = make_ai_user()
+
+    user.notify_action(None, success=False, message="Unexpected failure")
+
+    event = user.ai_manager.get_agent("Bob").recent_events[-1]
+    assert event["type"] == "action_failed"
+    assert "Unexpected failure" in event["message"]
+    assert event["data"]["parameters"] == {}
+
+
+def test_failed_action_feedback_notes_when_say_outloud_was_public():
+    user = make_ai_user()
+    action = Action(
+        ActionType.TRADE_PROPOSE,
+        1,
+        {
+            "offer": {"wheat": 2},
+            "request": {"brick": 1},
+            "target_player": 0,
+            "_ai_say_outloud_public": True,
+        },
+    )
+
+    user.notify_action(action, success=False, message="Target has no brick")
+
+    event = user.ai_manager.get_agent("Bob").recent_events[-1]
+    assert "already said publicly" in event["message"]
+    assert "not said publicly" not in event["message"]
 
 
 def test_action_processing_error_is_added_to_agent_events():
