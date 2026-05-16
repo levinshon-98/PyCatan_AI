@@ -180,3 +180,16 @@ def test_wait_for_response_maps_to_end_turn_action():
     )
 
     assert action.action_type == ActionType.END_TURN
+
+
+def test_unknown_action_type_is_not_silently_converted_to_end_turn():
+    user = make_ai_user()
+
+    with pytest.raises(ValueError, match="Unknown action type: find_best_nodes"):
+        user._decision_to_action(
+            {
+                "action_type": "find_best_nodes",
+                "parameters": {"min_pips": 10},
+            },
+            ["PLACE_STARTING_SETTLEMENT"],
+        )

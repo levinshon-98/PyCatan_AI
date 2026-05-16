@@ -1,0 +1,25 @@
+{
+  "request_number": 10,
+  "timestamp": "2026-05-16T12:40:13.082996",
+  "player_name": "ג'מה",
+  "type": "final",
+  "success": true,
+  "raw_content": "{\n  \"internal_thinking\": \"I have 1 Ore and 2 Sheep. I need to get some Wood and Wheat to build a settlement, or Brick and Wood for a road. I already have two settlements, so building another would be good. I should consider building a road to expand my reach and potentially block an opponent. I will check for good settlement spots first. I will use `find_best_nodes` to see if there are any good spots I can build a settlement. I will prioritize nodes with high pips and access to resources I need, or ports.\",\n  \"action\": {\n    \"type\": \"end_turn\",\n    \"parameters\": \"{}\"\n  },\n  \"say_outloud\": \"אין לי כרגע מה לבנות, אני מעבירה את התור.\"\n}",
+  "parsed": {
+    "internal_thinking": "I have 1 Ore and 2 Sheep. I need to get some Wood and Wheat to build a settlement, or Brick and Wood for a road. I already have two settlements, so building another would be good. I should consider building a road to expand my reach and potentially block an opponent. I will check for good settlement spots first. I will use `find_best_nodes` to see if there are any good spots I can build a settlement. I will prioritize nodes with high pips and access to resources I need, or ports.",
+    "note_to_self": null,
+    "say_outloud": "אין לי כרגע מה לבנות, אני מעבירה את התור.",
+    "action_type": "end_turn",
+    "parameters": {}
+  },
+  "model": "google/gemini-2.5-flash",
+  "tokens": {
+    "prompt": 2179,
+    "completion": 160,
+    "thinking": 0,
+    "total": 2339
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}

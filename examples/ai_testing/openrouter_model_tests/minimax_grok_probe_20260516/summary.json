@@ -1,0 +1,91 @@
+[
+  {
+    "model": "minimax/minimax-m2.5",
+    "success": true,
+    "returned": "minimax/minimax-m2.5-20260211",
+    "finish": "length",
+    "tool_calls": 0,
+    "tool_names": [],
+    "tokens": {
+      "prompt": 4934,
+      "completion": 1200,
+      "total": 6134
+    },
+    "latency": 22.699,
+    "error": "",
+    "content_preview": "{\n\n  \"action\": {\n    \"type\": \"use_dev_card\"\n  },\n  \"internal_thinking\": \"I have a knight card (revealed). The robber is currently on hex 18 (Wheat 9), which is blocking my wheat pr"
+  },
+  {
+    "model": "minimax/minimax-m2.7",
+    "success": true,
+    "returned": "minimax/minimax-m2.7-20260318",
+    "finish": "length",
+    "tool_calls": 0,
+    "tool_names": [],
+    "tokens": {
+      "prompt": 4951,
+      "completion": 1200,
+      "total": 6151
+    },
+    "latency": 34.725,
+    "error": "",
+    "content_preview": "{\n  \"internal_thinking\": \"I'm at 3 VP and Hadar is at 4 VP - she's one point away from winning. The dice rolled 12 (6+6), which means hex 1 (Wood 12) produces for me. I have 4 whea"
+  },
+  {
+    "model": "minimax/minimax-m2.1",
+    "success": true,
+    "returned": "minimax/minimax-m2.1",
+    "finish": "tool_calls",
+    "tool_calls": 1,
+    "tool_names": [
+      "trade_bank"
+    ],
+    "tokens": {
+      "prompt": 4941,
+      "completion": 1627,
+      "total": 6568
+    },
+    "latency": 20.152,
+    "error": "",
+    "content_preview": "אני צריך לנתח את המצב בזהירות. יש לי 4 חיטה ו-2 כבשה, ואני צריך להחליט מה המהלך הטוב ביותר.\n\nבואו נבדוק את האפשרויות שלי:\n- אין לי עץ או טיט בכלל, אז אי אפשר לבנות כביש או יישוב\n- "
+  },
+  {
+    "model": "x-ai/grok-4.3",
+    "success": true,
+    "returned": "x-ai/grok-4.3-20260430",
+    "finish": "tool_calls",
+    "tool_calls": 1,
+    "tool_names": [
+      "find_best_nodes"
+    ],
+    "tokens": {
+      "prompt": 4676,
+      "completion": 1685,
+      "total": 6361
+    },
+    "latency": 23.595,
+    "error": "",
+    "content_preview": ""
+  },
+  {
+    "model": "x-ai/grok-4.20",
+    "success": true,
+    "returned": "x-ai/grok-4.20-20260309",
+    "finish": "tool_calls",
+    "tool_calls": 4,
+    "tool_names": [
+      "find_best_nodes",
+      "find_best_nodes",
+      "analyze_path_potential",
+      "analyze_path_potential"
+    ],
+    "tokens": {
+      "prompt": 4668,
+      "completion": 273,
+      "total": 4941
+    },
+    "latency": 5.532,
+    "error": "",
+    "content_preview": ""
+  }
+]

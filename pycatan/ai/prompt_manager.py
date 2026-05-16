@@ -376,18 +376,21 @@ class PromptManager:
             )
         if {"place_starting_road", "build_road"} & action_types:
             extra_guidance.append(
-                "For road placement, use analyze_path_potential to compare where candidate roads lead before choosing."
+                "For road placement, call the analyze_path_potential tool to compare where candidate roads lead before choosing."
             )
         if {"place_starting_settlement", "build_settlement"} & action_types:
             extra_guidance.append(
-                "For settlement placement, use find_best_nodes and inspect_node instead of manually decoding the board arrays. Treat nodes in state.bld and all adjacent nodes as unavailable."
+                "For settlement placement, call the find_best_nodes and inspect_node tools instead of manually decoding the board arrays. Treat nodes in state.bld and all adjacent nodes as unavailable."
             )
         if "robber_move" in action_types:
             extra_guidance.append(
-                "For robber placement, use inspect_hex to verify the target hex resource, number, adjacent buildings, and current robber status before choosing."
+                "For robber placement, call the inspect_hex tool to verify the target hex resource, number, adjacent buildings, and current robber status before choosing."
             )
         extra_guidance.append(
-            "Do not state node resources or opponent settlement facts unless they come from the filtered game_state or a tool result."
+            "Never put a tool name in action.type; action.type must be one of the allowed_actions entries. "
+            "Use tools as a fact-checking habit, not only for choosing moves. Before saving or saying factual board claims, "
+            "prefer verifying them with the relevant tool or explicit game_state. If a board fact was not verified, omit it "
+            "or phrase it as uncertain."
         )
         guidance = " ".join(extra_guidance)
         

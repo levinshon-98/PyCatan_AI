@@ -69,6 +69,7 @@ VERIFIED_OPENROUTER_MODEL_IDS = [
     "google/gemini-2.0-flash-001",
     "google/gemini-2.0-flash-lite-001",
     "mistralai/mistral-small-2603",
+    "x-ai/grok-4.20",
 ]
 VERIFIED_OPENROUTER_MODEL_ORDER = {
     model_id: index for index, model_id in enumerate(VERIFIED_OPENROUTER_MODEL_IDS)
@@ -240,6 +241,16 @@ FALLBACK_MODELS = [
         "name": "Mistral: Mistral Small 4",
         "provider": "mistralai",
         "context_length": 262144,
+        "max_completion_tokens": 0,
+        "output_modalities": ["text"],
+        "supported_parameters": ["tools", "response_format", "structured_outputs", "temperature", "max_tokens"],
+        "pricing": {"prompt": "", "completion": ""},
+    },
+    {
+        "id": "x-ai/grok-4.20",
+        "name": "xAI: Grok 4.20",
+        "provider": "x-ai",
+        "context_length": 2000000,
         "max_completion_tokens": 0,
         "output_modalities": ["text"],
         "supported_parameters": ["tools", "response_format", "structured_outputs", "temperature", "max_tokens"],

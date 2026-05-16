@@ -48,7 +48,7 @@ ACTIVE_TURN_RESPONSE_SCHEMA_V1 = {
         },
         "note_to_self": {
             "type": "string",
-            "description": "Save important observations and plans for future turns. Examples: opponent strategies, key nodes to claim, resource priorities, or threats to watch. This helps maintain continuity between turns.",
+            "description": "Save only useful observations and plans for future turns. Prefer facts verified by tools or explicit game_state; omit uncertain board facts.",
             "maxLength": 100
         },
         "say_outloud": {
@@ -91,7 +91,7 @@ OBSERVING_RESPONSE_SCHEMA_V1 = {
         },
         "note_to_self": {
             "type": "string",
-            "description": "Track key developments! Note opponent positions, resource imbalances, or strategic opportunities you noticed. This memory persists between turns.",
+            "description": "Track key developments for future turns. Prefer facts verified by tools or explicit game_state; omit uncertain board facts.",
             "maxLength": 100
         },
         "say_outloud": {
@@ -123,7 +123,7 @@ ACTIVE_TURN_RESPONSE_SCHEMA_V2 = {
         },
         "note_to_self": {
             "type": "string",
-            "description": "Save important observations for future turns (e.g., 'Player 3 is hoarding ore').",
+            "description": "Save only useful observations for future turns. Prefer facts verified by tools or explicit game_state; omit uncertain board facts.",
             "maxLength": 100
         },
         "say_outloud": {
@@ -166,7 +166,7 @@ OBSERVING_RESPONSE_SCHEMA_V2 = {
         },
         "note_to_self": {
             "type": "string",
-            "description": "Save important observations (e.g., 'Blue is going for longest road').",
+            "description": "Save only useful observations for future turns. Prefer facts verified by tools or explicit game_state; omit uncertain board facts.",
             "maxLength": 100
         },
         "say_outloud": {
@@ -241,6 +241,9 @@ def _with_chat_language(
     say_outloud = localized.get("properties", {}).get("say_outloud")
     if not say_outloud:
         return localized
+    board_fact_guidance = (
+        " Avoid confident factual board claims unless verified by tools or explicit game_state."
+    )
 
     if language == "hebrew":
         if response_type == ResponseType.OBSERVING:
@@ -274,6 +277,10 @@ def _with_chat_language(
                 "If nothing interesting happened, leave empty. Catan manners are loose: be blunt, annoyed, "
                 "smug, suspicious, or emotional when it matters. Keep it human and non-technical."
             )
+
+    description = say_outloud.get("description", "")
+    if board_fact_guidance.strip() not in description:
+        say_outloud["description"] = description + board_fact_guidance
 
     return localized
 

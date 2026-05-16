@@ -1318,6 +1318,25 @@ class AIManager:
             schema_version,
             getattr(self.config.agent, "chat_language", "english")
         )
+        if is_active_turn and formatted_actions:
+            allowed_action_types = [
+                action["type"]
+                for action in formatted_actions
+                if isinstance(action, dict) and action.get("type")
+            ]
+            if allowed_action_types:
+                action_type_schema = (
+                    schema
+                    .setdefault("properties", {})
+                    .setdefault("action", {})
+                    .setdefault("properties", {})
+                    .setdefault("type", {})
+                )
+                action_type_schema["enum"] = allowed_action_types
+                action_type_schema["description"] = (
+                    "The final game action type. Must be exactly one of: "
+                    f"{', '.join(allowed_action_types)}. Tool names are not valid actions."
+                )
         
         return prompt, schema
 
@@ -2383,7 +2402,22 @@ class AIManager:
             # Extract action (action.type + action.parameters)
             action = data.get("action", {})
             if action:
-                parsed["action_type"] = action.get("type", "end_turn")
+                action_type = action.get("type", "end_turn")
+                allowed_action_types = [
+                    self._action_name_for_allowed(allowed_action)
+                    for allowed_action in (self._current_allowed_actions or [])
+                ]
+                if allowed_action_types and action_type not in allowed_action_types:
+                    self.logger.log_llm_communication(
+                        (
+                            f"Invalid action from LLM: {action_type}. "
+                            f"Allowed actions: {allowed_action_types}"
+                        ),
+                        "WARNING"
+                    )
+                    return None
+
+                parsed["action_type"] = action_type
                 # Parameters might be JSON string or dict
                 params = action.get("parameters", {})
                 if isinstance(params, str):

@@ -271,8 +271,8 @@ class AIUser(User):
             try:
                 action_type = ActionType[action_type_str.upper()]
             except KeyError:
-                print(f"    [!] Unknown action type: {action_type_str}, using END_TURN")
-                action_type = ActionType.END_TURN
+                allowed_display = f" Allowed actions: {allowed_actions}" if allowed_actions else ""
+                raise ValueError(f"Unknown action type: {action_type_str}.{allowed_display}")
         
         # Convert parameters to expected format
         converted_params = self._convert_parameters(action_type, parameters)
