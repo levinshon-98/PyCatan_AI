@@ -753,6 +753,7 @@ See: [prompt_{original_prompt_number}_iter{iteration}.json](prompts/iterations/p
             # Extract key fields
             thinking = parsed.get("internal_thinking", "N/A")
             note = parsed.get("note_to_self", "")
+            relationship_update = parsed.get("relationship_update", "")
             say = parsed.get("say_outloud", "")
             
             # Handle both action formats: old (action object) and new (action_type + parameters)
@@ -779,6 +780,8 @@ See: [prompt_{original_prompt_number}_iter{iteration}.json](prompts/iterations/p
 """
             if note:
                 section += f"**Note to Self:** {note}\n\n"
+            if relationship_update:
+                section += f"**Relationship Update:** {relationship_update}\n\n"
             if say:
                 section += f'**Says:** "{say}"\n\n'
             if action_str:
@@ -844,13 +847,16 @@ See: [prompt_{original_prompt_number}_iter{iteration}.json](prompts/iterations/p
             if (
                 (hasattr(agent, 'memory') and agent.memory)
                 or getattr(agent, "compacted_memory", None)
+                or getattr(agent, "relationship_context_updates", None)
             ):
                 updated_at = getattr(agent, "memory_updated_at", None)
                 compacted_updated_at = getattr(agent, "compacted_memory_updated_at", None)
+                relationship_updated_at = getattr(agent, "relationship_context_updated_at", None)
                 memories[name] = {
                     "note_to_self": agent.memory,
                     "long_term_summary": getattr(agent, "compacted_memory", None),
                     "recent_notes": getattr(agent, "memory_history", []),
+                    "relationship_context_updates": getattr(agent, "relationship_context_updates", []),
                     "compaction_count": getattr(agent, "compaction_count", 0),
                     "last_updated": (
                         datetime.fromtimestamp(updated_at).isoformat()
@@ -859,6 +865,10 @@ See: [prompt_{original_prompt_number}_iter{iteration}.json](prompts/iterations/p
                     "long_term_updated": (
                         datetime.fromtimestamp(compacted_updated_at).isoformat()
                         if compacted_updated_at else None
+                    ),
+                    "relationship_context_updated": (
+                        datetime.fromtimestamp(relationship_updated_at).isoformat()
+                        if relationship_updated_at else None
                     )
                 }
         

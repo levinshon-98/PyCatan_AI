@@ -14,7 +14,7 @@ Schema Versions:
 import copy
 from typing import Dict, Any, List, Optional
 from enum import Enum
-from pycatan.ai.config import normalize_chat_language
+from pycatan.ai.config import HEBREW_RESOURCE_TERMS_INSTRUCTION, normalize_chat_language
 
 
 class ResponseType(Enum):
@@ -51,9 +51,14 @@ ACTIVE_TURN_RESPONSE_SCHEMA_V1 = {
             "description": "Save important observations and plans for future turns. Examples: opponent strategies, key nodes to claim, resource priorities, or threats to watch. This helps maintain continuity between turns.",
             "maxLength": 100
         },
+        "relationship_update": {
+            "type": "string",
+            "description": "Optional. Only if a relationship meaningfully changed, save one short update about trust, grudges, favors, threats, or emotional tension.",
+            "maxLength": 120
+        },
         "say_outloud": {
             "type": "string",
-            "description": "Communicate with other players in natural Hebrew only. Use for: trade proposals, warnings, bluffs, alliance hints, or strategic banter. Makes the game more interesting and can influence opponents.",
+            "description": "Communicate with other players in natural Hebrew only. You have emotions and may express them when it matters. Use for: trade proposals, warnings, bluffs, alliance hints, or strategic banter. Makes the game more interesting and can influence opponents.",
             "maxLength": 100
         },
         "action": {
@@ -75,6 +80,7 @@ ACTIVE_TURN_RESPONSE_SCHEMA_V1 = {
     "propertyOrdering": [
         "internal_thinking",
         "note_to_self", 
+        "relationship_update",
         "say_outloud",
         "action"
     ]
@@ -94,15 +100,21 @@ OBSERVING_RESPONSE_SCHEMA_V1 = {
             "description": "Track key developments! Note opponent positions, resource imbalances, or strategic opportunities you noticed. This memory persists between turns.",
             "maxLength": 100
         },
+        "relationship_update": {
+            "type": "string",
+            "description": "Optional. Only if a relationship meaningfully changed, save one short update about trust, grudges, favors, threats, or emotional tension.",
+            "maxLength": 120
+        },
         "say_outloud": {
             "type": "string",
-            "description": "Even when observing, you can negotiate in natural Hebrew only. Propose trades, form alliances, or send strategic messages.",
+            "description": "Even when observing, you can negotiate in natural Hebrew only. You have emotions and may express them when it matters. Propose trades, form alliances, or send strategic messages.",
             "maxLength": 100
         }
     },
     "propertyOrdering": [
         "internal_thinking",
         "note_to_self",
+        "relationship_update",
         "say_outloud"
     ]
 }
@@ -126,9 +138,14 @@ ACTIVE_TURN_RESPONSE_SCHEMA_V2 = {
             "description": "Save important observations for future turns (e.g., 'Player 3 is hoarding ore').",
             "maxLength": 100
         },
+        "relationship_update": {
+            "type": "string",
+            "description": "Optional. Only if a relationship meaningfully changed, save one short update about trust, grudges, favors, threats, or emotional tension.",
+            "maxLength": 120
+        },
         "say_outloud": {
             "type": "string",
-            "description": "Table talk in natural Hebrew only. If nothing interesting happened, leave empty. If frustrated or happy, express it briefly. Keep it casual, human, and non-technical.",
+            "description": "Table talk in natural Hebrew only. You have emotions and may express them when it matters. If nothing interesting happened, leave empty. Catan manners are loose: be blunt, annoyed, smug, suspicious, or emotional when it matters. Keep it human and non-technical.",
             "maxLength": 120
         },
         "action": {
@@ -150,6 +167,7 @@ ACTIVE_TURN_RESPONSE_SCHEMA_V2 = {
     "propertyOrdering": [
         "internal_thinking",
         "note_to_self",
+        "relationship_update",
         "say_outloud",
         "action"
     ]
@@ -169,15 +187,21 @@ OBSERVING_RESPONSE_SCHEMA_V2 = {
             "description": "Save important observations (e.g., 'Blue is going for longest road').",
             "maxLength": 100
         },
+        "relationship_update": {
+            "type": "string",
+            "description": "Optional. Only if a relationship meaningfully changed, save one short update about trust, grudges, favors, threats, or emotional tension.",
+            "maxLength": 120
+        },
         "say_outloud": {
             "type": "string",
-            "description": "React naturally in Hebrew only. Can be empty if nothing notable. Keep it casual and non-technical.",
+            "description": "React naturally in Hebrew only. You have emotions and may express them when it matters. Can be empty if nothing notable. Catan manners are loose: be blunt or emotional when it matters. Keep it non-technical.",
             "maxLength": 120
         }
     },
     "propertyOrdering": [
         "internal_thinking",
         "note_to_self",
+        "relationship_update",
         "say_outloud"
     ]
 }
@@ -245,24 +269,30 @@ def _with_chat_language(
     if language == "hebrew":
         if response_type == ResponseType.OBSERVING:
             say_outloud["description"] = (
-                "React naturally in Hebrew only. Can be empty if nothing notable. "
-                "Keep it casual and non-technical."
+                "React naturally in Hebrew only. You have emotions and may express them when it matters. "
+                "Can be empty if nothing notable. Catan manners are loose: be blunt or emotional when it matters. "
+                "Keep it non-technical. "
+                f"{HEBREW_RESOURCE_TERMS_INSTRUCTION}"
             )
         else:
             say_outloud["description"] = (
-                "Table talk in natural Hebrew only. If nothing interesting happened, leave empty. "
-                "If frustrated or happy, express it briefly. Keep it casual, human, and non-technical."
+                "Table talk in natural Hebrew only. You have emotions and may express them when it matters. "
+                "If nothing interesting happened, leave empty. Catan manners are loose: be blunt, annoyed, "
+                "smug, suspicious, or emotional when it matters. Keep it human and non-technical. "
+                f"{HEBREW_RESOURCE_TERMS_INSTRUCTION}"
             )
     else:
         if response_type == ResponseType.OBSERVING:
             say_outloud["description"] = (
-                "React naturally in English only. Can be empty if nothing notable. "
-                "Keep it casual and non-technical."
+                "React naturally in English only. You have emotions and may express them when it matters. "
+                "Can be empty if nothing notable. Catan manners are loose: be blunt or emotional when it matters. "
+                "Keep it non-technical."
             )
         else:
             say_outloud["description"] = (
-                "Table talk in natural English only. If nothing interesting happened, leave empty. "
-                "If frustrated or happy, express it briefly. Keep it casual, human, and non-technical."
+                "Table talk in natural English only. You have emotions and may express them when it matters. "
+                "If nothing interesting happened, leave empty. Catan manners are loose: be blunt, annoyed, "
+                "smug, suspicious, or emotional when it matters. Keep it human and non-technical."
             )
 
     return localized
@@ -290,6 +320,7 @@ def get_schema_description(response_type: ResponseType, version: SchemaVersion =
                 "- action: {type: action_name, parameters: {...}}\n"
                 "Encouraged (use frequently!):\n"
                 "- note_to_self: Save key observations for future turns (max 100 chars)\n"
+                "- relationship_update: Optional relationship shift, only when meaningful (max 120 chars)\n"
                 "- say_outloud: Communicate with other players (max 100 chars)"
             )
         else:  # V2
@@ -299,6 +330,7 @@ def get_schema_description(response_type: ResponseType, version: SchemaVersion =
                 "- action: {type: action_name, parameters: {...}}\n"
                 "Optional:\n"
                 "- note_to_self: Save observations for later (max 100 chars)\n"
+                "- relationship_update: Relationship shift, only when meaningful (max 120 chars)\n"
                 "- say_outloud: Natural table talk - casual, not technical (max 120 chars)"
             )
     elif response_type == ResponseType.OBSERVING:
@@ -308,6 +340,7 @@ def get_schema_description(response_type: ResponseType, version: SchemaVersion =
                 "- internal_thinking: Track opponent moves, verify positions in Arrays N/H (min 30 chars)\n"
                 "Encouraged (use frequently!):\n"
                 "- note_to_self: Track key developments for later (max 100 chars)\n"
+                "- relationship_update: Optional relationship shift, only when meaningful (max 120 chars)\n"
                 "- say_outloud: Negotiate or send messages (max 100 chars)"
             )
         else:  # V2
@@ -316,6 +349,7 @@ def get_schema_description(response_type: ResponseType, version: SchemaVersion =
                 "- internal_thinking: Private thoughts while watching (min 30 chars)\n"
                 "Optional:\n"
                 "- note_to_self: Save important observations (max 100 chars)\n"
+                "- relationship_update: Relationship shift, only when meaningful (max 120 chars)\n"
                 "- say_outloud: React naturally - keep it casual (max 120 chars)"
             )
     else:

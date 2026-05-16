@@ -523,3 +523,392 @@ See: [prompt_21.json](prompts/prompt_21.json)
 **Note to Self:** Ziv's Wheat 9 (Hex 14) is still blocked by Hadar's robber. I am benefiting from the 9 on Hex 18. Ziv is getting increasingly frustrated with Hadar's block.
 
 ---
+
+## Request #22 - 👀 OBSERVING
+
+**Time:** 02:24:36
+
+### What Happened
+Event 1: Ziv said: "הדר, ה-9 הזה שחסמת לי באמת חונק את המשחק. יש לך אולי עץ מיותר? אני מוכן לתת כבשה בתמורה, אולי זה יעזור לי לזוז קצת למקום אחר."
+Trade offer trade_29_13: Ziv offers 1 sheep to Hadar for 1 wood.
+You may react only with table talk or memory. Do not choose a board action.
+Source player: Ziv
+Reaction event id: 29:2:TRADE_PROPOSE:98:1
+
+### Prompt Sent
+See: [prompt_22.json](prompts/prompt_22.json)
+
+### Response Received ✅
+
+**Latency:** 0.00s | **Tokens:** 2052 (in:1918 out:134) | **Cost:** $0.001361
+
+**Thinking:** Ziv and Hadar are trading. Ziv is trying to get wood to probably build his way out of the block Hadar put on his 9, and Hadar is helping him despite having blocked him. It's a fair trade for them, but it means they are cooperating. I'll keep an eye on Ziv's next move since he's getting 'un-stuck'.
+
+**Note to Self:** Hadar and Ziv traded wood for sheep. Ziv is trying to expand to overcome the robber on his wheat 9. Hadar is accumulating resources for her next settlement or development card.
+
+---
+
+## Request #23 - 👀 OBSERVING
+
+**Time:** 02:25:47
+
+### What Happened
+Event 1: Ziv said: "הדר, יש לך אולי לבנה מיותרת? אני יכול לתת חיטה בתמורה. השודד הזה על ה-9 באמת תוקע אותי ומונע ממני להתקדם."
+Trade offer trade_29_14: Ziv offers 1 wheat to Hadar for 1 brick.
+You may react only with table talk or memory. Do not choose a board action.
+Source player: Ziv
+Reaction event id: 29:2:TRADE_PROPOSE:99:1
+
+### Prompt Sent
+See: [prompt_23.json](prompts/prompt_23.json)
+
+### Response Received ✅
+
+**Latency:** 0.00s | **Tokens:** 2032 (in:1912 out:120) | **Cost:** $0.001316
+
+**Thinking:** Ziv is clearly frustrated by the robber on the 9 wheat. Since I'm the only one actually benefiting from the 9 right now (via hex 18), it's best for me to stay quiet and not draw attention to my own wheat income. Hadar already declined the trade, and I don't have the brick he's looking for anyway.
+
+**Note to Self:** Ziv is desperate for bricks to expand away from the blocked wheat 9. Hadar and I are both currently low on bricks in hand.
+
+---
+
+## Request #24 - 👀 OBSERVING
+
+**Time:** 02:26:26
+
+### What Happened
+Event 1: Ziv said: "טוב, נראה שכולנו באותה סירה בלי לבנים כרגע. אני אסיים את התור ונקווה שהמספרים הבאים יהיו קצת יותר מוצלחים."
+You may react only with table talk or memory. Do not choose a board action.
+Source player: Ziv
+Reaction event id: 29:2:END_TURN:100:1
+
+### Prompt Sent
+See: [prompt_24.json](prompts/prompt_24.json)
+
+### Response Received ✅
+
+**Latency:** 0.00s | **Tokens:** 2003 (in:1873 out:130) | **Cost:** $0.001326
+
+**Thinking:** Ziv is frustrated because Hadar is blocking his 9-Wheat, while I'm actually benefiting from the 9-Wheat on hex 18. He thinks we're all short on bricks, but I've got the 10s covered. I'll keep quiet about my resources to avoid becoming a target for the robber. Let him stay annoyed at Hadar.
+
+**Note to Self:** Ziv is frustrated with Hadar's block on the 9-Wheat. I gained 2 Wheat from that 9 roll. I have a strong brick income potential on 10 that the others seem to be overlooking.
+
+---
+
+## Request #25 - 👀 OBSERVING
+
+**Time:** 02:27:13
+
+### What Happened
+Event 1: Hadar said: "טוב, הגיע תורי. בואו נראה אם הקוביות יפרגנו לי קצת בחיטה או לבנים הפעם, אני חייבת להתקדם."
+You may react only with table talk or memory. Do not choose a board action.
+Source player: Hadar
+Reaction event id: 30:0:ROLL_DICE:101:1
+
+### Prompt Sent
+See: [prompt_25.json](prompts/prompt_25.json)
+
+### Response Received ✅
+
+**Latency:** 0.00s | **Tokens:** 1978 (in:1849 out:129) | **Cost:** $0.001311
+
+**Thinking:** Hadar rolled a 4, which gives her Wood and Sheep, but she specifically mentioned wanting Wheat and Bricks. Neither Ziv nor I gained anything from this roll. Since she didn't address me directly and is just narrating her turn, I'll stay silent and observe her next move. My focus remains on reaching the Sheep port at node 17.
+
+**Note to Self:** Hadar is looking for Wheat and Bricks but got Wood and Sheep on this roll. Ziv is still stuck with low resources due to the blocked 9.
+
+---
+
+## Request #26 - 🎯 ACTIVE TURN
+
+**Time:** 02:28:16
+**Tools:** inspect_node, find_best_nodes, analyze_path_potential
+
+
+### What Happened
+trade offer trade 30 15: hadar offers 1 sheep to shon for 1 wheat.
+Current required action: Trade offer trade_30_15: Hadar offers 1 sheep to Shon for 1 wheat. Choose trade_accept to accept or trade_reject to reject.
+
+### Prompt Sent
+See: [prompt_26.json](prompts/prompt_26.json)
+
+### Response Received ✅
+
+**Latency:** 0.00s | **Tokens:** 2103 (in:1898 out:205) | **Cost:** $0.001564
+
+**Thinking:** Hadar is offering 1 Sheep for 1 Wheat. I currently have 2 Wheat and 1 Sheep. While the trade is technically fair, I produce Sheep on an 8 (Hex 4) and Wheat on both 6 and 9s (Hexes 15, 14, 18). Wheat is a more versatile resource for both Cities and Development cards. Since Hadar and I are tied at 4 Victory Points, I don't want to facilitate her expansion or card purchases unless it significantly benefits me. I'll decline and keep my Wheat for my own future builds.
+
+**Note to Self:** I have strong Brick income on 10 and Wheat on 9/6. I need to secure a Wood source or trade for it soon to keep expanding.
+
+**Says:** "הצעה הוגנת הדר, אבל אני שומר את החיטה לסיבוב הבא, אני חייב אותה לתוכניות שלי. אולי בפעם אחרת."
+
+**Action:** **trade_reject**
+
+---
+
+## Request #27 - 👀 OBSERVING
+
+**Time:** 02:29:35
+
+### What Happened
+Event 1: Hadar said: "זיו, ראיתי שאתה מחפש לבנים ואין לי, אבל אולי תרצה כבשה בתמורה לחיטה? זה יכול לעזור לך להתקדם לכיוון אחר בינתיים."
+Trade offer trade_30_16: Hadar offers 1 sheep to Ziv for 1 wheat.
+You may react only with table talk or memory. Do not choose a board action.
+Source player: Hadar
+Reaction event id: 30:0:TRADE_PROPOSE:103:1
+
+### Prompt Sent
+See: [prompt_27.json](prompts/prompt_27.json)
+
+### Response Received ✅
+
+**Latency:** 0.00s | **Tokens:** 1988 (in:1835 out:153) | **Cost:** $0.001377
+
+**Thinking:** Hadar is really pushing for that wheat. She has wood and sheep, so she's likely aiming for a settlement or a development card. Ziv is being smart not giving up his only wheat, especially with his main source (the 9) blocked. I'm happy to stay out of this trade; I need my resources for my own expansion and I already told Hadar no. I'll keep an eye on how many resources they are accumulating.
+
+**Note to Self:** Hadar is desperate for wheat. Ziv is protecting his last wheat since the 9 is blocked. I have a strong brick income potential on 10 that I should leverage soon.
+
+---
+
+## Request #28 - 🎯 ACTIVE TURN
+
+**Time:** 02:31:04
+**Tools:** inspect_node, find_best_nodes, analyze_path_potential
+
+
+### What Happened
+trade offer trade 30 17: hadar offers 1 wood to shon for 1 wheat.
+Current required action: Trade offer trade_30_17: Hadar offers 1 wood to Shon for 1 wheat. Choose trade_accept to accept or trade_reject to reject.
+
+### Prompt Sent
+See: [prompt_28.json](prompts/prompt_28.json)
+
+### Response Received ✅
+
+**Latency:** 0.00s | **Tokens:** 2174 (in:1922 out:252) | **Cost:** $0.001717
+
+**Thinking:** Hadar is offering 1 Wood for 1 Wheat. I currently have 2 Wheat and 1 Sheep. My Wheat production is strong (Nodes 43 and 50 cover Hexes 18, 15, and 14, which are Wheat 9, 6, and 9 respectively), even with one 9 blocked by the robber. I have no Wood in hand and need it to expand my road network and build new settlements. Hadar is tied with me at 4 VP, but this trade is mutually beneficial as I need the Wood for my next move. Given our history, showing a bit of cooperation now might also help smooth things over after my betrayal in the last game, while still being a strategically sound move for my own growth.
+
+**Note to Self:** Accepted a trade with Hadar (1 Wood for 1 Wheat). I need to focus on getting Bricks next to utilize the Wood for a road/settlement. Node 30 gives me access to Brick on 10.
+
+**Says:** "הצעה טובה, הדר. עץ באמת יעזור לי עכשיו לצאת מהתקיעות ולבנות משהו. בואי נסגור על זה."
+
+**Action:** **trade_accept**
+
+---
+
+## Request #29 - 👀 OBSERVING
+
+**Time:** 02:32:39
+
+### What Happened
+Event 1: Hadar said: "תודה על ההחלפה שון, זה יעזור לי בהמשך. נראה שבאמת אין לבנים לאף אחד כרגע וזה קצת תוקע את כולנו, אז אין לי הרבה מה לעשות. אני אסיים את התור ונקווה שהקוביות יהיו יותר לטובתנו בסיבוב הבא."
+You may react only with table talk or memory. Do not choose a board action.
+Source player: Hadar
+Reaction event id: 30:0:END_TURN:105:1
+
+### Prompt Sent
+See: [prompt_29.json](prompts/prompt_29.json)
+
+### Response Received ✅
+
+**Latency:** 0.00s | **Tokens:** 2035 (in:1881 out:154) | **Cost:** $0.001403
+
+**Thinking:** Hadar is being friendly after our trade. I actually have a very strong position on the Brick 10 hexes (Node 30), which is exactly what she and Ziv are complaining about lacking. I'll keep that quiet and just maintain the friendly rapport to smooth over our history. My next goal is to use the Wood I just acquired from her to build a road or settlement once I get more resources.
+
+**Note to Self:** I control the Brick 10s (Node 30). Hadar and Ziv are struggling for Brick, which gives me a major advantage if 10 rolls.
+
+**Says:** "בכיף הדר, מקווה שזה יעזור לשנינו. נראה מה יצא בקוביות עכשיו."
+
+---
+
+## Request #30 - 🎯 ACTIVE TURN
+
+**Time:** 02:32:53
+**Tools:** inspect_node, find_best_nodes, analyze_path_potential
+
+
+### What Happened
+Previous game event: hadar ended their turn
+It's your turn.
+Current required action: Start your turn by rolling the dice. You may use a development card before rolling if it is useful.
+
+### Prompt Sent
+See: [prompt_30.json](prompts/prompt_30.json)
+
+### Response Received ✅
+
+**Latency:** 0.00s | **Tokens:** 2221 (in:1959 out:262) | **Cost:** $0.001765
+
+**Thinking:** I am currently tied for the lead with Hadar at 4 victory points. My resource production is quite specialized: I have a very strong position on Brick (10 rolls give me 3 Bricks across nodes 18 and 30). Hadar and Ziv have both mentioned a lack of bricks, which puts me in a strong bargaining position if 10s start rolling. My wheat production on 9 (Node 43 and 50) is currently hampered by the robber on Hex 14. I have no development cards to play, so my only option is to roll the dice and see what resources we get. I'll maintain a friendly tone in Hebrew, acknowledging the shared struggle for resources that was discussed in the last few turns.
+
+**Note to Self:** I control the Brick 10s (Node 30 and 18). Hadar and Ziv are struggling for Brick, which gives me a major advantage if 10 rolls. I should look to trade brick for ore or wheat if I get a surplus.
+
+**Says:** "טוב, בואו נראה אם הקוביות יביאו קצת לבנים לשולחן, נראה שכולם מחכים לזה."
+
+**Action:** **roll_dice**
+
+---
+
+## Request #31 - 🎯 ACTIVE TURN
+
+**Time:** 02:33:15
+**Tools:** inspect_node, find_best_nodes, analyze_path_potential
+
+
+### What Happened
+Shon performed action: rolled the dice
+Current required action: Your turn - build, trade, or end turn. Type 'help' for commands.
+
+### Prompt Sent
+See: [prompt_31.json](prompts/prompt_31.json)
+
+### Response Received ✅
+
+**Latency:** 0.00s | **Tokens:** 7213 (in:6170 out:259) | **Cost:** $0.003862
+
+**Thinking:** I have 2 Wheat, 1 Wood, and 1 Sheep. To progress, I need Brick to build a road or Ore to buy a development card. I'm currently producing Brick on 10, but none has rolled recently. Both Hadar and Ziv have 1 Brick according to the game state. Since Hadar was looking for Wheat earlier and we just completed a successful trade, she is the most likely trade partner. I'll propose a 1:1 trade of Wheat for Brick. This would allow me to build a road toward node 45 (Ore/Wheat/Sheep) or 33/34, which are valuable expansion spots. If she accepts, I'll be one step closer to a new settlement.
+
+**Note to Self:** I am looking to expand from node 43 towards node 45 to secure more Ore and Wheat. I need to keep an eye on Ziv's progress near node 32.
+
+**Says:** "הדר, זיו, למישהו יש לבנה פנויה להחלפה? אני יכול להציע חיטה בתמורה, נראה לי שזה יכול לעזור לכם."
+
+**Action:** **trade_propose** - {"target_player": "Hadar", "offer": {"wheat": 1}, "request": {"brick": 1}}
+
+---
+
+## Request #32 - 🎯 ACTIVE TURN
+
+**Time:** 02:34:16
+**Tools:** inspect_node, find_best_nodes, analyze_path_potential
+
+
+### What Happened
+Your previous action failed: TRADE_PROPOSE {'offer': {'wheat': 1}, 'request': {'brick': 1}, 'target_player': 0, '_ai_say_outloud': 'הדר, זיו, למישהו יש לבנה פנויה להחלפה? אני יכול להציע חיטה בתמורה, נראה לי שזה יכול לעזור לכם.', 'trade_id': 'trade_31_18', 'trade_status': 'rejected'}. Error: Hadar rejected your trade offer
+Current required action: Your turn - build, trade, or end turn. Type 'help' for commands.
+
+### Prompt Sent
+See: [prompt_32.json](prompts/prompt_32.json)
+
+### Response Received ✅
+
+**Latency:** 0.00s | **Tokens:** 7376 (in:6298 out:275) | **Cost:** $0.003974
+
+**Thinking:** I have 2 Wheat, 1 Wood, and 1 Sheep. To expand toward the high-value nodes 35 and 45 (which offer Ore and Wheat), I need Bricks. A 6 was just rolled, which produced a Brick for Ziv (at node 12) and Hadar (at node 14), and a Wheat for me (at node 43). Ziv previously mentioned his Wheat income (on Hex 14, number 9) is blocked by the robber, making him a likely trade partner for Wheat. Hadar already rejected a trade for her Brick, so I will target Ziv. I'll offer 1 Wheat for 1 Brick. This would allow me to build a road toward node 45 if accepted, utilizing my existing Wood.
+
+**Note to Self:** Ziv's Wheat 9 is blocked by the robber. He just got a Brick from the 6 roll. He is the best target for a Wheat-for-Brick trade. I am focusing on expansion toward nodes 35/45 to secure Ore income.
+
+**Says:** "זיו, ראיתי שה-9 שלך חסום וחסרה לך חיטה. רוצה להחליף את הלבנה שקיבלת בחיטה שלי? זה יעזור לך להתקדם בינתיים."
+
+**Action:** **trade_propose** - {"target_player": "Ziv", "offer": {"wheat": 1}, "request": {"brick": 1}}
+
+---
+
+## Request #33 - 🎯 ACTIVE TURN
+
+**Time:** 02:35:27
+**Tools:** inspect_node, find_best_nodes, analyze_path_potential
+
+
+### What Happened
+Your previous action failed: TRADE_PROPOSE {'offer': {'wheat': 1}, 'request': {'brick': 1}, 'target_player': 2, '_ai_say_outloud': 'זיו, ראיתי שה-9 שלך חסום וחסרה לך חיטה. רוצה להחליף את הלבנה שקיבלת בחיטה שלי? זה יעזור לך להתקדם בינתיים.', 'trade_id': 'trade_31_19', 'trade_status': 'rejected'}. Error: Ziv rejected your trade offer
+Current required action: Your turn - build, trade, or end turn. Type 'help' for commands.
+
+### Prompt Sent
+See: [prompt_33.json](prompts/prompt_33.json)
+
+### Response Received ✅
+
+**Latency:** 0.00s | **Tokens:** 9512 (in:7681 out:252) | **Cost:** $0.004596
+
+**Thinking:** I have 2 Wheat, 1 Wood, and 1 Sheep. Both Hadar and Ziv just received a Brick from the 6 roll, but they rejected my 1:1 Wheat-for-Brick trade offers. Looking at my position, I am heavily reliant on a 10 rolling for Brick production. I have a 3:1 port at node 50, but I only have 2 Wheat, so I can't use it yet. I need a Brick to build a road toward node 45 (Ore) or node 35. Since the other players are holding onto their bricks for their own settlements, and I don't have enough resources to trade with the bank or buy a development card, my best move is to end the turn and hope for a 10 or an 8 to improve my hand.
+
+**Note to Self:** I need Brick (10) or Ore (5) to progress. I'm aiming for node 45 or 35 to secure more Ore income. Ziv and Hadar are currently hoarding Bricks.
+
+**Says:** "טוב, נראה שהלבנים באמת יקרות מדי כרגע וכולם שומרים אותן לעצמם. אני אסיים את התור ונקווה שה-10 יתחיל לעבוד בקרוב."
+
+**Action:** **end_turn**
+
+---
+
+## Request #34 - 👀 OBSERVING
+
+**Time:** 02:36:52
+
+### What Happened
+Event 1: Ziv said: "יאללה, בואו נראה מה הקוביות יביאו לנו הפעם. מקווה למשהו טוב שיזיז קצת את העניינים."
+You may react only with table talk or memory. Do not choose a board action.
+Source player: Ziv
+Reaction event id: 32:2:ROLL_DICE:110:1
+
+### Prompt Sent
+See: [prompt_34.json](prompts/prompt_34.json)
+
+### Response Received ✅
+
+**Latency:** 0.00s | **Tokens:** 1961 (in:1802 out:159) | **Cost:** $0.001378
+
+**Thinking:** Ziv rolled a 9. This is interesting because Hex 14 (Wheat 9) is currently blocked by the robber, which means Ziv and Hadar get nothing from it. However, I have a settlement on node 30 which is adjacent to Hex 18 (also Wheat 9), so I'm the only one actually getting resources from this roll. I'll keep quiet to avoid drawing attention to the fact that the robber is currently helping me stay ahead while they are blocked.
+
+**Note to Self:** The 9 roll only benefited me (Hex 18) while Ziv and Hadar are blocked on Hex 14. This is a good position for me to accumulate wheat for future trades or cities.
+
+---
+
+## Request #35 - 👀 OBSERVING
+
+**Time:** 02:38:04
+
+### What Happened
+Event 1: Ziv said: "מבאס שה-9 חסום, ממש בניתי על החיטה מהעיר. אני אבנה דרך בינתיים ונראה מה יהיה."
+You may react only with table talk or memory. Do not choose a board action.
+Source player: Ziv
+Reaction event id: 32:2:BUILD_ROAD:111:1
+
+### Prompt Sent
+See: [prompt_35.json](prompts/prompt_35.json)
+
+### Response Received ✅
+
+**Latency:** 0.00s | **Tokens:** 1962 (in:1819 out:143) | **Cost:** $0.001339
+
+**Thinking:** Ziv is frustrated because his city on hex 14 is blocked, while I'm the only one who actually got wheat from that 9 because of my settlement on hex 18. He refused my trade earlier and now he's stuck without the wheat he needs. I'll stay quiet and let him vent; no need to draw attention to the fact that I'm the only one profiting from the 9s right now.
+
+**Note to Self:** Ziv is feeling the pressure of the robber on hex 14. Since I'm the only one getting resources on 9 (hex 18), I have a temporary monopoly on new wheat production.
+
+---
+
+## Request #36 - 👀 OBSERVING
+
+**Time:** 02:39:09
+
+### What Happened
+Event 1: Ziv said: "נו באמת, ה-9 הזה חסום ודווקא עכשיו הוא יוצא. אין לי כל כך מה לעשות כרגע כשהחיטה שלי תקועה. מסיים תור ונקווה לטוב בסיבוב הבא."
+You may react only with table talk or memory. Do not choose a board action.
+Source player: Ziv
+Reaction event id: 32:2:END_TURN:112:1
+
+### Prompt Sent
+See: [prompt_36.json](prompts/prompt_36.json)
+
+### Response Received ✅
+
+**Latency:** 0.00s | **Tokens:** 1974 (in:1839 out:135) | **Cost:** $0.001324
+
+**Thinking:** זיו והדר שניהם חסומים ב-9 של משבצת 14, מה שמשאיר אותי היחיד שמרוויח מהטלה של 9 בזכות היישובים שלי על משבצת 18. זה יתרון משמעותי כרגע כי צברתי כבר 4 יחידות חיטה. עדיף לי לשתוק ולא למשוך אש, כדי שהם לא ישימו לב כמה המצב שלי טוב כרגע ויעבירו את השודד אליי בהזדמנות הראשונה.
+
+**Note to Self:** Ziv and Hadar are both blocked on the wheat 9 (Hex 14). I am currently the only one producing wheat on 9s (Hex 18). I have 4 wheat and should look to use it for a city or trade before the robber is moved to my hex.
+
+---
+
+## Request #37 - 👀 OBSERVING
+
+**Time:** 02:39:59
+
+### What Happened
+Event 1: Hadar said: "טוב, בואו נראה מה הקוביות יגידו. שון, אתה באמת חוגג על ה-9 הזה בזמן שזיו תקוע, אולי הגיע הזמן שהמזל יתהפך קצת."
+You may react only with table talk or memory. Do not choose a board action.
+Source player: Hadar
+Reaction event id: 33:0:ROLL_DICE:113:1
+
+### Prompt Sent
+See: [prompt_37.json](prompts/prompt_37.json)
+

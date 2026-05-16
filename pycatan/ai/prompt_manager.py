@@ -22,7 +22,7 @@ Usage:
 """
 
 from typing import Dict, Any, List, Optional
-from pycatan.ai.config import AIConfig, normalize_chat_language
+from pycatan.ai.config import AIConfig, HEBREW_RESOURCE_TERMS_INSTRUCTION, normalize_chat_language
 from pycatan.ai.state_filter import StateFilter, PlayerPerspective
 from pycatan.ai.prompt_templates import PromptBuilder, ActionTemplates
 
@@ -60,6 +60,7 @@ class PromptManager:
         chat_history: Optional[List[Dict[str, str]]] = None,
         agent_memory: Optional[Dict[str, Any]] = None,
         pending_trades: Optional[List[Dict[str, Any]]] = None,
+        relationship_updates: Optional[List[Dict[str, Any]]] = None,
         custom_instructions: Optional[str] = None
     ) -> Dict[str, Any]:
         """
@@ -92,9 +93,13 @@ class PromptManager:
             "agent_name": player_name,
             "role": custom_instructions or self.config.agent.custom_instructions
         }
-        relationship_background = self._build_relationship_background(player_name, game_state)
-        if relationship_background:
-            meta_data["relationship_background"] = relationship_background
+        relationship_context = self._build_relationship_context(
+            player_name,
+            game_state,
+            relationship_updates or []
+        )
+        if relationship_context:
+            meta_data["relationship_context"] = relationship_context
         
         # Build task context section
         task_context = {
@@ -377,13 +382,17 @@ class PromptManager:
         """Return the public chat language instruction for say_outloud."""
         language = normalize_chat_language(getattr(self.config.agent, "chat_language", "english"))
         if language == "hebrew":
-            return "Any say_outloud chat message must be written in natural Hebrew only."
+            return (
+                "Any say_outloud chat message must be written in natural Hebrew only. "
+                f"{HEBREW_RESOURCE_TERMS_INSTRUCTION}"
+            )
         return "Any say_outloud chat message must be written in natural English only."
 
-    def _build_relationship_background(
+    def _build_relationship_context(
         self,
         player_name: str,
-        game_state: Dict[str, Any]
+        game_state: Dict[str, Any],
+        relationship_updates: Optional[List[Dict[str, Any]]] = None
     ) -> Optional[str]:
         """Return a short coordinated social fallback for the current table."""
         player_names = self._extract_player_names(game_state)
@@ -399,7 +408,27 @@ class PromptManager:
             "Use this only for table talk, trust, trades, and tie-breakers; "
             "your board decisions should still prioritize strong legal Catan play."
         )
-        return f"Relationship background: {shared_story} {personal_angle} {strategic_guardrail}"
+        update_texts = self._format_relationship_updates(relationship_updates or [])
+        update_section = (
+            " Recent relationship shifts: " + " ".join(update_texts)
+            if update_texts else ""
+        )
+        return f"Relationship context: {shared_story} {personal_angle}{update_section} {strategic_guardrail}"
+
+    def _format_relationship_updates(
+        self,
+        relationship_updates: List[Dict[str, Any]]
+    ) -> List[str]:
+        """Format recent relationship updates compactly."""
+        result = []
+        for update in relationship_updates[-3:]:
+            if isinstance(update, dict):
+                text = str(update.get("note", "")).strip()
+            else:
+                text = str(update).strip()
+            if text:
+                result.append(text)
+        return result
 
     def _build_shared_table_history(self, player_names: List[str]) -> str:
         """Build one deterministic group story that includes every player."""

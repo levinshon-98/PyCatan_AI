@@ -445,10 +445,171 @@ function logAction(actionData) {
     }
     
     actionElement.className = className;
-    const timestamp = actionData.timestamp || new Date().toLocaleTimeString('en-GB', { hour12: false });
-    actionElement.textContent = `${prefix} ${actionData.message}`;
+    actionElement.classList.add('event-log-entry');
+    actionElement.innerHTML = renderEventLogEntry(prefix, actionData);
     
     appendToLog(logDiv, actionElement);
+}
+
+function renderEventLogEntry(prefix, actionData) {
+    const timestamp = actionData.timestamp || new Date().toLocaleTimeString('en-GB', { hour12: false });
+    const formatted = formatActionEventForDisplay(actionData);
+    const detailHtml = formatted.details.length
+        ? `<div class="event-log-details">${formatted.details.map(detail => `<span>${escapeHtmlLocal(detail)}</span>`).join('')}</div>`
+        : '';
+
+    return `
+        <div class="event-log-main">
+            <span class="event-log-prefix">${escapeHtmlLocal(formatted.icon || prefix)}</span>
+            <span class="event-log-message">${escapeHtmlLocal(formatted.message)}</span>
+            <span class="event-log-time">${escapeHtmlLocal(timestamp)}</span>
+        </div>
+        ${detailHtml}
+    `;
+}
+
+function formatActionEventForDisplay(actionData) {
+    const data = actionData.data || {};
+    const eventType = String(actionData.event_type || actionData.action_type || '').toUpperCase();
+    const player = actionData.player_name || data.player_name || 'Player';
+    const fallback = actionData.message || `${player} performed ${eventType || 'action'}`;
+    const details = [];
+
+    if (eventType === 'TRADE_BANK') {
+        const give = formatResourceBundleForLog(data.give || data.offer);
+        const receive = formatResourceBundleForLog(data.receive || data.request);
+        return {
+            icon: '🏦',
+            message: `${player} traded with bank`,
+            details: [`Gave: ${give}`, `Received: ${receive}`]
+        };
+    }
+
+    if (eventType === 'TRADE_EXECUTE') {
+        const toPlayer = data.to_player || data.target_player || 'other player';
+        return {
+            icon: '✅',
+            message: `${player} traded with ${toPlayer}`,
+            details: [
+                `${player} gave: ${formatResourceBundleForLog(data.offer || data.give)}`,
+                `${player} received: ${formatResourceBundleForLog(data.request || data.receive)}`
+            ]
+        };
+    }
+
+    if (eventType === 'TRADE_RESPONSE') {
+        const response = data.response || data.trade_status || 'RESPONDED';
+        const toPlayer = data.to_player || data.target_player;
+        return {
+            icon: response === 'ACCEPT' ? '✅' : '✕',
+            message: toPlayer ? `${toPlayer} ${response.toLowerCase()} ${player}'s trade` : fallback,
+            details
+        };
+    }
+
+    if (eventType === 'ROBBER_STEAL') {
+        const victim = data.victim || data.victim_name || 'another player';
+        const card = formatCardNameForLog(data.card || data.stolen_card || 'card');
+        return {
+            icon: '🎯',
+            message: `${player} stole ${card} from ${victim}`,
+            details
+        };
+    }
+
+    if (eventType === 'ROBBER_MOVE' && data.victim) {
+        const card = formatCardNameForLog(data.card || data.stolen_card || 'card');
+        return {
+            icon: '🦹',
+            message: `${player} moved robber to tile ${data.tile || '?'} and stole ${card} from ${data.victim}`,
+            details
+        };
+    }
+
+    if (eventType === 'DISCARD_CARDS') {
+        return {
+            icon: '🗑️',
+            message: `${player} discarded cards`,
+            details: [formatResourceBundleForLog(data.discarded || data.cards)]
+        };
+    }
+
+    if (eventType === 'USE_DEV_CARD') {
+        const card = formatCardNameForLog(data.card || data.card_type || 'development card');
+        if (String(card).toLowerCase().includes('monopoly') && data.total_stolen) {
+            details.push(`Took ${data.total_stolen} ${formatCardNameForLog(data.resource || data.resource_type || '')}`);
+        }
+        if (String(card).toLowerCase().includes('year') && (data.gained || data.resources)) {
+            details.push(`From bank: ${formatResourceBundleForLog(data.gained || data.resources)}`);
+        }
+        return {
+            icon: '✨',
+            message: `${player} used ${card}`,
+            details
+        };
+    }
+
+    return { icon: '', message: fallback, details };
+}
+
+function formatResourceBundleForLog(bundle) {
+    const counts = normalizeResourceBundleForLog(bundle);
+    const parts = Object.entries(counts)
+        .filter(([, count]) => Number(count || 0) > 0)
+        .map(([resource, count]) => `${count}x ${formatCardNameForLog(resource)}`);
+    return parts.length ? parts.join(', ') : 'nothing';
+}
+
+function normalizeResourceBundleForLog(bundle) {
+    const counts = {};
+    if (!bundle) return counts;
+
+    if (Array.isArray(bundle)) {
+        bundle.forEach(card => {
+            const key = normalizeCardKeyForLog(card);
+            if (key) counts[key] = (counts[key] || 0) + 1;
+        });
+        return counts;
+    }
+
+    if (typeof bundle === 'object') {
+        Object.entries(bundle).forEach(([card, count]) => {
+            const key = normalizeCardKeyForLog(card);
+            const amount = Number(count || 0);
+            if (key && amount > 0) counts[key] = (counts[key] || 0) + amount;
+        });
+        return counts;
+    }
+
+    const key = normalizeCardKeyForLog(bundle);
+    if (key) counts[key] = 1;
+    return counts;
+}
+
+function normalizeCardKeyForLog(card) {
+    return String(card || '').trim().toLowerCase().replace(/^(rescard|devcard)\./, '').replace(/[\s-]/g, '_');
+}
+
+function formatCardNameForLog(card) {
+    const key = normalizeCardKeyForLog(card);
+    const labels = {
+        wood: 'Wood',
+        brick: 'Brick',
+        sheep: 'Sheep',
+        wool: 'Sheep',
+        wheat: 'Wheat',
+        grain: 'Wheat',
+        ore: 'Ore',
+        knight: 'Knight',
+        road: 'Road Building',
+        road_building: 'Road Building',
+        monopoly: 'Monopoly',
+        yearofplenty: 'Year of Plenty',
+        year_of_plenty: 'Year of Plenty',
+        victorypoint: 'Victory Point',
+        victory_point: 'Victory Point'
+    };
+    return labels[key] || String(card || 'Card').replace(/_/g, ' ');
 }
 
 // Log generic event

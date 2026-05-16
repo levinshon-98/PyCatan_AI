@@ -1,0 +1,149 @@
+=== Prompt #34 for Ziv ===
+Timestamp: 2026-05-16T02:36:35.592697
+Active Turn: True
+
+--- What Happened ---
+Previous game event: shon ended their turn
+It's your turn.
+Current required action: Start your turn by rolling the dice. You may use a development card before rolling if it is useful.
+
+--- Tools Available ---
+  - inspect_node: Get detailed information about a specific node on the board. USE THIS to verify ...
+  - find_best_nodes: Search for the best available nodes matching specific criteria. USE THIS instead...
+  - analyze_path_potential: Analyze where a road path leads and what opportunities exist ahead. USE THIS to ...
+
+--- Response Schema ---
+{
+  "type": "object",
+  "required": [
+    "internal_thinking",
+    "action"
+  ],
+  "properties": {
+    "internal_thinking": {
+      "type": "string",
+      "description": "Private strategy. Plan your move logically here. Analyze the board, probabilities, and opponents. NOTE: Keep your logic HERE. Do not leak technical explanations into 'say_outloud'.",
+      "minLength": 120
+    },
+    "note_to_self": {
+      "type": "string",
+      "description": "Save important observations for future turns (e.g., 'Player 3 is hoarding ore').",
+      "maxLength": 100
+    },
+    "say_outloud": {
+      "type": "string",
+      "description": "Table talk in natural Hebrew only. If nothing interesting happened, leave empty. If frustrated or happy, express it briefly. Keep it casual, human, and non-technical.",
+      "maxLength": 120
+    },
+    "action": {
+      "type": "object",
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "The action type (must match one from allowed_actions in constraints)"
+        },
+        "parameters": {
+          "type": "string",
+          "description": "Action parameters as JSON string. Example: {\"node\": 14} or {}"
+        }
+      },
+      "propertyOrdering": [
+        "type",
+        "parameters"
+      ]
+    }
+  },
+  "propertyOrdering": [
+    "internal_thinking",
+    "note_to_self",
+    "say_outloud",
+    "action"
+  ]
+}
+
+--- Prompt Content ---
+{
+  "meta_data": {
+    "agent_name": "Ziv",
+    "role": null,
+    "relationship_background": "Relationship background: Hadar and Shon have history: Shon betrayed Hadar late in the last game after being trusted for a long time. Hadar may be cautious, and Shon can be charming but opportunistic. Use this only for table talk, trust, trades, and tie-breakers; your board decisions should still prioritize strong legal Catan play."
+  },
+  "task_context": {
+    "what_just_happened": "Previous game event: shon ended their turn\nIt's your turn.\nCurrent required action: Start your turn by rolling the dice. You may use a development card before rolling if it is useful.",
+    "instructions": "Analyze the game state and select the optimal move from 'allowed_actions'. Any say_outloud chat message must be written in natural Hebrew only. You have 2 possible actions. Do not state node resources or opponent settlement facts unless they come from the filtered game_state or a tool result."
+  },
+  "game_state": "\n  1. LOOKUP TABLES:\n   • \"H\" (Hexes): Array where Index = HexID. Value = Resource+Num.\n     Example: H[1]=\"W12\" -> Hex 1 is Wood 12.\n   • \"N\" (Nodes): Array where Index = NodeID.\n     Format: [ [Neighbors], [HexIDs], Port? ]\n     Logic: To find yield of Node 10, check N[10]. Get HexIDs (e.g. [1,5]). Look up H[1] and H[5].\n\n2. CODES: W=Wood, B=Brick, S=Sheep, Wh=Wheat, O=Ore, D=Desert.\n          ?3=Any 3:1 port, X2=Specific Resource 2:1 port.\n\n3. STATE: \"bld\"=[NodeID, Owner, Type], \"rds\"=[[From,To], Owner].\n\n4. PLAYERS: \"res\"={Resource:Count}, \"dev\"={\"h\":[Hidden Cards], \"r\":[Revealed] (K=Knight)}, \n            \"stat\"=[\"LR\" (Longest Road), \"LA\" (Largest Army)].\n\n5. ROBBER: Located at HexID specified in \"meta.robber\". H[id] is blocked.\n\nJSON:\n{\"meta\":{\"curr\":\"Ziv\",\"phase\":\"NORMAL_PLAY\",\"robber\":14,\"dice\":null},\"H\":[\"\",\"W12\",\"S5\",\"W4\",\"S8\",\"B6\",\"W3\",\"Wh8\",\"B10\",\"W11\",\"D\",\"O3\",\"S4\",\"B10\",\"Wh9\",\"Wh6\",\"S11\",\"O5\",\"Wh9\",\"O2\"],\"N\":[null,[[2,9],[1]],[[1,3],[1],\"Wh2\"],[[2,4,11],[2,1],\"Wh2\"],[[3,5],[2]],[[4,6,13],[3,2]],[[5,7],[3],\"B2\"],[[6,15],[3],\"B2\"],[[9,18],[4],\"?3\"],[[8,10,1],[4,1],\"?3\"],[[9,11,20],[5,4,1]],[[10,12,3],[5,2,1]],[[11,13,22],[6,5,2]],[[12,14,5],[6,3,2]],[[13,15,24],[7,6,3]],[[14,16,7],[7,3]],[[15,26],[7],\"O2\"],[[18,28],[8],\"S2\"],[[17,19,8],[8,4]],[[18,20,30],[9,8,4]],[[19,21,10],[9,5,4]],[[20,22,32],[10,9,5]],[[21,23,12],[10,6,5]],[[22,24,34],[11,10,6]],[[23,25,14],[11,7,6]],[[24,26,36],[12,11,7]],[[25,27,16],[12,7],\"O2\"],[[26,38],[12]],[[29,17],[8],\"S2\"],[[28,30,39],[13,8]],[[29,31,19],[13,9,8]],[[30,32,41],[14,13,9]],[[31,33,21],[14,10,9]],[[32,34,43],[15,14,10]],[[33,35,23],[15,11,10]],[[34,36,45],[16,15,11]],[[35,37,25],[16,12,11]],[[36,38,47],[16,12],\"?3\"],[[37,27],[12],\"?3\"],[[40,29],[13]],[[39,41,48],[17,13],\"W2\"],[[40,42,31],[17,14,13]],[[41,43,50],[18,17,14]],[[42,44,33],[18,15,14]],[[43,45,52],[19,18,15]],[[44,46,35],[19,16,15]],[[45,47,54],[19,16]],[[46,37],[16]],[[49,40],[17],\"W2\"],[[48,50],[17]],[[49,51,42],[18,17],\"?3\"],[[50,52],[18],\"?3\"],[[51,53,44],[19,18]],[[52,54],[19],\"?3\"],[[53,46],[19],\"?3\"]],\"state\":{\"bld\":[[9,\"Hadar\",\"S\"],[12,\"Ziv\",\"S\"],[14,\"Hadar\",\"S\"],[18,\"Shon\",\"S\"],[20,\"Hadar\",\"S\"],[25,\"Hadar\",\"S\"],[30,\"Shon\",\"S\"],[43,\"Shon\",\"S\"],[50,\"Shon\",\"S\"],[41,\"Ziv\",\"C\"]],\"rds\":[[[20,10],\"Hadar\"],[[43,42],\"Shon\"],[[12,13],\"Ziv\"],[[41,31],\"Ziv\"],[[30,19],\"Shon\"],[[25,24],\"Hadar\"],[[42,50],\"Shon\"],[[24,14],\"Hadar\"],[[10,9],\"Hadar\"],[[13,14],\"Ziv\"],[[19,18],\"Shon\"],[[31,32],\"Ziv\"],[[25,36],\"Hadar\"],[[36,35],\"Hadar\"]]},\"players\":{\"Hadar\":{\"vp\":4,\"res\":{\"Wh\":1,\"B\":1,\"W\":1,\"S\":2},\"dev\":{\"r\":[\"K\"]}},\"Shon\":{\"vp\":4,\"res\":{\"Wh\":2,\"W\":1,\"S\":1}},\"Ziv\":{\"vp\":3,\"res\":{\"Wh\":1,\"B\":1,\"W\":1}}}}",
+  "social_context": {
+    "recent_chat": [
+      {
+        "from": "Hadar",
+        "message": "תודה על ההחלפה שון, זה יעזור לי בהמשך. נראה שבאמת אין לבנים לאף אחד כרגע וזה קצת תוקע את כולנו, אז אין לי הרבה מה לעשות. אני אסיים את התור ונקווה שהקוביות יהיו יותר לטובתנו בסיבוב הבא."
+      },
+      {
+        "from": "Shon",
+        "message": "בכיף הדר, מקווה שזה יעזור לשנינו. נראה מה יצא בקוביות עכשיו."
+      },
+      {
+        "from": "Shon",
+        "message": "טוב, בואו נראה אם הקוביות יביאו קצת לבנים לשולחן, נראה שכולם מחכים לזה."
+      },
+      {
+        "from": "Ziv",
+        "message": "לפחות הלבנים הגיעו למישהו, תודה על ה-6 הזה."
+      },
+      {
+        "from": "Shon",
+        "message": "הדר, זיו, למישהו יש לבנה פנויה להחלפה? אני יכול להציע חיטה בתמורה, נראה לי שזה יכול לעזור לכם."
+      },
+      {
+        "from": "Hadar",
+        "message": "מצטערת שון, הלבנה הזאת היא בדיוק מה שהייתי צריכה בשביל היישוב הבא שלי. חיכיתי לה הרבה זמן!"
+      },
+      {
+        "from": "Ziv",
+        "message": "מצטער שון, גם אני חייב לשמור את הלבנה הזאת כדי להתקדם."
+      },
+      {
+        "from": "Shon",
+        "message": "זיו, ראיתי שה-9 שלך חסום וחסרה לך חיטה. רוצה להחליף את הלבנה שקיבלת בחיטה שלי? זה יעזור לך להתקדם בינתיים."
+      },
+      {
+        "from": "Ziv",
+        "message": "זה באמת מפתה כי ה-9 שלי חסום, אבל אני חייב לשמור על הלבנה הזאת כדי לנסות להתקדם בעצמי. מצטער שון, אולי בהמשך."
+      },
+      {
+        "from": "Shon",
+        "message": "טוב, נראה שהלבנים באמת יקרות מדי כרגע וכולם שומרים אותן לעצמם. אני אסיים את התור ונקווה שה-10 יתחיל לעבוד בקרוב."
+      }
+    ],
+    "trade_context": "Recent trade history: Shon offered you 1 sheep for 1 brick; you rejected. You offered Hadar 1 sheep for 1 wood; Hadar accepted. You offered Hadar 1 wheat for 1 brick; Hadar rejected. Hadar offered you 1 sheep for 1 wheat; you rejected. Shon offered you 1 wheat for 1 brick; you rejected."
+  },
+  "memory": {
+    "note_from_last_turn": "Shon is also waiting on the 10 for bricks. Both Shon and Hadar are at 4VP while I'm at 3VP. I must prioritize moving the robber off my 9-Wheat to maximize my city's production.",
+    "recent_notes": [
+      "הדר ושון משתפים פעולה במסחר למרות ההיסטוריה ביניהם. שניהם מובילים עם 4 נקודות. אני חייב לשבור את חסימת החיטה ב-9 בהקדם.",
+      "קיבלתי לבנה מה-6. השודד ב-14 עדיין חוסם לי את העיר ב-41. שון והדר עדיין מובילים עם 4 נקודות.",
+      "Shon is hunting for bricks to probably build a road or settlement. I need to keep mine to catch up.",
+      "Shon is actively hunting for bricks. I should be careful about trading them to him since he's in the lead. I need to find a way to get a Sheep to build my next settlement.",
+      "Shon is also waiting on the 10 for bricks. Both Shon and Hadar are at 4VP while I'm at 3VP. I must prioritize moving the robber off my 9-Wheat to maximize my city's production."
+    ]
+  },
+  "constraints": {
+    "usage_instructions": "Choose one action type from the list below. Populate the 'parameters' field in your response strictly according to the 'example_parameters' structure provided.",
+    "allowed_actions": [
+      {
+        "type": "roll_dice",
+        "description": "Roll the dice",
+        "example_parameters": "{}"
+      },
+      {
+        "type": "use_dev_card",
+        "description": "Play a development card. Use exact card_type values: knight, road_building, monopoly, year_of_plenty. Victory points are counted automatically.",
+        "example_parameters": "{\"card_type\": \"knight\", \"hex\": X, \"target_player\": \"Bob\"} OR {\"card_type\": \"road_building\", \"road_1\": [A, B], \"road_2\": [C, D]} OR {\"card_type\": \"monopoly\", \"resource\": \"wheat\"} OR {\"card_type\": \"year_of_plenty\", \"resources\": [\"wood\", \"brick\"]}"
+      }
+    ]
+  }
+}

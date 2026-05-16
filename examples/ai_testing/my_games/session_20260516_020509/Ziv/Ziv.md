@@ -555,3 +555,375 @@ See: [prompt_22.json](prompts/prompt_22.json)
 **Action:** **trade_propose** - {"target_player": "Hadar", "offer": {"sheep": 1}, "request": {"wood": 1}}
 
 ---
+
+## Request #23 - 🎯 ACTIVE TURN
+
+**Time:** 02:24:36
+**Tools:** inspect_node, find_best_nodes, analyze_path_potential
+
+
+### What Happened
+ziv proposed a trade
+Current required action: Your turn - build, trade, or end turn. Type 'help' for commands.
+
+### Prompt Sent
+See: [prompt_23.json](prompts/prompt_23.json)
+
+### Response Received ✅
+
+**Latency:** 0.00s | **Tokens:** 5979 (in:5250 out:307) | **Cost:** $0.003546
+
+**Thinking:** I currently have 1 Wheat and 1 Wood. My Wheat 9 production is blocked by the robber at Hex 14, which is a major setback since my city at node 41 relies on it. To expand toward node 33 (which has high Wheat yield with 6 and 9), I need to build a road from my current road end at node 32. This requires 1 Brick. Hadar has strong brick production (nodes 14, 20, and 25 cover Brick 6 and 10), so she is the most likely candidate to have a spare brick. Shon also has brick production at node 18 (Brick 10) but he recently mentioned needing bricks himself. I'll propose a trade to Hadar: my Wheat for her Brick. If this fails, I don't have enough resources to build anything else this turn.
+
+**Note to Self:** Hadar is blocking my Wheat 9 production at hex 14. I need to move the robber to her best hex (maybe hex 5 or 8 if I get the chance) to slow her down. My immediate goal is reaching node 33 for the Wheat 6/9 combo.
+
+**Says:** "הדר, יש לך אולי לבנה מיותרת? אני יכול לתת חיטה בתמורה. השודד הזה על ה-9 באמת תוקע אותי ומונע ממני להתקדם."
+
+**Action:** **trade_propose** - {"target_player": "Hadar", "offer": {"wheat": 1}, "request": {"brick": 1}}
+
+---
+
+## Request #24 - 🎯 ACTIVE TURN
+
+**Time:** 02:25:47
+**Tools:** inspect_node, find_best_nodes, analyze_path_potential
+
+
+### What Happened
+Your previous action failed: TRADE_PROPOSE {'offer': {'wheat': 1}, 'request': {'brick': 1}, 'target_player': 0, '_ai_say_outloud': 'הדר, יש לך אולי לבנה מיותרת? אני יכול לתת חיטה בתמורה. השודד הזה על ה-9 באמת תוקע אותי ומונע ממני להתקדם.', 'trade_id': 'trade_29_14', 'trade_status': 'rejected'}. Error: Hadar doesn't have the required cards
+Current required action: Your turn - build, trade, or end turn. Type 'help' for commands.
+
+### Prompt Sent
+See: [prompt_24.json](prompts/prompt_24.json)
+
+### Response Received ✅
+
+**Latency:** 0.00s | **Tokens:** 6137 (in:5439 out:271) | **Cost:** $0.003533
+
+**Thinking:** I have 1 Wheat and 1 Wood. The dice roll was a 9, which would have given me Wheat from my city at node 41 (Hex 14), but the robber is currently blocking it. I need Brick and Sheep to build a settlement, or Brick to build a road towards node 33. Looking at the players' resources, Hadar has 1 Wood and 1 Sheep, and Shon has 2 Wheat and 1 Sheep. Neither of them has the Brick I need. Since I cannot build, buy a development card, or make a meaningful trade (as nobody has Brick), the best move is to end my turn and hope for a better roll or for the robber to be moved.
+
+**Note to Self:** Hadar is still blocking my Wheat 9 production at hex 14. I need to move the robber as soon as possible. My next goal remains reaching node 33 for the Wheat 6/9 combo, but I desperately need Brick production, which I might get if a 6 rolls (node 12) or a 10 rolls (node 41).
+
+**Says:** "טוב, נראה שכולנו באותה סירה בלי לבנים כרגע. אני אסיים את התור ונקווה שהמספרים הבאים יהיו קצת יותר מוצלחים."
+
+**Action:** **end_turn**
+
+---
+
+## Request #25 - 👀 OBSERVING
+
+**Time:** 02:27:13
+
+### What Happened
+Event 1: Hadar said: "טוב, הגיע תורי. בואו נראה אם הקוביות יפרגנו לי קצת בחיטה או לבנים הפעם, אני חייבת להתקדם."
+You may react only with table talk or memory. Do not choose a board action.
+Source player: Hadar
+Reaction event id: 30:0:ROLL_DICE:101:2
+
+### Prompt Sent
+See: [prompt_25.json](prompts/prompt_25.json)
+
+### Response Received ✅
+
+**Latency:** 0.00s | **Tokens:** 2006 (in:1840 out:166) | **Cost:** $0.001418
+
+**Thinking:** Hadar rolled a 4, which gave her Wood and Sheep, but not the Wheat or Bricks she was hoping for. I didn't get anything from this roll. My Wheat 9 is still blocked by her robber, which is really slowing down my progress since I have a city on node 41. Both Hadar and Shon are at 4 points while I'm at 3, so I need to find a way to catch up once I get some resources. Silence is best here as she's just talking to the dice.
+
+**Note to Self:** Hadar got Wood and Sheep from the 4 roll. She is still blocking my Wheat 9. I need to move that robber to her most productive hex (maybe the 6 or 8) as soon as I can to even the field.
+
+---
+
+## Request #26 - 👀 OBSERVING
+
+**Time:** 02:28:40
+
+### What Happened
+Event 1: Hadar said: "שון, רוצה להחליף כבשה בחיטה? יש לך שתיים וזה יכול לעזור לשנינו כרגע."
+Trade offer trade_30_15: Hadar offers 1 sheep to Shon for 1 wheat.
+You may react only with table talk or memory. Do not choose a board action.
+Source player: Hadar
+Reaction event id: 30:0:TRADE_PROPOSE:102:2
+
+### Prompt Sent
+See: [prompt_26.json](prompts/prompt_26.json)
+
+### Response Received ✅
+
+**Latency:** 0.00s | **Tokens:** 1986 (in:1850 out:136) | **Cost:** $0.001333
+
+**Thinking:** Hadar is looking for wheat, likely to build a settlement or a development card. Shon refused her, which is good for me since they are both ahead with 4 points. I have one wheat, but since Hadar is the one currently blocking my wheat production on the 9 hex, I have no interest in helping her unless she's offering something I desperately need, like brick. I'll stay silent and let them figure it out.
+
+**Note to Self:** Hadar is actively seeking wheat; Shon is hoarding his. Both are at 4 VP while I'm at 3.
+
+---
+
+## Request #27 - 🎯 ACTIVE TURN
+
+**Time:** 02:29:10
+**Tools:** inspect_node, find_best_nodes, analyze_path_potential
+
+
+### What Happened
+trade offer trade 30 16: hadar offers 1 sheep to ziv for 1 wheat.
+Current required action: Trade offer trade_30_16: Hadar offers 1 sheep to Ziv for 1 wheat. Choose trade_accept to accept or trade_reject to reject.
+
+### Prompt Sent
+See: [prompt_27.json](prompts/prompt_27.json)
+
+### Response Received ✅
+
+**Latency:** 0.00s | **Tokens:** 2160 (in:1928 out:232) | **Cost:** $0.001660
+
+**Thinking:** Hadar is offering me 1 Sheep for 1 Wheat. While I do need Sheep to build my next settlement, I currently only have 1 Wheat, and my primary Wheat source (Hex 14, number 9) is blocked by the robber—which Hadar likely placed or is benefiting from. Trading away my only Wheat to a player who is currently leading (4 VP) and blocking my production is not a strategic move. I need to hold onto my resources until I can unblock my Wheat production or find a more favorable trade that doesn't strengthen a leader at my expense.
+
+**Note to Self:** Hadar is trying to trade for my limited wheat while my 9 is blocked. I must prioritize moving the robber before trading away my last wheat.
+
+**Says:** "הדר, הייתי שמח לעזור אבל החיטה הזאת היא היחידה שיש לי כרגע, וה-9 שלי עדיין חסום... אני חייב לשמור אותה כדי שיהיה לי סיכוי להתקדם."
+
+**Action:** **trade_reject**
+
+---
+
+## Request #28 - 👀 OBSERVING
+
+**Time:** 02:31:27
+
+### What Happened
+Event 1: Hadar said: "שון, אולי תרצה עץ בתמורה לחיטה? ראיתי שאתה שומר אותה, אבל עץ יכול לעזור לך להתקדם בבנייה של הדרכים או היישוב הבא שלך."
+Trade offer trade_30_17: Hadar offers 1 wood to Shon for 1 wheat.
+You may react only with table talk or memory. Do not choose a board action.
+Source player: Hadar
+Reaction event id: 30:0:TRADE_PROPOSE:104:2
+
+### Prompt Sent
+See: [prompt_28.json](prompts/prompt_28.json)
+
+### Response Received ✅
+
+**Latency:** 0.00s | **Tokens:** 1991 (in:1877 out:114) | **Cost:** $0.001280
+
+**Thinking:** Hadar and Shon are trading despite their history of betrayal. They are both at 4 points while I'm at 3, and this trade helps them both advance while my Wheat 9 is still blocked by the robber. I should keep an eye on Shon; he's acting charming now but he's opportunistic.
+
+**Note to Self:** Hadar and Shon are cooperating now despite their past. They are both leading with 4VP. I need to break that Wheat 9 blockade soon.
+
+---
+
+## Request #29 - 👀 OBSERVING
+
+**Time:** 02:32:39
+
+### What Happened
+Event 1: Hadar said: "תודה על ההחלפה שון, זה יעזור לי בהמשך. נראה שבאמת אין לבנים לאף אחד כרגע וזה קצת תוקע את כולנו, אז אין לי הרבה מה לעשות. אני אסיים את התור ונקווה שהקוביות יהיו יותר לטובתנו בסיבוב הבא."
+You may react only with table talk or memory. Do not choose a board action.
+Source player: Hadar
+Reaction event id: 30:0:END_TURN:105:2
+
+### Prompt Sent
+See: [prompt_29.json](prompts/prompt_29.json)
+
+### Response Received ✅
+
+**Latency:** 0.00s | **Tokens:** 2001 (in:1873 out:128) | **Cost:** $0.001321
+
+**Thinking:** הדר ושון מתחילים לשתף פעולה וזה לא סימן טוב עבורי, במיוחד כשהם שניהם עם 4 נקודות ואני עם 3. המחסור בלבנים מעכב את כולם, אבל העובדה שהם מחליפים ביניהם משאבים אחרים עוזרת להם להתקדם למרות זאת. ה-9 שלי עדיין חסום וזה פוגע בי משמעותית. אני חייב להשיג לבנה או להזיז את השודד בקרוב כדי לא להישאר מאחור. כרגע אין לי סיבה להתערב בשיחה ביניהם.
+
+**Note to Self:** הדר ושון משתפים פעולה במסחר למרות ההיסטוריה ביניהם. שניהם מובילים עם 4 נקודות. אני חייב לשבור את חסימת החיטה ב-9 בהקדם.
+
+---
+
+## Request #30 - 👀 OBSERVING
+
+**Time:** 02:33:15
+
+### What Happened
+Event 1: Shon said: "טוב, בואו נראה אם הקוביות יביאו קצת לבנים לשולחן, נראה שכולם מחכים לזה."
+You may react only with table talk or memory. Do not choose a board action.
+Source player: Shon
+Reaction event id: 31:1:ROLL_DICE:106:2
+
+### Prompt Sent
+See: [prompt_30.json](prompts/prompt_30.json)
+
+### Response Received ✅
+
+**Latency:** 0.00s | **Tokens:** 1937 (in:1797 out:140) | **Cost:** $0.001319
+
+**Thinking:** Shon rolled a 6, and Hex 5 is a Brick 6. My settlement at Node 12 just produced a brick, which is exactly what Shon was talking about. I'm currently at 3 points while Hadar and Shon are at 4. The robber on 14 is still a problem for my city at 41, but getting a brick now is a good start for my next move. I'll acknowledge the roll since it's exactly what he mentioned.
+
+**Note to Self:** קיבלתי לבנה מה-6. השודד ב-14 עדיין חוסם לי את העיר ב-41. שון והדר עדיין מובילים עם 4 נקודות.
+
+**Says:** "לפחות הלבנים הגיעו למישהו, תודה על ה-6 הזה."
+
+---
+
+## Request #31 - 👀 OBSERVING
+
+**Time:** 02:34:16
+
+### What Happened
+Event 1: Shon said: "הדר, זיו, למישהו יש לבנה פנויה להחלפה? אני יכול להציע חיטה בתמורה, נראה לי שזה יכול לעזור לכם."
+Trade offer trade_31_18: Shon offers 1 wheat to Hadar for 1 brick.
+You may react only with table talk or memory. Do not choose a board action.
+Source player: Shon
+Reaction event id: 31:1:TRADE_PROPOSE:107:2
+
+### Prompt Sent
+See: [prompt_31.json](prompts/prompt_31.json)
+
+### Response Received ✅
+
+**Latency:** 0.00s | **Tokens:** 1926 (in:1785 out:141) | **Cost:** $0.001316
+
+**Thinking:** Shon is asking for a brick. I just got one from the 6 roll, and since I'm behind at 3 points while both Shon and Hadar are at 4, I shouldn't help him unless it's a great deal. Wheat for Brick isn't great for me right now, especially since I need to save materials to expand once I can get that robber off my 9. Hadar already said no, so I'll follow suit.
+
+**Note to Self:** Shon is hunting for bricks to probably build a road or settlement. I need to keep mine to catch up.
+
+**Says:** "מצטער שון, גם אני חייב לשמור את הלבנה הזאת כדי להתקדם."
+
+---
+
+## Request #32 - 🎯 ACTIVE TURN
+
+**Time:** 02:35:06
+**Tools:** inspect_node, find_best_nodes, analyze_path_potential
+
+
+### What Happened
+trade offer trade 31 19: shon offers 1 wheat to ziv for 1 brick.
+Current required action: Trade offer trade_31_19: Shon offers 1 wheat to Ziv for 1 brick. Choose trade_accept to accept or trade_reject to reject.
+
+### Prompt Sent
+See: [prompt_32.json](prompts/prompt_32.json)
+
+### Response Received ✅
+
+**Latency:** 0.00s | **Tokens:** 2087 (in:1856 out:231) | **Cost:** $0.001621
+
+**Thinking:** Shon is offering 1 Wheat for 1 Brick. I currently have 1 Wood, 1 Brick, and 1 Wheat. While my Wheat 9 is blocked by the robber, I just received this Brick from the roll of 6 (Hex 5). Both Shon and Hadar are leading with 4 VP, while I have 3. Giving Shon a Brick right now likely helps him build a road or settlement, further increasing his lead. I need to keep my Brick so I only need a Sheep to build my next settlement. Trading it for a second Wheat doesn't help me as much as keeping the Brick does.
+
+**Note to Self:** Shon is actively hunting for bricks. I should be careful about trading them to him since he's in the lead. I need to find a way to get a Sheep to build my next settlement.
+
+**Says:** "זה באמת מפתה כי ה-9 שלי חסום, אבל אני חייב לשמור על הלבנה הזאת כדי לנסות להתקדם בעצמי. מצטער שון, אולי בהמשך."
+
+**Action:** **trade_reject**
+
+---
+
+## Request #33 - 👀 OBSERVING
+
+**Time:** 02:36:19
+
+### What Happened
+Event 1: Shon said: "טוב, נראה שהלבנים באמת יקרות מדי כרגע וכולם שומרים אותן לעצמם. אני אסיים את התור ונקווה שה-10 יתחיל לעבוד בקרוב."
+You may react only with table talk or memory. Do not choose a board action.
+Source player: Shon
+Reaction event id: 31:1:END_TURN:109:2
+
+### Prompt Sent
+See: [prompt_33.json](prompts/prompt_33.json)
+
+### Response Received ✅
+
+**Latency:** 0.00s | **Tokens:** 1955 (in:1786 out:169) | **Cost:** $0.001400
+
+**Thinking:** Shon is right about the bricks, they are the bottleneck right now. He's also eyeing the 10, which makes sense since we both have buildings there, though my city on 41 would benefit way more. He and Hadar are still ahead with 4 points each, and they seem to be playing nice for now despite their history. I need to get that robber off my 9 wheat soon or I'll fall behind. Since he's just ending his turn with general commentary, I'll stay quiet.
+
+**Note to Self:** Shon is also waiting on the 10 for bricks. Both Shon and Hadar are at 4VP while I'm at 3VP. I must prioritize moving the robber off my 9-Wheat to maximize my city's production.
+
+---
+
+## Request #34 - 🎯 ACTIVE TURN
+
+**Time:** 02:36:35
+**Tools:** inspect_node, find_best_nodes, analyze_path_potential
+
+
+### What Happened
+Previous game event: shon ended their turn
+It's your turn.
+Current required action: Start your turn by rolling the dice. You may use a development card before rolling if it is useful.
+
+### Prompt Sent
+See: [prompt_34.json](prompts/prompt_34.json)
+
+### Response Received ✅
+
+**Latency:** 0.00s | **Tokens:** 2121 (in:1922 out:199) | **Cost:** $0.001558
+
+**Thinking:** I currently have 3 victory points and I'm trailing behind Hadar and Shon who both have 4. My city at node 41 is partially blocked because the robber is on hex 14 (Wheat 9), which is a major source of income for me. I have no development cards to play, so my only option is to roll the dice and hope for a number that benefits me (like a 10 for bricks or a 5 for ore) or a 7 to move that robber.
+
+**Note to Self:** I need to prioritize getting the robber off hex 14 to restore my wheat production from the city at node 41. Shon and Hadar are still cooperating, so I need to be careful with trades.
+
+**Says:** "יאללה, בואו נראה מה הקוביות יביאו לנו הפעם. מקווה למשהו טוב שיזיז קצת את העניינים."
+
+**Action:** **roll_dice**
+
+---
+
+## Request #35 - 🎯 ACTIVE TURN
+
+**Time:** 02:36:52
+**Tools:** inspect_node, find_best_nodes, analyze_path_potential
+
+
+### What Happened
+Ziv performed action: rolled the dice
+Current required action: Your turn - build, trade, or end turn. Type 'help' for commands.
+
+### Prompt Sent
+See: [prompt_35.json](prompts/prompt_35.json)
+
+### Response Received ✅
+
+**Latency:** 0.00s | **Tokens:** 13051 (in:11188 out:272) | **Cost:** $0.006410
+
+**Thinking:** The dice roll was 9, which corresponds to Hex 14 (Wheat) and Hex 18 (Wheat). My city is at node 41, adjacent to Hex 14, but the robber is currently blocking it, so I didn't receive any wheat from this roll. I currently have 1 Wood, 1 Brick, and 1 Wheat. My goal is to expand towards sheep production since I have none. Node 5 (Wood 4, Sheep 5) is an excellent candidate and is only one road away from my existing road network at node 13. I will use my Wood and Brick to build a road from node 13 to node 5. This will set me up to build a settlement there as soon as I acquire the necessary resources (1 Wood, 1 Brick, 1 Wheat, 1 Sheep).
+
+**Note to Self:** The robber on hex 14 is significantly hindering my wheat production from the city at node 41. I need to prioritize getting a Knight or rolling a 7 to move it. My next goal is to secure sheep production at node 5.
+
+**Says:** "מבאס שה-9 חסום, ממש בניתי על החיטה מהעיר. אני אבנה דרך בינתיים ונראה מה יהיה."
+
+**Action:** **build_road** - {"from": 13, "to": 5}
+
+---
+
+## Request #36 - 🎯 ACTIVE TURN
+
+**Time:** 02:38:04
+**Tools:** inspect_node, find_best_nodes, analyze_path_potential
+
+
+### What Happened
+ziv built a road
+Current required action: Your turn - build, trade, or end turn. Type 'help' for commands.
+
+### Prompt Sent
+See: [prompt_36.json](prompts/prompt_36.json)
+
+### Response Received ✅
+
+**Latency:** 0.00s | **Tokens:** 5311 (in:4864 out:288) | **Cost:** $0.003296
+
+**Thinking:** The dice roll was a 9, which would have been perfect for my city at node 41 (Wheat 9), but the robber is currently blocking it. I only have 1 Wheat and no other resources, so I cannot build a settlement, a city, or buy a development card. Shon has plenty of Wheat (4), so he won't trade for mine, and Hadar already mentioned she is saving her Brick for her own settlement. Since I have no viable trades or building options, the best move is to end my turn and hope for a 5 (which would give me 2 Ore and 1 Sheep) or a 10 (2 Bricks) to help me progress toward my next settlement at node 5 or a development card to move the robber.
+
+**Note to Self:** I am currently resource-poor after building the road to node 5. I desperately need to move the robber off hex 14 to regain my Wheat production. A roll of 5 is my best-case scenario right now, as it provides the Ore and Sheep needed for a development card (Knight).
+
+**Says:** "נו באמת, ה-9 הזה חסום ודווקא עכשיו הוא יוצא. אין לי כל כך מה לעשות כרגע כשהחיטה שלי תקועה. מסיים תור ונקווה לטוב בסיבוב הבא."
+
+**Action:** **end_turn**
+
+---
+
+## Request #37 - 👀 OBSERVING
+
+**Time:** 02:39:59
+
+### What Happened
+Event 1: Hadar said: "טוב, בואו נראה מה הקוביות יגידו. שון, אתה באמת חוגג על ה-9 הזה בזמן שזיו תקוע, אולי הגיע הזמן שהמזל יתהפך קצת."
+You may react only with table talk or memory. Do not choose a board action.
+Source player: Hadar
+Reaction event id: 33:0:ROLL_DICE:113:2
+
+### Prompt Sent
+See: [prompt_37.json](prompts/prompt_37.json)
+

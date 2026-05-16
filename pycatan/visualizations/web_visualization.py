@@ -1051,6 +1051,21 @@ class WebVisualization(Visualization):
             event_data['card'] = params.get('card_type', 'Unknown')
             if 'details' in params:
                 event_data['details'] = params['details']
+            for key in (
+                'resource_type',
+                'resource',
+                'resources',
+                'gained',
+                'taken',
+                'total_stolen',
+                'roads',
+                'robber_tile',
+                'victim',
+                'victim_id',
+                'stolen_card',
+            ):
+                if key in params:
+                    event_data[key] = params[key]
         
         elif action.action_type == AT.ROLL_DICE:
             event_type = EventType.DICE_ROLL
@@ -1062,17 +1077,35 @@ class WebVisualization(Visualization):
             event_data['tile'] = params.get('tile', '?')
             if 'victim' in params:
                 event_data['victim'] = params['victim']
+            if 'victim_id' in params:
+                event_data['victim_id'] = params['victim_id']
+            stolen_card = params.get('stolen_card') or params.get('card')
+            if stolen_card:
+                event_data['card'] = stolen_card
         
         elif action.action_type == AT.TRADE_BANK:
             event_type = EventType.TRADE_BANK
-            event_data['give'] = params.get('give', {})
-            event_data['receive'] = params.get('receive', {})
+            event_data['give'] = params.get('give') or params.get('offer', {})
+            event_data['receive'] = params.get('receive') or params.get('request', {})
+            if 'rate' in params:
+                event_data['rate'] = params['rate']
         
         elif action.action_type == AT.TRADE_PROPOSE:
-            event_type = EventType.TRADE_PROPOSE
+            trade_status = params.get('trade_status')
+            if trade_status == 'accepted':
+                event_type = EventType.TRADE_EXECUTE
+            elif trade_status == 'rejected':
+                event_type = EventType.TRADE_RESPONSE
+                event_data['response'] = 'REJECT'
+            else:
+                event_type = EventType.TRADE_PROPOSE
             event_data['to_player'] = params.get('to_player', '?')
             event_data['offer'] = params.get('offer', {})
             event_data['request'] = params.get('request', {})
+            if trade_status:
+                event_data['trade_status'] = trade_status
+            if 'trade_id' in params:
+                event_data['trade_id'] = params['trade_id']
         
         elif action.action_type in [AT.TRADE_ACCEPT, AT.TRADE_REJECT]:
             event_type = EventType.TRADE_RESPONSE
@@ -1081,7 +1114,14 @@ class WebVisualization(Visualization):
         elif action.action_type == AT.DISCARD_CARDS:
             event_type = EventType.DISCARD_CARDS
             event_data['cards'] = params.get('cards', [])
+            event_data['discarded'] = params.get('discarded', {})
             event_data['count'] = len(event_data['cards'])
+
+        elif action.action_type == AT.STEAL_CARD:
+            event_type = EventType.ROBBER_STEAL
+            event_data['victim_id'] = params.get('victim_id') or params.get('target_player')
+            event_data['victim'] = params.get('victim', '?')
+            event_data['card'] = params.get('stolen_card') or params.get('card') or 'unknown'
         
         elif action.action_type == AT.END_TURN:
             event_type = EventType.TURN_END
