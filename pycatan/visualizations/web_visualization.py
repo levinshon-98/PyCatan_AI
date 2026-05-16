@@ -238,6 +238,25 @@ class WebVisualization(Visualization):
             """Get chat history."""
             return jsonify(self.chat_history)
 
+        @self.app.route('/api/current')
+        def get_current_ai_session():
+            """Get current AI session data for the unified AI analysis tab."""
+            try:
+                from examples.ai_testing.web_viewer import get_current_session, get_session_data
+
+                current = get_current_session()
+                if current is None:
+                    return jsonify({"error": "No active session"}), 404
+
+                data = get_session_data(str(current))
+                if data is None:
+                    return jsonify({"error": "Session not found"}), 404
+
+                return jsonify(data)
+            except Exception as exc:
+                print(f"[ERROR] Failed to load AI session data: {exc}")
+                return jsonify({"error": str(exc)}), 500
+
         @self.app.route('/api/replay/status')
         def get_replay_status():
             """Get replay timeline metadata for browser controls."""

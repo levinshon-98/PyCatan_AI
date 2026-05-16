@@ -914,6 +914,8 @@ See: [prompt_{original_prompt_number}_iter{iteration}.json](prompts/iterations/p
                 "recent_notes": recent_entries,
                 "relationship_updates": result.get("relationship_updates", []),
                 "discarded_as_irrelevant": result.get("discarded_as_irrelevant", []),
+                "fallback_used": result.get("fallback_used", False),
+                "fallback_reason": result.get("fallback_reason"),
             },
             "llm": response_data,
             "prompt": result.get("prompt"),
@@ -958,6 +960,10 @@ Time: {datetime.now().isoformat()}
 
 === AFTER: New Long-Term Summary ===
 {result.get("compacted_memory") or "(none)"}
+
+=== AFTER: Fallback Status ===
+used={result.get("fallback_used", False)}
+reason={result.get("fallback_reason") or "(none)"}
 
 === AFTER: Relationship Updates ===
 {json.dumps(result.get("relationship_updates", []), ensure_ascii=False)}

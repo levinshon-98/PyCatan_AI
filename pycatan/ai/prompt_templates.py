@@ -4,7 +4,7 @@ Prompt Templates for AI Agents
 This module defines the structure and templates for prompts sent to LLM agents.
 Based on the format defined in promt_format.text, prompts consist of:
 
-1. Meta Data - Agent identity and role
+1. Meta Data - Agent identity and game context
 2. Task Context - Current situation and instructions
 3. Game State - World information from agent's perspective
 4. Social Context - Chat messages and relationships
@@ -78,13 +78,13 @@ class PromptBuilder:
         Build a complete structured prompt with optimized game state.
         
         Args:
-            meta_data: Agent identity and role
+            meta_data: Agent identity and game context
             task_context: What just happened and what to do
             game_state: Filtered game state (optimized format)
             social_context: Chat and relationships (optional)
             memory: Agent's notes (optional)
             constraints: Available actions (optional)
-            custom_instructions: Additional instructions for this agent
+            custom_instructions: Deprecated; kept for call compatibility
             
         Returns:
             Complete structured prompt as dictionary
@@ -165,7 +165,7 @@ JSON:
         
         Args:
             meta_data: Basic agent info
-            custom_instructions: Custom role/instructions
+            custom_instructions: Deprecated compatibility argument
             
         Returns:
             Formatted meta data
@@ -177,12 +177,6 @@ JSON:
         if meta_data.get("game_context"):
             result["game_context"] = meta_data["game_context"]
         
-        # Add role/instructions
-        if custom_instructions:
-            result["role"] = custom_instructions
-        else:
-            result["role"] = meta_data.get("role", "You are a Catan player.")
-
         if meta_data.get("relationship_context"):
             result["relationship_context"] = meta_data["relationship_context"]
         

@@ -29,6 +29,24 @@ class _FakeLLMClient:
         )
 
 
+class _BrokenJSONLLMClient:
+    def generate(self, *args, **kwargs):
+        return LLMResponse(
+            success=True,
+            content="I cannot provide that as JSON.",
+            model="fake-model",
+        )
+
+
+class _FailingLLMClient:
+    def generate(self, *args, **kwargs):
+        return LLMResponse(
+            success=False,
+            error="provider rejected response_format",
+            model="fake-model",
+        )
+
+
 def test_player_response_schemas_do_not_ask_for_relationship_update():
     for version in [SchemaVersion.V1, SchemaVersion.V2]:
         for response_type in [ResponseType.ACTIVE_TURN, ResponseType.OBSERVING]:
@@ -82,3 +100,60 @@ def test_memory_compactor_filters_repeated_relationship_updates():
     )
 
     assert updates == ["Hadar backed my warning."]
+
+
+def test_memory_compactor_falls_back_when_model_returns_unparseable_json():
+    agent = AgentState(player_name="Hadar", player_id=0, player_color="Red")
+    agent.memory_history = [
+        {"note": "Need brick and sheep to build the winning settlement at node 23."},
+        {"note": "Ziv is blocking trades that help Hadar win."},
+        {"note": "Recent note A"},
+        {"note": "Recent note B"},
+    ]
+
+    result = MemoryCompactor(AIConfig()).compact(
+        agent=agent,
+        game_state={
+            "meta": {"curr": "Hadar", "phase": "NORMAL_PLAY"},
+            "H": [],
+            "N": [],
+            "state": {"bld": [], "rds": []},
+            "players": {"Hadar": {"vp": 4, "res": {}}},
+        },
+        chat_history=[],
+        llm_client=_BrokenJSONLLMClient(),
+    )
+
+    assert result is not None
+    assert result["fallback_used"] is True
+    assert result["fallback_reason"] == "unparseable_response"
+    assert "winning settlement" in result["compacted_memory"]
+    assert result["recent_entries"] == agent.memory_history[-2:]
+
+
+def test_memory_compactor_falls_back_when_llm_call_fails():
+    agent = AgentState(player_name="Ziv", player_id=1, player_color="Blue")
+    agent.memory_history = [
+        {"note": "Hadar is at 4 VP and must not receive brick."},
+        {"note": "Need wood and brick for my own road."},
+        {"note": "Recent note A"},
+        {"note": "Recent note B"},
+    ]
+
+    result = MemoryCompactor(AIConfig()).compact(
+        agent=agent,
+        game_state={
+            "meta": {"curr": "Ziv", "phase": "NORMAL_PLAY"},
+            "H": [],
+            "N": [],
+            "state": {"bld": [], "rds": []},
+            "players": {"Ziv": {"vp": 3, "res": {}}},
+        },
+        chat_history=[{"from": "Hadar", "message": "Can anyone trade brick?"}],
+        llm_client=_FailingLLMClient(),
+    )
+
+    assert result is not None
+    assert result["fallback_used"] is True
+    assert result["fallback_reason"] == "llm_error: provider rejected response_format"
+    assert "must not receive brick" in result["compacted_memory"]

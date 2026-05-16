@@ -11,6 +11,7 @@ import time
 import json
 import os
 import ssl
+import copy
 from abc import ABC, abstractmethod
 from typing import Dict, Any, Optional, List, Callable
 from dataclasses import dataclass, field
@@ -669,6 +670,333 @@ class GeminiClient(LLMClient):
         return response
 
 
+class OpenRouterClient(LLMClient):
+    """
+    OpenRouter LLM client.
+
+    OpenRouter exposes an OpenAI-compatible chat completions API while routing
+    to many model providers. This adapter normalizes responses into the same
+    LLMResponse/tool_calls shape used by the rest of the AI system.
+    """
+
+    def __init__(self,
+                 model: str,
+                 api_key: str = "",
+                 temperature: float = 0.7,
+                 max_tokens: Optional[int] = None,
+                 response_format: str = "json",
+                 api_base_url: Optional[str] = None,
+                 **kwargs):
+        super().__init__(model, api_key, **kwargs)
+        self.temperature = temperature
+        self.max_tokens = max_tokens
+        self.response_format = response_format
+        self.api_base_url = (api_base_url or "https://openrouter.ai/api/v1").rstrip("/")
+        self.require_parameters = kwargs.get("require_parameters", True)
+        self.allow_parameter_fallback = kwargs.get("allow_parameter_fallback", True)
+
+        try:
+            import requests
+            self.requests = requests
+        except ImportError:
+            logger.error("requests package not installed. Install with: pip install requests")
+            raise
+
+        if not api_key:
+            raise ValueError("OpenRouter API key is required")
+
+        logger.info(f"Initialized OpenRouter client with model: {model}")
+
+    def generate(self, prompt: str, **kwargs) -> LLMResponse:
+        start_time = time.time()
+        body = self._build_request_body(prompt, stream=False, **kwargs)
+
+        try:
+            logger.info(f"Sending request to OpenRouter ({self.model})...")
+            response = self._post_chat_completion(body)
+            if response.status_code >= 400:
+                response = self._maybe_retry_with_relaxed_parameters(body, response)
+            latency = time.time() - start_time
+            if response.status_code >= 400:
+                return self._error_response(response.text, latency)
+
+            data = response.json()
+            choice = (data.get("choices") or [{}])[0]
+            message = choice.get("message") or {}
+            content = self._message_content_to_text(message.get("content"))
+            tool_calls = self._extract_tool_calls(message.get("tool_calls") or [])
+            usage = data.get("usage") or {}
+
+            llm_response = LLMResponse(
+                success=True,
+                content=content,
+                raw_response=data,
+                tool_calls=tool_calls,
+                model=data.get("model") or self.model,
+                prompt_tokens=int(usage.get("prompt_tokens") or 0),
+                completion_tokens=int(usage.get("completion_tokens") or 0),
+                total_tokens=int(usage.get("total_tokens") or 0),
+                latency_seconds=latency,
+                finish_reason=choice.get("finish_reason"),
+            )
+            if not llm_response.total_tokens:
+                llm_response.prompt_tokens = self._estimate_tokens(prompt)
+                llm_response.completion_tokens = self._estimate_tokens(content)
+                llm_response.total_tokens = llm_response.prompt_tokens + llm_response.completion_tokens
+
+            self.stats.add_request(llm_response, 0.0)
+            return llm_response
+
+        except Exception as e:
+            latency = time.time() - start_time
+            return self._error_response(str(e), latency)
+
+    def generate_stream(self, prompt: str, on_chunk: Optional[Callable[[StreamChunk], None]] = None, **kwargs):
+        """
+        Streaming-compatible wrapper.
+
+        This currently performs one non-streaming OpenRouter call and emits the
+        final content/tool calls as stream chunks. It keeps the rest of the UI
+        and tool loop working for any OpenRouter model, including providers with
+        uneven streaming tool-call support.
+        """
+        response = self.generate(prompt, **kwargs)
+
+        if not response.success:
+            raise RuntimeError(response.error or "OpenRouter streaming request failed")
+
+        if response.success:
+            for tool_call in response.tool_calls:
+                chunk = StreamChunk(
+                    chunk_type="function_call",
+                    function_call=tool_call,
+                    is_complete=False,
+                )
+                if on_chunk:
+                    on_chunk(chunk)
+                yield chunk
+
+            if response.content:
+                chunk = StreamChunk(
+                    chunk_type="text",
+                    content=response.content,
+                    is_complete=False,
+                )
+                if on_chunk:
+                    on_chunk(chunk)
+                yield chunk
+
+        done_chunk = StreamChunk(chunk_type="done", is_complete=True)
+        if on_chunk:
+            on_chunk(done_chunk)
+        yield done_chunk
+        return response
+
+    def _build_request_body(self, prompt: str, stream: bool = False, **kwargs) -> Dict[str, Any]:
+        body: Dict[str, Any] = {
+            "model": self.model,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": kwargs.get("temperature", self.temperature),
+            "stream": stream,
+        }
+
+        max_tokens = kwargs.get("max_tokens", self.max_tokens)
+        if max_tokens:
+            body["max_tokens"] = max_tokens
+
+        tools = kwargs.get("tools") or []
+        if tools:
+            body["tools"] = [self._convert_tool_schema(tool) for tool in tools]
+            body["tool_choice"] = "auto"
+
+        response_format = kwargs.get("response_format", self.response_format)
+        response_schema = kwargs.get("response_schema")
+        if response_format == "json" and response_schema:
+            body["response_format"] = {
+                "type": "json_schema",
+                "json_schema": {
+                    "name": "pycatan_ai_response",
+                    "strict": False,
+                    "schema": self._clean_json_schema(response_schema),
+                },
+            }
+        elif response_format == "json":
+            body["response_format"] = {"type": "json_object"}
+
+        if self.require_parameters and (tools or body.get("response_format")):
+            body["provider"] = {"require_parameters": True}
+
+        return body
+
+    def _post_chat_completion(self, body: Dict[str, Any]):
+        return self.requests.post(
+            f"{self.api_base_url}/chat/completions",
+            headers=self._headers(),
+            json=body,
+            timeout=self.config.get("timeout_seconds", 120),
+        )
+
+    def _maybe_retry_with_relaxed_parameters(self, body: Dict[str, Any], response):
+        """Retry OpenRouter requests when strict routing finds no endpoint."""
+        if not self.allow_parameter_fallback or not self._is_no_endpoint_parameter_error(response):
+            return response
+
+        variants = []
+
+        if (body.get("provider") or {}).get("require_parameters"):
+            relaxed = copy.deepcopy(body)
+            provider = dict(relaxed.get("provider") or {})
+            provider.pop("require_parameters", None)
+            if provider:
+                relaxed["provider"] = provider
+            else:
+                relaxed.pop("provider", None)
+            variants.append(("without provider.require_parameters", relaxed))
+
+        if body.get("tools"):
+            no_tools = copy.deepcopy(body)
+            no_tools.pop("tools", None)
+            no_tools.pop("tool_choice", None)
+            provider = dict(no_tools.get("provider") or {})
+            provider.pop("require_parameters", None)
+            if provider:
+                no_tools["provider"] = provider
+            else:
+                no_tools.pop("provider", None)
+            variants.append(("without tools", no_tools))
+
+        if body.get("response_format"):
+            no_response_format = copy.deepcopy(body)
+            no_response_format.pop("response_format", None)
+            provider = dict(no_response_format.get("provider") or {})
+            provider.pop("require_parameters", None)
+            if provider:
+                no_response_format["provider"] = provider
+            else:
+                no_response_format.pop("provider", None)
+            variants.append(("without response_format", no_response_format))
+
+        seen = set()
+        for label, variant in variants:
+            variant_key = json.dumps(variant, sort_keys=True, default=str)
+            if variant_key in seen:
+                continue
+            seen.add(variant_key)
+            logger.warning(f"OpenRouter endpoint routing failed; retrying {label}")
+            retry_response = self._post_chat_completion(variant)
+            if retry_response.status_code < 400:
+                return retry_response
+            if not self._is_no_endpoint_parameter_error(retry_response):
+                return retry_response
+
+        return response
+
+    def _is_no_endpoint_parameter_error(self, response) -> bool:
+        if response.status_code not in (400, 404):
+            return False
+        text = response.text or ""
+        return (
+            "No endpoints found" in text
+            and "requested parameters" in text
+        )
+
+    def _headers(self) -> Dict[str, str]:
+        return {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": self.config.get("http_referer", "https://github.com/josefwaller/PyCatan"),
+            "X-Title": self.config.get("app_title", "PyCatan AI"),
+        }
+
+    def _convert_tool_schema(self, tool: Dict[str, Any]) -> Dict[str, Any]:
+        return {
+            "type": "function",
+            "function": {
+                "name": tool.get("name", ""),
+                "description": tool.get("description", ""),
+                "parameters": self._clean_json_schema(tool.get("parameters", {})),
+            },
+        }
+
+    def _extract_tool_calls(self, raw_tool_calls: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        tool_calls = []
+        for index, raw_call in enumerate(raw_tool_calls, start=1):
+            function = raw_call.get("function") or {}
+            name = function.get("name") or raw_call.get("name")
+            if not name:
+                continue
+
+            arguments = function.get("arguments") or raw_call.get("arguments") or {}
+            if isinstance(arguments, str):
+                try:
+                    parameters = json.loads(arguments) if arguments.strip() else {}
+                except json.JSONDecodeError:
+                    parameters = {}
+            elif isinstance(arguments, dict):
+                parameters = arguments
+            else:
+                parameters = {}
+
+            tool_calls.append({
+                "id": raw_call.get("id") or f"call_{index}",
+                "name": name,
+                "parameters": parameters,
+            })
+        return tool_calls
+
+    def _message_content_to_text(self, content: Any) -> str:
+        if content is None:
+            return ""
+        if isinstance(content, str):
+            return content
+        if isinstance(content, list):
+            parts = []
+            for part in content:
+                if isinstance(part, dict):
+                    if part.get("type") == "text":
+                        parts.append(str(part.get("text", "")))
+                    elif "text" in part:
+                        parts.append(str(part.get("text", "")))
+            return "".join(parts)
+        return str(content)
+
+    def _clean_json_schema(self, schema: Any) -> Any:
+        if not isinstance(schema, dict):
+            return schema
+
+        unsupported = {"propertyOrdering", "minLength", "maxLength"}
+        cleaned = {}
+        for key, value in copy.deepcopy(schema).items():
+            if key in unsupported:
+                continue
+            if key == "additionalProperties":
+                cleaned[key] = value
+            elif isinstance(value, dict):
+                cleaned[key] = self._clean_json_schema(value)
+            elif isinstance(value, list):
+                cleaned[key] = [
+                    self._clean_json_schema(item) if isinstance(item, dict) else item
+                    for item in value
+                ]
+            else:
+                cleaned[key] = value
+        return cleaned
+
+    def _estimate_tokens(self, text: str) -> int:
+        return len(text or "") // 4
+
+    def _error_response(self, error_msg: str, latency: float) -> LLMResponse:
+        logger.error(f"OpenRouter API error: {error_msg}")
+        llm_response = LLMResponse(
+            success=False,
+            error=error_msg,
+            model=self.model,
+            latency_seconds=latency,
+        )
+        self.stats.add_request(llm_response, 0.0)
+        return llm_response
+
+
 def create_llm_client(provider: str = "gemini", **kwargs) -> LLMClient:
     """
     Factory function to create LLM client.
@@ -680,7 +1008,10 @@ def create_llm_client(provider: str = "gemini", **kwargs) -> LLMClient:
     Returns:
         LLMClient instance
     """
-    if provider.lower() == "gemini":
+    provider_normalized = provider.lower()
+    if provider_normalized == "gemini":
         return GeminiClient(**kwargs)
+    elif provider_normalized in {"openrouter", "open-router"}:
+        return OpenRouterClient(**kwargs)
     else:
         raise ValueError(f"Unknown provider: {provider}")

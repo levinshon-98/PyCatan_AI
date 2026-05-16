@@ -11,7 +11,7 @@ from typing import Any, Dict, List, Optional
 
 from pycatan.ai.agent_state import AgentState
 from pycatan.ai.config import AIConfig
-from pycatan.ai.llm_client import LLMResponse, GeminiClient
+from pycatan.ai.llm_client import LLMResponse, LLMClient
 from pycatan.ai.prompt_templates import PromptBuilder
 
 
@@ -51,6 +51,18 @@ COMPACTION_RESPONSE_SCHEMA: Dict[str, Any] = {
 class MemoryCompactor:
     """Build and send compact-memory prompts for one agent at a time."""
 
+    FALLBACK_SUMMARY_MAX_CHARS = 1800
+    FALLBACK_KEEP_NOTES = 10
+    STRATEGIC_KEYWORDS = (
+        "win", "victory", "vp", "point", "need", "needs", "missing",
+        "target", "goal", "priority", "plan", "next", "settlement",
+        "city", "road", "port", "trade", "robber", "block", "ore",
+        "brick", "wood", "sheep", "wheat",
+        "ניצ", "נקוד", "צריך", "צריכה", "חסר", "מטרה", "יעד",
+        "יישוב", "עיר", "דרך", "נמל", "סחר", "שודד", "לחסום",
+        "טיט", "עץ", "כבש", "חיטה", "אבן",
+    )
+
     def __init__(self, config: AIConfig):
         self.config = config
         self.prompt_builder = PromptBuilder()
@@ -69,7 +81,7 @@ class MemoryCompactor:
         agent: AgentState,
         game_state: Dict[str, Any],
         chat_history: List[Dict[str, Any]],
-        llm_client: GeminiClient,
+        llm_client: LLMClient,
     ) -> Optional[Dict[str, Any]]:
         """
         Compact old agent memories with the current compact board state.
@@ -94,21 +106,51 @@ class MemoryCompactor:
             chat_history=self._relevant_chat(agent.player_name, chat_history, chat_limit),
         )
 
-        response = llm_client.generate(
-            json.dumps(prompt, ensure_ascii=False, indent=2),
-            response_schema=COMPACTION_RESPONSE_SCHEMA,
-            response_format="json",
-            tools=[],
-            enable_thinking=False,
-            max_tokens=getattr(memory_config, "memory_compaction_max_tokens", 800),
-        )
+        try:
+            response = llm_client.generate(
+                json.dumps(prompt, ensure_ascii=False, indent=2),
+                response_schema=COMPACTION_RESPONSE_SCHEMA,
+                response_format="json",
+                tools=[],
+                enable_thinking=False,
+                max_tokens=getattr(memory_config, "memory_compaction_max_tokens", 800),
+            )
+        except Exception as exc:
+            response = LLMResponse(
+                success=False,
+                error=str(exc),
+                model=getattr(llm_client, "model", ""),
+            )
+
+        relevant_chat = self._relevant_chat(agent.player_name, chat_history, chat_limit)
         parsed = self._parse_response(response)
         if parsed is None:
-            return None
+            return self._fallback_result(
+                agent=agent,
+                old_entries=old_entries,
+                recent_entries=recent_entries,
+                relevant_chat=relevant_chat,
+                prompt=prompt,
+                response=response,
+                reason=self._fallback_reason(response, "unparseable_response"),
+            )
 
-        compacted_memory = parsed.get("compacted_memory", "").strip()
+        raw_compacted_memory = parsed.get("compacted_memory", "")
+        compacted_memory = (
+            raw_compacted_memory.strip()
+            if isinstance(raw_compacted_memory, str)
+            else ""
+        )
         if not compacted_memory:
-            return None
+            return self._fallback_result(
+                agent=agent,
+                old_entries=old_entries,
+                recent_entries=recent_entries,
+                relevant_chat=relevant_chat,
+                prompt=prompt,
+                response=response,
+                reason="empty_compacted_memory",
+            )
 
         return {
             "compacted_memory": compacted_memory,
@@ -117,12 +159,14 @@ class MemoryCompactor:
             "old_entries": old_entries,
             "recent_entries": recent_entries,
             "recent_notes_to_keep": parsed.get("recent_notes_to_keep", []),
+            "fallback_used": False,
+            "fallback_reason": None,
             "relationship_updates": self._clean_relationship_updates(
                 parsed.get("relationship_updates", []),
                 agent.relationship_context_updates,
             ),
             "discarded_as_irrelevant": parsed.get("discarded_as_irrelevant", []),
-            "relevant_chat": self._relevant_chat(agent.player_name, chat_history, chat_limit),
+            "relevant_chat": relevant_chat,
             "prompt": prompt,
             "response": response,
         }
@@ -251,3 +295,107 @@ class MemoryCompactor:
                 return json.loads(match.group(0))
             except json.JSONDecodeError:
                 return None
+
+    def _fallback_reason(self, response: LLMResponse, default: str) -> str:
+        if not response.success:
+            return f"llm_error: {response.error or 'unknown error'}"
+        if not response.content:
+            return "empty_response"
+        return default
+
+    def _fallback_result(
+        self,
+        agent: AgentState,
+        old_entries: List[Dict[str, Any]],
+        recent_entries: List[Dict[str, Any]],
+        relevant_chat: List[Dict[str, Any]],
+        prompt: Dict[str, Any],
+        response: LLMResponse,
+        reason: str,
+    ) -> Optional[Dict[str, Any]]:
+        compacted_memory = self._build_fallback_summary(agent, old_entries, relevant_chat)
+        if not compacted_memory:
+            return None
+
+        return {
+            "compacted_memory": compacted_memory,
+            "existing_compacted_memory": agent.compacted_memory,
+            "existing_relationship_updates": agent.relationship_context_updates,
+            "old_entries": old_entries,
+            "recent_entries": recent_entries,
+            "recent_notes_to_keep": [entry.get("note", str(entry)) for entry in recent_entries],
+            "fallback_used": True,
+            "fallback_reason": reason,
+            "relationship_updates": [],
+            "discarded_as_irrelevant": ["fallback_compaction_kept_recent_strategic_notes"],
+            "relevant_chat": relevant_chat,
+            "prompt": prompt,
+            "response": response,
+        }
+
+    def _build_fallback_summary(
+        self,
+        agent: AgentState,
+        old_entries: List[Dict[str, Any]],
+        relevant_chat: List[Dict[str, Any]],
+    ) -> str:
+        """Create a deterministic summary when the LLM compaction response is unusable."""
+        selected = self._select_fallback_notes(old_entries)
+
+        parts = []
+        if agent.compacted_memory:
+            parts.append(f"Previous long-term memory: {agent.compacted_memory.strip()}")
+        if selected:
+            parts.append("Strategic notes: " + " | ".join(selected))
+
+        chat_lines = []
+        for chat in relevant_chat[-3:]:
+            speaker = str(chat.get("from", "?")).strip() or "?"
+            message = re.sub(r"\s+", " ", str(chat.get("message", ""))).strip()
+            if message:
+                chat_lines.append(f"{speaker}: {message}")
+        if chat_lines:
+            parts.append("Recent table talk: " + " | ".join(chat_lines))
+
+        summary = " ".join(part for part in parts if part).strip()
+        if not summary:
+            return ""
+        return self._trim_text(summary, self.FALLBACK_SUMMARY_MAX_CHARS)
+
+    def _select_fallback_notes(self, entries: List[Dict[str, Any]]) -> List[str]:
+        texts = [
+            re.sub(r"\s+", " ", str(entry.get("note", entry))).strip()
+            for entry in entries
+        ]
+        texts = [text for text in texts if text]
+        if not texts:
+            return []
+
+        selected = []
+        seen = set()
+        for text in reversed(texts):
+            key = text.lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            if self._looks_strategic(text) or len(selected) < 3:
+                selected.append(text)
+            if len(selected) >= self.FALLBACK_KEEP_NOTES:
+                break
+
+        selected.reverse()
+        return [self._trim_text(text, 260) for text in selected]
+
+    def _looks_strategic(self, text: str) -> bool:
+        lower = text.lower()
+        return any(keyword in lower for keyword in self.STRATEGIC_KEYWORDS)
+
+    def _trim_text(self, text: str, max_chars: int) -> str:
+        text = re.sub(r"\s+", " ", text).strip()
+        if len(text) <= max_chars:
+            return text
+        trimmed = text[: max_chars - 3].rstrip()
+        last_break = max(trimmed.rfind(". "), trimmed.rfind("; "), trimmed.rfind(" | "))
+        if last_break > max_chars * 0.65:
+            trimmed = trimmed[: last_break + 1].rstrip()
+        return trimmed + "..."

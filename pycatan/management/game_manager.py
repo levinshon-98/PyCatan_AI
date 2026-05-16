@@ -58,6 +58,7 @@ class GameManager:
         # Initialize game configuration
         self.config = game_config or {}
         self.victory_points_to_win = int(self.config.get("victory_points", 5))
+        self.custom_game_context = str(self.config.get("game_context") or "").strip()
         
         # Visualization manager (can be set later)
         self.visualization_manager = None
@@ -135,6 +136,7 @@ class GameManager:
         # Update with GameManager-specific information
         game_state.game_id = self.game_id
         game_state.victory_points_to_win = self.victory_points_to_win
+        game_state.custom_game_context = self.custom_game_context
         game_state.turn_number = self._current_game_state.turn_number
         game_state.current_player = self._current_game_state.current_player
         game_state.game_phase = self._current_game_state.game_phase

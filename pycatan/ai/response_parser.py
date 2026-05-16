@@ -161,6 +161,7 @@ class ResponseParser:
         
         # Step 4: Validate action if present
         if response_type == ResponseType.ACTIVE_TURN and "action" in data:
+            self._normalize_action_parameters(data)
             action_validation = self._validate_action(data["action"], allowed_actions)
             if not action_validation[0]:
                 if self.strict_mode:
@@ -184,6 +185,22 @@ class ResponseParser:
             data=data,
             raw_response=raw_response
         )
+
+    def _normalize_action_parameters(self, data: Dict[str, Any]) -> None:
+        """Accept models that return action.parameters as a JSON string."""
+        action = data.get("action")
+        if not isinstance(action, dict):
+            return
+
+        params = action.get("parameters")
+        if isinstance(params, str):
+            try:
+                parsed = json.loads(params) if params.strip() else {}
+            except json.JSONDecodeError:
+                parsed = {}
+            action["parameters"] = parsed if isinstance(parsed, dict) else {}
+        elif params is None:
+            action["parameters"] = {}
     
     def _extract_json(self, text: str) -> Optional[str]:
         """
