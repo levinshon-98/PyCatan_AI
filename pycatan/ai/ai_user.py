@@ -172,11 +172,6 @@ class AIUser(User):
             # Save memories to file for web viewer
             self.ai_manager.logger.save_agent_memories(self.ai_manager.agents)
 
-        relationship_update = llm_response.get("relationship_update")
-        if relationship_update:
-            agent.update_relationship_context(relationship_update)
-            self.ai_manager.logger.save_agent_memories(self.ai_manager.agents)
-        
         # Broadcast say_outloud to chat
         say_outloud = llm_response.get("say_outloud")
         if say_outloud:
@@ -192,6 +187,7 @@ class AIUser(User):
     Examples:
       roll_dice                           - Roll the dice
       end_turn                            - End your turn
+      end_game                            - Leave the post-game conversation
       build_settlement {"node": 14}       - Build settlement at node 14
       build_road {"from": 14, "to": 15}   - Build road from node 14 to 15
       build_city {"node": 14}             - Upgrade settlement to city
@@ -229,6 +225,7 @@ class AIUser(User):
             "build_road": ActionType.BUILD_ROAD,
             "roll_dice": ActionType.ROLL_DICE,
             "end_turn": ActionType.END_TURN,
+            "end_game": ActionType.END_GAME,
             "wait_for_response": ActionType.END_TURN,
             "buy_dev_card": ActionType.BUY_DEV_CARD,
             "use_dev_card": ActionType.USE_DEV_CARD,

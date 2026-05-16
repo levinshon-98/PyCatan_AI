@@ -173,6 +173,9 @@ JSON:
         result = {
             "agent_name": meta_data.get("agent_name", "AI Agent"),
         }
+
+        if meta_data.get("game_context"):
+            result["game_context"] = meta_data["game_context"]
         
         # Add role/instructions
         if custom_instructions:

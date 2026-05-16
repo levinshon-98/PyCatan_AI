@@ -127,6 +127,29 @@ class TestGameManagerFlow:
         assert not self.gm.is_running
         assert not self.gm.is_paused
 
+    def test_post_game_prompts_require_end_game_after_winner(self):
+        """After a win, each player gets one final END_GAME prompt."""
+        for user in self.users:
+            user.set_next_action(Action(ActionType.END_GAME, user.user_id, {}))
+
+        events = []
+        for user in self.users:
+            user.notify_game_event = lambda event_type, message, affected_players=None: events.append(
+                (event_type, message)
+            )
+
+        self.gm.start_game()
+        self.gm.game.players[0].victory_points = 5
+
+        assert self.gm._check_game_end_conditions()
+        self.gm._handle_post_game_reactions()
+
+        assert self.gm._post_game_enders == {0, 1}
+        assert self.users[0].last_input_call["allowed_actions"] == ["END_GAME"]
+        assert "You won" in self.users[0].last_input_call["prompt_message"]
+        assert "You lost" in self.users[1].last_input_call["prompt_message"]
+        assert any(event_type == "end_game" for event_type, _message in events)
+
 
 class TestGameManagerActions:
     """Test action execution and handling."""

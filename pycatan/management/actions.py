@@ -33,6 +33,7 @@ class ActionType(Enum):
     # Turn management
     ROLL_DICE = auto()
     END_TURN = auto()
+    END_GAME = auto()
     
     # Special actions
     ROBBER_MOVE = auto()
@@ -143,6 +144,7 @@ class GameState:
     """
     # Game metadata
     game_id: str = ""
+    victory_points_to_win: int = 5
     turn_number: int = 0
     current_player: int = 0
     game_phase: GamePhase = GamePhase.SETUP_FIRST_ROUND

@@ -753,7 +753,6 @@ See: [prompt_{original_prompt_number}_iter{iteration}.json](prompts/iterations/p
             # Extract key fields
             thinking = parsed.get("internal_thinking", "N/A")
             note = parsed.get("note_to_self", "")
-            relationship_update = parsed.get("relationship_update", "")
             say = parsed.get("say_outloud", "")
             
             # Handle both action formats: old (action object) and new (action_type + parameters)
@@ -780,8 +779,6 @@ See: [prompt_{original_prompt_number}_iter{iteration}.json](prompts/iterations/p
 """
             if note:
                 section += f"**Note to Self:** {note}\n\n"
-            if relationship_update:
-                section += f"**Relationship Update:** {relationship_update}\n\n"
             if say:
                 section += f'**Says:** "{say}"\n\n'
             if action_str:
@@ -907,6 +904,7 @@ See: [prompt_{original_prompt_number}_iter{iteration}.json](prompts/iterations/p
             "timestamp": datetime.now().isoformat(),
             "before": {
                 "existing_compacted_memory": result.get("existing_compacted_memory"),
+                "existing_relationship_updates": result.get("existing_relationship_updates", []),
                 "old_notes_to_compact": old_entries,
                 "recent_notes_kept_verbatim": recent_entries,
                 "relevant_chat": result.get("relevant_chat", []),
@@ -914,6 +912,7 @@ See: [prompt_{original_prompt_number}_iter{iteration}.json](prompts/iterations/p
             "after": {
                 "long_term_summary": result.get("compacted_memory"),
                 "recent_notes": recent_entries,
+                "relationship_updates": result.get("relationship_updates", []),
                 "discarded_as_irrelevant": result.get("discarded_as_irrelevant", []),
             },
             "llm": response_data,
@@ -959,6 +958,9 @@ Time: {datetime.now().isoformat()}
 
 === AFTER: New Long-Term Summary ===
 {result.get("compacted_memory") or "(none)"}
+
+=== AFTER: Relationship Updates ===
+{json.dumps(result.get("relationship_updates", []), ensure_ascii=False)}
 
 === AFTER: Discarded As Irrelevant ===
 {json.dumps(result.get("discarded_as_irrelevant", []), ensure_ascii=False)}

@@ -57,6 +57,7 @@ class GameManager:
         
         # Initialize game configuration
         self.config = game_config or {}
+        self.victory_points_to_win = int(self.config.get("victory_points", 5))
         
         # Visualization manager (can be set later)
         self.visualization_manager = None
@@ -82,6 +83,10 @@ class GameManager:
         self._pending_actions: List[Action] = []
         self._trade_counter = 0
         self._processed_reaction_keys: List[str] = []
+        self._winner_announced = False
+        self._winner_player_id: Optional[int] = None
+        self._winner_victory_points: Optional[int] = None
+        self._post_game_enders: set[int] = set()
         
         # Error tracking per player to prevent infinite loops
         self._player_error_count = [0] * self.num_players
@@ -129,6 +134,7 @@ class GameManager:
         
         # Update with GameManager-specific information
         game_state.game_id = self.game_id
+        game_state.victory_points_to_win = self.victory_points_to_win
         game_state.turn_number = self._current_game_state.turn_number
         game_state.current_player = self._current_game_state.current_player
         game_state.game_phase = self._current_game_state.game_phase
@@ -193,6 +199,8 @@ class GameManager:
                     ActionType.USE_DEV_CARD.name,
                     ActionType.END_TURN.name
                 ])
+        elif phase == GamePhase.ENDED:
+            actions.append(ActionType.END_GAME.name)
                 
         return actions
 
@@ -237,6 +245,8 @@ class GameManager:
             # Route to appropriate handler based on action type
             if action.action_type == ActionType.END_TURN:
                 return self._handle_end_turn(action)
+            elif action.action_type == ActionType.END_GAME:
+                return self._handle_end_game_action(action)
             elif action.action_type in [ActionType.BUILD_SETTLEMENT, ActionType.BUILD_CITY, ActionType.BUILD_ROAD,
                                       ActionType.PLACE_STARTING_SETTLEMENT, ActionType.PLACE_STARTING_ROAD]:
                 return self._handle_building_action(action)
@@ -275,6 +285,16 @@ class GameManager:
         # The actual turn advancement happens in _advance_to_next_player()
         # which is called by the game loop when this action returns success.
         
+        return ActionResult.success_result(
+            self.get_full_state(),
+            affected_players=[action.player_id]
+        )
+
+    def _handle_end_game_action(self, action: Action) -> ActionResult:
+        """Handle a player's post-game exit action."""
+        self._post_game_enders.add(action.player_id)
+        player_name = self.users[action.player_id].name if hasattr(self.users[action.player_id], "name") else f"Player {action.player_id}"
+        self._notify_all_users("end_game", f"{player_name} chose END_GAME.")
         return ActionResult.success_result(
             self.get_full_state(),
             affected_players=[action.player_id]
@@ -1443,7 +1463,8 @@ class GameManager:
                         f"Player {self.current_player_id} can try again."
                     )
         
-        # Game has ended - handle cleanup
+        # Game has ended - allow final table-talk exits, then handle cleanup.
+        self._handle_post_game_reactions()
         self._handle_game_end()
     
     def _handle_single_turn(self) -> bool:
@@ -1808,6 +1829,9 @@ class GameManager:
         direct hostile events. The prompt is sent after the board state has
         already been updated, so observers see the real current state.
         """
+        if action.action_type == ActionType.END_GAME:
+            return
+
         reaction_prompts: Dict[int, List[str]] = {}
         source_name = self.users[action.player_id].name if hasattr(self.users[action.player_id], 'name') else f"Player {action.player_id}"
         say_outloud = ""
@@ -1948,6 +1972,8 @@ class GameManager:
             return "built a road"
         elif action.action_type == ActionType.END_TURN:
             return "ended their turn"
+        elif action.action_type == ActionType.END_GAME:
+            return "chose END_GAME"
         elif action.action_type == ActionType.TRADE_PROPOSE:
             return "proposed a trade"
         else:
@@ -2046,6 +2072,81 @@ class GameManager:
         self._notify_all_users("game_end", "Game has ended.")
         
         # TODO: Cleanup resources, save game state, etc.
+
+    def _handle_post_game_reactions(self) -> None:
+        """
+        Give each active player one final prompt after a winner is known.
+
+        This is intentionally offered only after victory is announced. Each
+        player may say a last public message and must finish with END_GAME.
+        Once every active player has chosen END_GAME, normal game cleanup runs.
+        """
+        if not self._winner_announced:
+            return
+
+        previous_player = self._current_game_state.current_player
+        self._current_game_state.game_phase = GamePhase.ENDED
+        self._current_game_state.turn_phase = TurnPhase.END_TURN
+        self._current_game_state.dice_rolled = None
+
+        for user_id, user in enumerate(self.users):
+            if not user.is_active or user_id in self._post_game_enders:
+                continue
+
+            self._current_game_state.current_player = user_id
+            prompt = self._get_post_game_prompt(user_id)
+            allowed_actions = [ActionType.END_GAME.name]
+
+            try:
+                action = user.get_input(
+                    self.get_full_state(),
+                    prompt,
+                    allowed_actions,
+                )
+            except Exception as exc:
+                self._notify_all_users(
+                    "post_game_error",
+                    f"Error during post-game response for Player {user_id}: {exc}.",
+                )
+                action = Action(ActionType.END_GAME, user_id, {"forced": True})
+
+            if action.player_id != user_id:
+                action.player_id = user_id
+
+            if action.action_type != ActionType.END_GAME:
+                action = Action(
+                    ActionType.END_GAME,
+                    user_id,
+                    {
+                        "forced": True,
+                        "original_action": action.action_type.name,
+                    },
+                )
+
+            result = self.execute_action(action)
+            setattr(result, "action", action)
+            self._update_all_systems(action, result)
+
+        self._current_game_state.current_player = previous_player
+
+    def _get_post_game_prompt(self, user_id: int) -> str:
+        """Build the final prompt shown only after the game has a winner."""
+        winner_id = self._winner_player_id
+        winner_name = (
+            self.users[winner_id].name
+            if winner_id is not None and hasattr(self.users[winner_id], "name")
+            else f"Player {winner_id}"
+        )
+        outcome = "You won" if user_id == winner_id else "You lost"
+        points = self._winner_victory_points or self.victory_points_to_win
+
+        return (
+            f"CONTEXT: You are playing Catan to {self.victory_points_to_win} victory points.\n"
+            f"The game is over: {winner_name} won with {points} victory points. {outcome}.\n"
+            "You may react to the win/loss with final table talk or update memory. "
+            "When you are done with the game and have nothing more to say or hear, "
+            "choose END_GAME."
+        )
     
     def _check_game_end_conditions(self) -> bool:
         """
@@ -2054,8 +2155,8 @@ class GameManager:
         This function examines the current game state to determine
         if any player has achieved victory conditions.
         
-        Standard Catan win conditions:
-        1. First player to reach 10 victory points wins
+        Configured short-game win conditions:
+        1. First player to reach the configured victory point target wins
         2. Victory points come from: settlements (1), cities (2), 
            development cards (1 each), longest road (2), largest army (2)
         
@@ -2070,9 +2171,10 @@ class GameManager:
             # We include dev cards because we want to know if they actually won
             victory_points = player.get_VP(include_dev=True)
             
-            # Check if this player has won (10+ victory points)
-            if victory_points >= 5:
-                self._announce_winner(player_id, victory_points)
+            # Check if this player has won.
+            if victory_points >= self.victory_points_to_win:
+                if not self._winner_announced:
+                    self._announce_winner(player_id, victory_points)
                 return True
         
         # No player has won yet
@@ -2087,6 +2189,9 @@ class GameManager:
             victory_points: Number of victory points the winner achieved
         """
         winner_name = self.users[player_id].name if hasattr(self.users[player_id], 'name') else f"Player {player_id}"
+        self._winner_announced = True
+        self._winner_player_id = player_id
+        self._winner_victory_points = victory_points
         
         self._notify_all_users(
             "game_winner",
@@ -2646,6 +2751,9 @@ class GameManager:
         
         elif phase == TurnPhase.ROBBER_MOVE:
             return "Move the robber to a tile. Use: robber <tile_id> (click tiles in web view to see IDs)"
+
+        elif self._current_game_state.game_phase == GamePhase.ENDED:
+            return self._get_post_game_prompt(self.current_player_id)
         
         elif (
             ActionType.ROLL_DICE.name in allowed_set
@@ -2660,11 +2768,11 @@ class GameManager:
             ])
         ):
             if ActionType.USE_DEV_CARD.name in allowed_set:
-                return "Start your turn by rolling the dice. You may use a development card before rolling if it is useful."
-            return "Roll the dice to start your turn. Use: roll"
+                return f"CONTEXT: You are playing Catan to {self.victory_points_to_win} victory points. Start your turn by rolling the dice. You may use a development card before rolling if it is useful."
+            return f"CONTEXT: You are playing Catan to {self.victory_points_to_win} victory points. Start your turn by rolling the dice."
         
         elif phase == TurnPhase.ROLL_DICE:
-            return "Roll the dice to start your turn. Use: roll"
+            return f"CONTEXT: You are playing Catan to {self.victory_points_to_win} victory points. Start your turn by rolling the dice."
 
         elif phase == TurnPhase.PLAYER_ACTIONS:
             return "Your turn - build, trade, or end turn. Type 'help' for commands."

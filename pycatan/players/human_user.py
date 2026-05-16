@@ -173,6 +173,9 @@ class HumanUser(User):
         
         elif command in ['end', 'pass', 'done']:
             return Action(ActionType.END_TURN, self.user_id)
+
+        elif command in ['end_game', 'game_end', 'leave']:
+            return Action(ActionType.END_GAME, self.user_id)
         
         elif command in ['roll', 'dice', 'r']:
             return Action(ActionType.ROLL_DICE, self.user_id)
@@ -1011,6 +1014,7 @@ class HumanUser(User):
         print("  help               - Show this help (short: h, ?)")
         print("  status             - Show all players' status (short: info, i)")
         print("  points             - Show all valid points (short: p)")
+        print("  end_game           - Leave the post-game conversation")
         print()
         print("📦 RESOURCES: wood, brick, sheep, wheat, ore")
         print("🎯 POINTS: Use numbers 1-54. Example: 's 12' builds settlement at point 12")

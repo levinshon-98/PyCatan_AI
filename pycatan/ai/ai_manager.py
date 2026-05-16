@@ -474,8 +474,6 @@ class AIManager:
             # If parsed doesn't have say_outloud, use LLM's
             if not parsed.get("say_outloud") and llm_suggestion.get("say_outloud"):
                 parsed["say_outloud"] = llm_suggestion["say_outloud"]
-            if not parsed.get("relationship_update") and llm_suggestion.get("relationship_update"):
-                parsed["relationship_update"] = llm_suggestion["relationship_update"]
         
         if parsed:
             # Update memory
@@ -483,13 +481,9 @@ class AIManager:
             agent.update_memory(note_to_self)
             if note_to_self:
                 self._maybe_compact_agent_memory(agent, game_state)
-
-            relationship_update = parsed.get("relationship_update")
-            if relationship_update:
-                agent.update_relationship_context(relationship_update)
             
             # Save memories to file for web viewer (real-time update)
-            if note_to_self or relationship_update:
+            if note_to_self:
                 self.logger.save_agent_memories(self.agents)
             
             # Clear events since they've been processed
@@ -790,11 +784,6 @@ class AIManager:
             self._maybe_compact_agent_memory(agent, game_state)
             self.logger.save_agent_memories(self.agents)
 
-        relationship_update = parsed.get("relationship_update")
-        if relationship_update:
-            agent.update_relationship_context(relationship_update)
-            self.logger.save_agent_memories(self.agents)
-
         say_outloud = (parsed.get("say_outloud") or "").strip()
         if say_outloud:
             self._broadcast_chat(player_name, say_outloud)
@@ -848,6 +837,7 @@ class AIManager:
             "ROLL_DICE",
             "BUY_DEV_CARD",
             "END_TURN",
+            "END_GAME",
             "TRADE_ACCEPT",
             "TRADE_REJECT",
         }
@@ -1039,6 +1029,8 @@ class AIManager:
             "roll": ("roll_dice", None),
             "e": ("end_turn", None),
             "end": ("end_turn", None),
+            "end_game": ("end_game", None),
+            "game_end": ("end_game", None),
             "pass": ("end_turn", None),
             "dev": ("buy_dev_card", None),
             "buy": ("buy_dev_card", None),
@@ -1155,6 +1147,12 @@ class AIManager:
             compacted_memory=result["compacted_memory"],
             recent_notes_to_keep=result["recent_entries"],
         )
+        relationship_updates = result.get("relationship_updates") or []
+        for relationship_update in relationship_updates:
+            agent.update_relationship_context(relationship_update)
+        if relationship_updates:
+            self.logger.save_agent_memories(self.agents)
+
         artifact_paths = self.logger.log_memory_compaction(
             agent.player_name,
             agent.compaction_count,
@@ -1314,12 +1312,17 @@ class AIManager:
             "Do not answer every message. If you do speak, write natural "
             f"{language_name} only, keep it brief, human, and non-technical. "
             f"{resource_terms}"
-            "You may update note_to_self with useful relationship or strategy context."
+            "You may update note_to_self with useful strategy context."
         )
     
     def _format_allowed_actions(self, allowed_actions: List[str]) -> List[Dict[str, Any]]:
         """Convert action type strings to formatted action dicts."""
         # Map action type names to example parameters
+        try:
+            vp_to_win = int((self._current_game_state or {}).get("meta", {}).get("vp_to_win", 5))
+        except (TypeError, ValueError):
+            vp_to_win = 5
+
         action_templates = {
             "BUILD_SETTLEMENT": {
                 "type": "build_settlement",
@@ -1338,12 +1341,20 @@ class AIManager:
             },
             "ROLL_DICE": {
                 "type": "roll_dice",
-                "description": "Roll the dice",
+                "description": f"Start your Catan turn by rolling the dice. Context: this game is played to {vp_to_win} victory points.",
                 "example_parameters": "{}"
             },
             "END_TURN": {
                 "type": "end_turn",
                 "description": "End your turn",
+                "example_parameters": "{}"
+            },
+            "END_GAME": {
+                "type": "end_game",
+                "description": (
+                    "Post-game only. Say any final table talk in say_outloud, "
+                    "then choose this when you are done and have nothing more to say or hear."
+                ),
                 "example_parameters": "{}"
             },
             "BUY_DEV_CARD": {
@@ -2092,7 +2103,6 @@ class AIManager:
                 "internal_thinking": data.get("internal_thinking", ""),
                 "note_to_self": data.get("note_to_self"),
                 "say_outloud": data.get("say_outloud"),
-                "relationship_update": data.get("relationship_update"),
             }
 
             if response_type == ResponseType.OBSERVING:

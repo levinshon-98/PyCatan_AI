@@ -24,7 +24,7 @@ class TestActionType:
             'BUILD_SETTLEMENT', 'BUILD_CITY', 'BUILD_ROAD',
             'TRADE_PROPOSE', 'TRADE_ACCEPT', 'TRADE_REJECT', 'TRADE_COUNTER', 'TRADE_BANK',
             'USE_DEV_CARD', 'BUY_DEV_CARD',
-            'ROLL_DICE', 'END_TURN',
+            'ROLL_DICE', 'END_TURN', 'END_GAME',
             'ROBBER_MOVE', 'DISCARD_CARDS', 'STEAL_CARD',
             'PLACE_STARTING_SETTLEMENT', 'PLACE_STARTING_ROAD'
         ]
