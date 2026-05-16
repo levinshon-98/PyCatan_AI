@@ -1,0 +1,105 @@
+{
+  "content": "",
+  "tool_calls": [
+    {
+      "id": "toolu_bdrk_01VmfkyAEK8zymJYjVVH4hzA",
+      "name": "find_best_nodes",
+      "parameters": {
+        "reasoning": "I need to identify my best settlement placement options. I have 3 VP and need to reach 5. My city at 41 is strong but I need to expand. My notes indicate I should target node 32 (Wheat 9, Wood 11 area) to distance myself from Shon's settlement at 30. Let me find the best available nodes that aren't blocked by existing settlements or roads.",
+        "min_pips": 8,
+        "limit": 10
+      }
+    },
+    {
+      "id": "toolu_bdrk_017scU5sq4X8Hnz1xGY3uYYB",
+      "name": "inspect_node",
+      "parameters": {
+        "node_id": 32,
+        "reasoning": "My notes mention node 32 as a key expansion target. I need to verify its exact resources, pip count, and whether it's accessible from my current road network at node 41."
+      }
+    },
+    {
+      "id": "toolu_bdrk_01QUhm6nLsiXhfQzsWs6rFSD",
+      "name": "inspect_node",
+      "parameters": {
+        "node_id": 23,
+        "reasoning": "My notes mention node 23 as an alternative expansion target (Ore 3, Brick 10, Wood 3). I need to verify this and check if it's more accessible than node 32."
+      }
+    }
+  ],
+  "raw_response": {
+    "id": "gen-1778894587-KtKZLiyV1sOkvREB32w0",
+    "object": "chat.completion",
+    "created": 1778894587,
+    "model": "anthropic/claude-4.5-haiku-20251001",
+    "provider": "Amazon Bedrock",
+    "system_fingerprint": null,
+    "choices": [
+      {
+        "index": 0,
+        "logprobs": null,
+        "finish_reason": "tool_calls",
+        "native_finish_reason": "tool_use",
+        "message": {
+          "role": "assistant",
+          "content": null,
+          "refusal": null,
+          "reasoning": null,
+          "tool_calls": [
+            {
+              "type": "function",
+              "index": 0,
+              "id": "toolu_bdrk_01VmfkyAEK8zymJYjVVH4hzA",
+              "function": {
+                "name": "find_best_nodes",
+                "arguments": "{\"reasoning\": \"I need to identify my best settlement placement options. I have 3 VP and need to reach 5. My city at 41 is strong but I need to expand. My notes indicate I should target node 32 (Wheat 9, Wood 11 area) to distance myself from Shon's settlement at 30. Let me find the best available nodes that aren't blocked by existing settlements or roads.\", \"min_pips\": 8, \"limit\": 10}"
+              }
+            },
+            {
+              "type": "function",
+              "index": 1,
+              "id": "toolu_bdrk_017scU5sq4X8Hnz1xGY3uYYB",
+              "function": {
+                "name": "inspect_node",
+                "arguments": "{\"node_id\": 32, \"reasoning\": \"My notes mention node 32 as a key expansion target. I need to verify its exact resources, pip count, and whether it's accessible from my current road network at node 41.\"}"
+              }
+            },
+            {
+              "type": "function",
+              "index": 2,
+              "id": "toolu_bdrk_01QUhm6nLsiXhfQzsWs6rFSD",
+              "function": {
+                "name": "inspect_node",
+                "arguments": "{\"node_id\": 23, \"reasoning\": \"My notes mention node 23 as an alternative expansion target (Ore 3, Brick 10, Wood 3). I need to verify this and check if it's more accessible than node 32.\"}"
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 5840,
+      "completion_tokens": 368,
+      "total_tokens": 6208,
+      "cost": 0.00768,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.00768,
+        "upstream_inference_prompt_cost": 0.00584,
+        "upstream_inference_completions_cost": 0.00184
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    }
+  },
+  "error": null
+}

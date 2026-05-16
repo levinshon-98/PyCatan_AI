@@ -1,0 +1,222 @@
+[
+  {
+    "model": "openai/gpt-5-mini",
+    "status_code": 200,
+    "latency": 13.251,
+    "ok": true,
+    "returned_model": "openai/gpt-5-mini-2025-08-07",
+    "finish_reason": "tool_calls",
+    "tool_calls_count": 2,
+    "tool_names": [
+      "analyze_path_potential",
+      "analyze_path_potential"
+    ],
+    "usage": {
+      "prompt_tokens": 3984,
+      "completion_tokens": 923,
+      "total_tokens": 4907,
+      "cost": 0.002842,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.002842,
+        "upstream_inference_prompt_cost": 0.000996,
+        "upstream_inference_completions_cost": 0.001846
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 768,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "content_preview": ""
+  },
+  {
+    "model": "openai/gpt-5.1-codex-mini",
+    "status_code": 200,
+    "latency": 7.196,
+    "ok": true,
+    "returned_model": "openai/gpt-5.1-codex-mini-20251113",
+    "finish_reason": "tool_calls",
+    "tool_calls_count": 1,
+    "tool_names": [
+      "analyze_path_potential"
+    ],
+    "usage": {
+      "prompt_tokens": 3984,
+      "completion_tokens": 1061,
+      "total_tokens": 5045,
+      "cost": 0.003118,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.003118,
+        "upstream_inference_prompt_cost": 0.000996,
+        "upstream_inference_completions_cost": 0.002122
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 960,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "content_preview": ""
+  },
+  {
+    "model": "openai/gpt-4.1-mini",
+    "status_code": 200,
+    "latency": 4.831,
+    "ok": true,
+    "returned_model": "openai/gpt-4.1-mini-2025-04-14",
+    "finish_reason": "tool_calls",
+    "tool_calls_count": 2,
+    "tool_names": [
+      "analyze_path_potential",
+      "find_best_nodes"
+    ],
+    "usage": {
+      "prompt_tokens": 3980,
+      "completion_tokens": 193,
+      "total_tokens": 4173,
+      "cost": 0.0019008,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.0019008,
+        "upstream_inference_prompt_cost": 0.001592,
+        "upstream_inference_completions_cost": 0.0003088
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "content_preview": ""
+  },
+  {
+    "model": "openai/gpt-4.1-nano",
+    "status_code": 200,
+    "latency": 2.075,
+    "ok": true,
+    "returned_model": "openai/gpt-4.1-nano-2025-04-14",
+    "finish_reason": "stop",
+    "tool_calls_count": 0,
+    "tool_names": [],
+    "usage": {
+      "prompt_tokens": 3980,
+      "completion_tokens": 279,
+      "total_tokens": 4259,
+      "cost": 0.0005096,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.0005096,
+        "upstream_inference_prompt_cost": 0.000398,
+        "upstream_inference_completions_cost": 0.0001116
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "content_preview": "{\"internal_thinking\":\"אני שומע שהשחקן שון בסחר מנסה לסגור לי פינות על נקודות אסטרטגיות, במיוחד בנמלים ובנמלי תעשייה. המיקוד שלי כרגע הוא על פיתוח דרך להיכנס לנמל 11, שמחובר לקטע שיש לי שם יתרון, ולהרח"
+  },
+  {
+    "model": "openai/gpt-5.4-mini",
+    "status_code": 200,
+    "latency": 2.315,
+    "ok": true,
+    "returned_model": "openai/gpt-5.4-mini-20260317",
+    "finish_reason": "tool_calls",
+    "tool_calls_count": 3,
+    "tool_names": [
+      "analyze_path_potential",
+      "analyze_path_potential",
+      "analyze_path_potential"
+    ],
+    "usage": {
+      "prompt_tokens": 3984,
+      "completion_tokens": 239,
+      "total_tokens": 4223,
+      "cost": 0.0040635,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.0040635,
+        "upstream_inference_prompt_cost": 0.002988,
+        "upstream_inference_completions_cost": 0.0010755
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "content_preview": ""
+  },
+  {
+    "model": "openai/gpt-5.4-nano",
+    "status_code": 200,
+    "latency": 2.74,
+    "ok": true,
+    "returned_model": "openai/gpt-5.4-nano-20260317",
+    "finish_reason": "tool_calls",
+    "tool_calls_count": 3,
+    "tool_names": [
+      "find_best_nodes",
+      "find_best_nodes",
+      "analyze_path_potential"
+    ],
+    "usage": {
+      "prompt_tokens": 3984,
+      "completion_tokens": 281,
+      "total_tokens": 4265,
+      "cost": 0.00114805,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.00114805,
+        "upstream_inference_prompt_cost": 0.0007968,
+        "upstream_inference_completions_cost": 0.00035125
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "content_preview": ""
+  }
+]

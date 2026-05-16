@@ -1,0 +1,54 @@
+[
+  {
+    "model": "openai/gpt-4o-mini",
+    "request_ok": true,
+    "tools_count": 3,
+    "strict_routing": true,
+    "error": null,
+    "latency_seconds": 3.2714242935180664,
+    "tool_calls_count": 2,
+    "finish_reason": "tool_calls",
+    "tokens": {
+      "prompt": 3959,
+      "completion": 155,
+      "total": 4114
+    },
+    "model_returned": "openai/gpt-4o-mini"
+  },
+  {
+    "model": "anthropic/claude-sonnet-4.5",
+    "request_ok": true,
+    "tools_count": 3,
+    "strict_routing": true,
+    "error": null,
+    "latency_seconds": 9.922435283660889,
+    "tool_calls_count": 5,
+    "finish_reason": "tool_calls",
+    "tokens": {
+      "prompt": 5840,
+      "completion": 489,
+      "total": 6329
+    },
+    "model_returned": "anthropic/claude-4.5-sonnet-20250929"
+  },
+  {
+    "model": "google/gemini-2.5-flash",
+    "request_ok": true,
+    "tools_count": 3,
+    "strict_routing": true,
+    "error": null,
+    "latency_seconds": 3.430351734161377,
+    "tool_calls_count": 0,
+    "finish_reason": "stop",
+    "tokens": {
+      "prompt": 4112,
+      "completion": 306,
+      "total": 4418
+    },
+    "model_returned": "google/gemini-2.5-flash",
+    "json_parse_ok": true,
+    "action_valid": false,
+    "action_type": "build_road",
+    "action_error": "Parameter 'from' should be a string"
+  }
+]

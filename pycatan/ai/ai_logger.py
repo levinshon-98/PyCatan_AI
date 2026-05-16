@@ -896,6 +896,20 @@ See: [prompt_{original_prompt_number}_iter{iteration}.json](prompts/iterations/p
 
         response = result.get("response")
         response_data = response.to_dict() if hasattr(response, "to_dict") else None
+        response_raw = None
+        if response:
+            response_raw = {
+                "success": getattr(response, "success", None),
+                "content": getattr(response, "content", None),
+                "error": getattr(response, "error", None),
+                "model": getattr(response, "model", None),
+                "finish_reason": getattr(response, "finish_reason", None),
+                "prompt_tokens": getattr(response, "prompt_tokens", None),
+                "completion_tokens": getattr(response, "completion_tokens", None),
+                "thinking_tokens": getattr(response, "thinking_tokens", None),
+                "total_tokens": getattr(response, "total_tokens", None),
+                "latency_seconds": getattr(response, "latency_seconds", None),
+            }
         old_entries = result.get("old_entries", [])
         recent_entries = result.get("recent_entries", [])
         artifact = {
@@ -918,6 +932,7 @@ See: [prompt_{original_prompt_number}_iter{iteration}.json](prompts/iterations/p
                 "fallback_reason": result.get("fallback_reason"),
             },
             "llm": response_data,
+            "llm_raw": response_raw,
             "prompt": result.get("prompt"),
         }
 
@@ -942,6 +957,14 @@ See: [prompt_{original_prompt_number}_iter{iteration}.json](prompts/iterations/p
             )
             if chat_entries else "(none)"
         )
+        raw_content = getattr(response, "content", None) if response else None
+        raw_error = getattr(response, "error", None) if response else None
+        if raw_content:
+            raw_preview = raw_content[:2000] + ("..." if len(raw_content) > 2000 else "")
+        elif raw_error:
+            raw_preview = f"ERROR: {raw_error}"
+        else:
+            raw_preview = "(none)"
 
         txt = f"""Memory Compaction #{compaction_count} for {player_name}
 Time: {datetime.now().isoformat()}
@@ -970,6 +993,9 @@ reason={result.get("fallback_reason") or "(none)"}
 
 === AFTER: Discarded As Irrelevant ===
 {json.dumps(result.get("discarded_as_irrelevant", []), ensure_ascii=False)}
+
+=== RAW LLM RESPONSE PREVIEW ===
+{raw_preview}
 
 JSON artifact:
 {json_path}

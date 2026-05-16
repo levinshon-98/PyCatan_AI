@@ -51,6 +51,21 @@ OPENROUTER_MODELS_URL = "https://openrouter.ai/api/v1/models"
 MIN_CONTEXT_LENGTH = 32000
 MIN_COMPLETION_TOKENS = 4096
 PLAYER_GENDERS = {1: "female", 2: "male", 3: "male", 4: "female"}
+VERIFIED_OPENROUTER_MODEL_IDS = [
+    "openai/gpt-5.4-mini",
+    "openai/gpt-5.4-nano",
+    "openai/gpt-4.1-mini",
+    "openai/gpt-4o-mini",
+    "openai/gpt-5.1-codex-mini",
+    "openai/gpt-5-mini",
+    "anthropic/claude-haiku-4.5",
+    "anthropic/claude-sonnet-4.5",
+    "google/gemini-3.1-flash-lite",
+    "google/gemini-3-flash-preview",
+]
+VERIFIED_OPENROUTER_MODEL_ORDER = {
+    model_id: index for index, model_id in enumerate(VERIFIED_OPENROUTER_MODEL_IDS)
+}
 
 GEMINI_TTS_MODELS = [
     "gemini-2.5-flash-preview-tts",
@@ -69,23 +84,33 @@ GEMINI_TTS_VOICES = [
 
 FALLBACK_MODELS = [
     {
-        "id": "openai/gpt-4o",
-        "name": "OpenAI: GPT-4o",
+        "id": "openai/gpt-5.4-mini",
+        "name": "OpenAI: GPT-5.4 Mini",
         "provider": "openai",
-        "context_length": 128000,
-        "max_completion_tokens": 16384,
+        "context_length": 400000,
+        "max_completion_tokens": 128000,
         "output_modalities": ["text"],
-        "supported_parameters": ["tools", "response_format", "temperature", "max_tokens"],
+        "supported_parameters": ["tools", "response_format", "structured_outputs", "max_tokens"],
         "pricing": {"prompt": "", "completion": ""},
     },
     {
-        "id": "openai/gpt-4o-mini",
-        "name": "OpenAI: GPT-4o Mini",
+        "id": "openai/gpt-5.4-nano",
+        "name": "OpenAI: GPT-5.4 Nano",
         "provider": "openai",
-        "context_length": 128000,
-        "max_completion_tokens": 16384,
+        "context_length": 400000,
+        "max_completion_tokens": 128000,
         "output_modalities": ["text"],
-        "supported_parameters": ["tools", "response_format", "temperature", "max_tokens"],
+        "supported_parameters": ["tools", "response_format", "structured_outputs", "max_tokens"],
+        "pricing": {"prompt": "", "completion": ""},
+    },
+    {
+        "id": "openai/gpt-4.1-mini",
+        "name": "OpenAI: GPT-4.1 Mini",
+        "provider": "openai",
+        "context_length": 1047576,
+        "max_completion_tokens": 32768,
+        "output_modalities": ["text"],
+        "supported_parameters": ["tools", "response_format", "structured_outputs", "temperature", "max_tokens"],
         "pricing": {"prompt": "", "completion": ""},
     },
     {
@@ -99,18 +124,8 @@ FALLBACK_MODELS = [
         "pricing": {"prompt": "", "completion": ""},
     },
     {
-        "id": "google/gemini-2.5-pro",
-        "name": "Google: Gemini 2.5 Pro",
-        "provider": "google",
-        "context_length": 1048576,
-        "max_completion_tokens": 65536,
-        "output_modalities": ["text"],
-        "supported_parameters": ["tools", "response_format", "temperature", "max_tokens"],
-        "pricing": {"prompt": "", "completion": ""},
-    },
-    {
-        "id": "google/gemini-2.5-flash",
-        "name": "Google: Gemini 2.5 Flash",
+        "id": "google/gemini-3-flash-preview",
+        "name": "Google: Gemini 3 Flash Preview",
         "provider": "google",
         "context_length": 1048576,
         "max_completion_tokens": 65536,
@@ -151,7 +166,7 @@ def is_suitable_openrouter_model(model: Dict[str, Any]) -> bool:
     context_length = int(model.get("context_length") or 0)
     max_completion_tokens = int(model.get("max_completion_tokens") or 0)
     return (
-        bool(model.get("id"))
+        model.get("id") in VERIFIED_OPENROUTER_MODEL_IDS
         and "tools" in supported
         and "response_format" in supported
         and "text" in output_modalities
@@ -184,7 +199,13 @@ def fetch_openrouter_models(api_key: str = "") -> List[Dict[str, Any]]:
 
     usable = [model for model in models if is_suitable_openrouter_model(model)]
     usable = usable or [model for model in FALLBACK_MODELS if is_suitable_openrouter_model(model)]
-    usable.sort(key=lambda item: (item["provider"], item["name"].lower()))
+    usable.sort(
+        key=lambda item: (
+            VERIFIED_OPENROUTER_MODEL_ORDER.get(item["id"], len(VERIFIED_OPENROUTER_MODEL_ORDER)),
+            item["provider"],
+            item["name"].lower(),
+        )
+    )
     return usable
 
 
@@ -816,6 +837,27 @@ def _settings_selection_from_query(query: Dict[str, List[str]]) -> Dict[str, Any
 
 def _infer_session_player_names(session_dir: Path) -> List[str]:
     """Infer locked player names for a replay/resume source session."""
+    summary_file = session_dir / "session_summary.json"
+    if summary_file.exists():
+        try:
+            summary = json.loads(summary_file.read_text(encoding="utf-8"))
+            agents = summary.get("agents") or {}
+            ordered_agents = sorted(
+                (
+                    agent
+                    for agent in agents.values()
+                    if isinstance(agent, dict)
+                    and agent.get("player_name")
+                    and isinstance(agent.get("player_id"), int)
+                ),
+                key=lambda agent: agent["player_id"],
+            )
+            names = [str(agent["player_name"]) for agent in ordered_agents]
+            if names:
+                return names[:4]
+        except Exception:
+            pass
+
     names = infer_players_from_session(session_dir)
     if names:
         return names[:4]
@@ -824,6 +866,27 @@ def _infer_session_player_names(session_dir: Path) -> List[str]:
     except Exception:
         return []
     return infer_players_from_decisions(decisions)[:4]
+
+
+def _load_session_final_state(session_dir: Path) -> Optional[Dict[str, Any]]:
+    summary_file = session_dir / "session_summary.json"
+    if not summary_file.exists():
+        return None
+    try:
+        summary = json.loads(summary_file.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+    final_state = summary.get("final_game_state")
+    return final_state if isinstance(final_state, dict) else None
+
+
+def _minimum_recorded_actions_for_state(final_state: Optional[Dict[str, Any]]) -> int:
+    if not final_state:
+        return 0
+    state = final_state.get("state") or {}
+    buildings = state.get("bld") or []
+    roads = state.get("rds") or []
+    return len(buildings) + len(roads)
 
 
 def collect_settings(port: int = 5000, key_mode: str = "env") -> Dict[str, Any]:
@@ -952,6 +1015,26 @@ def collect_settings(port: int = 5000, key_mode: str = "env") -> Dict[str, Any]:
                 except (TypeError, ValueError) as exc:
                     errors.append(
                         f"{exc}. Choose one of the suggested action markers; reaction-only table talk is not replayable as a marker."
+                    )
+            if (
+                run_mode == "resume_session"
+                and replay_session_path_for_validation
+                and not fields.get("replay_through")
+                and not fields.get("replay_stop_before")
+            ):
+                try:
+                    decisions_for_resume = load_replay_decision_chain(replay_session_path_for_validation)
+                except Exception:
+                    decisions_for_resume = []
+                minimum_actions = _minimum_recorded_actions_for_state(
+                    _load_session_final_state(replay_session_path_for_validation)
+                )
+                if minimum_actions and len(decisions_for_resume) < minimum_actions:
+                    errors.append(
+                        "This session cannot be resumed by fast replay: "
+                        f"it has {len(decisions_for_resume)} recorded action(s), but the saved board "
+                        f"already contains at least {minimum_actions} placements. Choose a session with "
+                        "full response logs or use replay markers for a partial replay."
                     )
 
             if fields.get("config_path") and not Path(fields["config_path"]).exists():
@@ -1183,7 +1266,7 @@ def main() -> None:
             replay_stop_before=settings["replay_stop_before"],
         )
         replay_decisions_by_player = group_replay_decisions(replay_decision_list)
-        player_names = infer_players_from_session(replay_session_path) or infer_players_from_decisions(replay_decision_list)
+        player_names = _infer_session_player_names(replay_session_path) or infer_players_from_decisions(replay_decision_list)
         player_configs = _player_configs_for_replay(player_names, settings["slot_llms"])
         print(f"[REPLAY] Source: {replay_session_path}")
         print(f"[REPLAY] Loaded {len(replay_decision_list)} parsed decisions")

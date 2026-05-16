@@ -1816,7 +1816,7 @@ class AIManager:
                 
                 # Add tool results to conversation
                 conversation_context = f"{conversation_context}\n\n{tool_results}\n\nNow provide your final answer based on the tool results:"
-                
+
                 # Check if this is the last iteration
                 if iteration >= max_tool_iterations:
                     # Remove tools and send ONE FINAL request for structured answer
@@ -2032,15 +2032,17 @@ class AIManager:
                     response = stream_generator.gi_retval
                 else:
                     # Build response from accumulated data
+                    has_stream_content = bool(accumulated_text.strip()) or bool(tool_calls)
                     response = LLMResponse(
-                        success=True,
+                        success=has_stream_content,
                         content=accumulated_text,
                         tool_calls=tool_calls,
                         model=llm_client.model,
                         prompt_tokens=llm_client._estimate_tokens(conversation_context),
                         completion_tokens=llm_client._estimate_tokens(accumulated_text),
                         thinking_tokens=llm_client._estimate_tokens(accumulated_thoughts),
-                        total_tokens=0  # Will be calculated
+                        total_tokens=0,  # Will be calculated
+                        error=None if has_stream_content else "Empty response content"
                     )
                     response.total_tokens = response.prompt_tokens + response.completion_tokens + response.thinking_tokens
                 
@@ -2118,6 +2120,114 @@ class AIManager:
                 
                 # Add tool results to conversation
                 conversation_context = f"{conversation_context}\n\n{tool_results}\n\nNow provide your final answer based on the tool results:"
+
+                # Streaming used to stop with an empty "final" response when
+                # the model kept requesting tools until the iteration limit.
+                # Match the non-streaming path: after the last tool batch,
+                # disable tools and force one final structured answer.
+                if iteration >= max_tool_iterations:
+                    self.logger.log_llm_communication(
+                        f"Tool results sent back to LLM ({batch.total_tokens} tokens)",
+                        "TOOL_RESULTS"
+                    )
+
+                    kwargs["tools"] = []
+                    self.logger.log_llm_communication(
+                        "Tools disabled - sending final streaming request for structured answer",
+                        "INFO"
+                    )
+
+                    self.logger.log_tool_followup_prompt(
+                        player_name=player_name,
+                        original_prompt_number=prompt_number,
+                        iteration=iteration + 1,
+                        conversation_context=conversation_context,
+                        tool_results=tool_results,
+                        tools_schema=None,
+                        schema=schema
+                    )
+
+                    final_api_call_id = self.logger.log_api_call_start(
+                        player_name=player_name,
+                        prompt_number=prompt_number,
+                        iteration=iteration + 1,
+                        tools_schema=None,
+                        is_tool_followup=True
+                    )
+                    self._broadcast_status(player_name, "thinking", "Thinking...")
+
+                    final_text = ""
+                    final_thoughts = ""
+                    final_tool_calls = []
+
+                    def on_final_chunk(chunk: StreamChunk):
+                        nonlocal final_text, final_thoughts
+                        self._broadcast_stream_chunk(player_name, chunk)
+                        if chunk.chunk_type == 'thought' and chunk.content:
+                            final_thoughts += chunk.content
+                        elif chunk.chunk_type == 'text' and chunk.content:
+                            final_text += chunk.content
+
+                    try:
+                        final_stream = llm_client.generate_stream(
+                            conversation_context,
+                            on_chunk=on_final_chunk,
+                            **kwargs
+                        )
+                        for chunk in final_stream:
+                            if chunk.chunk_type == 'function_call' and chunk.function_call:
+                                final_tool_calls.append(chunk.function_call)
+
+                        final_has_content = bool(final_text.strip())
+                        final_response = LLMResponse(
+                            success=final_has_content and not final_tool_calls,
+                            content=final_text,
+                            tool_calls=final_tool_calls,
+                            model=llm_client.model,
+                            prompt_tokens=llm_client._estimate_tokens(conversation_context),
+                            completion_tokens=llm_client._estimate_tokens(final_text),
+                            thinking_tokens=llm_client._estimate_tokens(final_thoughts),
+                            total_tokens=0,
+                            error=None if final_has_content and not final_tool_calls else "Empty response content"
+                        )
+                        final_response.total_tokens = (
+                            final_response.prompt_tokens
+                            + final_response.completion_tokens
+                            + final_response.thinking_tokens
+                        )
+                    except Exception as e:
+                        self.logger.log_llm_communication(f"Streaming final request error: {e}", "ERROR")
+                        final_response = LLMResponse(
+                            success=False,
+                            error=str(e),
+                            model=llm_client.model
+                        )
+
+                    accumulated_prompt_tokens += final_response.prompt_tokens
+                    accumulated_completion_tokens += final_response.completion_tokens
+                    accumulated_thinking_tokens += final_response.thinking_tokens
+
+                    self.logger.log_api_call_end(
+                        call_id=final_api_call_id,
+                        success=final_response.success,
+                        tokens=final_response.total_tokens,
+                        prompt_tokens=final_response.prompt_tokens,
+                        completion_tokens=final_response.completion_tokens,
+                        has_tool_calls=bool(final_response.tool_calls),
+                        tool_calls_count=len(final_response.tool_calls) if final_response.tool_calls else 0,
+                        error=final_response.error
+                    )
+
+                    final_response.prompt_tokens = accumulated_prompt_tokens
+                    final_response.completion_tokens = accumulated_completion_tokens
+                    final_response.thinking_tokens = accumulated_thinking_tokens
+                    final_response.total_tokens = (
+                        accumulated_prompt_tokens
+                        + accumulated_completion_tokens
+                        + accumulated_thinking_tokens
+                        + accumulated_tool_tokens
+                    )
+                    return final_response
                 
                 self.logger.log_llm_communication(
                     f"✅ Tool results sent back to LLM ({batch.total_tokens} tokens)",

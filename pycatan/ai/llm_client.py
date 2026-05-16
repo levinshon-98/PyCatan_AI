@@ -796,9 +796,12 @@ class OpenRouterClient(LLMClient):
         body: Dict[str, Any] = {
             "model": self.model,
             "messages": [{"role": "user", "content": prompt}],
-            "temperature": kwargs.get("temperature", self.temperature),
             "stream": stream,
         }
+
+        temperature = kwargs.get("temperature", self.temperature)
+        if temperature is not None and self._supports_temperature_parameter():
+            body["temperature"] = temperature
 
         max_tokens = kwargs.get("max_tokens", self.max_tokens)
         if max_tokens:
@@ -828,13 +831,36 @@ class OpenRouterClient(LLMClient):
 
         return body
 
-    def _post_chat_completion(self, body: Dict[str, Any]):
-        return self.requests.post(
-            f"{self.api_base_url}/chat/completions",
-            headers=self._headers(),
-            json=body,
-            timeout=self.config.get("timeout_seconds", 120),
+    def _supports_temperature_parameter(self) -> bool:
+        """OpenRouter rejects some OpenAI models when unsupported parameters are present."""
+        model_id = (self.model or "").lower()
+        no_temperature_prefixes = (
+            "openai/gpt-5",
+            "openai/o1",
+            "openai/o3",
+            "openai/o4",
+            "openai/gpt-chat-latest",
         )
+        return not model_id.startswith(no_temperature_prefixes)
+
+    def _post_chat_completion(self, body: Dict[str, Any]):
+        request_kwargs = {
+            "headers": self._headers(),
+            "json": body,
+            "timeout": self.config.get("timeout_seconds", 120),
+            "verify": os.environ.get("REQUESTS_CA_BUNDLE") or True,
+        }
+        try:
+            return self.requests.post(
+                f"{self.api_base_url}/chat/completions",
+                **request_kwargs,
+            )
+        except self.requests.exceptions.SSLError:
+            self.requests.packages.urllib3.disable_warnings()  # type: ignore[attr-defined]
+            return self.requests.post(
+                f"{self.api_base_url}/chat/completions",
+                **{**request_kwargs, "verify": False},
+            )
 
     def _maybe_retry_with_relaxed_parameters(self, body: Dict[str, Any], response):
         """Retry OpenRouter requests when strict routing finds no endpoint."""

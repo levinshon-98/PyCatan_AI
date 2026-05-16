@@ -1,0 +1,87 @@
+{
+  "content": "",
+  "tool_calls": [
+    {
+      "id": "call_t6vIIhc0vdTRsTjXVH4EmCSQ",
+      "name": "find_best_nodes",
+      "parameters": {
+        "reasoning": "Looking for a good settlement location to expand my resources, particularly focusing on nodes that provide wheat and wood, as I need to build towards node 32.",
+        "min_pips": 10
+      }
+    },
+    {
+      "id": "call_5ugyoGduhPEwJZBtVyxP7slH",
+      "name": "analyze_path_potential",
+      "parameters": {
+        "reasoning": "I want to analyze the potential of building a road towards node 32, which is a key expansion point for me.",
+        "from_node": 41
+      }
+    }
+  ],
+  "raw_response": {
+    "id": "gen-1778894597-R7RkA8LoZwoxM7e4SEoi",
+    "object": "chat.completion",
+    "created": 1778894597,
+    "model": "openai/gpt-4o-mini",
+    "provider": "OpenAI",
+    "system_fingerprint": "fp_8e27dcd980",
+    "choices": [
+      {
+        "index": 0,
+        "logprobs": null,
+        "finish_reason": "tool_calls",
+        "native_finish_reason": "tool_calls",
+        "message": {
+          "role": "assistant",
+          "content": null,
+          "refusal": null,
+          "reasoning": null,
+          "tool_calls": [
+            {
+              "type": "function",
+              "index": 0,
+              "id": "call_t6vIIhc0vdTRsTjXVH4EmCSQ",
+              "function": {
+                "name": "find_best_nodes",
+                "arguments": "{\"reasoning\": \"Looking for a good settlement location to expand my resources, particularly focusing on nodes that provide wheat and wood, as I need to build towards node 32.\", \"min_pips\": 10}"
+              }
+            },
+            {
+              "type": "function",
+              "index": 1,
+              "id": "call_5ugyoGduhPEwJZBtVyxP7slH",
+              "function": {
+                "name": "analyze_path_potential",
+                "arguments": "{\"reasoning\": \"I want to analyze the potential of building a road towards node 32, which is a key expansion point for me.\", \"from_node\": 41}"
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 3959,
+      "completion_tokens": 112,
+      "total_tokens": 4071,
+      "cost": 0.00037305,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 3840,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.00037305,
+        "upstream_inference_prompt_cost": 0.00030585,
+        "upstream_inference_completions_cost": 6.72e-05
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    }
+  },
+  "error": null
+}

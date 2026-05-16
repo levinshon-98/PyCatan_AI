@@ -1,0 +1,87 @@
+{
+  "content": "",
+  "tool_calls": [
+    {
+      "id": "call_Iiz5dYSg3RURnaLRRc2V2rPz",
+      "name": "analyze_path_potential",
+      "parameters": {
+        "reasoning": "I want to build a road to expand towards node 32, which has valuable resources (Wheat 9 and Wood 11). I need to see what opportunities lie ahead if I build a road from my current position at node 41.",
+        "from_node": 41
+      }
+    },
+    {
+      "id": "call_LpqsOuC5dcYNtROUH1tGoTlA",
+      "name": "find_best_nodes",
+      "parameters": {
+        "reasoning": "I need to find a good node to build a settlement. I want to prioritize nodes that have high resource production and are not blocked by other players. I will look for nodes with a minimum pip value of 10 to ensure good resource yield.",
+        "min_pips": 10
+      }
+    }
+  ],
+  "raw_response": {
+    "id": "gen-1778894298-7UHr8vgib5poKTdfKMm1",
+    "object": "chat.completion",
+    "created": 1778894298,
+    "model": "openai/gpt-4o-mini",
+    "provider": "OpenAI",
+    "system_fingerprint": "fp_8e27dcd980",
+    "choices": [
+      {
+        "index": 0,
+        "logprobs": null,
+        "finish_reason": "tool_calls",
+        "native_finish_reason": "tool_calls",
+        "message": {
+          "role": "assistant",
+          "content": null,
+          "refusal": null,
+          "reasoning": null,
+          "tool_calls": [
+            {
+              "type": "function",
+              "index": 0,
+              "id": "call_Iiz5dYSg3RURnaLRRc2V2rPz",
+              "function": {
+                "name": "analyze_path_potential",
+                "arguments": "{\"reasoning\": \"I want to build a road to expand towards node 32, which has valuable resources (Wheat 9 and Wood 11). I need to see what opportunities lie ahead if I build a road from my current position at node 41.\", \"from_node\": 41}"
+              }
+            },
+            {
+              "type": "function",
+              "index": 1,
+              "id": "call_LpqsOuC5dcYNtROUH1tGoTlA",
+              "function": {
+                "name": "find_best_nodes",
+                "arguments": "{\"reasoning\": \"I need to find a good node to build a settlement. I want to prioritize nodes that have high resource production and are not blocked by other players. I will look for nodes with a minimum pip value of 10 to ensure good resource yield.\", \"min_pips\": 10}"
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 3959,
+      "completion_tokens": 155,
+      "total_tokens": 4114,
+      "cost": 0.00039885,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 3840,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.00039885,
+        "upstream_inference_prompt_cost": 0.00030585,
+        "upstream_inference_completions_cost": 9.3e-05
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    }
+  },
+  "error": null
+}

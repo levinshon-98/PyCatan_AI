@@ -61,10 +61,10 @@ const GAMEDATA = {
 // מיפוי סוגי משאבים לקבצי התמונות
 const RESOURCE_FILES = {
     'wood': 'Forest.png',
-    'brick': 'Hills.png', 
+    'brick': 'Mountains.png',
     'sheep': 'Pasture.png',
     'wheat': 'Fields.png',
-    'ore': 'Mountains.png',
+    'ore': 'Hills.png',
     'desert': 'Desert.png'
 };
 
