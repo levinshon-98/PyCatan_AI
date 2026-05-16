@@ -63,6 +63,32 @@ class LogEntry:
     data: Dict[str, Any] = field(default_factory=dict)
     status: str = "SUCCESS"  # SUCCESS, FAIL, WAITING, PENDING
     error: Optional[str] = None
+
+    def _format_resource_bundle(self, bundle: Any) -> str:
+        """Format resource dictionaries/lists for compact event text."""
+        if not bundle:
+            return "nothing"
+
+        if isinstance(bundle, dict):
+            items = bundle.items()
+        elif isinstance(bundle, list):
+            counts: Dict[str, int] = {}
+            for card in bundle:
+                key = card.name if hasattr(card, "name") else str(card)
+                counts[key] = counts.get(key, 0) + 1
+            items = counts.items()
+        else:
+            return str(bundle)
+
+        parts = []
+        for resource, amount in items:
+            if not amount:
+                continue
+            name = resource.name if hasattr(resource, "name") else str(resource)
+            if "." in name:
+                name = name.split(".")[-1]
+            parts.append(f"{amount}x {name}")
+        return ", ".join(parts) if parts else "nothing"
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization"""
@@ -176,6 +202,37 @@ class LogEntry:
             card = self.data.get('card', '?')
             return f"✨ {player_str} used {card}"
         
+        elif self.event_type == EventType.TRADE_BANK:
+            give = self._format_resource_bundle(self.data.get('give') or self.data.get('offer'))
+            receive = self._format_resource_bundle(self.data.get('receive') or self.data.get('request'))
+            return f"Bank trade: {player_str} gave [{give}] and received [{receive}]"
+
+        elif self.event_type == EventType.TRADE_EXECUTE:
+            details = self.data.get('details', '')
+            if details:
+                return f"Trade executed: {details}"
+            to_player = self.data.get('to_player', '?')
+            offer = self._format_resource_bundle(self.data.get('offer') or self.data.get('give'))
+            request = self._format_resource_bundle(self.data.get('request') or self.data.get('receive'))
+            return f"Trade executed: {player_str} traded with {to_player}: gave [{offer}] and received [{request}]"
+
+        elif self.event_type == EventType.TRADE_RESPONSE:
+            response = self.data.get('response', '?')
+            to_player = self.data.get('to_player') or self.data.get('target_player')
+            if to_player:
+                return f"{to_player} {response} {player_str}'s trade"
+            return f"{player_str} {response} trade"
+
+        elif self.event_type == EventType.DISCARD_CARDS:
+            cards = self._format_resource_bundle(self.data.get('discarded') or self.data.get('cards', []))
+            return f"{player_str} discarded [{cards}]"
+
+        elif self.event_type == EventType.TRADE_PROPOSE:
+            to_player = self.data.get('to_player', '?')
+            offer_str = self._format_resource_bundle(self.data.get('offer', {}))
+            request_str = self._format_resource_bundle(self.data.get('request', {}))
+            return f"{player_str} proposed trade to {to_player}: [{offer_str}] for [{request_str}]"
+
         elif self.event_type == EventType.TRADE_PROPOSE:
             to_player = self.data.get('to_player', '?')
             offer = self.data.get('offer', {})
@@ -186,22 +243,28 @@ class LogEntry:
         
         elif self.event_type == EventType.TRADE_RESPONSE:
             response = self.data.get('response', '?')
-            return f"💬 {player_str} {response} trade"
+            return f"{player_str} {response} trade"
         
         elif self.event_type == EventType.TRADE_EXECUTE:
             details = self.data.get('details', '')
-            return f"✅ Trade executed: {details}"
+            return f"Trade executed: {details}"
         
+        elif self.event_type == EventType.ROBBER_MOVE and self.data.get('victim'):
+            tile = self.data.get('tile', '?')
+            victim = self.data.get('victim')
+            card = self.data.get('card') or self.data.get('stolen_card') or 'a card'
+            return f"{player_str} moved robber to tile {tile} and stole {card} from {victim}"
+
         elif self.event_type == EventType.ROBBER_MOVE:
             tile = self.data.get('tile', '?')
-            return f"🦹 {player_str} moved robber to tile {tile}"
+            return f"{player_str} moved robber to tile {tile}"
         
         elif self.event_type == EventType.ROBBER_STEAL:
             victim = self.data.get('victim', '?')
             card = self.data.get('card', 'a card')
             # Card names come from enum.name which is already capitalized (Wood, Brick, etc.)
             # Just display as-is
-            return f"🦹 {player_str} stole {card} from {victim}"
+            return f"{player_str} stole {card} from {victim}"
         
         elif self.event_type == EventType.TURN_START:
             phase = self.data.get('phase', 'MAIN')

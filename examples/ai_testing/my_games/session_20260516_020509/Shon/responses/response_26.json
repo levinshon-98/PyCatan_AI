@@ -1,0 +1,25 @@
+{
+  "request_number": 26,
+  "timestamp": "2026-05-16T02:28:36.165383",
+  "player_name": "Shon",
+  "type": "final",
+  "success": true,
+  "raw_content": "{\n  \"internal_thinking\": \"Hadar is offering 1 Sheep for 1 Wheat. I currently have 2 Wheat and 1 Sheep. While the trade is technically fair, I produce Sheep on an 8 (Hex 4) and Wheat on both 6 and 9s (Hexes 15, 14, 18). Wheat is a more versatile resource for both Cities and Development cards. Since Hadar and I are tied at 4 Victory Points, I don't want to facilitate her expansion or card purchases unless it significantly benefits me. I'll decline and keep my Wheat for my own future builds.\",\n  \"note_to_self\": \"I have strong Brick income on 10 and Wheat on 9/6. I need to secure a Wood source or trade for it soon to keep expanding.\",\n  \"say_outloud\": \"הצעה הוגנת הדר, אבל אני שומר את החיטה לסיבוב הבא, אני חייב אותה לתוכניות שלי. אולי בפעם אחרת.\",\n  \"action\": {\n    \"type\": \"trade_reject\",\n    \"parameters\": \"{}\"\n  }\n}",
+  "parsed": {
+    "internal_thinking": "Hadar is offering 1 Sheep for 1 Wheat. I currently have 2 Wheat and 1 Sheep. While the trade is technically fair, I produce Sheep on an 8 (Hex 4) and Wheat on both 6 and 9s (Hexes 15, 14, 18). Wheat is a more versatile resource for both Cities and Development cards. Since Hadar and I are tied at 4 Victory Points, I don't want to facilitate her expansion or card purchases unless it significantly benefits me. I'll decline and keep my Wheat for my own future builds.",
+    "note_to_self": "I have strong Brick income on 10 and Wheat on 9/6. I need to secure a Wood source or trade for it soon to keep expanding.",
+    "say_outloud": "הצעה הוגנת הדר, אבל אני שומר את החיטה לסיבוב הבא, אני חייב אותה לתוכניות שלי. אולי בפעם אחרת.",
+    "action_type": "trade_reject",
+    "parameters": {}
+  },
+  "model": "gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 1898,
+    "completion": 205,
+    "thinking": 0,
+    "total": 2103
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}

@@ -49,6 +49,11 @@ def normalize_chat_language(language: Optional[str]) -> str:
     return aliases.get(value, "english")
 
 
+HEBREW_RESOURCE_TERMS_INSTRUCTION = (
+    "Use exact Hebrew resource names: brick=טיט, ore=אבן, sheep=כבשה, wheat=חיטה."
+)
+
+
 @dataclass
 class LLMConfig:
     """Configuration for LLM provider and model settings."""

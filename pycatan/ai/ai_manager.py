@@ -19,7 +19,7 @@ import time
 from pathlib import Path
 from typing import Dict, Any, Optional, List, Callable
 
-from pycatan.ai.config import AIConfig
+from pycatan.ai.config import AIConfig, HEBREW_RESOURCE_TERMS_INSTRUCTION, normalize_chat_language
 from pycatan.ai.prompt_manager import PromptManager
 from pycatan.ai.llm_client import LLMResponse, StreamChunk, create_llm_client, GeminiClient
 from pycatan.ai.response_parser import ResponseParser, ParseResult
@@ -474,6 +474,8 @@ class AIManager:
             # If parsed doesn't have say_outloud, use LLM's
             if not parsed.get("say_outloud") and llm_suggestion.get("say_outloud"):
                 parsed["say_outloud"] = llm_suggestion["say_outloud"]
+            if not parsed.get("relationship_update") and llm_suggestion.get("relationship_update"):
+                parsed["relationship_update"] = llm_suggestion["relationship_update"]
         
         if parsed:
             # Update memory
@@ -481,9 +483,13 @@ class AIManager:
             agent.update_memory(note_to_self)
             if note_to_self:
                 self._maybe_compact_agent_memory(agent, game_state)
+
+            relationship_update = parsed.get("relationship_update")
+            if relationship_update:
+                agent.update_relationship_context(relationship_update)
             
             # Save memories to file for web viewer (real-time update)
-            if note_to_self:
+            if note_to_self or relationship_update:
                 self.logger.save_agent_memories(self.agents)
             
             # Clear events since they've been processed
@@ -782,6 +788,11 @@ class AIManager:
         if note_to_self:
             agent.update_memory(note_to_self)
             self._maybe_compact_agent_memory(agent, game_state)
+            self.logger.save_agent_memories(self.agents)
+
+        relationship_update = parsed.get("relationship_update")
+        if relationship_update:
+            agent.update_relationship_context(relationship_update)
             self.logger.save_agent_memories(self.agents)
 
         say_outloud = (parsed.get("say_outloud") or "").strip()
@@ -1227,7 +1238,8 @@ class AIManager:
             available_actions=formatted_actions,
             chat_history=self.chat_history[-self.max_chat_history:] if self.chat_history else None,
             agent_memory=agent_memory,
-            pending_trades=self._get_relevant_trades(agent.player_name)
+            pending_trades=self._get_relevant_trades(agent.player_name),
+            relationship_updates=getattr(agent, "relationship_context_updates", [])
         )
         if not is_active_turn:
             prompt.setdefault("task_context", {})["instructions"] = self._get_reaction_instructions()
@@ -1286,8 +1298,13 @@ class AIManager:
 
     def _get_reaction_instructions(self) -> str:
         """Instructions for observation-only social reactions."""
-        language = getattr(self.config.agent, "chat_language", "english")
-        language_name = "Hebrew" if str(language).lower() in {"hebrew", "he", "heb", "iw"} else "English"
+        language = normalize_chat_language(getattr(self.config.agent, "chat_language", "english"))
+        language_name = "Hebrew" if language == "hebrew" else "English"
+        resource_terms = (
+            f"{HEBREW_RESOURCE_TERMS_INSTRUCTION} "
+            if language_name == "Hebrew"
+            else ""
+        )
         return (
             "You are not taking a board action now. You may only react socially. "
             "Usually leave say_outloud empty; silence is the normal and preferred "
@@ -1296,6 +1313,7 @@ class AIManager:
             "or if the event matters for relationships or long-term strategy. "
             "Do not answer every message. If you do speak, write natural "
             f"{language_name} only, keep it brief, human, and non-technical. "
+            f"{resource_terms}"
             "You may update note_to_self with useful relationship or strategy context."
         )
     
@@ -2074,6 +2092,7 @@ class AIManager:
                 "internal_thinking": data.get("internal_thinking", ""),
                 "note_to_self": data.get("note_to_self"),
                 "say_outloud": data.get("say_outloud"),
+                "relationship_update": data.get("relationship_update"),
             }
 
             if response_type == ResponseType.OBSERVING:

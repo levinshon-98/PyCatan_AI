@@ -1,0 +1,29 @@
+{
+  "request_number": 28,
+  "iteration": 1,
+  "timestamp": "2026-05-16T02:30:26.536947",
+  "player_name": "Hadar",
+  "type": "intermediate",
+  "success": true,
+  "raw_content": "",
+  "has_tool_calls": true,
+  "tool_calls": [
+    {
+      "id": "call_1",
+      "name": "find_best_nodes",
+      "parameters": {
+        "reasoning": "אני בודקת אם יש מיקומים טובים יותר ליישוב מאשר נקודה 35, כדי לתכנן את הצעדים הבאים שלי בצורה אופטימלית."
+      }
+    }
+  ],
+  "model": "gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 2410,
+    "completion": 0,
+    "thinking": 0,
+    "total": 2410
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}

@@ -171,6 +171,11 @@ class AIUser(User):
             self.ai_manager._maybe_compact_agent_memory(agent)
             # Save memories to file for web viewer
             self.ai_manager.logger.save_agent_memories(self.ai_manager.agents)
+
+        relationship_update = llm_response.get("relationship_update")
+        if relationship_update:
+            agent.update_relationship_context(relationship_update)
+            self.ai_manager.logger.save_agent_memories(self.ai_manager.agents)
         
         # Broadcast say_outloud to chat
         say_outloud = llm_response.get("say_outloud")

@@ -1005,6 +1005,66 @@ function handleBoardActionEvent(actionData) {
         return;
     }
 
+    if (eventType === 'TRADE_BANK' || actionType === 'TRADE_BANK') {
+        forEachResourceBundle(data.give || data.offer, (card, count) => {
+            showBoardCardEvent({
+                playerName,
+                card,
+                count,
+                mode: 'give',
+                detail: `paid bank ${formatCardAmount(card, count)}`
+            });
+        });
+        forEachResourceBundle(data.receive || data.request, (card, count) => {
+            showBoardCardEvent({
+                playerName,
+                card,
+                count,
+                mode: 'receive',
+                detail: `received ${formatCardAmount(card, count)} from bank`
+            });
+        });
+        return;
+    }
+
+    if (eventType === 'TRADE_EXECUTE') {
+        const toPlayer = data.to_player || data.target_player || data.to || 'other player';
+        forEachResourceBundle(data.offer || data.give, (card, count) => {
+            showBoardCardEvent({
+                playerName: toPlayer,
+                peerName: playerName,
+                card,
+                count,
+                mode: 'trade',
+                detail: `${playerName} passed ${formatCardAmount(card, count)} to ${toPlayer}`
+            });
+        });
+        forEachResourceBundle(data.request || data.receive, (card, count) => {
+            showBoardCardEvent({
+                playerName,
+                peerName: toPlayer,
+                card,
+                count,
+                mode: 'trade',
+                detail: `${toPlayer} passed ${formatCardAmount(card, count)} to ${playerName}`
+            });
+        });
+        return;
+    }
+
+    if (eventType === 'DISCARD_CARDS' || actionType === 'DISCARD_CARDS') {
+        forEachResourceBundle(data.discarded || data.cards, (card, count) => {
+            showBoardCardEvent({
+                playerName,
+                card,
+                count,
+                mode: 'give',
+                detail: `discarded ${formatCardAmount(card, count)}`
+            });
+        });
+        return;
+    }
+
     if (eventType === 'BUY_DEV_CARD' || actionType === 'BUY_DEV_CARD') {
         const card = data.card || actionData.card || 'Development';
         showBoardCardEvent({
@@ -1020,6 +1080,7 @@ function handleBoardActionEvent(actionData) {
 
     if (eventType === 'USE_DEV_CARD' || actionType === 'USE_DEV_CARD') {
         const card = data.card || actionData.card || data.card_type || 'Development';
+        const normalizedDev = normalizeDevCard(card);
         showBoardCardEvent({
             playerName,
             card,
@@ -1028,11 +1089,35 @@ function handleBoardActionEvent(actionData) {
             kind: 'dev',
             detail: `used ${formatCardName(card, 'dev')}`
         });
+
+        if (normalizedDev === 'year_of_plenty') {
+            forEachResourceBundle(data.gained || data.resources, (resource, count) => {
+                showBoardCardEvent({
+                    playerName,
+                    card: resource,
+                    count,
+                    mode: 'receive',
+                    detail: `took ${formatCardAmount(resource, count)} from bank`
+                });
+            });
+        } else if (normalizedDev === 'monopoly') {
+            const resource = normalizeResourceCard(data.resource || data.resource_type || '');
+            const total = Number(data.total_stolen || 0);
+            if (resource && total > 0) {
+                showBoardCardEvent({
+                    playerName,
+                    card: resource,
+                    count: total,
+                    mode: 'trade',
+                    detail: `monopoly took ${formatCardAmount(resource, total)}`
+                });
+            }
+        }
         return;
     }
 
-    if (eventType === 'ROBBER_STEAL') {
-        const card = data.card || 'Card';
+    if (eventType === 'ROBBER_STEAL' || actionType === 'STEAL_CARD') {
+        const card = data.card || data.stolen_card || 'Card';
         const victim = data.victim || data.victim_name || 'another player';
         showBoardCardEvent({
             playerName,
@@ -1042,7 +1127,52 @@ function handleBoardActionEvent(actionData) {
             mode: 'trade',
             detail: `stole ${formatCardAmount(card, 1)} from ${victim}`
         });
+        return;
     }
+
+    if (eventType === 'ROBBER_MOVE' && (data.card || data.stolen_card) && data.victim) {
+        const card = data.card || data.stolen_card;
+        showBoardCardEvent({
+            playerName,
+            peerName: data.victim,
+            card,
+            count: 1,
+            mode: 'trade',
+            detail: `stole ${formatCardAmount(card, 1)} from ${data.victim}`
+        });
+    }
+}
+
+function forEachResourceBundle(bundle, callback) {
+    const counts = normalizeResourceBundle(bundle);
+    Object.entries(counts).forEach(([card, count]) => {
+        const numericCount = Number(count || 0);
+        if (numericCount > 0) callback(card, numericCount);
+    });
+}
+
+function normalizeResourceBundle(bundle) {
+    const counts = {};
+    if (!bundle) return counts;
+
+    if (Array.isArray(bundle)) {
+        bundle.forEach(card => addCount(counts, normalizeResourceCard(card), 1));
+        return counts;
+    }
+
+    if (typeof bundle === 'object') {
+        Object.entries(bundle).forEach(([card, count]) => {
+            if (Array.isArray(count)) {
+                count.forEach(item => addCount(counts, normalizeResourceCard(item), 1));
+            } else {
+                addCount(counts, normalizeResourceCard(card), Number(count || 0));
+            }
+        });
+        return counts;
+    }
+
+    addCount(counts, normalizeResourceCard(bundle), 1);
+    return counts;
 }
 
 function handleBoardReplaySnapshot(payload) {
@@ -1387,7 +1517,7 @@ function showBoardCardEvent(event) {
         activateBoardEventLayer(600);
     }, { once: true });
 
-    while (container.children.length > 8) {
+    while (container.children.length > 4) {
         container.removeChild(container.lastChild);
     }
 }

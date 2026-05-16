@@ -1,0 +1,25 @@
+{
+  "request_number": 32,
+  "timestamp": "2026-05-16T02:35:23.055812",
+  "player_name": "Ziv",
+  "type": "final",
+  "success": true,
+  "raw_content": "{\n  \"internal_thinking\": \"Shon is offering 1 Wheat for 1 Brick. I currently have 1 Wood, 1 Brick, and 1 Wheat. While my Wheat 9 is blocked by the robber, I just received this Brick from the roll of 6 (Hex 5). Both Shon and Hadar are leading with 4 VP, while I have 3. Giving Shon a Brick right now likely helps him build a road or settlement, further increasing his lead. I need to keep my Brick so I only need a Sheep to build my next settlement. Trading it for a second Wheat doesn't help me as much as keeping the Brick does.\",\n  \"note_to_self\": \"Shon is actively hunting for bricks. I should be careful about trading them to him since he's in the lead. I need to find a way to get a Sheep to build my next settlement.\",\n  \"say_outloud\": \"זה באמת מפתה כי ה-9 שלי חסום, אבל אני חייב לשמור על הלבנה הזאת כדי לנסות להתקדם בעצמי. מצטער שון, אולי בהמשך.\",\n  \"action\": {\n    \"type\": \"trade_reject\",\n    \"parameters\": \"{}\"\n  }\n}",
+  "parsed": {
+    "internal_thinking": "Shon is offering 1 Wheat for 1 Brick. I currently have 1 Wood, 1 Brick, and 1 Wheat. While my Wheat 9 is blocked by the robber, I just received this Brick from the roll of 6 (Hex 5). Both Shon and Hadar are leading with 4 VP, while I have 3. Giving Shon a Brick right now likely helps him build a road or settlement, further increasing his lead. I need to keep my Brick so I only need a Sheep to build my next settlement. Trading it for a second Wheat doesn't help me as much as keeping the Brick does.",
+    "note_to_self": "Shon is actively hunting for bricks. I should be careful about trading them to him since he's in the lead. I need to find a way to get a Sheep to build my next settlement.",
+    "say_outloud": "זה באמת מפתה כי ה-9 שלי חסום, אבל אני חייב לשמור על הלבנה הזאת כדי לנסות להתקדם בעצמי. מצטער שון, אולי בהמשך.",
+    "action_type": "trade_reject",
+    "parameters": {}
+  },
+  "model": "gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 1856,
+    "completion": 231,
+    "thinking": 0,
+    "total": 2087
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}

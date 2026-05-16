@@ -555,6 +555,7 @@ class GameManager:
             target_name = self.users[target_id].name
             trade_id = action.parameters.get('trade_id') or self._next_trade_id()
             action.parameters['trade_id'] = trade_id
+            action.parameters['to_player'] = target_name
             
             # Convert offer/request dicts to card lists for Game.trade()
             from pycatan.core.card import ResCard
@@ -753,6 +754,9 @@ class GameManager:
                 offer_str = ", ".join([f"{amt} {res}" for res, amt in offer.items()])
                 request_str = ", ".join([f"{amt} {res}" for res, amt in request.items()])
                 print(f"    [OK] Bank trade: gave {offer_str}, received {request_str}")
+                action.parameters['give'] = dict(offer)
+                action.parameters['receive'] = dict(request)
+                action.parameters['rate'] = f"{len(offer_cards)}:1"
                 return ActionResult.success_result(
                     self.get_full_state(),
                     affected_players=[player_id]
@@ -1161,11 +1165,15 @@ class GameManager:
             
             # Count how many cards will be stolen BEFORE using the card
             total_stolen = 0
+            stolen_by_player = {}
             player = self.game.players[player_id]
-            for p in self.game.players:
+            for other_id, p in enumerate(self.game.players):
                 if p != player:
                     stolen = p.cards.count(card_type)
                     total_stolen += stolen
+                    if stolen:
+                        player_label = self.users[other_id].name if hasattr(self.users[other_id], 'name') else f"Player {other_id}"
+                        stolen_by_player[player_label] = stolen
             
             # Use the Monopoly card through game.py
             from pycatan.core.card import DevCard
@@ -1178,6 +1186,10 @@ class GameManager:
             if status == Statuses.ALL_GOOD:
                 resource_name = resource_type.lower()
                 player_name = self.users[player_id].name if hasattr(self.users[player_id], 'name') else f"Player {player_id}"
+                action.parameters['resource'] = resource_name
+                action.parameters['resource_type'] = resource_name
+                action.parameters['total_stolen'] = total_stolen
+                action.parameters['taken'] = stolen_by_player
                 
                 print(f"    ✓ {player_name} used Monopoly! Took {total_stolen} {resource_name} cards from other players")
                 
@@ -1234,6 +1246,11 @@ class GameManager:
                 # Create readable message
                 res1_name = resource1_str.lower()
                 res2_name = resource2_str.lower()
+                gained = {}
+                gained[res1_name] = gained.get(res1_name, 0) + 1
+                gained[res2_name] = gained.get(res2_name, 0) + 1
+                action.parameters['resources'] = [res1_name, res2_name]
+                action.parameters['gained'] = gained
                 if res1_name == res2_name:
                     message = f"    ✓ {player_name} used Year of Plenty! Took 2 {res1_name} from the bank 🎁"
                 else:
@@ -1669,18 +1686,34 @@ class GameManager:
         # Robber actions
         elif action.action_type == ActionType.ROBBER_MOVE:
             if 'tile_coords' in params:
-                params['tile'] = str(params['tile_coords'])
+                coords = params['tile_coords']
+                try:
+                    hex_id = board_definition.game_coords_to_hex_id(coords[0], coords[1])
+                    params['tile'] = hex_id if hex_id else f"[{coords[0]},{coords[1]}]"
+                except Exception:
+                    params['tile'] = str(coords)
         
         # Trading
         elif action.action_type == ActionType.TRADE_BANK:
-            # params should already have 'give' and 'receive'
-            pass
+            if 'offer' in params and 'give' not in params:
+                params['give'] = dict(params.get('offer') or {})
+            if 'request' in params and 'receive' not in params:
+                params['receive'] = dict(params.get('request') or {})
+            if result.success and 'rate' not in params:
+                give_total = sum(int(v or 0) for v in (params.get('give') or {}).values())
+                params['rate'] = f"{give_total}:1" if give_total else ""
         
         elif action.action_type == ActionType.TRADE_PROPOSE:
             if 'target_player' in params:
                 target_id = params['target_player']
                 target_name = self.users[target_id].name if hasattr(self.users[target_id], 'name') else f"Player {target_id}"
                 params['to_player'] = target_name
+
+        elif action.action_type == ActionType.STEAL_CARD:
+            target_id = params.get('target_player')
+            if isinstance(target_id, int):
+                params['victim_id'] = target_id
+                params['victim'] = self.users[target_id].name if hasattr(self.users[target_id], 'name') else f"Player {target_id}"
         
         # End turn - add player state
         elif action.action_type == ActionType.END_TURN:
@@ -2306,6 +2339,10 @@ class GameManager:
         
         # Remove the cards from player
         player.remove_cards(cards_enum)
+        discarded_counts = {}
+        for card in cards_enum:
+            discarded_counts[card.name] = discarded_counts.get(card.name, 0) + 1
+        action.parameters['discarded'] = discarded_counts
         
         # Update discard tracking
         del self._current_game_state.players_must_discard[player_id]
@@ -2402,6 +2439,10 @@ class GameManager:
                 # Notify
                 thief_name = self.users[action.player_id].name if hasattr(self.users[action.player_id], 'name') else f"Player {action.player_id}"
                 victim_name = self.users[target_player].name if hasattr(self.users[target_player], 'name') else f"Player {target_player}"
+                action.parameters['victim_id'] = target_player
+                action.parameters['victim'] = victim_name
+                action.parameters['stolen_card'] = stolen_card.name
+                action.parameters['card'] = stolen_card.name
                 
                 self._notify_all_users(
                     "steal_complete",
@@ -2532,6 +2573,10 @@ class GameManager:
         # Notify (don't reveal what card was stolen to everyone)
         thief_name = self.users[action.player_id].name if hasattr(self.users[action.player_id], 'name') else f"Player {action.player_id}"
         victim_name = self.users[target_player].name if hasattr(self.users[target_player], 'name') else f"Player {target_player}"
+        action.parameters['victim_id'] = target_player
+        action.parameters['victim'] = victim_name
+        action.parameters['stolen_card'] = stolen_card.name
+        action.parameters['card'] = stolen_card.name
         
         self._notify_all_users(
             "steal_complete",

@@ -1,6 +1,8 @@
 """Prompt manager tests."""
 
+from pycatan.ai.config import AIConfig, HEBREW_RESOURCE_TERMS_INSTRUCTION
 from pycatan.ai.prompt_manager import PromptManager
+from pycatan.ai.schemas import ResponseType, SchemaVersion, get_schema_for_response_type
 
 
 def _game_state(*names):
@@ -13,7 +15,7 @@ def _game_state(*names):
     }
 
 
-def test_three_player_relationship_background_is_coordinated():
+def test_three_player_relationship_context_is_coordinated():
     manager = PromptManager()
     state = _game_state("Hadar", "Shon", "Ziv")
 
@@ -42,9 +44,9 @@ def test_three_player_relationship_background_is_coordinated():
         available_actions=[],
     )
 
-    hadar_background = hadar_prompt["meta_data"]["relationship_background"]
-    shon_background = shon_prompt["meta_data"]["relationship_background"]
-    ziv_background = ziv_prompt["meta_data"]["relationship_background"]
+    hadar_background = hadar_prompt["meta_data"]["relationship_context"]
+    shon_background = shon_prompt["meta_data"]["relationship_context"]
+    ziv_background = ziv_prompt["meta_data"]["relationship_context"]
 
     for background in [hadar_background, shon_background, ziv_background]:
         assert "Hadar" in background
@@ -58,7 +60,7 @@ def test_three_player_relationship_background_is_coordinated():
     assert "you warned Hadar about Shon" in ziv_background
 
 
-def test_relationship_background_has_fallback_for_two_players():
+def test_relationship_context_has_fallback_for_two_players():
     manager = PromptManager()
     state = _game_state("Alice", "Bob")
 
@@ -71,13 +73,13 @@ def test_relationship_background_has_fallback_for_two_players():
         available_actions=[],
     )
 
-    background = prompt["meta_data"]["relationship_background"]
+    background = prompt["meta_data"]["relationship_context"]
     assert "Bob" in background
     assert "Alice" in background
     assert "strong legal Catan play" in background
 
 
-def test_relationship_background_includes_all_four_players():
+def test_relationship_context_includes_all_four_players():
     manager = PromptManager()
     state = _game_state("Alice", "Bob", "Charlie", "Diana")
 
@@ -90,12 +92,33 @@ def test_relationship_background_includes_all_four_players():
         available_actions=[],
     )
 
-    background = prompt["meta_data"]["relationship_background"]
+    background = prompt["meta_data"]["relationship_context"]
     assert "Alice" in background
     assert "Bob" in background
     assert "Charlie" in background
     assert "Diana" in background
     assert "robber pressure" in background
+
+
+def test_relationship_context_includes_recent_updates():
+    manager = PromptManager()
+    state = _game_state("Alice", "Bob", "Charlie")
+
+    prompt = manager.create_prompt(
+        player_num=0,
+        player_name="Alice",
+        player_color="Red",
+        game_state=state,
+        what_happened="Game start",
+        available_actions=[],
+        relationship_updates=[
+            {"note": "Bob mocked my blocked ore and refused a fair trade."},
+        ],
+    )
+
+    context = prompt["meta_data"]["relationship_context"]
+    assert "Recent relationship shifts" in context
+    assert "Bob mocked my blocked ore" in context
 
 
 def test_trade_context_summarizes_resolved_trades_and_keeps_open_trades_structured():
@@ -159,3 +182,37 @@ def test_trade_context_summarizes_resolved_trades_and_keeps_open_trades_structur
             "status": "pending",
         }
     ]
+
+
+def test_hebrew_chat_prompt_requires_exact_resource_terms():
+    config = AIConfig()
+    config.agent.chat_language = "hebrew"
+    manager = PromptManager(config)
+    state = _game_state("Hadar", "Shon")
+
+    prompt = manager.create_prompt(
+        player_num=0,
+        player_name="Hadar",
+        player_color="Red",
+        game_state=state,
+        what_happened="Your turn.",
+        available_actions=[{"type": "end_turn", "example_parameters": "{}"}],
+    )
+
+    instructions = prompt["task_context"]["instructions"]
+    assert HEBREW_RESOURCE_TERMS_INSTRUCTION in instructions
+    assert "brick=טיט" in instructions
+    assert "ore=אבן" in instructions
+    assert "sheep=כבשה" in instructions
+    assert "wheat=חיטה" in instructions
+
+
+def test_hebrew_chat_schema_requires_exact_resource_terms():
+    schema = get_schema_for_response_type(
+        ResponseType.ACTIVE_TURN,
+        SchemaVersion.V2,
+        chat_language="hebrew",
+    )
+
+    description = schema["properties"]["say_outloud"]["description"]
+    assert HEBREW_RESOURCE_TERMS_INSTRUCTION in description

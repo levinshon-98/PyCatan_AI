@@ -1,0 +1,132 @@
+{
+  "player_name": "Shon",
+  "compaction_number": 1,
+  "timestamp": "2026-05-16T02:48:48.626119",
+  "before": {
+    "existing_compacted_memory": null,
+    "old_notes_to_compact": [
+      {
+        "note": "Hadar has a strong Brick 6/Sheep 8 start. I've taken the highest yield spot (43) which is heavy on Wheat. I must prioritize Wood and Brick in my second placement to ensure I can build roads and expand.",
+        "timestamp": 1778888911.8046687
+      },
+      {
+        "note": "I am extremely heavy on Wheat (13 pips). My next settlement MUST prioritize Wood and Brick to actually build anything, or I'll be forced to rely entirely on the 3:1 port I'm building toward. Node 42 is my next target for Ore.",
+        "timestamp": 1778888911.806363
+      },
+      {
+        "note": "I've secured a strong Brick source at node 30. My next priority is finding a source of Sheep or reaching the 3:1 port to trade my excess Wheat.",
+        "timestamp": 1778888911.8179154
+      },
+      {
+        "note": "I have a massive surplus of Brick 10. I need to prioritize getting to node 18 for Sheep 8, or finding a 3:1 port quickly to trade away the excess bricks.",
+        "timestamp": 1778888911.8199053
+      },
+      {
+        "note": "I am blocked at nodes 19 and 42. I must build roads through them to reach node 18 (Sheep 8) and node 50 (Ore 5 + 3:1 Port). Node 50 is the priority to handle my Wheat/Brick surplus.",
+        "timestamp": 1778888911.8360987
+      },
+      {
+        "note": "Blocked Hadar and Ziv on Hex 5 (Brick 6). Target Ziv for stealing as he has Ore.",
+        "timestamp": 1778888911.8381798
+      },
+      {
+        "note": "Targeted Ziv for his Ore. Need to keep an eye on Hadar's 'Road Building' dev card.",
+        "timestamp": 1778888911.8406525
+      },
+      {
+        "note": "Building road to node 50 for Ore 5 and 3:1 Port access. Next turn, I need to collect Wood and Wheat/Sheep to build the settlement there.",
+        "timestamp": 1778888911.8428137
+      },
+      {
+        "note": "I am at node 50 with a road. I need Wood, Wheat, and Sheep to build the settlement there. Node 50 is critical for its 3:1 port and Ore 5 production.",
+        "timestamp": 1778888911.8448462
+      }
+    ],
+    "recent_notes_kept_verbatim": [
+      {
+        "note": "I need to reach node 50 for the 3:1 port and Ore. Node 18 is also a target for the Sheep port. I'm short on Sheep and Ore.",
+        "timestamp": 1778888922.029089
+      },
+      {
+        "note": "Ziv just gained Sheep and Ore from the roll of 5. I need to settle at Node 50 quickly to start collecting Ore and use the 3:1 port. I am currently missing Wood, Wheat, and Sheep for that settlement.",
+        "timestamp": 1778888926.2366579
+      }
+    ],
+    "relevant_chat": []
+  },
+  "after": {
+    "long_term_summary": "Current production is extremely heavy on Wheat (N43) and Brick (N30). Long-term strategy relies on securing Node 50 (Ore 5 + 3:1 Port) to manage surplus and enable city upgrades. Secondary goal is Node 18 (Sheep 8) to fix Sheep shortage. Current resource deficit: Wood, Sheep, Ore. Opponent tracking: Hadar has strong B6/S8 yield and potential 'Road Building' card; Ziv has Ore/Sheep. Recent actions: Blocked B6 (Hex 5) to slow opponents. Priority: Build settlement at Node 50 immediately upon acquiring W/Wh/S.",
+    "recent_notes": [
+      {
+        "note": "I need to reach node 50 for the 3:1 port and Ore. Node 18 is also a target for the Sheep port. I'm short on Sheep and Ore.",
+        "timestamp": 1778888922.029089
+      },
+      {
+        "note": "Ziv just gained Sheep and Ore from the roll of 5. I need to settle at Node 50 quickly to start collecting Ore and use the 3:1 port. I am currently missing Wood, Wheat, and Sheep for that settlement.",
+        "timestamp": 1778888926.2366579
+      }
+    ],
+    "discarded_as_irrelevant": [
+      "Initial placement strategy",
+      "Completed road construction to Node 50",
+      "Repeated mentions of Brick surplus",
+      "Specific past robbery targets"
+    ]
+  },
+  "llm": {
+    "success": true,
+    "content": "{\"compacted_memory\":\"Current production is extremely heavy on Wheat (N43) and Brick (N30). Long-term strategy relies on securing Node 50 (Ore 5 + 3:1 Port) to manage surplus and enable city upgrades. ...",
+    "error": null,
+    "model": "gemini-3-flash-preview",
+    "tokens": {
+      "prompt": 2366,
+      "completion": 280,
+      "total": 2646
+    },
+    "latency_seconds": 2.39,
+    "finish_reason": "FinishReason.STOP",
+    "timestamp": "2026-05-16T02:48:48.624408"
+  },
+  "prompt": {
+    "meta_data": {
+      "agent_name": "Shon",
+      "task": "compact_agent_memory",
+      "model_instruction": "You are compacting memory for one Catan AI agent. Use the board only through the same compact H/N/state/players/meta format used in normal decision prompts."
+    },
+    "task_context": {
+      "instructions": "Compress old memories and relevant chat into one concise strategic memory. Preserve future-useful facts: current goals, next planned actions, confirmed board facts, known or likely opponent plans/resources/dev cards/trade tendencies, active negotiations, social commitments, and mistakes to avoid. Discard repeated, completed, impossible, vague, or superseded details. Do not invent facts; mark uncertainty clearly. Target about 50% or less of the combined old memory length. Keep recent_notes_to_keep copied verbatim from the provided recent notes."
+    },
+    "game_state": "\n  1. LOOKUP TABLES:\n   • \"H\" (Hexes): Array where Index = HexID. Value = Resource+Num.\n     Example: H[1]=\"W12\" -> Hex 1 is Wood 12.\n   • \"N\" (Nodes): Array where Index = NodeID.\n     Format: [ [Neighbors], [HexIDs], Port? ]\n     Logic: To find yield of Node 10, check N[10]. Get HexIDs (e.g. [1,5]). Look up H[1] and H[5].\n\n2. CODES: W=Wood, B=Brick, S=Sheep, Wh=Wheat, O=Ore, D=Desert.\n          ?3=Any 3:1 port, X2=Specific Resource 2:1 port.\n\n3. STATE: \"bld\"=[NodeID, Owner, Type], \"rds\"=[[From,To], Owner].\n\n4. PLAYERS: \"res\"={Resource:Count}, \"dev\"={\"h\":[Hidden Cards], \"r\":[Revealed] (K=Knight)}, \n            \"stat\"=[\"LR\" (Longest Road), \"LA\" (Largest Army)].\n\n5. ROBBER: Located at HexID specified in \"meta.robber\". H[id] is blocked.\n\nJSON:\n{\"meta\":{\"curr\":\"Shon\",\"phase\":\"NORMAL_PLAY\",\"robber\":15,\"dice\":[4,1],\"dice_total\":5},\"H\":[\"\",\"W12\",\"S5\",\"W4\",\"S8\",\"B6\",\"W3\",\"Wh8\",\"B10\",\"W11\",\"D\",\"O3\",\"S4\",\"B10\",\"Wh9\",\"Wh6\",\"S11\",\"O5\",\"Wh9\",\"O2\"],\"N\":[null,[[2,9],[1]],[[1,3],[1],\"Wh2\"],[[2,4,11],[2,1],\"Wh2\"],[[3,5],[2]],[[4,6,13],[3,2]],[[5,7],[3],\"B2\"],[[6,15],[3],\"B2\"],[[9,18],[4],\"?3\"],[[8,10,1],[4,1],\"?3\"],[[9,11,20],[5,4,1]],[[10,12,3],[5,2,1]],[[11,13,22],[6,5,2]],[[12,14,5],[6,3,2]],[[13,15,24],[7,6,3]],[[14,16,7],[7,3]],[[15,26],[7],\"O2\"],[[18,28],[8],\"S2\"],[[17,19,8],[8,4]],[[18,20,30],[9,8,4]],[[19,21,10],[9,5,4]],[[20,22,32],[10,9,5]],[[21,23,12],[10,6,5]],[[22,24,34],[11,10,6]],[[23,25,14],[11,7,6]],[[24,26,36],[12,11,7]],[[25,27,16],[12,7],\"O2\"],[[26,38],[12]],[[29,17],[8],\"S2\"],[[28,30,39],[13,8]],[[29,31,19],[13,9,8]],[[30,32,41],[14,13,9]],[[31,33,21],[14,10,9]],[[32,34,43],[15,14,10]],[[33,35,23],[15,11,10]],[[34,36,45],[16,15,11]],[[35,37,25],[16,12,11]],[[36,38,47],[16,12],\"?3\"],[[37,27],[12],\"?3\"],[[40,29],[13]],[[39,41,48],[17,13],\"W2\"],[[40,42,31],[17,14,13]],[[41,43,50],[18,17,14]],[[42,44,33],[18,15,14]],[[43,45,52],[19,18,15]],[[44,46,35],[19,16,15]],[[45,47,54],[19,16]],[[46,37],[16]],[[49,40],[17],\"W2\"],[[48,50],[17]],[[49,51,42],[18,17],\"?3\"],[[50,52],[18],\"?3\"],[[51,53,44],[19,18]],[[52,54],[19],\"?3\"],[[53,46],[19],\"?3\"]],\"state\":{\"bld\":[[12,\"Ziv\",\"S\"],[20,\"Hadar\",\"S\"],[25,\"Hadar\",\"S\"],[30,\"Shon\",\"S\"],[41,\"Ziv\",\"S\"],[43,\"Shon\",\"S\"]],\"rds\":[[[20,10],\"Hadar\"],[[43,42],\"Shon\"],[[12,13],\"Ziv\"],[[41,31],\"Ziv\"],[[30,19],\"Shon\"],[[25,24],\"Hadar\"],[[42,50],\"Shon\"],[[24,14],\"Hadar\"],[[10,9],\"Hadar\"]]},\"players\":{\"Hadar\":{\"vp\":2,\"res\":{\"S\":2,\"B\":1,\"Wh\":2}},\"Shon\":{\"vp\":2,\"res\":{\"B\":1}},\"Ziv\":{\"vp\":2,\"res\":{\"O\":2,\"S\":1,\"Wh\":1}}}}",
+    "memory_input": {
+      "existing_compacted_memory": null,
+      "old_notes_to_compact": [
+        "Hadar has a strong Brick 6/Sheep 8 start. I've taken the highest yield spot (43) which is heavy on Wheat. I must prioritize Wood and Brick in my second placement to ensure I can build roads and expand.",
+        "I am extremely heavy on Wheat (13 pips). My next settlement MUST prioritize Wood and Brick to actually build anything, or I'll be forced to rely entirely on the 3:1 port I'm building toward. Node 42 is my next target for Ore.",
+        "I've secured a strong Brick source at node 30. My next priority is finding a source of Sheep or reaching the 3:1 port to trade my excess Wheat.",
+        "I have a massive surplus of Brick 10. I need to prioritize getting to node 18 for Sheep 8, or finding a 3:1 port quickly to trade away the excess bricks.",
+        "I am blocked at nodes 19 and 42. I must build roads through them to reach node 18 (Sheep 8) and node 50 (Ore 5 + 3:1 Port). Node 50 is the priority to handle my Wheat/Brick surplus.",
+        "Blocked Hadar and Ziv on Hex 5 (Brick 6). Target Ziv for stealing as he has Ore.",
+        "Targeted Ziv for his Ore. Need to keep an eye on Hadar's 'Road Building' dev card.",
+        "Building road to node 50 for Ore 5 and 3:1 Port access. Next turn, I need to collect Wood and Wheat/Sheep to build the settlement there.",
+        "I am at node 50 with a road. I need Wood, Wheat, and Sheep to build the settlement there. Node 50 is critical for its 3:1 port and Ore 5 production."
+      ],
+      "recent_notes_to_keep": [
+        "I need to reach node 50 for the 3:1 port and Ore. Node 18 is also a target for the Sheep port. I'm short on Sheep and Ore.",
+        "Ziv just gained Sheep and Ore from the roll of 5. I need to settle at Node 50 quickly to start collecting Ore and use the 3:1 port. I am currently missing Wood, Wheat, and Sheep for that settlement."
+      ],
+      "relevant_chat": []
+    },
+    "output_requirements": {
+      "format": "valid JSON only",
+      "schema": {
+        "compacted_memory": "string",
+        "recent_notes_to_keep": [
+          "string"
+        ],
+        "discarded_as_irrelevant": [
+          "string"
+        ]
+      }
+    }
+  }
+}

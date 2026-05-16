@@ -57,6 +57,8 @@ class AgentState:
     compacted_memory_updated_at: Optional[float] = None
     compaction_count: int = 0
     memory_history: List[Dict[str, Any]] = field(default_factory=list)
+    relationship_context_updates: List[Dict[str, Any]] = field(default_factory=list)
+    relationship_context_updated_at: Optional[float] = None
     
     # === Chat Summaries (for future use) ===
     chat_summaries: List[str] = field(default_factory=list)
@@ -160,6 +162,26 @@ class AgentState:
                 "timestamp": self.memory_updated_at,
             })
 
+    def update_relationship_context(
+        self,
+        relationship_update: Optional[str],
+        max_updates: int = 5
+    ) -> None:
+        """Save a short relationship-context update for future prompts."""
+        if not relationship_update:
+            return
+
+        text = relationship_update.strip()
+        if not text:
+            return
+
+        self.relationship_context_updated_at = time.time()
+        self.relationship_context_updates.append({
+            "note": text,
+            "timestamp": self.relationship_context_updated_at,
+        })
+        self.relationship_context_updates = self.relationship_context_updates[-max_updates:]
+
     def apply_memory_compaction(
         self,
         compacted_memory: str,
@@ -231,6 +253,8 @@ class AgentState:
             "compacted_memory_updated_at": self.compacted_memory_updated_at,
             "compaction_count": self.compaction_count,
             "memory_history": self.memory_history,
+            "relationship_context_updates": self.relationship_context_updates,
+            "relationship_context_updated_at": self.relationship_context_updated_at,
             "chat_summaries": self.chat_summaries,
             "recent_events": self.recent_events,
             "last_prompt_number": self.last_prompt_number,

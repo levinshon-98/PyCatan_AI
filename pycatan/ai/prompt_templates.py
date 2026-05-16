@@ -180,8 +180,8 @@ JSON:
         else:
             result["role"] = meta_data.get("role", "You are a Catan player.")
 
-        if meta_data.get("relationship_background"):
-            result["relationship_background"] = meta_data["relationship_background"]
+        if meta_data.get("relationship_context"):
+            result["relationship_context"] = meta_data["relationship_context"]
         
         return result
     
