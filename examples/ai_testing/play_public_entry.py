@@ -267,7 +267,7 @@ def render_public_spa(models: List[Dict[str, Any]], key_mode: str) -> bytes:
     }
     safe_payload = json.dumps(bootstrap, ensure_ascii=False).replace("</", "<\\/")
     html = """<!doctype html>
-<html lang="en" dir="ltr">
+<html lang="he" dir="rtl">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -275,20 +275,21 @@ def render_public_spa(models: List[Dict[str, Any]], key_mode: str) -> bytes:
 <style>
 :root {
   color-scheme: light;
-  --ink: #18201d;
-  --muted: #61706a;
-  --line: #d7ded7;
-  --paper: #fcfbf7;
+  --ink: #20231f;
+  --muted: #6a6f66;
+  --line: #d9d3c3;
+  --paper: #fffaf0;
   --surface: #ffffff;
-  --wash: #eef2ed;
-  --wood: #8f5d33;
-  --wood-dark: #5f3f24;
-  --brick: #b85437;
-  --forest: #2f6f55;
-  --field: #d7a941;
-  --sea: #2f6f84;
+  --wash: #f3efe3;
+  --wood: #9a642d;
+  --wood-dark: #53351d;
+  --brick: #b85a42;
+  --forest: #2d7050;
+  --field: #d8a93d;
+  --sea: #2e7282;
   --danger: #b42318;
-  --shadow: 0 18px 45px rgba(35, 43, 38, .13);
+  --shadow: 0 18px 46px rgba(44, 39, 30, .14);
+  --soft-shadow: 0 10px 28px rgba(44, 39, 30, .10);
 }
 * { box-sizing: border-box; }
 body {
@@ -296,27 +297,49 @@ body {
   min-height: 100vh;
   color: var(--ink);
   background:
-    linear-gradient(135deg, rgba(47,111,132,.12), transparent 36%),
-    linear-gradient(315deg, rgba(216,169,65,.20), transparent 40%),
+    radial-gradient(circle at 12% 10%, rgba(216,169,61,.18), transparent 30%),
+    linear-gradient(135deg, rgba(46,114,130,.13), transparent 34%),
+    linear-gradient(315deg, rgba(184,90,66,.14), transparent 42%),
     var(--wash);
   font-family: Inter, ui-sans-serif, "Segoe UI", Arial, sans-serif;
 }
 button, input, select, textarea { font: inherit; }
 button { cursor: pointer; }
-.app { min-height: 100vh; display: grid; grid-template-rows: auto 1fr; }
+.app { min-height: 100vh; }
 .hero {
-  min-height: 330px;
+  min-height: 430px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 360px;
-  gap: 24px;
-  align-items: end;
-  padding: 34px clamp(18px, 4vw, 54px) 24px;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 430px);
+  gap: clamp(22px, 4vw, 54px);
+  align-items: center;
+  padding: 34px clamp(18px, 5vw, 72px) 76px;
   color: #fff;
   background:
-    linear-gradient(90deg, rgba(24,32,29,.93), rgba(24,32,29,.70)),
-    url("/static/images/Fields.png"), url("/static/images/Forest.png");
-  background-size: cover, 220px 190px, 220px 190px;
-  background-position: center, left bottom, right top;
+    linear-gradient(90deg, rgba(29,35,29,.96), rgba(37,46,39,.78) 52%, rgba(31,44,48,.70)),
+    url("/static/images/Fields.png");
+  background-size: cover, 240px 210px;
+  background-position: center, left bottom;
+  position: relative;
+  overflow: hidden;
+}
+.hero::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  bottom: 0;
+  width: 100%;
+  height: 74px;
+  background:
+    linear-gradient(0deg, rgba(32,35,31,.28), transparent),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.07) 0 1px, transparent 1px 64px);
+  pointer-events: none;
+}
+.eyebrow {
+  color: rgba(255,255,255,.72);
+  font-weight: 850;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0;
 }
 .hero h1 {
   margin: 0;
@@ -326,28 +349,50 @@ button { cursor: pointer; }
 }
 .hero p {
   max-width: 760px;
-  margin: 18px 0 0;
-  color: rgba(255,255,255,.82);
+  margin: 20px 0 0;
+  color: rgba(255,255,255,.84);
   font-size: clamp(17px, 2vw, 22px);
   line-height: 1.5;
 }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
 .status {
-  align-self: start;
+  width: min(100%, 420px);
   justify-self: end;
-  width: 100%;
   border: 1px solid rgba(255,255,255,.22);
   border-radius: 8px;
-  padding: 16px;
-  background: rgba(255,255,255,.10);
-  backdrop-filter: blur(10px);
+  padding: 18px;
+  background: rgba(255,255,255,.12);
+  box-shadow: 0 20px 60px rgba(0,0,0,.22);
+  backdrop-filter: blur(12px);
 }
-.status strong { display: block; margin-bottom: 8px; }
+.status strong { display: block; margin-bottom: 8px; font-size: 18px; }
 .status span { display: block; color: rgba(255,255,255,.76); line-height: 1.45; }
+.table-preview {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.terrain {
+  min-height: 74px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,.22);
+  background-size: cover;
+  background-position: center;
+}
+.terrain.field { background-image: url("/static/images/Fields.png"); }
+.terrain.forest { background-image: url("/static/images/Forest.png"); }
+.terrain.hills { background-image: url("/static/images/Hills.png"); }
+.terrain.pasture { background-image: url("/static/images/Pasture.png"); }
+.terrain.mountain { background-image: url("/static/images/Mountains.png"); }
+.terrain.sea { background: linear-gradient(135deg, #276d7c, #62a7b5); }
 .workspace {
   width: min(1240px, calc(100% - 28px));
-  margin: -42px auto 36px;
+  margin: -58px auto 36px;
   display: grid;
   gap: 16px;
+  position: relative;
+  z-index: 2;
 }
 .choicebar {
   display: grid;
@@ -355,28 +400,34 @@ button { cursor: pointer; }
   gap: 12px;
 }
 .choice {
-  min-height: 112px;
+  min-height: 118px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  padding: 18px;
+  padding: 20px;
   text-align: left;
   color: var(--ink);
   background: var(--surface);
   box-shadow: var(--shadow);
+  display: grid;
+  gap: 8px;
+  direction: rtl;
 }
-.choice.active { border-color: var(--wood); box-shadow: inset 0 0 0 2px var(--wood), var(--shadow); }
-.choice strong { display: block; font-size: 23px; margin-bottom: 8px; }
+.choice.active { border-color: var(--wood); box-shadow: inset 0 0 0 2px var(--wood), var(--shadow); background: #fffdf8; }
+.choice strong { display: block; font-size: 24px; }
 .choice span { color: var(--muted); line-height: 1.45; }
-.view { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 16px; align-items: start; }
+.view { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 16px; align-items: start; }
 .section {
   background: var(--paper);
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 18px;
+  box-shadow: var(--soft-shadow);
 }
 .section h2, .section h3 { margin: 0 0 12px; letter-spacing: 0; }
 .section h2 { font-size: 23px; }
 .section h3 { font-size: 18px; }
+.section-title { display: flex; justify-content: space-between; gap: 14px; align-items: start; margin-bottom: 14px; }
+.section-title p { margin: 4px 0 0; color: var(--muted); line-height: 1.45; }
 .stack { display: grid; gap: 14px; }
 .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
@@ -390,6 +441,7 @@ input, select, textarea {
   background: #fff;
   color: var(--ink);
 }
+input[type="password"], input[type="number"], #config-path, select[id^="model-"] { direction: ltr; text-align: left; }
 textarea { min-height: 92px; resize: vertical; }
 .players { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .player {
@@ -402,6 +454,7 @@ textarea { min-height: 92px; resize: vertical; }
 }
 .player.hidden, .hidden { display: none !important; }
 .player-head { display: flex; justify-content: space-between; gap: 8px; color: var(--muted); font-size: 13px; }
+.player-head strong { color: var(--ink); }
 .actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 .primary, .secondary, .quiet {
   min-height: 43px;
@@ -410,13 +463,17 @@ textarea { min-height: 92px; resize: vertical; }
   font-weight: 850;
 }
 .primary { border: 1px solid var(--forest); background: var(--forest); color: #fff; }
+.primary:hover { background: #245c42; }
 .secondary { border: 1px solid var(--line); background: #fff; color: var(--wood-dark); }
 .quiet { border: 0; background: transparent; color: var(--sea); padding: 0 4px; }
 .side { position: sticky; top: 14px; }
 .note { color: var(--muted); line-height: 1.55; font-size: 14px; }
 .model-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; max-height: 372px; overflow: auto; }
 .model-list li { border: 1px solid var(--line); border-radius: 7px; padding: 9px; background: #fff; }
-.model-list strong { display: block; font-size: 12px; overflow-wrap: anywhere; }
+.model-list strong { display: block; font-size: 12px; overflow-wrap: anywhere; direction: ltr; text-align: left; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.steps li { display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: start; color: var(--muted); line-height: 1.45; }
+.steps b { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: #efe2c4; color: var(--wood-dark); }
 .session-tools { display: flex; gap: 8px; margin-bottom: 12px; }
 .session-list { display: grid; gap: 9px; max-height: 610px; overflow: auto; padding-right: 4px; }
 .session-row {
@@ -428,9 +485,10 @@ textarea { min-height: 92px; resize: vertical; }
   padding: 13px;
   display: grid;
   gap: 8px;
+  direction: rtl;
 }
-.session-row.active { border-color: var(--forest); box-shadow: inset 0 0 0 1px var(--forest); }
-.session-name { font-family: Consolas, "SFMono-Regular", monospace; font-weight: 850; font-size: 13px; }
+.session-row.active { border-color: var(--forest); box-shadow: inset 0 0 0 1px var(--forest); background: #fbfff8; }
+.session-name { font-family: Consolas, "SFMono-Regular", monospace; font-weight: 850; font-size: 13px; direction: ltr; text-align: left; }
 .session-desc { color: var(--muted); line-height: 1.45; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .chip { border: 1px solid var(--line); border-radius: 999px; padding: 3px 8px; color: var(--muted); font-size: 12px; background: #f7f8f4; }
@@ -439,6 +497,8 @@ textarea { min-height: 92px; resize: vertical; }
 .errors ul { margin: 0; padding-left: 20px; }
 details { border: 1px solid var(--line); border-radius: 8px; padding: 12px; background: #fff; }
 summary { cursor: pointer; font-weight: 850; }
+.compact-admin { opacity: .72; }
+.compact-admin[open] { opacity: 1; }
 .admin-list { display: grid; gap: 10px; max-height: 540px; overflow: auto; }
 .admin-row { border: 1px solid var(--line); border-radius: 8px; padding: 12px; background: #fff; display: grid; gap: 9px; }
 .check { display: flex; gap: 8px; align-items: center; font-weight: 800; }
@@ -451,7 +511,9 @@ summary { cursor: pointer; font-weight: 850; }
 }
 @media (max-width: 720px) {
   .choicebar, .grid-2, .grid-3, .players { grid-template-columns: 1fr; }
-  .hero { min-height: 390px; }
+  .hero { min-height: 520px; padding-bottom: 86px; }
+  .workspace { width: min(100% - 20px, 1240px); }
+  .session-tools { display: grid; }
 }
 </style>
 </head>
@@ -459,24 +521,37 @@ summary { cursor: pointer; font-weight: 850; }
 <div class="app">
   <header class="hero">
     <div>
-      <h1>PyCatan AI Table</h1>
-      <p>Start a live AI match or watch a curated replay with decision analysis. Built for guests: one page, clear choices, and no old developer setup screens.</p>
+      <div class="eyebrow">שולחן ציבורי</div>
+      <h1>קטאן AI על השולחן</h1>
+      <p>פותחים משחק חדש בין סוכני AI, או נכנסים לשידור חוזר שכבר נותח. פחות מסך הגדרות, יותר תחושה של משחק שמתחיל עכשיו.</p>
+      <div class="hero-actions">
+        <button class="primary" type="button" onclick="setView('new')">להתחיל משחק</button>
+        <button class="secondary" type="button" onclick="setView('replay')">לצפות בשידור חוזר</button>
+      </div>
     </div>
     <div class="status">
-      <strong>Runtime</strong>
+      <strong>מצב השולחן</strong>
       <span id="runtime-status"></span>
+      <div class="table-preview" aria-hidden="true">
+        <div class="terrain field"></div>
+        <div class="terrain forest"></div>
+        <div class="terrain hills"></div>
+        <div class="terrain pasture"></div>
+        <div class="terrain mountain"></div>
+        <div class="terrain sea"></div>
+      </div>
     </div>
   </header>
 
   <main class="workspace">
     <div class="choicebar">
       <button class="choice active" id="choose-new" type="button">
-        <strong>New game</strong>
-        <span>Bring your own OpenRouter and Gemini keys, choose AI players, and launch a fresh table.</span>
+        <strong>משחק חדש</strong>
+        <span>בחרו שחקנים, יעד ניצחון ושפה. המודלים והקולות זמינים למי שרוצה לכוון.</span>
       </button>
       <button class="choice" id="choose-replay" type="button">
-        <strong>Replay library</strong>
-        <span>Open a public session as an analysed visual replay with the decision trace enabled.</span>
+        <strong>שידורים חוזרים</strong>
+        <span>פתחו משחק מוקלט עם ניתוח החלטות, ציר זמן ודיבור שולחן אם קיים במטמון.</span>
       </button>
     </div>
     <div id="errors" class="errors"></div>
@@ -484,138 +559,166 @@ summary { cursor: pointer; font-weight: 850; }
     <section id="new-view" class="view">
       <div class="stack">
         <div class="section" id="keys-section">
-          <h2>API keys</h2>
+          <div class="section-title">
+            <div>
+              <h2>כניסה לשולחן</h2>
+              <p>רק כדי להריץ משחק חי. בשידורים חוזרים לא צריך מפתח.</p>
+            </div>
+          </div>
           <div class="grid-2">
-            <label>OpenRouter key for LLM moves
+            <label>מפתח OpenRouter למהלכים
               <input id="openrouter-key" type="password" autocomplete="off" placeholder="sk-or-...">
             </label>
-            <label>Gemini key for table voice
+            <label>מפתח Gemini לקול
               <input id="gemini-key" type="password" autocomplete="off" placeholder="AIza...">
             </label>
           </div>
-          <p class="note">Keys stay in this running process and are not written to session metadata.</p>
+          <p class="note">המפתחות נשארים בתהליך המקומי ולא נשמרים במטא־דאטה של המשחק.</p>
         </div>
 
         <div class="section">
-          <h2>Table setup</h2>
+          <div class="section-title">
+            <div>
+              <h2>אופי המשחק</h2>
+              <p>הדברים שהכי משפיעים על החוויה נמצאים כאן. כל השאר מקופל למטה.</p>
+            </div>
+          </div>
           <div class="grid-3">
-            <label>Players
+            <label>מספר שחקנים
               <select id="player-count">
-                <option value="2">2 players</option>
-                <option value="3">3 players</option>
-                <option value="4" selected>4 players</option>
+                <option value="2">2 שחקנים</option>
+                <option value="3">3 שחקנים</option>
+                <option value="4" selected>4 שחקנים</option>
               </select>
             </label>
-            <label>Victory target
+            <label>יעד ניצחון
               <input id="victory-points" type="number" min="1" step="1" value="5">
             </label>
-            <label>Chat language
+            <label>שפת הדיבור
               <select id="chat-language">
                 <option value="english" selected>English</option>
-                <option value="hebrew">Hebrew</option>
+                <option value="hebrew">עברית</option>
               </select>
             </label>
-            <label>Side reactions
+            <label>תגובות מסביב לשולחן
               <select id="reaction-mode">
-                <option value="async" selected>Async parallel</option>
-                <option value="sync">Sync</option>
-                <option value="off">Off</option>
-                <option value="default">From config</option>
+                <option value="async" selected>חי ומהיר</option>
+                <option value="sync">מסודר לפי תור</option>
+                <option value="off">כבוי</option>
+                <option value="default">לפי קובץ הגדרות</option>
               </select>
             </label>
-            <label>Relationship memory
+            <label>זיכרון יחסים
               <select id="relationship-mode"></select>
             </label>
-            <label>Random seed
+            <label>Seed אקראי
               <input id="random-seed" type="number" step="1" placeholder="0">
             </label>
           </div>
-          <label style="margin-top:12px">Optional story/context for the match
-            <textarea id="game-context" maxlength="4000" placeholder="Example: make the agents play as confident tournament commentators."></textarea>
+          <label style="margin-top:12px">סיפור קטן לשולחן
+            <textarea id="game-context" maxlength="4000" placeholder="לדוגמה: השחקנים משחקים כמו פרשני טורניר בטוחים בעצמם."></textarea>
           </label>
           <details style="margin-top:12px">
-            <summary>Advanced settings</summary>
+            <summary>כיוונון מתקדם</summary>
             <div class="grid-3" style="margin-top:12px">
-              <label>Config file
+              <label>קובץ הגדרות
                 <input id="config-path" placeholder="pycatan/ai/config_dev.yaml">
               </label>
-              <label>Reaction batch size
+              <label>כמות תגובות
                 <input id="reaction-batch-size" type="number" min="1" step="1" placeholder="5">
               </label>
-              <label>Gemini TTS model
+              <label>מודל קול Gemini
                 <select id="gemini-tts-model"></select>
               </label>
-              <label>Gemini voice
+              <label>קול Gemini
                 <select id="gemini-tts-voice"></select>
               </label>
-              <label>Voice
+              <label>דיבור
                 <select id="tts-provider">
-                  <option value="gemini" selected>Gemini TTS</option>
-                  <option value="off">Off</option>
+                  <option value="gemini" selected>Gemini</option>
+                  <option value="off">כבוי</option>
                 </select>
               </label>
             </div>
-            <label class="check" style="margin-top:12px"><input id="no-llm" type="checkbox"> Offline mode, no new LLM calls</label>
+            <label class="check" style="margin-top:12px"><input id="no-llm" type="checkbox"> מצב מקומי ללא קריאות LLM חדשות</label>
           </details>
         </div>
 
         <div class="section">
-          <h2>AI players and models</h2>
+          <div class="section-title">
+            <div>
+              <h2>מי יושב סביב השולחן</h2>
+              <p>אפשר להשאיר את ברירת המחדל, או לתת לכל שחקן שם ומוח משחק אחר.</p>
+            </div>
+          </div>
           <div class="players" id="players"></div>
         </div>
 
         <div class="actions">
-          <button class="primary" type="button" id="start-game">Start new game</button>
-          <button class="secondary" type="button" id="reset-defaults">Reset defaults</button>
+          <button class="primary" type="button" id="start-game">פתח שולחן משחק</button>
+          <button class="secondary" type="button" id="reset-defaults">איפוס</button>
         </div>
       </div>
 
       <aside class="section side">
-        <h3>OpenRouter model shelf</h3>
-        <p class="note">Only models that satisfy this app's tool and structured-output requirements are shown.</p>
-        <ol id="model-list" class="model-list"></ol>
+        <h3>מה יקרה עכשיו</h3>
+        <ol class="steps">
+          <li><b>1</b><span>נפתח לוח קטאן חי בדפדפן.</span></li>
+          <li><b>2</b><span>כל שחקן AI יקבל תור, ידבר, יבדוק אפשרויות ויבצע מהלך.</span></li>
+          <li><b>3</b><span>אפשר לעקוב אחרי הלוח, הצ'אט והניתוח בזמן אמת.</span></li>
+        </ol>
+        <details style="margin-top:14px">
+          <summary>רשימת מודלים זמינים</summary>
+          <p class="note">מוצגים רק מודלים שמתאימים לכלי המשחק ולפלט מובנה.</p>
+          <ol id="model-list" class="model-list"></ol>
+        </details>
       </aside>
     </section>
 
     <section id="replay-view" class="view hidden">
       <div class="section">
-        <h2>Replay library</h2>
+        <div class="section-title">
+          <div>
+            <h2>ספריית שידורים חוזרים</h2>
+            <p>בחרו משחק מוקלט ופתחו אותו כצפייה מודרכת עם החלטות השחקנים.</p>
+          </div>
+        </div>
         <div class="session-tools">
-          <input id="session-search" placeholder="Search sessions, players, models">
-          <button class="secondary" id="refresh-sessions" type="button">Refresh</button>
+          <input id="session-search" placeholder="חיפוש לפי שחקן, תיאור או מודל">
+          <button class="secondary" id="refresh-sessions" type="button">רענון</button>
         </div>
         <div id="session-list" class="session-list"></div>
       </div>
       <aside class="section side">
-        <h3>Selected session</h3>
-        <div id="session-preview" class="note">Choose a session from the library.</div>
+        <h3>השידור שנבחר</h3>
+        <div id="session-preview" class="note">בחרו משחק מהרשימה.</div>
         <div class="grid-2" style="margin-top:12px">
-          <label>Replay delay
+          <label>קצב צפייה
             <input id="replay-delay" type="number" min="0" step="0.1" value="2.5">
           </label>
-          <label>Text lead
+          <label>הקדמת טקסט
             <input id="replay-text-lead" type="number" min="0" step="0.05" value="0.25">
           </label>
         </div>
-        <label class="check" style="margin-top:12px"><input id="replay-speak" type="checkbox"> Speak cached table talk when available</label>
+        <label class="check" style="margin-top:12px"><input id="replay-speak" type="checkbox"> להשמיע דיבור שמור אם קיים</label>
         <div class="actions" style="margin-top:14px">
-          <button class="primary" type="button" id="start-replay">Open analysed replay</button>
+          <button class="primary" type="button" id="start-replay">פתח צפייה מנותחת</button>
         </div>
       </aside>
     </section>
 
-    <details class="section" id="admin-panel">
-      <summary>Replay library admin</summary>
+    <details class="section compact-admin" id="admin-panel">
+      <summary>ניהול ספריית שידורים</summary>
       <div class="grid-2" style="margin-top:12px">
-        <label>Password
-          <input id="admin-password" type="password" placeholder="Admin password">
+        <label>סיסמה
+          <input id="admin-password" type="password" placeholder="סיסמת ניהול">
         </label>
         <div class="actions" style="align-self:end">
-          <button class="secondary" type="button" id="admin-unlock">Unlock</button>
-          <button class="primary hidden" type="button" id="admin-save">Save availability</button>
+          <button class="secondary" type="button" id="admin-unlock">פתיחה</button>
+          <button class="primary hidden" type="button" id="admin-save">שמירה</button>
         </div>
       </div>
-      <p class="note">The current password gate is intentionally client-side for now. The saved manifest controls which sessions appear to guests.</p>
+      <p class="note">כאן בוחרים אילו משחקים יופיעו לאורחים בספרייה הציבורית.</p>
       <div id="admin-list" class="admin-list hidden"></div>
     </details>
   </main>
@@ -662,18 +765,18 @@ function optionHtml(value, label, selected = false) {
 function renderStatus() {
   const hidden = state.keyMode === "env_hidden";
   byId("keys-section").classList.toggle("hidden", hidden);
-  const llm = state.env.openrouter ? "OpenRouter key detected" : "OpenRouter key missing";
-  const tts = state.env.gemini ? "Gemini key detected" : "Gemini key missing";
+  const llm = state.env.openrouter ? "OpenRouter מחובר" : "OpenRouter לא מחובר";
+  const tts = state.env.gemini ? "Gemini מחובר" : "Gemini לא מחובר";
   byId("runtime-status").textContent = hidden
-    ? `${llm}. ${tts}. API-key step is hidden because --use-env-keys is active.`
-    : "Guests enter OpenRouter for LLM moves and Gemini for voice before launching a live game.";
+    ? `${llm}. ${tts}. אפשר להתחיל בלי להזין מפתחות במסך.`
+    : "למשחק חי מזינים מפתחות פעם אחת, ואז השולחן נפתח בדפדפן.";
 }
 
 function renderModels() {
   const models = state.models || [];
   byId("model-list").innerHTML = models.map((model) =>
     `<li><strong>${escapeHtml(model.id)}</strong><span class="note">${escapeHtml(model.name || "")}</span></li>`
-  ).join("") || "<li>No model list loaded. Check OpenRouter connectivity.</li>";
+  ).join("") || "<li>רשימת מודלים לא נטענה עדיין. בדקו חיבור OpenRouter.</li>";
 }
 
 function renderStaticSelects() {
@@ -695,9 +798,9 @@ function renderPlayers() {
     const color = (state.defaults.colors || [])[slot - 1] || "";
     const gender = (state.defaults.genders || {})[slot] || "";
     return `<div class="player" data-player-card="${slot}">
-      <div class="player-head"><strong>Player ${slot}</strong><span>${escapeHtml(color)} ${gender ? " / " + escapeHtml(gender) : ""}</span></div>
-      <label>Name <input id="player-${slot}" value="${escapeHtml(defaults[slot - 1] || `Player ${slot}`)}"></label>
-      <label>Model <select id="model-${slot}">${modelOptions}</select></label>
+      <div class="player-head"><strong>שחקן ${slot}</strong><span>${escapeHtml(color)} ${gender ? " / " + escapeHtml(gender) : ""}</span></div>
+      <label>שם <input id="player-${slot}" value="${escapeHtml(defaults[slot - 1] || `Player ${slot}`)}"></label>
+      <label>מוח משחק <select id="model-${slot}">${modelOptions}</select></label>
     </div>`;
   }).join("");
   updatePlayerCount();
@@ -723,17 +826,17 @@ function sessionMatches(session, term) {
 }
 
 function sessionLine(session) {
-  const players = (session.players || []).join(", ") || "Players not detected";
-  const models = (session.models || []).join(", ") || "Recorded model metadata unavailable";
+  const players = (session.players || []).join(", ") || "שחקנים לא זוהו";
+  const models = (session.models || []).join(", ") || "אין פירוט מודלים";
   return `<span class="session-name">${escapeHtml(session.name)}</span>
     <span class="session-desc">${escapeHtml(session.description || session.generated_description || "")}</span>
     <span class="note">${escapeHtml(players)}</span>
     <span class="note">${escapeHtml(models)}</span>
     <span class="chips">
       <span class="chip">${escapeHtml(session.mode || "recorded")}</span>
-      <span class="chip">${session.response_count || 0} decisions</span>
-      ${session.has_summary ? '<span class="chip">summary</span>' : ""}
-      ${session.has_tts ? '<span class="chip">voice cache</span>' : ""}
+      <span class="chip">${session.response_count || 0} החלטות</span>
+      ${session.has_summary ? '<span class="chip">סיכום</span>' : ""}
+      ${session.has_tts ? '<span class="chip">קול שמור</span>' : ""}
     </span>`;
 }
 
@@ -742,7 +845,7 @@ function renderSessions() {
   const sessions = (state.sessions || []).filter((session) => sessionMatches(session, term));
   byId("session-list").innerHTML = sessions.map((session) =>
     `<button class="session-row ${selectedSession === session.name ? "active" : ""}" type="button" data-session="${escapeHtml(session.name)}">${sessionLine(session)}</button>`
-  ).join("") || '<div class="note">No public replay sessions are available yet.</div>';
+  ).join("") || '<div class="note">אין עדיין שידורים חוזרים זמינים לצפייה.</div>';
   document.querySelectorAll("[data-session]").forEach((row) => {
     row.addEventListener("click", () => selectSession(row.dataset.session));
   });
@@ -773,11 +876,11 @@ async function selectSession(name) {
 
 function renderSessionPreview(preview) {
   if (!preview) {
-    byId("session-preview").innerHTML = selectedSession ? "Loading..." : "Choose a session from the library.";
+    byId("session-preview").innerHTML = selectedSession ? "טוען..." : "בחרו משחק מהרשימה.";
     return;
   }
   if (preview.loading) {
-    byId("session-preview").textContent = "Loading session details...";
+    byId("session-preview").textContent = "טוען פרטי משחק...";
     return;
   }
   if (preview.error) {
@@ -787,9 +890,9 @@ function renderSessionPreview(preview) {
   byId("session-preview").innerHTML = `<div class="session-name">${escapeHtml(preview.name)}</div>
     <p>${escapeHtml(preview.description || "")}</p>
     <div class="chips">
-      <span class="chip">${(preview.players || []).length || "?"} players</span>
-      <span class="chip">${preview.response_count || 0} decisions</span>
-      <span class="chip">${(preview.markers || []).length} markers</span>
+      <span class="chip">${(preview.players || []).length || "?"} שחקנים</span>
+      <span class="chip">${preview.response_count || 0} החלטות</span>
+      <span class="chip">${(preview.markers || []).length} נקודות ציון</span>
     </div>`;
 }
 
@@ -798,17 +901,17 @@ function renderAdminList() {
   byId("admin-list").innerHTML = sessions.map((session) => `
     <div class="admin-row" data-admin-session="${escapeHtml(session.name)}">
       <label class="check"><input type="checkbox" class="admin-available" ${session.available ? "checked" : ""}> ${escapeHtml(session.name)}</label>
-      <div class="note">${escapeHtml((session.players || []).join(", ") || "No players detected")} / ${session.response_count || 0} decisions</div>
-      <label>Description
+      <div class="note">${escapeHtml((session.players || []).join(", ") || "לא זוהו שחקנים")} / ${session.response_count || 0} החלטות</div>
+      <label>תיאור
         <textarea class="admin-description" maxlength="600">${escapeHtml(session.description || session.generated_description || "")}</textarea>
       </label>
     </div>
-  `).join("") || '<div class="note">No sessions found.</div>';
+  `).join("") || '<div class="note">לא נמצאו משחקים.</div>';
 }
 
 async function unlockAdmin() {
   if (byId("admin-password").value !== "20209") {
-    showErrors(["Wrong admin password."]);
+    showErrors(["סיסמת הניהול שגויה."]);
     return;
   }
   adminUnlocked = true;
@@ -837,7 +940,7 @@ async function saveAdmin() {
   });
   const payload = await response.json();
   if (!response.ok) {
-    showErrors([payload.error || "Could not save admin settings."]);
+    showErrors([payload.error || "לא הצלחתי לשמור את הגדרות הספרייה."]);
     return;
   }
   state.allSessions = payload.sessions || [];
@@ -915,7 +1018,7 @@ byId("refresh-sessions").addEventListener("click", refreshSessions);
 byId("start-game").addEventListener("click", () => postStart(collectNewGameFields()));
 byId("start-replay").addEventListener("click", () => {
   if (!selectedSession) {
-    showErrors(["Choose a replay session first."]);
+    showErrors(["בחרו שידור חוזר מהרשימה לפני הפתיחה."]);
     return;
   }
   postStart(collectReplayFields());

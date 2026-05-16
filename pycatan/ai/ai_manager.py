@@ -31,7 +31,7 @@ from pycatan.ai.agent_tools import AgentTools
 from pycatan.ai.memory_compactor import MemoryCompactor
 from pycatan.ai.tool_executor import ToolExecutor
 from pycatan.ai.stream_broadcaster import StreamBroadcaster
-from pycatan.ai.tts import create_tts_from_env
+from pycatan.ai.tts import apply_tts_language_defaults, create_tts_from_env
 from pycatan.management.actions import Action, ActionType
 
 
@@ -93,6 +93,7 @@ class AIManager:
         self.stream_broadcaster = StreamBroadcaster()
 
         # Optional speech synthesis for say_outloud chat.
+        apply_tts_language_defaults(getattr(self.config.agent, "chat_language", "english"))
         self.tts = create_tts_from_env()
         
         # LLM client (created lazily when needed)
