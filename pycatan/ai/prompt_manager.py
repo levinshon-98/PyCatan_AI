@@ -382,6 +382,10 @@ class PromptManager:
             extra_guidance.append(
                 "For settlement placement, use find_best_nodes and inspect_node instead of manually decoding the board arrays. Treat nodes in state.bld and all adjacent nodes as unavailable."
             )
+        if "robber_move" in action_types:
+            extra_guidance.append(
+                "For robber placement, use inspect_hex to verify the target hex resource, number, adjacent buildings, and current robber status before choosing."
+            )
         extra_guidance.append(
             "Do not state node resources or opponent settlement facts unless they come from the filtered game_state or a tool result."
         )
@@ -402,9 +406,14 @@ class PromptManager:
         if language == "hebrew":
             return (
                 "Any say_outloud chat message must be written in natural Hebrew only. "
+                "דבר כמו בן אדם, לא כמו קריין. בלי פילרים, נרטיב מיותר ובלי להסביר את המובן מאליו. "
                 f"{HEBREW_RESOURCE_TERMS_INSTRUCTION}"
             )
-        return "Any say_outloud chat message must be written in natural English only."
+        return (
+            "Any say_outloud chat message must be written in natural English only. "
+            "Talk like a person, not a narrator. No filler, unnecessary narrative, "
+            "or explaining the obvious."
+        )
 
     def _get_victory_points_to_win(self, game_state: Dict[str, Any]) -> int:
         """Read the configured victory point target from compact state."""
@@ -435,6 +444,10 @@ class PromptManager:
         relationship_updates: Optional[List[Dict[str, Any]]] = None
     ) -> Optional[str]:
         """Return a short coordinated social fallback for the current table."""
+        mode = self._get_relationship_context_mode()
+        if mode == "off":
+            return None
+
         player_names = self._extract_player_names(game_state)
         if player_name not in player_names:
             player_names = [player_name] + [name for name in player_names if name != player_name]
@@ -442,18 +455,74 @@ class PromptManager:
         if len(player_names) < 2:
             return None
 
-        shared_story = self._build_shared_table_history(player_names)
-        personal_angle = self._build_personal_relationship_angle(player_name, player_names)
-        strategic_guardrail = (
-            "Use this only for table talk, trust, trades, and tie-breakers; "
-            "your board decisions should still prioritize strong legal Catan play."
-        )
         update_texts = self._format_relationship_updates(relationship_updates or [])
         update_section = (
             " Recent relationship shifts: " + " ".join(update_texts)
             if update_texts else ""
         )
+
+        if mode == "ai_models":
+            context = self._build_ai_model_relationship_context(player_name, player_names)
+            return f"{context}{update_section}"
+
+        shared_story = self._build_shared_table_history(player_names)
+        personal_angle = self._build_personal_relationship_angle(player_name, player_names)
+        strategic_guardrail = self._relationship_guardrail()
         return f"Relationship context: {shared_story} {personal_angle}{update_section} {strategic_guardrail}"
+
+    def _get_relationship_context_mode(self) -> str:
+        """Normalize the configured relationship context story mode."""
+        value = str(getattr(self.config.agent, "relationship_context_mode", "legacy") or "legacy")
+        value = value.strip().lower().replace("-", "_")
+        aliases = {
+            "none": "off",
+            "no": "off",
+            "disabled": "off",
+            "disable": "off",
+            "classic": "legacy",
+            "default": "legacy",
+            "models": "ai_models",
+            "ai_model": "ai_models",
+            "ai_rivals": "ai_models",
+            "model_rivals": "ai_models",
+        }
+        return aliases.get(value, value if value in {"legacy", "ai_models", "off"} else "legacy")
+
+    def _relationship_guardrail(self) -> str:
+        """Return the common limit for social background stories."""
+        return (
+            "Use this only for table talk, trust, trades, and tie-breakers; "
+            "your board decisions should still prioritize strong legal Catan play."
+        )
+
+    def _build_ai_model_relationship_context(
+        self,
+        player_name: str,
+        player_names: List[str]
+    ) -> str:
+        """Build a compact alternate story where players represent AI model rivals."""
+        model_names = ["Gemini", "Claude", "GPT"]
+        pairings = [
+            f"{name} represents {model_names[index]}"
+            for index, name in enumerate(player_names[:3])
+        ]
+        if len(player_names) > 3:
+            extra_names = ", ".join(player_names[3:])
+            pairings.append(f"{extra_names} are independent challengers")
+
+        model_for_player = (
+            model_names[player_names.index(player_name)]
+            if player_name in player_names and player_names.index(player_name) < len(model_names)
+            else "an independent challenger"
+        )
+        history = (
+            "Past games: Gemini pushed early tempo, Claude punished loose deals, "
+            "and GPT brokered trades before turning sharp late."
+        )
+        return (
+            f"Relationship context: {'; '.join(pairings)}. {history} "
+            f"Your angle: you are {model_for_player}. Use only for table talk and trust; play legal Catan first."
+        )
 
     def _format_relationship_updates(
         self,

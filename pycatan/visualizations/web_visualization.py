@@ -7,6 +7,7 @@ import json
 import copy
 import threading
 import time
+from collections import Counter
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, Optional, List
@@ -1328,15 +1329,20 @@ class WebVisualization(Visualization):
     
     def display_resource_distribution(self, distributions: Dict[str, List[str]]) -> None:
         """Display resource distribution (ConsoleVisualization interface)."""
-        # Create structured log entry for each resource distribution
-        for resource, players in distributions.items():
+        # The Visualization contract is {player_name: [resource, ...]}.
+        # Older web code treated the key as a resource name, which produced
+        # messages like "Player 0: 1xJimmy" when the key was actually a player.
+        for player_name, resources in distributions.items():
+            if not resources:
+                continue
+            resource_counts = dict(Counter(str(resource) for resource in resources))
             log_entry = create_log_entry(
                 event_type=EventType.RESOURCE_DIST,
                 turn=0,  # Turn number will be set by GameManager
+                player_name=player_name,
                 data={
-                    'resource': resource,
-                    'recipients': list(range(len(players))),  # Player IDs
-                    'amounts': [1] * len(players)  # Assuming 1 card each
+                    'resources': resource_counts,
+                    'total': len(resources)
                 }
             )
             self.log_event(log_entry)

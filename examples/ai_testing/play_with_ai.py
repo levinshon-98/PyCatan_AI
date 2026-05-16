@@ -1756,7 +1756,8 @@ def run_replay_viewer(
     web_viz: WebVisualization,
     delay_seconds: float = 2.5,
     source_session: Optional[Path] = None,
-    text_lead_seconds: float = 0.25
+    text_lead_seconds: float = 0.25,
+    open_browser: bool = True,
 ) -> None:
     """
     Build a recorded-session timeline and serve it to the browser.
@@ -1853,10 +1854,11 @@ def run_replay_viewer(
 
         web_viz.seek_replay(0, speak=False)
         web_viz.start_server()
-        try:
-            webbrowser.open("http://localhost:5000/unified")
-        except Exception:
-            pass
+        if open_browser and os.environ.get("PYCATAN_NO_BROWSER", "").lower() not in {"1", "true", "yes", "on"}:
+            try:
+                webbrowser.open("http://localhost:5000/unified")
+            except Exception:
+                pass
 
         print("[REPLAY] Use the browser controls to play, pause, seek, step backward, or step forward.")
         print("[REPLAY] Press Ctrl+C here when you are done watching.")
@@ -2162,7 +2164,8 @@ def main():
             web_viz,
             delay_seconds=max(0.0, args.replay_delay),
             source_session=replay_session_path,
-            text_lead_seconds=max(0.0, args.replay_text_lead)
+            text_lead_seconds=max(0.0, args.replay_text_lead),
+            open_browser=not args.browser_settings,
         )
     else:
         run_game(game_manager, ai_manager, web_viz)

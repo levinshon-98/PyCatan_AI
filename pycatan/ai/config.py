@@ -110,6 +110,8 @@ class AgentConfig:
     custom_instructions: Optional[str] = None
     # Language for public table talk in say_outloud. Supported: english, hebrew.
     chat_language: str = "english"
+    # Built-in relationship story for table talk. Supported: legacy, ai_models, off.
+    relationship_context_mode: str = "legacy"
     # Allow off-turn social reactions to table talk and direct hostile events.
     enable_reactions: bool = True
     # If enabled, off-turn social reactions are queued per agent and processed

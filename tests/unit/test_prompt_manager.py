@@ -121,6 +121,48 @@ def test_relationship_context_includes_recent_updates():
     assert "Bob mocked my blocked ore" in context
 
 
+def test_relationship_context_can_be_disabled():
+    config = AIConfig()
+    config.agent.relationship_context_mode = "off"
+    manager = PromptManager(config)
+    state = _game_state("Gemini", "Claude", "GPT")
+
+    prompt = manager.create_prompt(
+        player_num=0,
+        player_name="Gemini",
+        player_color="Red",
+        game_state=state,
+        what_happened="Game start",
+        available_actions=[],
+    )
+
+    assert "relationship_context" not in prompt["meta_data"]
+
+
+def test_ai_model_relationship_context_is_short_and_named():
+    config = AIConfig()
+    config.agent.relationship_context_mode = "ai_models"
+    manager = PromptManager(config)
+    state = _game_state("Gemini", "Claude", "GPT")
+
+    prompt = manager.create_prompt(
+        player_num=1,
+        player_name="Claude",
+        player_color="Blue",
+        game_state=state,
+        what_happened="Game start",
+        available_actions=[],
+    )
+
+    context = prompt["meta_data"]["relationship_context"]
+    assert "Gemini represents Gemini" in context
+    assert "Claude represents Claude" in context
+    assert "GPT represents GPT" in context
+    assert "Your angle: you are Claude" in context
+    assert "charming dealmaker" not in context
+    assert len(context) < 320
+
+
 def test_prompt_includes_five_point_game_context():
     manager = PromptManager()
     state = _game_state("Hadar", "Shon")
@@ -220,11 +262,30 @@ def test_hebrew_chat_prompt_requires_exact_resource_terms():
     )
 
     instructions = prompt["task_context"]["instructions"]
+    assert "לא כמו קריין" in instructions
     assert HEBREW_RESOURCE_TERMS_INSTRUCTION in instructions
     assert "brick=טיט" in instructions
     assert "ore=אבן" in instructions
     assert "sheep=כבשה" in instructions
     assert "wheat=חיטה" in instructions
+
+
+def test_robber_prompt_guides_agents_to_inspect_hex():
+    manager = PromptManager()
+    state = _game_state("Hadar", "Shon")
+
+    prompt = manager.create_prompt(
+        player_num=0,
+        player_name="Hadar",
+        player_color="Red",
+        game_state=state,
+        what_happened="You rolled a 7.",
+        available_actions=[{"type": "robber_move", "example_parameters": '{"hex": X}'}],
+    )
+
+    instructions = prompt["task_context"]["instructions"]
+    assert "For robber placement, use inspect_hex" in instructions
+    assert "adjacent buildings" in instructions
 
 
 def test_hebrew_chat_schema_requires_exact_resource_terms():
@@ -235,4 +296,5 @@ def test_hebrew_chat_schema_requires_exact_resource_terms():
     )
 
     description = schema["properties"]["say_outloud"]["description"]
+    assert "לא כמו קריין" in description
     assert HEBREW_RESOURCE_TERMS_INSTRUCTION in description

@@ -322,11 +322,12 @@ class GameManager:
                 "BUILDING_ERROR"
             )
 
-    def _distribute_setup_resources(self, player_id: int, point: Any) -> None:
+    def _distribute_setup_resources(self, player_id: int, point: Any) -> Dict[str, int]:
         """Distribute initial resources based on the second settlement."""
         from pycatan.core.board import Board
         
         resources_given = []
+        resource_counts: Dict[str, int] = {}
         
         # Iterate over tiles adjacent to the point
         # Point object has 'tiles' attribute which is a list of Tile objects
@@ -340,6 +341,8 @@ class GameManager:
                     # Add card to player
                     self.game.players[player_id].add_cards([card_type])
                     resources_given.append(card_type.name)
+                    resource_key = self._resource_key_for_fact(card_type)
+                    resource_counts[resource_key] = resource_counts.get(resource_key, 0) + 1
         
         if resources_given:
             # Create a dummy action for notification purposes
@@ -364,6 +367,8 @@ class GameManager:
                 # Create distribution dict format
                 distribution = {player_name: resources_given}
                 self.visualization_manager.display_resource_distribution(distribution)
+
+        return resource_counts
 
     def _execute_build_settlement(self, action: Action) -> ActionResult:
         """Execute settlement building action."""
@@ -405,7 +410,9 @@ class GameManager:
             
             # Only distribute resources in the second round of setup
             if self._current_game_state.game_phase == GamePhase.SETUP_SECOND_ROUND:
-                self._distribute_setup_resources(action.player_id, point)
+                setup_gain = self._distribute_setup_resources(action.player_id, point)
+                if setup_gain:
+                    action.parameters['setup_gain'] = setup_gain
         
         # Convert Status to ActionResult
         return self._convert_status_to_result(status, self.get_full_state(), [action.player_id])
@@ -973,9 +980,9 @@ class GameManager:
             )
             
             if result == Statuses.ALL_GOOD:
-                player_name = self.users[player_id].name if hasattr(self.users[player_id], 'name') else f"Player {player_id}"
                 return ActionResult.success_result(
-                    f"{player_name} used Road Building card and built 2 roads! 🛣️🛣️"
+                    self.get_full_state(),
+                    affected_players=[player_id]
                 )
             else:
                 return ActionResult.failure_result(
@@ -1782,9 +1789,15 @@ class GameManager:
         # If action was successful, notify all users about the action
         if result.success:
             action_description = self._get_action_description(action)
+            player_name = self.users[action.player_id].name if hasattr(self.users[action.player_id], 'name') else f"Player {action.player_id}"
+            event_message = (
+                action_description
+                if action_description.startswith("FACTS ")
+                else f"{player_name} {action_description}"
+            )
             self._notify_all_users(
                 "action_performed",
-                f"Player {action.player_id} {action_description}",
+                event_message,
                 result.affected_players if hasattr(result, 'affected_players') else [action.player_id]
             )
         
@@ -1966,20 +1979,125 @@ class GameManager:
         Returns:
             str: Human-readable description
         """
+        actor = self.users[action.player_id].name if hasattr(self.users[action.player_id], 'name') else f"Player {action.player_id}"
+        params = action.parameters if isinstance(action.parameters, dict) else {}
+        point = params.get("point_id") or params.get("node")
+        if not point and params.get("point_coords"):
+            try:
+                from pycatan.config.board_definition import board_definition
+                coords = params.get("point_coords")
+                point = board_definition.game_coords_to_point_id(coords[0], coords[1])
+            except Exception:
+                point = params.get("point_coords")
+
         if action.action_type == ActionType.BUILD_SETTLEMENT:
-            return "built a settlement"
+            return f"FACTS evt=build_settlement actor={actor} node={point} cost={{W:1,B:1,S:1,Wh:1}}"
         elif action.action_type == ActionType.BUILD_CITY:
-            return "built a city"
+            return f"FACTS evt=build_city actor={actor} node={point} cost={{O:3,Wh:2}}"
         elif action.action_type == ActionType.BUILD_ROAD:
-            return "built a road"
+            edge = self._format_action_edge(params)
+            return f"FACTS evt=build_road actor={actor} edge={edge} cost={{W:1,B:1}}"
+        elif action.action_type == ActionType.PLACE_STARTING_SETTLEMENT:
+            gain = self._format_fact_bundle(params.get("setup_gain") or {})
+            if params.get("setup_gain"):
+                return f"FACTS evt=setup_settlement actor={actor} node={point} gain={gain}"
+            return f"FACTS evt=setup_settlement actor={actor} node={point}"
+        elif action.action_type == ActionType.PLACE_STARTING_ROAD:
+            edge = self._format_action_edge(params)
+            return f"FACTS evt=setup_road actor={actor} edge={edge}"
+        elif action.action_type == ActionType.ROLL_DICE:
+            dice = params.get("dice") or []
+            total = params.get("total")
+            breakdown = "+".join(str(die) for die in dice[:2]) if len(dice) >= 2 else "?"
+            if total == 7:
+                return f"FACTS evt=roll7 actor={actor} dice=7({breakdown}) prod={{}} next=discard_or_robber"
+            production = params.get("distribution_fact") or "{}"
+            return f"FACTS evt=roll actor={actor} dice={total}({breakdown}) prod={production}"
         elif action.action_type == ActionType.END_TURN:
             return "ended their turn"
         elif action.action_type == ActionType.END_GAME:
             return "chose END_GAME"
         elif action.action_type == ActionType.TRADE_PROPOSE:
-            return "proposed a trade"
+            status = params.get("trade_status", "proposed")
+            target = params.get("to_player") or params.get("target_player")
+            offer = self._format_fact_bundle({self._resource_key_for_fact(k): v for k, v in (params.get("offer") or {}).items()})
+            request = self._format_fact_bundle({self._resource_key_for_fact(k): v for k, v in (params.get("request") or {}).items()})
+            return f"FACTS evt=trade actor={actor} target={target} status={status} offer={offer} request={request}"
+        elif action.action_type == ActionType.TRADE_BANK:
+            give = self._format_fact_bundle({self._resource_key_for_fact(k): v for k, v in (params.get("give") or params.get("offer") or {}).items()})
+            receive = self._format_fact_bundle({self._resource_key_for_fact(k): v for k, v in (params.get("receive") or params.get("request") or {}).items()})
+            return f"FACTS evt=bank_trade actor={actor} give={give} receive={receive}"
+        elif action.action_type == ActionType.BUY_DEV_CARD:
+            return f"FACTS evt=buy_dev actor={actor} cost={{S:1,Wh:1,O:1}} dev_delta={{hidden:+1}}"
+        elif action.action_type == ActionType.USE_DEV_CARD:
+            card = params.get("card_type") or params.get("card")
+            return self._format_use_dev_fact(actor, card, params)
+        elif action.action_type == ActionType.DISCARD_CARDS:
+            discarded = self._format_fact_bundle({self._resource_key_for_fact(k): v for k, v in (params.get("discarded") or {}).items()})
+            return f"FACTS evt=discard actor={actor} discarded={discarded}"
+        elif action.action_type == ActionType.ROBBER_MOVE:
+            tile = self._format_action_tile(params)
+            victim = params.get("victim")
+            stolen = " stolen=1" if victim else ""
+            victim_text = f" victim={victim}" if victim else ""
+            return f"FACTS evt=robber actor={actor} hex={tile}{victim_text}{stolen}"
+        elif action.action_type == ActionType.STEAL_CARD:
+            victim = params.get("victim") or params.get("target_player")
+            return f"FACTS evt=steal actor={actor} victim={victim} stolen=1"
         else:
             return f"performed action: {action.action_type}"
+
+    def _format_action_edge(self, params: Dict[str, Any]) -> str:
+        """Format a road edge from action parameters."""
+        start = params.get("from") or params.get("start")
+        end = params.get("to") or params.get("end")
+        if (not start or not end) and params.get("start_coords") and params.get("end_coords"):
+            try:
+                from pycatan.config.board_definition import board_definition
+                start_coords = params.get("start_coords")
+                end_coords = params.get("end_coords")
+                start = board_definition.game_coords_to_point_id(start_coords[0], start_coords[1])
+                end = board_definition.game_coords_to_point_id(end_coords[0], end_coords[1])
+            except Exception:
+                start = params.get("start_coords")
+                end = params.get("end_coords")
+        return f"{start}-{end}"
+
+    def _format_action_tile(self, params: Dict[str, Any]) -> Any:
+        """Format a robber tile id from action parameters."""
+        if params.get("hex") is not None:
+            return params.get("hex")
+        tile_coords = params.get("tile_coords")
+        if tile_coords:
+            try:
+                from pycatan.config.board_definition import board_definition
+                return board_definition.game_coords_to_hex_id(tile_coords[0], tile_coords[1])
+            except Exception:
+                return tile_coords
+        return "?"
+
+    def _format_use_dev_fact(self, actor: str, card: Any, params: Dict[str, Any]) -> str:
+        """Format development-card effects for compact prompt context."""
+        card_name = str(card or "").replace("DevCard.", "")
+        normalized = card_name.lower()
+        if normalized in {"road", "road_building"}:
+            road_one = params.get("road_one_coords") or params.get("road_1")
+            road_two = params.get("road_two_coords") or params.get("road_2")
+            return f"FACTS evt=use_dev actor={actor} card=RoadBuilding roads=[{road_one},{road_two}] dev_delta={{hidden:-1}}"
+        if normalized == "monopoly":
+            resource = self._resource_key_for_fact(params.get("resource") or params.get("resource_type"))
+            total = params.get("total_stolen", 0)
+            return f"FACTS evt=use_dev actor={actor} card=Monopoly resource={resource} taken={{{resource}:{total}}} dev_delta={{hidden:-1}}"
+        if normalized in {"yearofplenty", "year_of_plenty"}:
+            gained = self._format_fact_bundle({self._resource_key_for_fact(k): v for k, v in (params.get("gained") or {}).items()})
+            return f"FACTS evt=use_dev actor={actor} card=YearOfPlenty gain={gained} dev_delta={{hidden:-1}}"
+        if normalized == "knight":
+            tile = self._format_action_tile(params)
+            victim = params.get("victim")
+            stolen = " stolen=1" if victim else ""
+            victim_text = f" victim={victim}" if victim else ""
+            return f"FACTS evt=use_dev actor={actor} card=Knight hex={tile}{victim_text}{stolen} dev_delta={{hidden:-1,revealed_K:+1}}"
+        return f"FACTS evt=use_dev actor={actor} card={card_name} dev_delta={{hidden:-1}}"
     
     def _advance_to_next_player(self) -> None:
         """
@@ -2298,12 +2416,16 @@ class GameManager:
             
             if distribution:
                 distribution_summary = self._format_distribution_summary(distribution)
+                affected_players = self._distribution_affected_players(distribution)
                 message = f"Rolled {total} ({die1}+{die2}). Resources distributed: {distribution_summary}."
                 action.parameters['distribution_summary'] = distribution_summary
+                action.parameters['distribution_fact'] = self._format_distribution_fact(distribution)
             else:
+                affected_players = []
                 message = f"Rolled {total} ({die1}+{die2}). No settlements on this number."
         else:
             # Rolled 7! Handle robber sequence
+            affected_players = []
             message = f"Rolled 7 ({die1}+{die2})! 🏴‍☠️ Robber activated!"
             self._handle_rolled_seven()
             
@@ -2311,7 +2433,8 @@ class GameManager:
         self._notify_all_users("dice_roll", message)
         
         return ActionResult.success_result(
-            self.get_full_state()
+            self.get_full_state(),
+            affected_players=affected_players
         )
 
     def _format_distribution_summary(self, distribution: Dict[Any, List[Any]]) -> str:
@@ -2337,6 +2460,42 @@ class GameManager:
 
         return "; ".join(entries) if entries else "none"
 
+    def _distribution_affected_players(self, distribution: Dict[Any, List[Any]]) -> List[int]:
+        """Return player ids who actually received cards from a dice roll."""
+        affected = []
+        for player_key, resources in (distribution or {}).items():
+            if not resources:
+                continue
+            player_id = self._resolve_distribution_player_id(player_key)
+            if player_id is not None and player_id not in affected:
+                affected.append(player_id)
+        return affected
+
+    def _format_distribution_fact(self, distribution: Dict[Any, List[Any]]) -> str:
+        """Format dice production as compact per-player resource keys."""
+        entries = []
+        for player_key, resources in (distribution or {}).items():
+            if not resources:
+                continue
+            player_name = self._resolve_distribution_player_name(player_key)
+            entries.append(f"{player_name}:{self._format_fact_bundle(self._count_resource_keys(resources))}")
+        return "{" + ";".join(entries) + "}" if entries else "{}"
+
+    def _resolve_distribution_player_id(self, player_key: Any) -> Optional[int]:
+        """Resolve a distribution key such as 'Player 1' or a display name to a user id."""
+        key = str(player_key)
+        if key.startswith("Player "):
+            try:
+                player_id = int(key.split()[-1]) - 1
+                if 0 <= player_id < len(self.users):
+                    return player_id
+            except ValueError:
+                pass
+        for player_id, user in enumerate(self.users):
+            if hasattr(user, 'name') and user.name == key:
+                return player_id
+        return None
+
     def _resolve_distribution_player_name(self, player_key: Any) -> str:
         """Resolve a distribution key such as 'Player 1' to the displayed user name."""
         key = str(player_key)
@@ -2355,6 +2514,42 @@ class GameManager:
         if "." in name:
             name = name.split(".")[-1]
         return name.lower()
+
+    def _resource_key_for_fact(self, resource: Any) -> str:
+        """Normalize resource enum/string values to compact prompt keys."""
+        name = self._format_resource_for_message(resource)
+        aliases = {
+            "wood": "W",
+            "brick": "B",
+            "sheep": "S",
+            "wheat": "Wh",
+            "ore": "O",
+            "w": "W",
+            "b": "B",
+            "s": "S",
+            "wh": "Wh",
+            "o": "O",
+        }
+        return aliases.get(name.lower(), name)
+
+    def _count_resource_keys(self, resources: List[Any]) -> Dict[str, int]:
+        """Count a list of resource cards using compact prompt keys."""
+        counts: Dict[str, int] = {}
+        for resource in resources:
+            key = self._resource_key_for_fact(resource)
+            counts[key] = counts.get(key, 0) + 1
+        return counts
+
+    def _format_fact_bundle(self, bundle: Dict[str, Any]) -> str:
+        """Format a compact resource bundle with stable Catan key order."""
+        if not bundle:
+            return "{}"
+        order = {"W": 0, "B": 1, "S": 2, "Wh": 3, "O": 4}
+        parts = []
+        for key, value in sorted(bundle.items(), key=lambda item: order.get(str(item[0]), 99)):
+            if value:
+                parts.append(f"{key}:{value}")
+        return "{" + ",".join(parts) + "}" if parts else "{}"
     
     def _handle_rolled_seven(self) -> None:
         """
@@ -2470,7 +2665,7 @@ class GameManager:
                 f"🏴‍☠️ {current_player_name} must now move the robber!"
             )
         
-        return ActionResult.success_result(self.get_full_state())
+        return ActionResult.success_result(self.get_full_state(), affected_players=[player_id])
     
     def _handle_robber_move(self, action: Action) -> ActionResult:
         """
@@ -2567,7 +2762,10 @@ class GameManager:
                 # Proceed to normal play
                 self._current_game_state.turn_phase = TurnPhase.PLAYER_ACTIONS
                 self._current_game_state.steal_pending = False
-                result = ActionResult.success_result(self.get_full_state())
+                result = ActionResult.success_result(
+                    self.get_full_state(),
+                    affected_players=[action.player_id, target_player]
+                )
                 result.reaction_events = [{
                     "type": "robber_steal",
                     "actor_id": action.player_id,
@@ -2698,7 +2896,10 @@ class GameManager:
             f"You stole a {stolen_card.name}!"
         )
         
-        result = ActionResult.success_result(self.get_full_state())
+        result = ActionResult.success_result(
+            self.get_full_state(),
+            affected_players=[action.player_id, target_player]
+        )
         result.reaction_events = [{
             "type": "robber_steal",
             "actor_id": action.player_id,

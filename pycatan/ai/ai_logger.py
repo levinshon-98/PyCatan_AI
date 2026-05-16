@@ -533,12 +533,8 @@ Started: {self.start_time.isoformat()}
             f.write(f"Player: {player_name}\n")
             f.write(f"Timestamp: {datetime.now().isoformat()}\n")
             f.write(f"Tools Enabled: {tools_enabled}\n")
-            f.write(f"\n--- Tool Results Appended ---\n")
-            f.write(tool_results)
-            f.write(f"\n\n--- Full Context Sent to LLM ---\n")
-            f.write(conversation_context[:5000])  # Truncate for readability
-            if len(conversation_context) > 5000:
-                f.write(f"\n... (truncated, full length: {len(conversation_context)} chars)")
+            f.write(f"\n--- Full Context Sent to LLM ---\n")
+            f.write(conversation_context)
         
         # Update MD log
         self._append_tool_followup_to_md(player_name, original_prompt_number, iteration, tool_results)

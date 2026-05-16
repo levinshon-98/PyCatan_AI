@@ -53,7 +53,7 @@ ACTIVE_TURN_RESPONSE_SCHEMA_V1 = {
         },
         "say_outloud": {
             "type": "string",
-            "description": "Communicate with other players in natural Hebrew only. You have emotions and may express them when it matters. Use for: trade proposals, warnings, bluffs, alliance hints, or strategic banter. Makes the game more interesting and can influence opponents.",
+            "description": "Communicate with other players in natural Hebrew only. דבר כמו בן אדם, לא כמו קריין. בלי פילרים, נרטיב מיותר ובלי להסביר את המובן מאליו. You have emotions and may express them when it matters. Use for: trade proposals, warnings, bluffs, alliance hints, or strategic banter.",
             "maxLength": 100
         },
         "action": {
@@ -96,7 +96,7 @@ OBSERVING_RESPONSE_SCHEMA_V1 = {
         },
         "say_outloud": {
             "type": "string",
-            "description": "Even when observing, you can negotiate in natural Hebrew only. You have emotions and may express them when it matters. Propose trades, form alliances, or send strategic messages.",
+            "description": "Even when observing, you can negotiate in natural Hebrew only. דבר כמו בן אדם, לא כמו קריין. בלי פילרים, נרטיב מיותר ובלי להסביר את המובן מאליו. You have emotions and may express them when it matters. Propose trades, form alliances, or send strategic messages.",
             "maxLength": 100
         }
     },
@@ -128,7 +128,7 @@ ACTIVE_TURN_RESPONSE_SCHEMA_V2 = {
         },
         "say_outloud": {
             "type": "string",
-            "description": "Table talk in natural Hebrew only. You have emotions and may express them when it matters. If nothing interesting happened, leave empty. Catan manners are loose: be blunt, annoyed, smug, suspicious, or emotional when it matters. Keep it human and non-technical.",
+            "description": "Table talk in natural Hebrew only. דבר כמו בן אדם, לא כמו קריין. בלי פילרים, נרטיב מיותר ובלי להסביר את המובן מאליו. You have emotions and may express them when it matters. If nothing interesting happened, leave empty. Catan manners are loose: be blunt, annoyed, smug, suspicious, or emotional when it matters. Keep it human and non-technical.",
             "maxLength": 120
         },
         "action": {
@@ -171,7 +171,7 @@ OBSERVING_RESPONSE_SCHEMA_V2 = {
         },
         "say_outloud": {
             "type": "string",
-            "description": "React naturally in Hebrew only. You have emotions and may express them when it matters. Can be empty if nothing notable. Catan manners are loose: be blunt or emotional when it matters. Keep it non-technical.",
+            "description": "React naturally in Hebrew only. דבר כמו בן אדם, לא כמו קריין. בלי פילרים, נרטיב מיותר ובלי להסביר את המובן מאליו. You have emotions and may express them when it matters. Can be empty if nothing notable. Catan manners are loose: be blunt or emotional when it matters. Keep it non-technical.",
             "maxLength": 120
         }
     },
@@ -246,6 +246,7 @@ def _with_chat_language(
         if response_type == ResponseType.OBSERVING:
             say_outloud["description"] = (
                 "React naturally in Hebrew only. You have emotions and may express them when it matters. "
+                "דבר כמו בן אדם, לא כמו קריין. בלי פילרים, נרטיב מיותר ובלי להסביר את המובן מאליו. "
                 "Can be empty if nothing notable. Catan manners are loose: be blunt or emotional when it matters. "
                 "Keep it non-technical. "
                 f"{HEBREW_RESOURCE_TERMS_INSTRUCTION}"
@@ -253,6 +254,7 @@ def _with_chat_language(
         else:
             say_outloud["description"] = (
                 "Table talk in natural Hebrew only. You have emotions and may express them when it matters. "
+                "דבר כמו בן אדם, לא כמו קריין. בלי פילרים, נרטיב מיותר ובלי להסביר את המובן מאליו. "
                 "If nothing interesting happened, leave empty. Catan manners are loose: be blunt, annoyed, "
                 "smug, suspicious, or emotional when it matters. Keep it human and non-technical. "
                 f"{HEBREW_RESOURCE_TERMS_INSTRUCTION}"
@@ -261,12 +263,14 @@ def _with_chat_language(
         if response_type == ResponseType.OBSERVING:
             say_outloud["description"] = (
                 "React naturally in English only. You have emotions and may express them when it matters. "
+                "Talk like a person, not a narrator. No filler, unnecessary narrative, or explaining the obvious. "
                 "Can be empty if nothing notable. Catan manners are loose: be blunt or emotional when it matters. "
                 "Keep it non-technical."
             )
         else:
             say_outloud["description"] = (
                 "Table talk in natural English only. You have emotions and may express them when it matters. "
+                "Talk like a person, not a narrator. No filler, unnecessary narrative, or explaining the obvious. "
                 "If nothing interesting happened, leave empty. Catan manners are loose: be blunt, annoyed, "
                 "smug, suspicious, or emotional when it matters. Keep it human and non-technical."
             )

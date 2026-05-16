@@ -1,0 +1,404 @@
+[
+  {
+    "model": "google/gemini-2.5-flash-lite",
+    "name": "Google: Gemini 2.5 Flash Lite",
+    "prompt_price": "0.0000001",
+    "completion_price": "0.0000004",
+    "context": 1048576,
+    "status_code": 200,
+    "latency": 2.039,
+    "ok": true,
+    "returned_model": "google/gemini-2.5-flash-lite",
+    "finish_reason": "stop",
+    "tool_calls_count": 0,
+    "tool_names": [],
+    "usage": {
+      "prompt_tokens": 3379,
+      "completion_tokens": 332,
+      "total_tokens": 3711,
+      "cost": 0.0004707,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.0004707,
+        "upstream_inference_prompt_cost": 0.0003379,
+        "upstream_inference_completions_cost": 0.0001328
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "content_preview": "{\n  \"internal_thinking\": \"Ziv is complaining again. He feels targeted by the robber and says Hadar is close to winning. He's stuck with sheep, which is accurate, as his only sheep hex is 5, and the robber is on hex 17 wh"
+  },
+  {
+    "model": "google/gemini-2.5-flash",
+    "name": "Google: Gemini 2.5 Flash",
+    "prompt_price": "0.0000003",
+    "completion_price": "0.0000025",
+    "context": 1048576,
+    "status_code": 200,
+    "latency": 3.429,
+    "ok": true,
+    "returned_model": "google/gemini-2.5-flash",
+    "finish_reason": "stop",
+    "tool_calls_count": 0,
+    "tool_names": [],
+    "usage": {
+      "prompt_tokens": 3379,
+      "completion_tokens": 291,
+      "total_tokens": 3670,
+      "cost": 0.0017412,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.0017412,
+        "upstream_inference_prompt_cost": 0.0010137,
+        "upstream_inference_completions_cost": 0.0007275
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "content_preview": "{\n  \"internal_thinking\": \"Ziv is overtly trying to rally people against Hadar, who is indeed close to winning. This plays into my goal of making Hadar distrustful of Ziv and seeing me as a more reasonable player, even af"
+  },
+  {
+    "model": "google/gemini-2.0-flash-lite-001",
+    "name": "Google: Gemini 2.0 Flash Lite",
+    "prompt_price": "0.000000075",
+    "completion_price": "0.0000003",
+    "context": 1048576,
+    "status_code": 200,
+    "latency": 2.033,
+    "ok": true,
+    "returned_model": "google/gemini-2.0-flash-lite-001",
+    "finish_reason": "stop",
+    "tool_calls_count": 0,
+    "tool_names": [],
+    "usage": {
+      "prompt_tokens": 3379,
+      "completion_tokens": 197,
+      "total_tokens": 3576,
+      "cost": 0.000312525,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.000312525,
+        "upstream_inference_prompt_cost": 0.000253425,
+        "upstream_inference_completions_cost": 5.91e-05
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "content_preview": "{\n  \"internal_thinking\": \"Hadar is at 4 VP and dominating production. I need to hinder her and prevent her from winning. Her settlement at node 20 gives her a good position on the 8 sheep, and she's getting a lot of reso"
+  },
+  {
+    "model": "google/gemini-2.0-flash-001",
+    "name": "Google: Gemini 2.0 Flash",
+    "prompt_price": "0.0000001",
+    "completion_price": "0.0000004",
+    "context": 1048576,
+    "status_code": 200,
+    "latency": 1.967,
+    "ok": true,
+    "returned_model": "google/gemini-2.0-flash-001",
+    "finish_reason": "stop",
+    "tool_calls_count": 0,
+    "tool_names": [],
+    "usage": {
+      "prompt_tokens": 3379,
+      "completion_tokens": 165,
+      "total_tokens": 3544,
+      "cost": 0.0004039,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.0004039,
+        "upstream_inference_prompt_cost": 0.0003379,
+        "upstream_inference_completions_cost": 6.6e-05
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "content_preview": "{\n  \"internal_thinking\": \"Ziv is clearly panicked. The 8 roll benefited only Hadar, and Ziv is blaming her. He seems to be short on resources. My priority is still to acquire טיט and עץ to build a settlement at node 18, "
+  },
+  {
+    "model": "google/gemini-2.5-pro",
+    "name": "Google: Gemini 2.5 Pro",
+    "prompt_price": "0.00000125",
+    "completion_price": "0.00001",
+    "context": 1048576,
+    "status_code": 200,
+    "latency": 12.908,
+    "ok": true,
+    "returned_model": "google/gemini-2.5-pro",
+    "finish_reason": "length",
+    "tool_calls_count": 0,
+    "tool_names": [],
+    "usage": {
+      "prompt_tokens": 3379,
+      "completion_tokens": 1184,
+      "total_tokens": 4563,
+      "cost": 0.01606375,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.01606375,
+        "upstream_inference_prompt_cost": 0.00422375,
+        "upstream_inference_completions_cost": 0.01184
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 1150,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "content_preview": "{\n  \"internal_thinking\": \"Ziv is right, Hadar is theclear threat at 4 VP. She just got another sheep and wheat on that"
+  },
+  {
+    "model": "anthropic/claude-haiku-4.5",
+    "name": "Anthropic: Claude Haiku 4.5",
+    "prompt_price": "0.000001",
+    "completion_price": "0.000005",
+    "context": 200000,
+    "status_code": 400,
+    "latency": 1.604,
+    "ok": false,
+    "error": "{\"error\":{\"message\":\"Provider returned error\",\"code\":400,\"metadata\":{\"raw\":\"{\\\"message\\\":\\\"output_config.format.schema: For 'object' type, property 'propertyOrdering' is not supported\\\"}\",\"provider_name\":\"Amazon Bedrock\",\"is_byok\":false}},\"user_id\":\"user_3DmcCbJaCRV2O4uUzoak4f3wyvo\"}"
+  },
+  {
+    "model": "~anthropic/claude-haiku-latest",
+    "name": "Anthropic Claude Haiku Latest",
+    "prompt_price": "0.000001",
+    "completion_price": "0.000005",
+    "context": 200000,
+    "status_code": 400,
+    "latency": 1.682,
+    "ok": false,
+    "error": "{\"error\":{\"message\":\"Provider returned error\",\"code\":400,\"metadata\":{\"raw\":\"{\\\"message\\\":\\\"output_config.format.schema: For 'object' type, property 'propertyOrdering' is not supported\\\"}\",\"provider_name\":\"Amazon Bedrock\",\"is_byok\":false}},\"user_id\":\"user_3DmcCbJaCRV2O4uUzoak4f3wyvo\"}"
+  },
+  {
+    "model": "qwen/qwen3.6-flash",
+    "name": "Qwen: Qwen3.6 Flash",
+    "prompt_price": "0.0000001875",
+    "completion_price": "0.000001125",
+    "context": 1000000,
+    "status_code": 200,
+    "latency": 23.906,
+    "ok": true,
+    "returned_model": "qwen/qwen3.6-flash",
+    "finish_reason": "stop",
+    "tool_calls_count": 0,
+    "tool_names": [],
+    "usage": {
+      "prompt_tokens": 3445,
+      "completion_tokens": 3995,
+      "total_tokens": 7440,
+      "cost": 0.0051403125,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.0051403125,
+        "upstream_inference_prompt_cost": 0.0006459375,
+        "upstream_inference_completions_cost": 0.004494375
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 3837,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "content_preview": "{\n  \"say_outloud\": \"ה-8 אכן סייע לה יפה, אבל הניצחון נקבע בבנייה ולא בהטלות חד-פעמיות. אם תצטרך חיטה או כבשה לסחור, אני פתוח להצעה הוגנת.\",\n  \"note_to_self\": \"Ziv is openly calling for anti-Hadar coordination after the l"
+  },
+  {
+    "model": "qwen/qwen3.5-flash-02-23",
+    "name": "Qwen: Qwen3.5-Flash",
+    "prompt_price": "0.000000065",
+    "completion_price": "0.00000026",
+    "context": 1000000,
+    "status_code": 200,
+    "latency": 59.41,
+    "ok": true,
+    "returned_model": "qwen/qwen3.5-flash-20260224",
+    "finish_reason": "stop",
+    "tool_calls_count": 0,
+    "tool_names": [],
+    "usage": {
+      "prompt_tokens": 3445,
+      "completion_tokens": 7217,
+      "total_tokens": 10662,
+      "cost": 0.002100345,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.002100345,
+        "upstream_inference_prompt_cost": 0.000223925,
+        "upstream_inference_completions_cost": 0.00187642
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 7069,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "content_preview": "{\n  \"say_outloud\": \"כן, 4 זה קרוב מדי ל-5. אם היא תנצח, כולנו נפסיד. אני מסכים עם החשש. בואו נקווה שהקוביות יחזירו את ההגינות.\",\n  \"note_to_self\": \"Ziv is vocalizing coalition against Hadar (4 VP). Hadar is the primary t"
+  },
+  {
+    "model": "deepseek/deepseek-v4-flash",
+    "name": "DeepSeek: DeepSeek V4 Flash",
+    "prompt_price": "0.000000112",
+    "completion_price": "0.000000224",
+    "context": 1048576,
+    "status_code": 200,
+    "latency": 14.486,
+    "ok": true,
+    "returned_model": "deepseek/deepseek-v4-flash-20260423",
+    "finish_reason": "stop",
+    "tool_calls_count": 0,
+    "tool_names": [],
+    "usage": {
+      "prompt_tokens": 3152,
+      "completion_tokens": 211,
+      "total_tokens": 3363,
+      "cost": 0.00050036,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.00050036,
+        "upstream_inference_prompt_cost": 0.00044128,
+        "upstream_inference_completions_cost": 5.908e-05
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "content_preview": "{\n  \"internal_thinking\": \"Ziv is calling me out directly, saying I'm close to winning and someone must stop me. This is a critical social moment. I should either play it cool, deflect, or use it to sow distrust. Given th"
+  },
+  {
+    "model": "mistralai/mistral-small-2603",
+    "name": "Mistral: Mistral Small 4",
+    "prompt_price": "0.00000015",
+    "completion_price": "0.0000006",
+    "context": 262144,
+    "status_code": 200,
+    "latency": 2.637,
+    "ok": true,
+    "returned_model": "mistralai/mistral-small-2603",
+    "finish_reason": "stop",
+    "tool_calls_count": 0,
+    "tool_names": [],
+    "usage": {
+      "prompt_tokens": 3367,
+      "completion_tokens": 225,
+      "total_tokens": 3592,
+      "cost": 0.00064005,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.00064005,
+        "upstream_inference_prompt_cost": 0.00050505,
+        "upstream_inference_completions_cost": 0.000135
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "content_preview": "{\n  \"internal_thinking\": \"Ziv's last line was a direct jab at Hadar and suggesting she's about to win, which plays into the history we have with Hadar. I should stay silent to avoid escalating - Hadar already rejected my"
+  },
+  {
+    "model": "mistralai/ministral-8b-2512",
+    "name": "Mistral: Ministral 3 8B 2512",
+    "prompt_price": "0.00000015",
+    "completion_price": "0.00000015",
+    "context": 262144,
+    "status_code": 200,
+    "latency": 56.748,
+    "ok": true,
+    "returned_model": "mistralai/ministral-8b-2512",
+    "finish_reason": "stop",
+    "tool_calls_count": 0,
+    "tool_names": [],
+    "usage": {
+      "prompt_tokens": 3367,
+      "completion_tokens": 6721,
+      "total_tokens": 10088,
+      "cost": 0.0030264,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.0030264,
+        "upstream_inference_prompt_cost": 0.0010101,
+        "upstream_inference_completions_cost": 0.0020163
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "content_preview": "{ \"internal_thinking\": \"Ziv just called out Hadar's VP advantage directly, which is a calculated risk—it could backfire if Hadar perceives it as a threat. His tone is accusatory but also self-pitying ('מישהו חייב לעצור א"
+  }
+]

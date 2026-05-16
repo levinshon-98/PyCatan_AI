@@ -5,10 +5,12 @@
 import html as html_lib
 import json
 import os
+import re
 import ssl
 import sys
 import threading
 import webbrowser
+from collections import Counter
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -62,10 +64,20 @@ VERIFIED_OPENROUTER_MODEL_IDS = [
     "anthropic/claude-sonnet-4.5",
     "google/gemini-3.1-flash-lite",
     "google/gemini-3-flash-preview",
+    "google/gemini-2.5-flash-lite",
+    "google/gemini-2.5-flash",
+    "google/gemini-2.0-flash-001",
+    "google/gemini-2.0-flash-lite-001",
+    "mistralai/mistral-small-2603",
 ]
 VERIFIED_OPENROUTER_MODEL_ORDER = {
     model_id: index for index, model_id in enumerate(VERIFIED_OPENROUTER_MODEL_IDS)
 }
+RELATIONSHIP_CONTEXT_MODES = [
+    ("legacy", "Classic table history"),
+    ("ai_models", "AI model rivals"),
+    ("off", "No relationship context"),
+]
 
 GEMINI_TTS_MODELS = [
     "gemini-2.5-flash-preview-tts",
@@ -114,6 +126,46 @@ FALLBACK_MODELS = [
         "pricing": {"prompt": "", "completion": ""},
     },
     {
+        "id": "openai/gpt-4o-mini",
+        "name": "OpenAI: GPT-4o Mini",
+        "provider": "openai",
+        "context_length": 128000,
+        "max_completion_tokens": 16384,
+        "output_modalities": ["text"],
+        "supported_parameters": ["tools", "response_format", "structured_outputs", "temperature", "max_tokens"],
+        "pricing": {"prompt": "", "completion": ""},
+    },
+    {
+        "id": "openai/gpt-5.1-codex-mini",
+        "name": "OpenAI: GPT-5.1 Codex Mini",
+        "provider": "openai",
+        "context_length": 400000,
+        "max_completion_tokens": 128000,
+        "output_modalities": ["text"],
+        "supported_parameters": ["tools", "response_format", "structured_outputs", "max_tokens"],
+        "pricing": {"prompt": "", "completion": ""},
+    },
+    {
+        "id": "openai/gpt-5-mini",
+        "name": "OpenAI: GPT-5 Mini",
+        "provider": "openai",
+        "context_length": 400000,
+        "max_completion_tokens": 128000,
+        "output_modalities": ["text"],
+        "supported_parameters": ["tools", "response_format", "structured_outputs", "max_tokens"],
+        "pricing": {"prompt": "", "completion": ""},
+    },
+    {
+        "id": "anthropic/claude-haiku-4.5",
+        "name": "Anthropic: Claude Haiku 4.5",
+        "provider": "anthropic",
+        "context_length": 200000,
+        "max_completion_tokens": 64000,
+        "output_modalities": ["text"],
+        "supported_parameters": ["tools", "response_format", "structured_outputs", "temperature", "max_tokens"],
+        "pricing": {"prompt": "", "completion": ""},
+    },
+    {
         "id": "anthropic/claude-sonnet-4.5",
         "name": "Anthropic: Claude Sonnet 4.5",
         "provider": "anthropic",
@@ -124,6 +176,16 @@ FALLBACK_MODELS = [
         "pricing": {"prompt": "", "completion": ""},
     },
     {
+        "id": "google/gemini-3.1-flash-lite",
+        "name": "Google: Gemini 3.1 Flash Lite",
+        "provider": "google",
+        "context_length": 1048576,
+        "max_completion_tokens": 65536,
+        "output_modalities": ["text"],
+        "supported_parameters": ["tools", "response_format", "structured_outputs", "temperature", "max_tokens"],
+        "pricing": {"prompt": "", "completion": ""},
+    },
+    {
         "id": "google/gemini-3-flash-preview",
         "name": "Google: Gemini 3 Flash Preview",
         "provider": "google",
@@ -131,6 +193,56 @@ FALLBACK_MODELS = [
         "max_completion_tokens": 65536,
         "output_modalities": ["text"],
         "supported_parameters": ["tools", "response_format", "temperature", "max_tokens"],
+        "pricing": {"prompt": "", "completion": ""},
+    },
+    {
+        "id": "google/gemini-2.5-flash-lite",
+        "name": "Google: Gemini 2.5 Flash Lite",
+        "provider": "google",
+        "context_length": 1048576,
+        "max_completion_tokens": 65535,
+        "output_modalities": ["text"],
+        "supported_parameters": ["tools", "response_format", "structured_outputs", "temperature", "max_tokens"],
+        "pricing": {"prompt": "", "completion": ""},
+    },
+    {
+        "id": "google/gemini-2.5-flash",
+        "name": "Google: Gemini 2.5 Flash",
+        "provider": "google",
+        "context_length": 1048576,
+        "max_completion_tokens": 65535,
+        "output_modalities": ["text"],
+        "supported_parameters": ["tools", "response_format", "structured_outputs", "temperature", "max_tokens"],
+        "pricing": {"prompt": "", "completion": ""},
+    },
+    {
+        "id": "google/gemini-2.0-flash-001",
+        "name": "Google: Gemini 2.0 Flash",
+        "provider": "google",
+        "context_length": 1048576,
+        "max_completion_tokens": 8192,
+        "output_modalities": ["text"],
+        "supported_parameters": ["tools", "response_format", "structured_outputs", "temperature", "max_tokens"],
+        "pricing": {"prompt": "", "completion": ""},
+    },
+    {
+        "id": "google/gemini-2.0-flash-lite-001",
+        "name": "Google: Gemini 2.0 Flash Lite",
+        "provider": "google",
+        "context_length": 1048576,
+        "max_completion_tokens": 8192,
+        "output_modalities": ["text"],
+        "supported_parameters": ["tools", "response_format", "structured_outputs", "temperature", "max_tokens"],
+        "pricing": {"prompt": "", "completion": ""},
+    },
+    {
+        "id": "mistralai/mistral-small-2603",
+        "name": "Mistral: Mistral Small 4",
+        "provider": "mistralai",
+        "context_length": 262144,
+        "max_completion_tokens": 0,
+        "output_modalities": ["text"],
+        "supported_parameters": ["tools", "response_format", "structured_outputs", "temperature", "max_tokens"],
         "pricing": {"prompt": "", "completion": ""},
     },
 ]
@@ -226,6 +338,14 @@ def _tts_model_options(selected: str = "eleven_v3") -> str:
         f'<option value="{html_lib.escape(model["id"])}" {"selected" if model["id"] == selected else ""}>'
         f'{html_lib.escape(model["label"])} - {html_lib.escape(model["id"])}</option>'
         for model in ELEVENLABS_TTS_MODELS
+    )
+
+
+def _relationship_context_mode_options(selected: str = "legacy") -> str:
+    return "".join(
+        f'<option value="{html_lib.escape(value)}" {"selected" if value == selected else ""}>'
+        f"{html_lib.escape(label)}</option>"
+        for value, label in RELATIONSHIP_CONTEXT_MODES
     )
 
 
@@ -579,6 +699,7 @@ button {{ border:0; border-radius:7px; padding:13px 18px; font:inherit; font-wei
 <div class="form-grid">
 <label>OpenRouter API key<input name="openrouter_api_key" type="password" autocomplete="off" {openrouter_required} data-env-optional="{'true' if _env_has('OPENROUTER_API_KEY') else 'false'}" placeholder="{'ENV key available' if _env_has('OPENROUTER_API_KEY') else 'sk-or-...'}"></label>
 <label>Table-talk language<select name="chat_language"><option value="hebrew" {"selected" if selected.get("chat_language", "hebrew") == "hebrew" else ""}>Hebrew</option><option value="english" {"selected" if selected.get("chat_language") == "english" else ""}>English</option></select></label>
+<label>Relationship context<select name="relationship_context_mode">{_relationship_context_mode_options(selected.get('relationship_context_mode', 'legacy'))}</select></label>
 <label>Off-turn reactions<select name="reaction_mode"><option value="default" {"selected" if selected.get("reaction_mode", "default") == "default" else ""}>Use config default</option><option value="off" {"selected" if selected.get("reaction_mode") == "off" else ""}>Off</option><option value="sync" {"selected" if selected.get("reaction_mode") == "sync" else ""}>Sync</option><option value="async" {"selected" if selected.get("reaction_mode") == "async" else ""}>Async</option></select></label>
 <label>Reaction batch size<input name="reaction_batch_size" type="number" min="1" step="1" value="{html_lib.escape(selected.get('reaction_batch_size', ''))}" placeholder="5"></label>
 <label>Victory points to win<input name="victory_points" type="number" min="1" step="1" value="{html_lib.escape(selected.get('victory_points', '5'))}" placeholder="5"></label>
@@ -665,6 +786,76 @@ function setPlayerNamesLocked(locked) {{
   }}
   playerLockStatus.classList.toggle('hidden', !locked);
 }}
+function setSelectValue(name, value) {{
+  if (value === undefined || value === null || value === '') return;
+  const select = document.querySelector(`[name="${{name}}"]`);
+  if (select && [...select.options].some((option) => option.value === String(value))) {{
+    select.value = String(value);
+  }}
+}}
+function setInputValue(name, value) {{
+  if (value === undefined || value === null || value === '') return;
+  const input = document.querySelector(`[name="${{name}}"]`);
+  if (input) input.value = String(value);
+}}
+function applyRestoredSessionSettings(payload) {{
+  if (!payload || payload.error) return [];
+  const restored = [];
+  const reactions = payload.reactions || {{}};
+  const tts = payload.tts || {{}};
+  setSelectValue('chat_language', payload.chat_language);
+  setSelectValue('relationship_context_mode', payload.relationship_context_mode);
+  setSelectValue('reaction_mode', reactions.mode);
+  setInputValue('reaction_batch_size', reactions.batch_size);
+  setInputValue('victory_points', payload.victory_points);
+  setInputValue('random_seed', payload.random_seed);
+  setInputValue('game_context', payload.game_context);
+  setInputValue('config_path', payload.config_path);
+  setSelectValue('tts_provider', tts.provider);
+  setSelectValue('gemini_tts_model', tts.gemini_model);
+  setSelectValue('gemini_tts_voice', tts.gemini_voice);
+  setSelectValue('elevenlabs_tts_model', tts.elevenlabs_model);
+  refreshTts();
+
+  const players = (payload.players || []).slice(0, 4);
+  if (players.length) {{
+    const count = Math.min(4, Math.max(2, players.length));
+    playerCountSelect.value = String(count);
+    lockedPlayerCount.value = String(count);
+    players.forEach((player, index) => {{
+      const slot = index + 1;
+      const nameInput = document.querySelector(`[data-player-name="${{slot}}"]`);
+      if (nameInput && player.name) nameInput.value = player.name;
+      const llm = player.llm || {{}};
+      const provider = llm.model_provider || '';
+      const modelName = llm.model_name || '';
+      const providerSelect = document.querySelector(`[data-provider-select="${{slot}}"]`);
+      const modelSelect = document.querySelector(`[data-model-select="${{slot}}"]`);
+      const manualModel = document.querySelector(`[name="manual_model_${{slot}}"]`);
+      const selectedProvider = document.querySelector(`[data-selected-provider="${{slot}}"]`);
+      const selectedModel = document.querySelector(`[data-selected-model="${{slot}}"]`);
+      if (selectedProvider && provider) selectedProvider.value = provider;
+      if (selectedModel && modelName) selectedModel.value = modelName;
+      if (providerSelect && provider && [...providerSelect.options].some((option) => option.value === provider)) {{
+        providerSelect.value = provider;
+        providerSelect.dataset.initialized = 'true';
+        refreshPlayer(slot);
+      }}
+      if (modelSelect && modelName && [...modelSelect.options].some((option) => option.value === modelName)) {{
+        modelSelect.value = modelName;
+        if (manualModel) manualModel.value = '';
+      }} else if (manualModel && modelName) {{
+        manualModel.value = modelName;
+      }}
+    }});
+    restored.push('players/models');
+  }}
+  if (payload.chat_language) restored.push('language');
+  if (payload.relationship_context_mode) restored.push('relationship');
+  if (reactions.mode) restored.push('reactions');
+  if (payload.victory_points) restored.push('victory points');
+  return restored;
+}}
 async function loadSessionPlayers() {{
   if (runModeSelect.value === 'new_game') {{
     setPlayerNamesLocked(false);
@@ -678,16 +869,17 @@ async function loadSessionPlayers() {{
     refreshPlayers();
     return;
   }}
-  playerLockStatus.textContent = 'Loading player names from session...';
+  playerLockStatus.textContent = 'Loading session settings...';
   try {{
-    const response = await fetch(`/session-players?session=${{encodeURIComponent(sessionName)}}`);
+    const response = await fetch(`/session-settings?session=${{encodeURIComponent(sessionName)}}`);
     const payload = await response.json();
     if (!response.ok) {{
-      playerLockStatus.textContent = payload.error || 'Could not load player names from session.';
+      playerLockStatus.textContent = payload.error || 'Could not load settings from session.';
       refreshPlayers();
       return;
     }}
-    const names = (payload.players || []).slice(0, 4);
+    const restored = applyRestoredSessionSettings(payload);
+    const names = (payload.players || []).map((player) => player.name || player).slice(0, 4);
     if (names.length) {{
       const count = Math.min(4, Math.max(2, names.length));
       playerCountSelect.value = String(count);
@@ -696,12 +888,13 @@ async function loadSessionPlayers() {{
         const input = document.querySelector(`[data-player-name="${{index + 1}}"]`);
         if (input) input.value = name;
       }});
-      playerLockStatus.textContent = `Locked to session players: ${{names.join(', ')}}. You can change models only.`;
+      const suffix = restored.length ? ` Restored: ${{restored.join(', ')}}.` : '';
+      playerLockStatus.textContent = `Locked to session players: ${{names.join(', ')}}.${{suffix}} You can still change models/settings before start.`;
     }} else {{
       playerLockStatus.textContent = 'No player names were found in this session yet.';
     }}
   }} catch (error) {{
-    playerLockStatus.textContent = 'Could not load player names from session.';
+    playerLockStatus.textContent = 'Could not load settings from session.';
   }}
   refreshPlayers();
 }}
@@ -889,6 +1082,224 @@ def _minimum_recorded_actions_for_state(final_state: Optional[Dict[str, Any]]) -
     return len(buildings) + len(roads)
 
 
+def _read_session_metadata(session_dir: Path) -> Dict[str, Any]:
+    metadata_file = session_dir / "session_metadata.json"
+    if not metadata_file.exists():
+        return {}
+    try:
+        metadata = json.loads(metadata_file.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+    return metadata if isinstance(metadata, dict) else {}
+
+
+def _write_session_metadata(session_dir: Path, updates: Dict[str, Any]) -> None:
+    metadata = _read_session_metadata(session_dir)
+    metadata.update(updates)
+    (session_dir / "session_metadata.json").write_text(
+        json.dumps(metadata, indent=2, ensure_ascii=False),
+        encoding="utf-8",
+    )
+
+
+def _most_common_response_models(session_dir: Path) -> Dict[str, str]:
+    models_by_player: Dict[str, Counter] = {}
+    for response_file in session_dir.glob("*/responses/response_*.json"):
+        try:
+            data = json.loads(response_file.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        player_name = str(data.get("player_name") or response_file.parent.parent.name)
+        model_name = str(data.get("model") or "").strip()
+        if not player_name or not model_name:
+            continue
+        models_by_player.setdefault(player_name, Counter())[model_name] += 1
+    return {
+        player_name: counter.most_common(1)[0][0]
+        for player_name, counter in models_by_player.items()
+        if counter
+    }
+
+
+def _sample_prompt_docs(session_dir: Path, limit: int = 12) -> List[Dict[str, Any]]:
+    docs: List[Dict[str, Any]] = []
+    for prompt_file in sorted(session_dir.glob("*/prompts/prompt_*.json"))[:limit]:
+        try:
+            data = json.loads(prompt_file.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        if isinstance(data, dict):
+            docs.append(data)
+    return docs
+
+
+def _infer_victory_points_from_prompts(session_dir: Path) -> Optional[int]:
+    for prompt_doc in _sample_prompt_docs(session_dir):
+        prompt = prompt_doc.get("prompt") or {}
+        meta_data = prompt.get("meta_data") or {}
+        game_context = str(meta_data.get("game_context") or "")
+        match = re.search(r"to\s+(\d+)\s+victory points", game_context, flags=re.IGNORECASE)
+        if match:
+            return int(match.group(1))
+        game_state = str(prompt.get("game_state") or "")
+        match = re.search(r'"vp_to_win"\s*:\s*(\d+)', game_state)
+        if match:
+            return int(match.group(1))
+    return None
+
+
+def _infer_chat_language_from_prompts(session_dir: Path) -> Optional[str]:
+    for prompt_doc in _sample_prompt_docs(session_dir):
+        prompt = prompt_doc.get("prompt") or {}
+        task_context = prompt.get("task_context") or {}
+        instructions = str(task_context.get("instructions") or "")
+        if "Hebrew" in instructions or "עברית" in instructions or "׳¢׳‘׳¨" in instructions:
+            return "hebrew"
+        if "English" in instructions:
+            return "english"
+    return None
+
+
+def _infer_relationship_mode_from_prompts(session_dir: Path) -> Optional[str]:
+    for prompt_doc in _sample_prompt_docs(session_dir):
+        prompt = prompt_doc.get("prompt") or {}
+        meta_data = prompt.get("meta_data") or {}
+        relationship_context = str(meta_data.get("relationship_context") or "")
+        if not relationship_context:
+            continue
+        lowered = relationship_context.lower()
+        if "represents gemini" in lowered or "represents claude" in lowered or "represents gpt" in lowered:
+            return "ai_models"
+        if "relationship context" in lowered:
+            return "legacy"
+    return None
+
+
+def _public_run_settings(
+    settings: Dict[str, Any],
+    player_configs: List[Dict[str, Any]],
+    *,
+    source: str,
+) -> Dict[str, Any]:
+    """Build a redacted settings snapshot suitable for session_metadata.json."""
+    players = []
+    for index, player in enumerate(player_configs):
+        llm = player.get("llm") or {}
+        model_name = llm.get("model_name") or ""
+        players.append({
+            "slot": index + 1,
+            "name": player.get("name", ""),
+            "color": player.get("color", PLAYER_COLORS[index] if index < len(PLAYER_COLORS) else ""),
+            "is_ai": bool(player.get("is_ai", True)),
+            "llm": {
+                "provider": llm.get("provider") or "openrouter",
+                "model_provider": llm.get("model_provider") or provider_from_model_id(model_name),
+                "model_name": model_name,
+                "api_key_env_var": llm.get("api_key_env_var") or "OPENROUTER_API_KEY",
+            },
+        })
+    return {
+        "source": source,
+        "run_mode": settings.get("run_mode"),
+        "player_count": len(player_configs),
+        "players": players,
+        "llm": {
+            "provider": "openrouter",
+            "api_key_env_var": "OPENROUTER_API_KEY",
+        },
+        "chat_language": settings.get("chat_language"),
+        "relationship_context_mode": settings.get("relationship_context_mode"),
+        "no_llm": bool(settings.get("no_llm")),
+        "reactions": {
+            "mode": settings.get("reaction_mode"),
+            "batch_size": settings.get("reaction_batch_size"),
+        },
+        "victory_points": settings.get("victory_points"),
+        "game_context": settings.get("game_context", ""),
+        "random_seed": settings.get("random_seed"),
+        "config_path": settings.get("config_path"),
+        "replay": {
+            "session": settings.get("replay_session"),
+            "max_decisions": settings.get("replay_max_decisions"),
+            "through": settings.get("replay_through"),
+            "stop_before": settings.get("replay_stop_before"),
+            "skip_chat": bool(settings.get("replay_skip_chat")),
+            "delay": settings.get("replay_delay"),
+            "text_lead": settings.get("replay_text_lead"),
+            "speak": bool(settings.get("replay_speak")),
+        },
+        "tts": settings.get("tts") or {},
+    }
+
+
+def write_run_settings_metadata(
+    session_dir: Path,
+    settings: Dict[str, Any],
+    player_configs: List[Dict[str, Any]],
+    *,
+    source: str,
+) -> None:
+    """Persist redacted run settings to the new session metadata."""
+    try:
+        _write_session_metadata(
+            session_dir,
+            {"run_settings": _public_run_settings(settings, player_configs, source=source)},
+        )
+    except Exception as exc:
+        print(f"[SETUP] Could not write run settings metadata: {exc}")
+
+
+def infer_session_run_settings(session_dir: Path) -> Dict[str, Any]:
+    """Return stored run settings, falling back to best-effort inference from old sessions."""
+    metadata = _read_session_metadata(session_dir)
+    stored = metadata.get("run_settings")
+    if isinstance(stored, dict) and stored:
+        return {**stored, "inferred": False}
+
+    player_names = _infer_session_player_names(session_dir)
+    model_by_player = _most_common_response_models(session_dir)
+    players = []
+    for index, name in enumerate(player_names[:4]):
+        model_name = model_by_player.get(name, "")
+        players.append({
+            "slot": index + 1,
+            "name": name,
+            "color": PLAYER_COLORS[index],
+            "is_ai": True,
+            "llm": {
+                "provider": "openrouter" if model_name else "",
+                "model_provider": provider_from_model_id(model_name) if model_name else "",
+                "model_name": model_name,
+                "api_key_env_var": "OPENROUTER_API_KEY",
+            },
+        })
+
+    return {
+        "source": "inferred_from_session_logs",
+        "inferred": True,
+        "run_mode": None,
+        "player_count": len(players) or None,
+        "players": players,
+        "llm": {
+            "provider": "openrouter",
+            "api_key_env_var": "OPENROUTER_API_KEY",
+        },
+        "chat_language": _infer_chat_language_from_prompts(session_dir),
+        "relationship_context_mode": _infer_relationship_mode_from_prompts(session_dir),
+        "no_llm": False,
+        "reactions": {
+            "mode": None,
+            "batch_size": None,
+        },
+        "victory_points": _infer_victory_points_from_prompts(session_dir),
+        "game_context": "",
+        "random_seed": None,
+        "config_path": None,
+        "replay": {},
+        "tts": metadata.get("tts") or metadata.get("tts_cache") or {},
+    }
+
+
 def collect_settings(port: int = 5000, key_mode: str = "env") -> Dict[str, Any]:
     settings: Dict[str, Any] = {}
     ready = threading.Event()
@@ -955,6 +1366,21 @@ def collect_settings(port: int = 5000, key_mode: str = "env") -> Dict[str, Any]:
                     self._send_json({"error": str(exc), "players": []}, status=400)
                     return
                 self._send_json({"players": players})
+                return
+
+            if parsed_url.path == "/session-settings":
+                query = parse_qs(parsed_url.query)
+                session_ref = query.get("session", [""])[0].strip()
+                if not session_ref:
+                    self._send_json({"players": []})
+                    return
+                try:
+                    session_dir = resolve_session_path(session_ref)
+                    session_settings = infer_session_run_settings(session_dir)
+                except Exception as exc:
+                    self._send_json({"error": str(exc), "players": []}, status=400)
+                    return
+                self._send_json(session_settings)
                 return
 
             if parsed_url.path == "/":
@@ -1057,6 +1483,11 @@ def collect_settings(port: int = 5000, key_mode: str = "env") -> Dict[str, Any]:
             reaction_mode = fields.get("reaction_mode", "default")
             if reaction_mode not in {"default", "off", "sync", "async"}:
                 errors.append("Choose a valid reaction mode.")
+            relationship_context_mode = fields.get("relationship_context_mode", "legacy")
+            valid_relationship_modes = {value for value, _label in RELATIONSHIP_CONTEXT_MODES}
+            if relationship_context_mode not in valid_relationship_modes:
+                errors.append("Choose a valid relationship context mode.")
+                relationship_context_mode = "legacy"
             reaction_batch_size = _parse_optional_int(fields.get("reaction_batch_size", ""), errors, "Reaction batch size")
             victory_points = _parse_optional_int(fields.get("victory_points", "5"), errors, "Victory points") or 5
             fields["victory_points"] = str(victory_points)
@@ -1150,6 +1581,7 @@ def collect_settings(port: int = 5000, key_mode: str = "env") -> Dict[str, Any]:
                 "player_configs": player_configs if run_mode == "new_game" else [],
                 "slot_llms": slot_llms,
                 "chat_language": normalize_chat_language(fields.get("chat_language") or "hebrew"),
+                "relationship_context_mode": relationship_context_mode,
                 "no_llm": no_llm,
                 "reaction_mode": reaction_mode,
                 "reaction_batch_size": reaction_batch_size,
@@ -1165,6 +1597,13 @@ def collect_settings(port: int = 5000, key_mode: str = "env") -> Dict[str, Any]:
                 "replay_delay": replay_delay,
                 "replay_text_lead": replay_text_lead,
                 "replay_speak": replay_speak,
+                "tts": {
+                    "provider": tts_provider,
+                    "gemini_model": fields.get("gemini_tts_model", GEMINI_TTS_MODELS[0]),
+                    "gemini_voice": fields.get("gemini_tts_voice", "Kore"),
+                    "elevenlabs_model": fields.get("elevenlabs_tts_model", "eleven_v3"),
+                    "key_source": "env_or_redacted" if tts_provider != "off" else "off",
+                },
             })
             starting_players = player_configs if run_mode == "new_game" else [
                 {"name": replay_session or "recorded session", "llm": {"model_name": run_mode}}
@@ -1236,6 +1675,7 @@ def main() -> None:
     ai_config.llm.api_key_env_var = "OPENROUTER_API_KEY"
     ai_config.llm.enable_streaming = True
     ai_config.agent.chat_language = settings["chat_language"]
+    ai_config.agent.relationship_context_mode = settings["relationship_context_mode"]
     _apply_reaction_settings(ai_config, settings)
 
     replay_session_path = resolve_session_path(settings["replay_session"]) if settings["replay_session"] else None
@@ -1283,6 +1723,7 @@ def main() -> None:
 
     print(f"[MODE] LLM: {'ON' if send_to_llm else 'OFF'} | Actions: Auto")
     print(f"[CONFIG] Victory points to win: {settings['victory_points']}")
+    print(f"[CONFIG] Relationship context: {settings['relationship_context_mode']}")
     if settings.get("game_context"):
         print("[CONFIG] Additional game context enabled")
     print("[CONFIG] OpenRouter per-agent models")
@@ -1301,6 +1742,12 @@ def main() -> None:
             "victory_points": settings["victory_points"],
             "game_context": settings.get("game_context", ""),
         },
+    )
+    write_run_settings_metadata(
+        ai_manager.get_session_path(),
+        settings,
+        player_configs,
+        source="play_with_openrouter",
     )
 
     if send_to_llm:
@@ -1338,6 +1785,7 @@ def main() -> None:
             delay_seconds=max(0.0, settings["replay_delay"]),
             source_session=replay_session_path,
             text_lead_seconds=max(0.0, settings["replay_text_lead"]),
+            open_browser=False,
         )
     else:
         run_game(game_manager, ai_manager, web_viz)

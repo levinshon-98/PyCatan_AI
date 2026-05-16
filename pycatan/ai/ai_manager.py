@@ -401,7 +401,7 @@ class AIManager:
         self.agent_tools.update_game_state(game_state)
         
         # Build "what happened" from recent events plus the current phase prompt.
-        what_happened = self._build_what_happened(agent, prompt_message)
+        what_happened = self._build_what_happened(agent, prompt_message, game_state)
         
         # Create prompt
         prompt, schema = self._create_prompt(
@@ -1275,10 +1275,11 @@ class AIManager:
         # Get agent's memory
         agent_memory = None
         if agent.memory or agent.compacted_memory:
-            recent_notes = [
-                note.get("note", str(note))
-                for note in getattr(agent, "memory_history", [])[-self.config.memory.short_term_turns:]
-            ]
+            recent_notes = []
+            for note in getattr(agent, "memory_history", [])[-self.config.memory.short_term_turns:]:
+                note_text = note.get("note", str(note)) if isinstance(note, dict) else str(note)
+                if note_text and note_text != agent.memory:
+                    recent_notes.append(note_text)
             agent_memory = {
                 "note_from_last_turn": agent.memory,
                 "recent_notes": recent_notes
@@ -1339,15 +1340,23 @@ class AIManager:
             dice_total = sum(dice_values)
 
         dice_breakdown = "+".join(str(die) for die in dice_values)
-        dice_line = (
-            f"Current dice result: {dice_total} ({dice_breakdown}). "
-            "Resource production uses this total."
-        )
+        if dice_total == 7:
+            dice_line = (
+                f"Current dice result: 7 ({dice_breakdown}). "
+                "No resource production happens on 7; resolve discard/robber flow."
+            )
+        else:
+            dice_line = (
+                f"Current dice result: {dice_total} ({dice_breakdown}). "
+                "Resource production uses this total."
+            )
 
         current_text = (what_happened or "").strip()
         if dice_line in current_text:
             return what_happened
         if f"Rolled {dice_total} ({dice_breakdown})" in current_text:
+            return what_happened
+        if f"dice={dice_total}({dice_breakdown})" in current_text:
             return what_happened
         if f"dice result: {dice_total} ({dice_breakdown})" in current_text.lower():
             return what_happened
@@ -1496,7 +1505,12 @@ class AIManager:
         
         return result
     
-    def _build_what_happened(self, agent: AgentState, prompt_message: str = "") -> str:
+    def _build_what_happened(
+        self,
+        agent: AgentState,
+        prompt_message: str = "",
+        game_state: Optional[Dict[str, Any]] = None
+    ) -> str:
         """
         Build the 'what happened' message for the next prompt.
 
@@ -1525,20 +1539,25 @@ class AIManager:
             )
             lines = []
             if previous_event:
-                lines.append(f"Previous game event: {self._format_event_for_agent(previous_event, agent)}")
+                lines.append(f"Previous game event: {self._format_event_for_agent(previous_event, agent, game_state)}")
             lines.append("It's your turn.")
             if phase_prompt:
                 lines.append(f"Current required action: {phase_prompt}")
             return "\n".join(lines)
 
-        event_summary = self._format_event_for_agent(last_event, agent)
+        event_summary = self._format_event_for_agent(last_event, agent, game_state)
 
         if phase_prompt and phase_prompt not in event_summary:
             return f"{event_summary}\nCurrent required action: {phase_prompt}"
 
         return event_summary
     
-    def _format_event_for_agent(self, event: Dict[str, Any], agent: AgentState) -> str:
+    def _format_event_for_agent(
+        self,
+        event: Dict[str, Any],
+        agent: AgentState,
+        game_state: Optional[Dict[str, Any]] = None
+    ) -> str:
         """
         Format a single event into a clear, agent-focused message.
         
@@ -1554,6 +1573,10 @@ class AIManager:
         
         # Replace "Player X" with actual player name
         message = self._replace_player_numbers_with_names(message)
+
+        if "FACTS " in message:
+            facts = message[message.index("FACTS "):].strip()
+            return self._append_hand_you_if_relevant(facts, event, agent, game_state)
 
         if event_type == "action_failed":
             return message
@@ -1606,6 +1629,70 @@ class AIManager:
         # Default: clean up ActionType formatting
         cleaned = message.replace('ActionType.', '').replace('_', ' ').lower()
         return cleaned
+
+    def _append_hand_you_if_relevant(
+        self,
+        facts: str,
+        event: Dict[str, Any],
+        agent: AgentState,
+        game_state: Optional[Dict[str, Any]]
+    ) -> str:
+        """Append the agent's current hand only when the event changed it."""
+        if "hand_you=" in facts:
+            return facts
+
+        data = event.get("data") if isinstance(event, dict) else {}
+        affected_players = set((data or {}).get("affected_players") or [])
+        if agent.player_id not in affected_players:
+            return facts
+
+        hand_change_markers = (
+            "gain=", "prod=", "cost=", "give=", "receive=", "discarded=",
+            "stolen=", "taken=", "dev_delta=", "card=", "offer=", "request="
+        )
+        if not any(marker in facts for marker in hand_change_markers):
+            return facts
+
+        hand = self._format_current_agent_hand(agent, game_state)
+        return f"{facts} hand_you={hand}" if hand else facts
+
+    def _format_current_agent_hand(
+        self,
+        agent: AgentState,
+        game_state: Optional[Dict[str, Any]]
+    ) -> str:
+        """Format the current resource/dev hand for compact factual context."""
+        players = (game_state or {}).get("players") or {}
+        player = players.get(agent.player_name)
+        if player is None:
+            player_values = list(players.values()) if isinstance(players, dict) else []
+            if 0 <= agent.player_id < len(player_values):
+                player = player_values[agent.player_id]
+        if not isinstance(player, dict):
+            return ""
+
+        res_text = self._format_fact_bundle(player.get("res") or {})
+        dev = player.get("dev") or {}
+        dev_parts = []
+        hidden = dev.get("h") or dev.get("hidden")
+        revealed = dev.get("r") or dev.get("revealed")
+        if hidden:
+            dev_parts.append(f"h:{len(hidden)}")
+        if revealed:
+            dev_parts.append(f"r:{list(revealed)}")
+        dev_text = "{" + ",".join(dev_parts) + "}" if dev_parts else "{}"
+        return f"res{res_text},dev{dev_text}"
+
+    def _format_fact_bundle(self, bundle: Dict[str, Any]) -> str:
+        """Format a compact resource bundle with stable Catan key order."""
+        if not bundle:
+            return "{}"
+        order = {"W": 0, "B": 1, "S": 2, "Wh": 3, "O": 4}
+        parts = []
+        for key, value in sorted(bundle.items(), key=lambda item: order.get(str(item[0]), 99)):
+            if value:
+                parts.append(f"{key}:{value}")
+        return "{" + ",".join(parts) + "}" if parts else "{}"
     
     def _replace_player_numbers_with_names(self, message: str) -> str:
         """
@@ -1893,7 +1980,6 @@ class AIManager:
                         f"✅ Tool results sent back to LLM ({batch.total_tokens} tokens)",
                         "TOOL_RESULTS"
                     )
-                
             else:
                 # No tool calls - this is the final structured answer
                 # Gemini 3 supports tools + JSON schema together, so response is already structured
@@ -2234,6 +2320,16 @@ class AIManager:
                     "TOOL_RESULTS"
                 )
                 
+                self.logger.log_tool_followup_prompt(
+                    player_name=player_name,
+                    original_prompt_number=prompt_number,
+                    iteration=iteration + 1,
+                    conversation_context=conversation_context,
+                    tool_results=tool_results,
+                    tools_schema=tool_schemas,
+                    schema=schema
+                )
+                
             else:
                 # No tool calls - this is the final answer
                 response.prompt_tokens = accumulated_prompt_tokens
@@ -2342,7 +2438,7 @@ class AIManager:
                 continue
             
             # Add event to all agents (they all see what happens)
-            agent.add_event(event_type, message)
+            agent.add_event(event_type, message, {"affected_players": affected_players or []})
 
     def record_trade_offer(
         self,

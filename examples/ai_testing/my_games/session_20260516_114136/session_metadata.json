@@ -1,0 +1,84 @@
+{
+  "session_id": "session_20260516_114136",
+  "start_time": "2026-05-16T11:41:36.165001",
+  "version": "2.0",
+  "tts_cache": {
+    "enabled": "true",
+    "path": "examples\\ai_testing\\my_games\\session_20260516_114136\\tts_cache",
+    "source": "session_default"
+  },
+  "run_settings": {
+    "source": "play_with_better_ux",
+    "run_mode": "new_game",
+    "player_count": 3,
+    "players": [
+      {
+        "slot": 1,
+        "name": "ג'מה",
+        "color": "Red",
+        "is_ai": true,
+        "llm": {
+          "provider": "openrouter",
+          "model_provider": "google",
+          "model_name": "google/gemini-2.5-flash",
+          "api_key_env_var": "OPENROUTER_API_KEY"
+        }
+      },
+      {
+        "slot": 2,
+        "name": "קלוד",
+        "color": "Blue",
+        "is_ai": true,
+        "llm": {
+          "provider": "openrouter",
+          "model_provider": "anthropic",
+          "model_name": "anthropic/claude-haiku-4.5",
+          "api_key_env_var": "OPENROUTER_API_KEY"
+        }
+      },
+      {
+        "slot": 3,
+        "name": "ג'ימי",
+        "color": "White",
+        "is_ai": true,
+        "llm": {
+          "provider": "openrouter",
+          "model_provider": "openai",
+          "model_name": "openai/gpt-5.4-mini",
+          "api_key_env_var": "OPENROUTER_API_KEY"
+        }
+      }
+    ],
+    "llm": {
+      "provider": "openrouter",
+      "api_key_env_var": "OPENROUTER_API_KEY"
+    },
+    "chat_language": "hebrew",
+    "relationship_context_mode": "ai_models",
+    "no_llm": false,
+    "reactions": {
+      "mode": "async",
+      "batch_size": null
+    },
+    "victory_points": 5,
+    "game_context": "",
+    "random_seed": 0,
+    "config_path": null,
+    "replay": {
+      "session": null,
+      "max_decisions": null,
+      "through": null,
+      "stop_before": null,
+      "skip_chat": false,
+      "delay": 2.5,
+      "text_lead": 0.25,
+      "speak": false
+    },
+    "tts": {
+      "provider": "gemini",
+      "gemini_model": "gemini-2.5-flash-preview-tts",
+      "gemini_voice": "Kore",
+      "key_source": "env_or_redacted"
+    }
+  }
+}

@@ -7,8 +7,9 @@ rather than forcing the LLM to interpret raw data structures.
 
 Tools available:
 1. inspect_node - Get detailed info about a specific node (prevents hallucinations)
-2. find_best_nodes - Search for nodes by criteria (prevents missing opportunities)
-3. analyze_path_potential - Analyze road building potential (helps with strategy)
+2. inspect_hex - Get detailed info about a specific hex (prevents robber hallucinations)
+3. find_best_nodes - Search for nodes by criteria (prevents missing opportunities)
+4. analyze_path_potential - Analyze road building potential (helps with strategy)
 """
 
 from typing import Dict, Any, List, Optional, Set, Tuple
@@ -239,8 +240,68 @@ class AgentTools:
             "llm_reasoning": reasoning
         }
     
+    # ========== TOOL 2: Inspect Hex (Prevents Robber Hallucinations) ==========
     
-    # ========== TOOL 2: Find Best Nodes (Prevents Missing Opportunities) ==========
+    def inspect_hex(self, hex_id: int, reasoning: str = "") -> Dict[str, Any]:
+        """
+        Get detailed, processed information about a specific hex.
+        
+        CRITICAL: This prevents robber placement hallucinations!
+        Instead of the LLM trying to reverse-map Arrays N and H, it asks this
+        tool for accurate information about a tile and the buildings touching it.
+        
+        Args:
+            hex_id: The hex ID to inspect (e.g., 5, 17, 19)
+            reasoning: LLM's explanation for why it's inspecting this hex
+            
+        Returns:
+            Dictionary with complete hex information
+        """
+        if hex_id not in self.tile_lookup:
+            return {
+                "hex_id": hex_id,
+                "exists": False,
+                "error": f"Hex {hex_id} does not exist on the board",
+                "llm_reasoning": reasoning
+            }
+        
+        tile = self.tile_lookup[hex_id]
+        resource = tile.get("type", "")
+        number = tile.get("number", 0)
+        
+        adjacent_nodes = []
+        adjacent_buildings = []
+        
+        for node_id, node in self.node_lookup.items():
+            if hex_id not in node.get("adjacent_tiles", []):
+                continue
+            
+            adjacent_nodes.append(node_id)
+            building = node.get("building")
+            if building:
+                adjacent_buildings.append({
+                    "node_id": node_id,
+                    "owner": building.get("owner", "Unknown"),
+                    "building_type": building.get("type", "settlement")
+                })
+        
+        adjacent_nodes.sort()
+        adjacent_buildings.sort(key=lambda b: b["node_id"])
+        
+        return {
+            "hex_id": hex_id,
+            "exists": True,
+            "resource": resource,
+            "number": number,
+            "pips": PIP_VALUES.get(number, 0),
+            "robber_here": self.game_state.get("meta", {}).get("robber") == hex_id,
+            "adjacent_nodes": adjacent_nodes,
+            "adjacent_buildings": adjacent_buildings,
+            "llm_reasoning": reasoning
+        }
+    
+    
+    # ========== TOOL 3: Find Best Nodes (Prevents Missing Opportunities) ==========
     
     def find_best_nodes(
         self,
@@ -348,7 +409,7 @@ class AgentTools:
         }
     
     
-    # ========== TOOL 3: Analyze Path Potential (Helps with Road Strategy) ==========
+    # ========== TOOL 4: Analyze Path Potential (Helps with Road Strategy) ==========
     
     def analyze_path_potential(
         self,
@@ -530,6 +591,24 @@ class AgentTools:
                 }
             },
             {
+                "name": "inspect_hex",
+                "description": "Get detailed information about a specific hex/tile on the board, including resource, number, pips, robber status, adjacent nodes, and adjacent buildings. USE THIS before robber moves instead of manually reverse-mapping Arrays N and H.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "reasoning": {
+                            "type": "string",
+                            "description": "Explain WHY you're inspecting this specific hex. What robber target or production claim are you verifying?"
+                        },
+                        "hex_id": {
+                            "type": "integer",
+                            "description": "The hex/tile ID to inspect (e.g., 5, 17, 19)"
+                        }
+                    },
+                    "required": ["reasoning", "hex_id"]
+                }
+            },
+            {
                 "name": "find_best_nodes",
                 "description": "Search for the best available nodes matching specific criteria. USE THIS instead of manually scanning the board - prevents missing opportunities!",
                 "parameters": {
@@ -621,6 +700,8 @@ class AgentTools:
         """
         if tool_name == "inspect_node":
             return self.inspect_node(**parameters)
+        elif tool_name == "inspect_hex":
+            return self.inspect_hex(**parameters)
         elif tool_name == "find_best_nodes":
             return self.find_best_nodes(**parameters)
         elif tool_name == "analyze_path_potential":
@@ -628,5 +709,5 @@ class AgentTools:
         else:
             raise ValueError(
                 f"Unknown tool: {tool_name}. "
-                f"Available tools: inspect_node, find_best_nodes, analyze_path_potential"
+                f"Available tools: inspect_node, inspect_hex, find_best_nodes, analyze_path_potential"
             )

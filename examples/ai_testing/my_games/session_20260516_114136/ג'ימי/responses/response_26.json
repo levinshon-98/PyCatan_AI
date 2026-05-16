@@ -1,0 +1,25 @@
+{
+  "request_number": 26,
+  "timestamp": "2026-05-16T11:59:07.992117",
+  "player_name": "ג'ימי",
+  "type": "final",
+  "success": true,
+  "raw_content": "{\"internal_thinking\":\"The pending trade asks for 1 brick, but my hand has no brick, so acceptance is illegal. Must reject. No need to overthink board state this turn.\",\"note_to_self\":\"קלוד נשארת אגרסיבית מול ג'מה; לא להיגרר לזה. 12-11 עדיין יעד ההתרחבות המועדף שלי.\",\"say_outloud\":\"אין לי טיט, אז זה לא אפשרי.\",\"action\":{\"type\":\"trade_reject\",\"parameters\":\"{}\"}}",
+  "parsed": {
+    "internal_thinking": "The pending trade asks for 1 brick, but my hand has no brick, so acceptance is illegal. Must reject. No need to overthink board state this turn.",
+    "note_to_self": "קלוד נשארת אגרסיבית מול ג'מה; לא להיגרר לזה. 12-11 עדיין יעד ההתרחבות המועדף שלי.",
+    "say_outloud": "אין לי טיט, אז זה לא אפשרי.",
+    "action_type": "trade_reject",
+    "parameters": {}
+  },
+  "model": "openai/gpt-5.4-mini",
+  "tokens": {
+    "prompt": 2130,
+    "completion": 90,
+    "thinking": 0,
+    "total": 2220
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}
