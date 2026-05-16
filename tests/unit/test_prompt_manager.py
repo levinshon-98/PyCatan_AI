@@ -121,6 +121,26 @@ def test_relationship_context_includes_recent_updates():
     assert "Bob mocked my blocked ore" in context
 
 
+def test_prompt_includes_five_point_game_context():
+    manager = PromptManager()
+    state = _game_state("Hadar", "Shon")
+    state["meta"]["vp_to_win"] = 5
+
+    prompt = manager.create_prompt(
+        player_num=0,
+        player_name="Hadar",
+        player_color="Red",
+        game_state=state,
+        what_happened="Game start",
+        available_actions=[],
+    )
+
+    assert prompt["meta_data"]["game_context"] == (
+        "CONTEXT: You are playing Catan to 5 victory points. "
+        "The first player to reach 5 VP wins."
+    )
+
+
 def test_trade_context_summarizes_resolved_trades_and_keeps_open_trades_structured():
     manager = PromptManager()
     state = _game_state("Shon", "Ziv")

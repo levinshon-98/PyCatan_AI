@@ -57,6 +57,7 @@ def game_state_to_dict(game_state) -> Dict[str, Any]:
         'current_player': getattr(game_state, 'current_player', 0),
         'current_phase': game_state.game_phase.name if hasattr(game_state.game_phase, 'name') else str(game_state.game_phase),
         'dice_result': getattr(game_state, 'dice_rolled', None),
+        'victory_points_to_win': getattr(game_state, 'victory_points_to_win', 5),
     }
     
     # Convert board data
@@ -299,7 +300,8 @@ def optimize_state_for_ai(input_data: Dict[str, Any]) -> Dict[str, Any]:
         "curr": curr_name,
         "phase": data.get('current_phase'),
         "robber": robber_hex,
-        "dice": dice_result
+        "dice": dice_result,
+        "vp_to_win": data.get('victory_points_to_win', 5)
     }
     if dice_total is not None:
         meta["dice_total"] = dice_total

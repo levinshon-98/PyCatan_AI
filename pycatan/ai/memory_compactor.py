@@ -33,10 +33,16 @@ COMPACTION_RESPONSE_SCHEMA: Dict[str, Any] = {
             "description": "Short categories of information removed.",
             "items": {"type": "string"},
         },
+        "relationship_updates": {
+            "type": "array",
+            "description": "New concise relationship shifts for future table talk, trust, trades, and tie-breakers. Empty if nothing changed.",
+            "items": {"type": "string", "maxLength": 120},
+        },
     },
     "propertyOrdering": [
         "compacted_memory",
         "recent_notes_to_keep",
+        "relationship_updates",
         "discarded_as_irrelevant",
     ],
 }
@@ -107,9 +113,14 @@ class MemoryCompactor:
         return {
             "compacted_memory": compacted_memory,
             "existing_compacted_memory": agent.compacted_memory,
+            "existing_relationship_updates": agent.relationship_context_updates,
             "old_entries": old_entries,
             "recent_entries": recent_entries,
             "recent_notes_to_keep": parsed.get("recent_notes_to_keep", []),
+            "relationship_updates": self._clean_relationship_updates(
+                parsed.get("relationship_updates", []),
+                agent.relationship_context_updates,
+            ),
             "discarded_as_irrelevant": parsed.get("discarded_as_irrelevant", []),
             "relevant_chat": self._relevant_chat(agent.player_name, chat_history, chat_limit),
             "prompt": prompt,
@@ -144,6 +155,9 @@ class MemoryCompactor:
                     "known or likely opponent plans/resources/dev cards/trade tendencies, active negotiations, "
                     "social commitments, and mistakes to avoid. Discard repeated, completed, impossible, vague, "
                     "or superseded details. Do not invent facts; mark uncertainty clearly. "
+                    "Also extract only new meaningful relationship shifts from the old notes and relevant chat: "
+                    "trust changes, grudges, favors, threats, betrayals, promises, or emotional tension. "
+                    "Do not repeat existing relationship updates; leave relationship_updates empty if nothing changed. "
                     "Target about 50% or less of the combined old memory length. "
                     "Keep recent_notes_to_keep copied verbatim from the provided recent notes."
                 )
@@ -151,6 +165,7 @@ class MemoryCompactor:
             "game_state": self.prompt_builder._build_game_state_section(game_state),
             "memory_input": {
                 "existing_compacted_memory": agent.compacted_memory,
+                "existing_relationship_updates": agent.relationship_context_updates,
                 "old_notes_to_compact": old_note_texts,
                 "recent_notes_to_keep": recent_note_texts,
                 "relevant_chat": chat_history,
@@ -160,10 +175,40 @@ class MemoryCompactor:
                 "schema": {
                     "compacted_memory": "string",
                     "recent_notes_to_keep": ["string"],
+                    "relationship_updates": ["string"],
                     "discarded_as_irrelevant": ["string"],
                 },
             },
         }
+
+    def _clean_relationship_updates(
+        self,
+        updates: Any,
+        existing_updates: Optional[List[Dict[str, Any]]] = None,
+    ) -> List[str]:
+        """Return compact unique relationship updates from a model response."""
+        if not isinstance(updates, list):
+            return []
+
+        result = []
+        seen = {
+            str(update.get("note", "")).strip().lower()
+            for update in existing_updates or []
+            if isinstance(update, dict) and update.get("note")
+        }
+        for update in updates:
+            text = str(update).strip()
+            if not text:
+                continue
+            text = re.sub(r"\s+", " ", text)[:120].strip()
+            key = text.lower()
+            if key in seen:
+                continue
+            result.append(text)
+            seen.add(key)
+            if len(result) >= 3:
+                break
+        return result
 
     def _relevant_chat(
         self,

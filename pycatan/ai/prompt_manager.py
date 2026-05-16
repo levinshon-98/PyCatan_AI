@@ -89,9 +89,14 @@ class PromptManager:
         filtered_state = state_filter.filter_game_state(game_state)
         
         # Build meta data section
+        victory_points_to_win = self._get_victory_points_to_win(game_state)
         meta_data = {
             "agent_name": player_name,
-            "role": custom_instructions or self.config.agent.custom_instructions
+            "role": custom_instructions or self.config.agent.custom_instructions,
+            "game_context": (
+                f"CONTEXT: You are playing Catan to {victory_points_to_win} victory points. "
+                f"The first player to reach {victory_points_to_win} VP wins."
+            )
         }
         relationship_context = self._build_relationship_context(
             player_name,
@@ -387,6 +392,15 @@ class PromptManager:
                 f"{HEBREW_RESOURCE_TERMS_INSTRUCTION}"
             )
         return "Any say_outloud chat message must be written in natural English only."
+
+    def _get_victory_points_to_win(self, game_state: Dict[str, Any]) -> int:
+        """Read the configured victory point target from compact state."""
+        meta = game_state.get("meta", {}) if isinstance(game_state, dict) else {}
+        value = meta.get("vp_to_win", 5)
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return 5
 
     def _build_relationship_context(
         self,
