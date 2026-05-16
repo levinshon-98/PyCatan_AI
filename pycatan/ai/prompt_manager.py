@@ -90,13 +90,16 @@ class PromptManager:
         
         # Build meta data section
         victory_points_to_win = self._get_victory_points_to_win(game_state)
+        game_context = (
+            f"CONTEXT: You are playing Catan to {victory_points_to_win} victory points. "
+            f"The first player to reach {victory_points_to_win} VP wins."
+        )
+        custom_game_context = self._get_custom_game_context(game_state)
+        if custom_game_context:
+            game_context = f"{game_context}\nADDITIONAL GAME CONTEXT: {custom_game_context}"
         meta_data = {
             "agent_name": player_name,
-            "role": custom_instructions or self.config.agent.custom_instructions,
-            "game_context": (
-                f"CONTEXT: You are playing Catan to {victory_points_to_win} victory points. "
-                f"The first player to reach {victory_points_to_win} VP wins."
-            )
+            "game_context": game_context
         }
         relationship_context = self._build_relationship_context(
             player_name,
@@ -261,10 +264,20 @@ class PromptManager:
         }
         
         # Build meta data
+        victory_points_to_win = self._get_victory_points_to_win(game_state)
         meta_data = {
             "agent_name": player_name,
-            "role": self.config.agent.custom_instructions or "You are a Catan player."
+            "game_context": (
+                f"CONTEXT: You are playing Catan to {victory_points_to_win} victory points. "
+                f"The first player to reach {victory_points_to_win} VP wins."
+            )
         }
+        custom_game_context = self._get_custom_game_context(game_state)
+        if custom_game_context:
+            meta_data["game_context"] = (
+                f"{meta_data['game_context']}\n"
+                f"ADDITIONAL GAME CONTEXT: {custom_game_context}"
+            )
         
         # Constraints with just this action
         constraints = None
@@ -401,6 +414,19 @@ class PromptManager:
             return int(value)
         except (TypeError, ValueError):
             return 5
+
+    def _get_custom_game_context(self, game_state: Dict[str, Any]) -> str:
+        """Read optional user-provided game context from the prompt state."""
+        if not isinstance(game_state, dict):
+            return ""
+        meta = game_state.get("meta") or {}
+        value = (
+            meta.get("custom_game_context")
+            or game_state.get("custom_game_context")
+            or game_state.get("game_context")
+            or ""
+        )
+        return str(value).strip()
 
     def _build_relationship_context(
         self,

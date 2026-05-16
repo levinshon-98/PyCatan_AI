@@ -1,0 +1,112 @@
+=== Prompt #12 for Hadar ===
+Timestamp: 2026-05-16T03:41:24.718855
+Active Turn: False
+
+--- What Happened ---
+Event 1: Ziv said: "שון, אתה מפוצץ בחיטה ועם 10 קלפים ביד, כדאי לך להתחיל להזיז עניינים לפני שיצא 7 וכל החיטה הזאת תלך לפח. הדר, אני עדיין בעין פקוחה עלייך - כולנו יודעים שטיט אחד מה-6 הזה ואת סוגרת את הסיפור. לי אין מה להציע כרגע, אז אני פשוט אקווה שהקוביות ימשיכו לייבש את הטיט."
+You may react only with table talk or memory. Do not choose a board action.
+Source player: Ziv
+Reaction event id: 26:2:END_TURN:88:0
+
+--- Tools Available ---
+N/A
+
+--- Response Schema ---
+{
+  "type": "object",
+  "required": [
+    "internal_thinking"
+  ],
+  "properties": {
+    "internal_thinking": {
+      "type": "string",
+      "description": "Private thoughts while watching. What are opponents doing? Any threats? What's your plan for your next turn?",
+      "minLength": 30
+    },
+    "note_to_self": {
+      "type": "string",
+      "description": "Save important observations (e.g., 'Blue is going for longest road').",
+      "maxLength": 100
+    },
+    "say_outloud": {
+      "type": "string",
+      "description": "React naturally in Hebrew only. You have emotions and may express them when it matters. Can be empty if nothing notable. Catan manners are loose: be blunt or emotional when it matters. Keep it non-technical. Use exact Hebrew resource names: brick=טיט, ore=אבן, sheep=כבשה, wheat=חיטה.",
+      "maxLength": 120
+    }
+  },
+  "propertyOrdering": [
+    "internal_thinking",
+    "note_to_self",
+    "say_outloud"
+  ]
+}
+
+--- Prompt Content ---
+{
+  "meta_data": {
+    "agent_name": "Hadar",
+    "game_context": "CONTEXT: You are playing Catan to 5 victory points. The first player to reach 5 VP wins.",
+    "role": null,
+    "relationship_context": "Relationship context: This table has shared history. Hadar usually tries to keep the table fair and remembers loyalty. Shon is a charming dealmaker who betrayed Hadar late in the last game. Ziv warned Hadar about Shon, but also took a useful side trade from Shon. Your angle: Shon hurt your trust; Ziv warned you, but their side trade means they are not completely neutral. Use this only for table talk, trust, trades, and tie-breakers; your board decisions should still prioritize strong legal Catan play."
+  },
+  "task_context": {
+    "what_just_happened": "Event 1: Ziv said: \"שון, אתה מפוצץ בחיטה ועם 10 קלפים ביד, כדאי לך להתחיל להזיז עניינים לפני שיצא 7 וכל החיטה הזאת תלך לפח. הדר, אני עדיין בעין פקוחה עלייך - כולנו יודעים שטיט אחד מה-6 הזה ואת סוגרת את הסיפור. לי אין מה להציע כרגע, אז אני פשוט אקווה שהקוביות ימשיכו לייבש את הטיט.\"\nYou may react only with table talk or memory. Do not choose a board action.\nSource player: Ziv\nReaction event id: 26:2:END_TURN:88:0\nCurrent dice result: 9 (4+5). Resource production uses this total.",
+    "instructions": "You are not taking a board action now. You may only react socially. Usually leave say_outloud empty; silence is the normal and preferred response to generic table talk. Reply only if you were addressed, insulted, threatened, directly harmed, offered a meaningful deal, or if the event matters for relationships or long-term strategy. Do not answer every message. If you do speak, write natural Hebrew only, keep it brief, human, and non-technical. Use exact Hebrew resource names: brick=טיט, ore=אבן, sheep=כבשה, wheat=חיטה. You may update note_to_self with useful strategy context."
+  },
+  "game_state": "\n  1. LOOKUP TABLES:\n   • \"H\" (Hexes): Array where Index = HexID. Value = Resource+Num.\n     Example: H[1]=\"W12\" -> Hex 1 is Wood 12.\n   • \"N\" (Nodes): Array where Index = NodeID.\n     Format: [ [Neighbors], [HexIDs], Port? ]\n     Logic: To find yield of Node 10, check N[10]. Get HexIDs (e.g. [1,5]). Look up H[1] and H[5].\n\n2. CODES: W=Wood, B=Brick, S=Sheep, Wh=Wheat, O=Ore, D=Desert.\n          ?3=Any 3:1 port, X2=Specific Resource 2:1 port.\n\n3. STATE: \"bld\"=[NodeID, Owner, Type], \"rds\"=[[From,To], Owner].\n\n4. PLAYERS: \"res\"={Resource:Count}, \"dev\"={\"h\":[Hidden Cards], \"r\":[Revealed] (K=Knight)}, \n            \"stat\"=[\"LR\" (Longest Road), \"LA\" (Largest Army)].\n\n5. ROBBER: Located at HexID specified in \"meta.robber\". H[id] is blocked.\n\nJSON:\n{\"meta\":{\"curr\":\"Ziv\",\"phase\":\"NORMAL_PLAY\",\"robber\":17,\"dice\":[4,5],\"vp_to_win\":5,\"dice_total\":9},\"H\":[\"\",\"W12\",\"S5\",\"W4\",\"S8\",\"B6\",\"W3\",\"Wh8\",\"B10\",\"W11\",\"D\",\"O3\",\"S4\",\"B10\",\"Wh9\",\"Wh6\",\"S11\",\"O5\",\"Wh9\",\"O2\"],\"N\":[null,[[2,9],[1]],[[1,3],[1],\"Wh2\"],[[2,4,11],[2,1],\"Wh2\"],[[3,5],[2]],[[4,6,13],[3,2]],[[5,7],[3],\"B2\"],[[6,15],[3],\"B2\"],[[9,18],[4],\"?3\"],[[8,10,1],[4,1],\"?3\"],[[9,11,20],[5,4,1]],[[10,12,3],[5,2,1]],[[11,13,22],[6,5,2]],[[12,14,5],[6,3,2]],[[13,15,24],[7,6,3]],[[14,16,7],[7,3]],[[15,26],[7],\"O2\"],[[18,28],[8],\"S2\"],[[17,19,8],[8,4]],[[18,20,30],[9,8,4]],[[19,21,10],[9,5,4]],[[20,22,32],[10,9,5]],[[21,23,12],[10,6,5]],[[22,24,34],[11,10,6]],[[23,25,14],[11,7,6]],[[24,26,36],[12,11,7]],[[25,27,16],[12,7],\"O2\"],[[26,38],[12]],[[29,17],[8],\"S2\"],[[28,30,39],[13,8]],[[29,31,19],[13,9,8]],[[30,32,41],[14,13,9]],[[31,33,21],[14,10,9]],[[32,34,43],[15,14,10]],[[33,35,23],[15,11,10]],[[34,36,45],[16,15,11]],[[35,37,25],[16,12,11]],[[36,38,47],[16,12],\"?3\"],[[37,27],[12],\"?3\"],[[40,29],[13]],[[39,41,48],[17,13],\"W2\"],[[40,42,31],[17,14,13]],[[41,43,50],[18,17,14]],[[42,44,33],[18,15,14]],[[43,45,52],[19,18,15]],[[44,46,35],[19,16,15]],[[45,47,54],[19,16]],[[46,37],[16]],[[49,40],[17],\"W2\"],[[48,50],[17]],[[49,51,42],[18,17],\"?3\"],[[50,52],[18],\"?3\"],[[51,53,44],[19,18]],[[52,54],[19],\"?3\"],[[53,46],[19],\"?3\"]],\"state\":{\"bld\":[[9,\"Hadar\",\"S\"],[12,\"Ziv\",\"S\"],[14,\"Hadar\",\"S\"],[20,\"Hadar\",\"S\"],[25,\"Hadar\",\"S\"],[30,\"Shon\",\"S\"],[43,\"Shon\",\"S\"],[50,\"Shon\",\"S\"],[41,\"Ziv\",\"C\"]],\"rds\":[[[20,10],\"Hadar\"],[[43,42],\"Shon\"],[[12,13],\"Ziv\"],[[41,31],\"Ziv\"],[[30,19],\"Shon\"],[[25,24],\"Hadar\"],[[42,50],\"Shon\"],[[24,14],\"Hadar\"],[[10,9],\"Hadar\"],[[13,14],\"Ziv\"],[[19,18],\"Shon\"],[[31,32],\"Ziv\"],[[24,23],\"Hadar\"]]},\"players\":{\"Hadar\":{\"vp\":4,\"res\":{\"W\":2,\"Wh\":2},\"dev\":{\"r\":[\"K\"]}},\"Shon\":{\"vp\":3,\"res\":{\"S\":2,\"W\":1,\"Wh\":4}},\"Ziv\":{\"vp\":3,\"res\":{\"S\":1,\"Wh\":2}}}}",
+  "social_context": {
+    "recent_chat": [
+      {
+        "from": "Ziv",
+        "message": "11? הדר, עוד עץ לאוסף. שון, נראה לי שהקוביות דווקא בעדה כרגע."
+      },
+      {
+        "from": "Shon",
+        "message": "זיו, ה-11 הזה נתן לי קצת עץ, אבל בלי טיט אני תקוע בדיוק כמוכם. הדר, אני לא יכול לעזור לך עם טיט כי פשוט אין לי, ובאמת עדיף ככה לטובת כולנו כרגע. זיו, רוצה כבשה תמורת טיט? זה יעזור לשנינו להתקדם קצת בזמן שהדר מחכה לנס."
+      },
+      {
+        "from": "Ziv",
+        "message": "שון, אין לי טיט לתת לך. אני לגמרי יבש ממשאבים כרגע, חוץ מכבשה אחת שאין לי מה לעשות איתה."
+      },
+      {
+        "from": "Hadar",
+        "message": "שון, אתה ממש מנסה להפוך אותי למטרה, אה? בסך הכל קיבלתי עץ אחד מה-11 הזה, בדיוק כמוך. וזיו, אל תדאג, ה'נס' שלי לא יקרה בקרוב אם הטיט פשוט נעלם מהמפה."
+      },
+      {
+        "from": "Shon",
+        "message": "טוב, נראה שבאמת אין טיט בשוק כרגע. זיו יבש, הדר מחכה לנס, ואני תקוע עם כבשים שאין להן לאן ללכת. אני אסיים את התור ונקווה שהקוביות יהיו קצת יותר נדיבות בסיבוב הבא, או לפחות שלא יתנו להדר את מה שהיא צריכה."
+      },
+      {
+        "from": "Hadar",
+        "message": "אל תדאג לי שון, אני אסתדר. נראה למי הקוביות יחייכו בסיבוב הבא."
+      },
+      {
+        "from": "Ziv",
+        "message": "לגמרי יבש. כל עוד הטיט לא מגיע להדר, אני בסדר עם זה."
+      },
+      {
+        "from": "Ziv",
+        "message": "הדר, את ממש על הקצה. מספיק לך עוד טיט אחד והסיפור נגמר, לא? בואו נקווה שהקוביות לא יפרגנו לך עכשיו. מטיל..."
+      },
+      {
+        "from": "Shon",
+        "message": "מזל שזה לא טיט. לפחות כולנו קיבלנו קצת חיטה מהסיפור הזה."
+      },
+      {
+        "from": "Ziv",
+        "message": "שון, אתה מפוצץ בחיטה ועם 10 קלפים ביד, כדאי לך להתחיל להזיז עניינים לפני שיצא 7 וכל החיטה הזאת תלך לפח. הדר, אני עדיין בעין פקוחה עלייך - כולנו יודעים שטיט אחד מה-6 הזה ואת סוגרת את הסיפור. לי אין מה להציע כרגע, אז אני פשוט אקווה שהקוביות ימשיכו לייבש את הטיט."
+      }
+    ],
+    "trade_context": "Recent trade history: Shon offered you 1 wheat for 1 brick; you rejected. You offered Shon 2 sheep for 1 wood; Shon rejected. You offered Shon 2 sheep for 1 brick; Shon accepted. Shon offered you 1 sheep for 1 wood; you rejected. You offered Shon 1 wood, 1 wheat for 1 brick; Shon rejected."
+  },
+  "memory": {
+    "note_from_last_turn": "The 9 roll gave me 1 חיטה and Shon 1 חיטה. I now have 2 עץ and 3 חיטה. Shon has 5 חיטה and 2 כבשה. Ziv is still resource-poor. I need to find a way to get טיט and כבשה.",
+    "recent_notes": [
+      "I am at 4 VP and only need 1 Brick to build a settlement at node 23 and win. Neither Shon nor Ziv has Brick right now. I need to watch for a 6 or 10 roll, or wait for them to collect resources I can trade for.",
+      "The 11 roll gave me 1 עץ. I now have 3 עץ and 2 חיטה. I need 1 טיט and 1 כבשה to win at node 23. Shon also got 1 עץ from that roll.",
+      "Shon is actively pushing the 'Hadar is about to win' narrative to isolate me. Ziv is currently resource-poor and hasn't bitten on Shon's trade yet. I need 1 טיט and 1 כבשה to win at node 23.",
+      "Shon is actively fear-mongering about my 4 VP. I need 1 טיט and 1 כבשה to build on node 23 and win.",
+      "The 9 roll gave me 1 חיטה and Shon 1 חיטה. I now have 2 עץ and 3 חיטה. Shon has 5 חיטה and 2 כבשה. Ziv is still resource-poor. I need to find a way to get טיט and כבשה."
+    ]
+  }
+}

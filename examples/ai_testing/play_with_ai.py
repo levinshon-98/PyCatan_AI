@@ -51,7 +51,7 @@ import webbrowser
 import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from urllib.parse import parse_qs
+from urllib.parse import parse_qs, urlparse
 from pycatan.management.game_manager import GameManager
 from pycatan.players.human_user import HumanUser
 from pycatan.ai import AIManager, AIUser, AIConfig
@@ -359,6 +359,20 @@ def group_replay_decisions(decisions: List[Dict[str, Any]]) -> Dict[str, List[Di
     return grouped
 
 
+def list_replay_marker_options(session_dir: Path) -> List[Dict[str, str]]:
+    """Return replay markers that are valid for this selected session."""
+    options = []
+    for decision in load_replay_decisions(session_dir):
+        marker = f"{decision['player_name']}:{decision['request_number']}"
+        action_type = decision.get("parsed", {}).get("action_type", "")
+        options.append({
+            "value": marker,
+            "label": f"{marker} - {action_type}",
+            "action_type": action_type,
+        })
+    return options
+
+
 class ReplayExhausted(Exception):
     """Raised by watch-only replay when no recorded decision exists."""
 
@@ -517,6 +531,8 @@ def _render_browser_settings_page(
     selected_reaction_mode: str = "default",
     selected_reaction_batch_size: str = "",
     selected_config_path: str = "",
+    selected_random_seed: str = "",
+    selected_game_context: str = "",
     key_mode: str = "env",
     gemini_env_available: bool = False,
     elevenlabs_env_available: bool = False,
@@ -692,7 +708,7 @@ def _render_browser_settings_page(
         }}
         legend {{ padding: 0 8px; font-weight: 700; }}
         label {{ display: grid; gap: 7px; font-weight: 650; }}
-        input, select {{
+        input, select, textarea {{
             width: 100%;
             border: 1px solid #b9b09d;
             border-radius: 6px;
@@ -701,7 +717,8 @@ def _render_browser_settings_page(
             background: #fbfcfd;
             color: var(--ink);
         }}
-        input:focus, select:focus {{
+        textarea {{ min-height: 96px; resize: vertical; }}
+        input:focus, select:focus, textarea:focus {{
             outline: 3px solid rgba(36, 107, 91, 0.18);
             border-color: var(--accent);
         }}
@@ -870,12 +887,13 @@ def _render_browser_settings_page(
                         <div class="form-grid">
                             <label>
                                 Stop before marker
-                                <input name="replay_stop_before" value="{html_lib.escape(selected_replay_stop_before)}" placeholder="Shon:4">
+                                <input name="replay_stop_before" list="replay-marker-options" value="{html_lib.escape(selected_replay_stop_before)}" placeholder="Shon:4">
                             </label>
                             <label>
                                 Replay through marker
-                                <input name="replay_through" value="{html_lib.escape(selected_replay_through)}" placeholder="Ziv:8">
+                                <input name="replay_through" list="replay-marker-options" value="{html_lib.escape(selected_replay_through)}" placeholder="Ziv:8">
                             </label>
+                            <datalist id="replay-marker-options"></datalist>
                             <label>
                                 Max decisions
                                 <input name="replay_max_decisions" type="number" min="1" step="1" value="{html_lib.escape(selected_replay_max_decisions)}">
@@ -897,6 +915,7 @@ def _render_browser_settings_page(
                             <input name="replay_speak" type="checkbox" {'checked' if selected_replay_speak else ''}>
                             Speak recorded replay chat from cache
                         </label>
+                        <p class="hint" id="replay-marker-status">Replay markers are loaded from recorded game actions only.</p>
                     </div>
                 </fieldset>
 
@@ -922,10 +941,19 @@ def _render_browser_settings_page(
                                 <input name="reaction_batch_size" type="number" min="1" step="1" value="{html_lib.escape(selected_reaction_batch_size)}" placeholder="5">
                             </label>
                             <label>
+                                Random seed
+                                <input name="random_seed" type="number" step="1" value="{html_lib.escape(selected_random_seed)}" placeholder="0">
+                            </label>
+                            <label>
                                 Config file
                                 <input name="config_path" value="{html_lib.escape(selected_config_path)}" placeholder="pycatan/ai/config_dev.yaml">
                             </label>
                         </div>
+                        <label>
+                            Additional game context
+                            <textarea name="game_context" maxlength="4000" placeholder="Optional table-wide context that every agent should know.">{html_lib.escape(selected_game_context)}</textarea>
+                        </label>
+                        <p class="hint">Leave random seed blank to use the current deterministic default: 0.</p>
                     </div>
                 </fieldset>
 
@@ -1005,6 +1033,8 @@ def _render_browser_settings_page(
         const runModeSelect = document.querySelector('select[name="run_mode"]');
         const replayFields = document.getElementById('replay-fields');
         const replaySessionInput = document.querySelector('input[name="replay_session"]');
+        const replayMarkerOptions = document.getElementById('replay-marker-options');
+        const replayMarkerStatus = document.getElementById('replay-marker-status');
         const replaySpeakInput = document.querySelector('input[name="replay_speak"]');
         const noLlmInput = document.querySelector('input[name="no_llm"]');
         const geminiApiKeyInput = document.querySelector('input[name="api_key"]');
@@ -1046,9 +1076,45 @@ def _render_browser_settings_page(
             const needsSession = mode !== 'new_game';
             replayFields.style.display = needsSession ? 'grid' : 'none';
             replaySessionInput.required = needsSession;
+            if (needsSession) {{
+                loadReplayMarkers();
+            }}
             refreshPlayers();
             refreshTtsProvider();
             refreshSetupPath();
+        }}
+        let markerLoadTimer = null;
+        function scheduleReplayMarkerLoad() {{
+            clearTimeout(markerLoadTimer);
+            markerLoadTimer = setTimeout(loadReplayMarkers, 200);
+        }}
+        async function loadReplayMarkers() {{
+            const sessionName = replaySessionInput.value.trim();
+            replayMarkerOptions.innerHTML = '';
+            if (!sessionName) {{
+                replayMarkerStatus.textContent = 'Choose a session to see valid replay markers.';
+                return;
+            }}
+            replayMarkerStatus.textContent = 'Loading replay markers...';
+            try {{
+                const response = await fetch(`/replay-markers?session=${{encodeURIComponent(sessionName)}}`);
+                const payload = await response.json();
+                if (!response.ok) {{
+                    replayMarkerStatus.textContent = payload.error || 'Could not load replay markers.';
+                    return;
+                }}
+                payload.markers.forEach((marker) => {{
+                    const option = document.createElement('option');
+                    option.value = marker.value;
+                    option.label = marker.label;
+                    replayMarkerOptions.appendChild(option);
+                }});
+                replayMarkerStatus.textContent = payload.markers.length
+                    ? `${{payload.markers.length}} valid action markers available. Reactions/table talk are intentionally excluded.`
+                    : 'No action markers were found in this session.';
+            }} catch (error) {{
+                replayMarkerStatus.textContent = 'Could not load replay markers.';
+            }}
         }}
         function refreshSetupPath() {{
             const mode = runModeSelect.value;
@@ -1079,6 +1145,8 @@ def _render_browser_settings_page(
         radios.forEach((radio) => radio.addEventListener('change', refreshPlayers));
         providerSelect.addEventListener('change', refreshTtsProvider);
         runModeSelect.addEventListener('change', refreshRunMode);
+        replaySessionInput.addEventListener('input', scheduleReplayMarkerLoad);
+        replaySessionInput.addEventListener('change', loadReplayMarkers);
         replaySpeakInput.addEventListener('change', refreshTtsProvider);
         noLlmInput.addEventListener('change', refreshTtsProvider);
         refreshPlayers();
@@ -1189,8 +1257,32 @@ def collect_browser_settings(port: int = 5000, key_mode: str = "env") -> Dict[st
             self.end_headers()
             self.wfile.write(body_bytes)
 
+        def _send_json(self, payload: Dict[str, Any], status: int = 200) -> None:
+            body_bytes = json.dumps(payload).encode("utf-8")
+            self.send_response(status)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(body_bytes)))
+            self.end_headers()
+            self.wfile.write(body_bytes)
+
         def do_GET(self):
-            if self.path not in ("/", "/settings"):
+            parsed_url = urlparse(self.path)
+            if parsed_url.path == "/replay-markers":
+                query = parse_qs(parsed_url.query)
+                session_ref = query.get("session", [""])[0].strip()
+                if not session_ref:
+                    self._send_json({"markers": []})
+                    return
+                try:
+                    session_dir = resolve_session_path(session_ref)
+                    markers = list_replay_marker_options(session_dir)
+                except Exception as exc:
+                    self._send_json({"error": str(exc), "markers": []}, status=400)
+                    return
+                self._send_json({"markers": markers})
+                return
+
+            if parsed_url.path not in ("/", "/settings"):
                 self.send_response(302)
                 self.send_header("Location", "/settings")
                 self.end_headers()
@@ -1220,6 +1312,8 @@ def collect_browser_settings(port: int = 5000, key_mode: str = "env") -> Dict[st
             reaction_mode = fields.get("reaction_mode", ["default"])[0].strip()
             reaction_batch_size_raw = fields.get("reaction_batch_size", [""])[0].strip()
             config_path = fields.get("config_path", [""])[0].strip()
+            random_seed_raw = fields.get("random_seed", [""])[0].strip()
+            game_context = fields.get("game_context", [""])[0].strip()
             tts_provider = fields.get("tts_provider", ["gemini"])[0].strip()
             gemini_tts_model = fields.get("gemini_tts_model", ["gemini-2.5-flash-preview-tts"])[0].strip()
             gemini_tts_voice = fields.get("gemini_tts_voice", ["Kore"])[0].strip()
@@ -1247,10 +1341,29 @@ def collect_browser_settings(port: int = 5000, key_mode: str = "env") -> Dict[st
                 errors.append("Choose a recorded session for replay/resume/analyse mode.")
             if replay_through and replay_stop_before:
                 errors.append("Use either replay-through or replay-stop-before, not both.")
+            replay_session_path_for_validation = None
+            if needs_session and replay_session:
+                try:
+                    replay_session_path_for_validation = resolve_session_path(replay_session)
+                except FileNotFoundError as exc:
+                    errors.append(str(exc))
+            if replay_session_path_for_validation and (replay_through or replay_stop_before):
+                try:
+                    load_replay_decisions(
+                        replay_session_path_for_validation,
+                        replay_through=replay_through or None,
+                        replay_stop_before=replay_stop_before or None
+                    )
+                except (TypeError, ValueError) as exc:
+                    errors.append(
+                        f"{exc}. Choose one of the suggested action markers; reaction-only table talk is not replayable as a marker."
+                    )
             if reaction_mode not in valid_reaction_modes:
                 errors.append("Choose a valid reaction mode.")
             if config_path and not Path(config_path).exists():
                 errors.append("Config file was not found.")
+            if len(game_context) > 4000:
+                errors.append("Additional game context must be 4000 characters or less.")
             replay_max_decisions = None
             if replay_max_decisions_raw:
                 try:
@@ -1281,6 +1394,12 @@ def collect_browser_settings(port: int = 5000, key_mode: str = "env") -> Dict[st
                         errors.append("Reaction batch size must be at least 1.")
                 except ValueError:
                     errors.append("Reaction batch size must be a number.")
+            random_seed = 0
+            if random_seed_raw:
+                try:
+                    random_seed = int(random_seed_raw)
+                except ValueError:
+                    errors.append("Random seed must be a whole number.")
             live_mode = run_mode in {"new_game", "resume_session"}
             needs_gemini_key = (live_mode and not no_llm) or (tts_provider == "gemini" and (live_mode or replay_speak))
             if needs_gemini_key and not effective_api_key:
@@ -1341,7 +1460,9 @@ def collect_browser_settings(port: int = 5000, key_mode: str = "env") -> Dict[st
                         selected_no_llm=no_llm,
                         selected_reaction_mode=reaction_mode if reaction_mode in valid_reaction_modes else "default",
                         selected_reaction_batch_size=reaction_batch_size_raw,
-                        selected_config_path=config_path
+                        selected_config_path=config_path,
+                        selected_random_seed=random_seed_raw,
+                        selected_game_context=game_context
                     ),
                     status=400
                 )
@@ -1370,6 +1491,8 @@ def collect_browser_settings(port: int = 5000, key_mode: str = "env") -> Dict[st
                 "reaction_mode": reaction_mode,
                 "reaction_batch_size": reaction_batch_size,
                 "config_path": config_path or None,
+                "random_seed": random_seed,
+                "game_context": game_context,
                 "player_configs": [
                     {"name": selected_names[index], "is_ai": True, "color": PLAYER_COLORS[index]}
                     for index in range(player_count)
@@ -1475,7 +1598,10 @@ def create_game(
     replay_decisions: Optional[Dict[str, List[Dict[str, Any]]]] = None,
     replay_chat: bool = True,
     replay_speak: bool = False,
-    replay_only: bool = False
+    replay_only: bool = False,
+    web_port: int = 5000,
+    random_seed: Optional[int] = 0,
+    game_config: Optional[Dict[str, Any]] = None
 ) -> tuple:
     """
     Create the game with configured players.
@@ -1525,12 +1651,11 @@ def create_game(
         
         users.append(user)
     
-    # Create game manager with optional random seed for reproducibility
-    # Use random_seed=0 for deterministic games, or None for random
-    game_manager = GameManager(users, random_seed=0)
+    # Create game manager with optional game config and random seed for reproducibility.
+    game_manager = GameManager(users, game_config=game_config, random_seed=random_seed)
     
     # Setup web visualization
-    web_viz = WebVisualization(port=5000, auto_open=False, debug=False)
+    web_viz = WebVisualization(port=web_port, auto_open=False, debug=False)
     viz_manager = VisualizationManager()
     viz_manager.add_visualization(web_viz)
     game_manager.visualization_manager = viz_manager
@@ -1543,6 +1668,9 @@ def create_game(
     
     print(f"\n[OK] Game created!")
     print(f"[LOG] Session: {ai_manager.get_session_path()}")
+    print(f"[SETUP] Random seed: {random_seed}")
+    if game_config and "victory_points" in game_config:
+        print(f"[SETUP] Victory points to win: {game_config['victory_points']}")
     print()
     
     return game_manager, ai_manager, web_viz
@@ -1786,6 +1914,8 @@ def main():
                        help="Force off-turn social reactions to run synchronously.")
     parser.add_argument("--reaction-batch-size", type=int, default=None,
                        help="Maximum queued social reaction events to combine into one observer prompt.")
+    parser.add_argument("--random-seed", type=int, default=0,
+                       help="Random seed for deterministic dice/deck behavior. Default keeps existing behavior: 0.")
     parser.add_argument("--replay-session", type=str,
                        help="Fast-replay parsed actions from an existing session, then continue live.")
     parser.add_argument("--resume-session", type=str,
@@ -1834,6 +1964,7 @@ def main():
             parser.error("--reaction-batch-size must be at least 1")
         ai_config.agent.reaction_max_batch_messages = args.reaction_batch_size
     browser_player_configs: Optional[List[dict]] = None
+    browser_game_context = ""
 
     if args.use_env_keys and args.ask_api_keys:
         parser.error("--use-env-keys and --ask-api-keys cannot be used together")
@@ -1886,6 +2017,8 @@ def main():
         ai_config.llm.api_key_env_var = "GEMINI_API_KEY"
         ai_config.llm.model_name = browser_settings["model"]
         browser_player_configs = browser_settings["player_configs"]
+        args.random_seed = browser_settings["random_seed"]
+        browser_game_context = browser_settings.get("game_context", "")
         args.all_ai = True
         print("[SETUP] Browser settings accepted")
 
@@ -1988,6 +2121,8 @@ def main():
 
     print(f"[MODE] LLM: {'ON' if send_to_llm else 'OFF'} | Actions: {'Manual' if manual_actions else 'Auto'}")
     print(f"[CONFIG] {ai_config.llm.provider}/{ai_config.llm.model_name}")
+    if browser_game_context:
+        print("[CONFIG] Additional game context enabled")
     
     # Create game
     game_manager, ai_manager, web_viz = create_game(
@@ -1998,7 +2133,9 @@ def main():
         replay_decisions=replay_decisions_by_player,
         replay_chat=not args.replay_skip_chat,
         replay_speak=(args.replay_speak and not args.watch_replay),
-        replay_only=args.watch_replay
+        replay_only=args.watch_replay,
+        random_seed=args.random_seed,
+        game_config={"game_context": browser_game_context} if browser_game_context else None
     )
     if replay_session_path:
         annotate_replay_session(

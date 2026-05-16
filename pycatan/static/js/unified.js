@@ -296,7 +296,7 @@ function showPlayerChatBubble(playerName, message) {
 // ========== AI View Functions ==========
 async function loadAIData() {
     try {
-        const response = await fetch('http://localhost:5001/api/current');
+        const response = await fetch('/api/current');
         if (!response.ok) {
             throw new Error('No active session');
         }

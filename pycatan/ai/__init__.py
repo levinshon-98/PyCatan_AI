@@ -67,7 +67,7 @@ from pycatan.ai.agent_state import AgentState, compute_state_hash
 from pycatan.ai.config import AIConfig
 from pycatan.ai.prompt_manager import PromptManager
 from pycatan.ai.response_parser import ResponseParser
-from pycatan.ai.llm_client import LLMResponse, GeminiClient, create_llm_client
+from pycatan.ai.llm_client import LLMResponse, LLMClient, GeminiClient, OpenRouterClient, create_llm_client
 from pycatan.ai.schemas import ResponseType, ACTIVE_TURN_RESPONSE_SCHEMA, OBSERVING_RESPONSE_SCHEMA
 from pycatan.ai.state_optimizer import optimize_state_for_ai, format_with_legend, game_state_to_dict
 
@@ -91,7 +91,9 @@ __all__ = [
     
     # LLM
     "LLMResponse",
+    "LLMClient",
     "GeminiClient",
+    "OpenRouterClient",
     "create_llm_client",
     
     # Schemas

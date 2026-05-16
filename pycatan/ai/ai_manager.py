@@ -21,7 +21,7 @@ from typing import Dict, Any, Optional, List, Callable
 
 from pycatan.ai.config import AIConfig, HEBREW_RESOURCE_TERMS_INSTRUCTION, normalize_chat_language
 from pycatan.ai.prompt_manager import PromptManager
-from pycatan.ai.llm_client import LLMResponse, StreamChunk, create_llm_client, GeminiClient
+from pycatan.ai.llm_client import LLMResponse, StreamChunk, create_llm_client, LLMClient
 from pycatan.ai.response_parser import ResponseParser, ParseResult
 from pycatan.ai.schemas import ResponseType, SchemaVersion, get_schema_for_response_type
 from pycatan.ai.agent_state import AgentState, compute_state_hash
@@ -96,7 +96,9 @@ class AIManager:
         self.tts = create_tts_from_env()
         
         # LLM client (created lazily when needed)
-        self._llm_client: Optional[GeminiClient] = None
+        self._llm_client: Optional[LLMClient] = None
+        self._agent_llm_clients: Dict[str, LLMClient] = {}
+        self._agent_llm_configs: Dict[str, Dict[str, Any]] = {}
         
         # Agent state management
         self.agents: Dict[str, AgentState] = {}
@@ -194,26 +196,81 @@ class AIManager:
                     os.environ[slot_key] = os.environ[legacy_key]
     
     @property
-    def llm_client(self) -> GeminiClient:
+    def llm_client(self) -> LLMClient:
         """Get or create the LLM client."""
         if self._llm_client is None:
-            api_key = self._get_api_key()
+            api_key = self._get_api_key(self.config.llm.provider, self.config.llm.api_key_env_var)
             self._llm_client = create_llm_client(
                 provider=self.config.llm.provider,
                 model=self.config.llm.model_name,
                 api_key=api_key,
                 temperature=self.config.llm.temperature,
-                max_tokens=self.config.llm.max_tokens
+                max_tokens=self.config.llm.max_tokens,
+                api_base_url=self.config.llm.api_base_url,
+                timeout_seconds=self.config.llm.timeout_seconds,
             )
         return self._llm_client
+
+    def set_agent_llm_config(
+        self,
+        player_name: str,
+        provider: str,
+        model_name: str,
+        api_key_env_var: Optional[str] = None,
+        api_base_url: Optional[str] = None,
+    ) -> None:
+        """Set the LLM provider/model used for one agent."""
+        provider_normalized = (provider or self.config.llm.provider).strip().lower()
+        default_env = {
+            "gemini": "GEMINI_API_KEY",
+            "openrouter": "OPENROUTER_API_KEY",
+            "open-router": "OPENROUTER_API_KEY",
+        }.get(provider_normalized, self.config.llm.api_key_env_var)
+
+        self._agent_llm_configs[player_name] = {
+            "provider": provider_normalized,
+            "model_name": model_name or self.config.llm.model_name,
+            "api_key_env_var": api_key_env_var or default_env,
+            "api_base_url": api_base_url,
+        }
+        self._agent_llm_clients.pop(player_name, None)
+
+    def get_llm_client(self, player_name: Optional[str] = None) -> LLMClient:
+        """Return the per-agent LLM client when configured, otherwise default."""
+        if not player_name or player_name not in self._agent_llm_configs:
+            return self.llm_client
+
+        if player_name not in self._agent_llm_clients:
+            cfg = self._agent_llm_configs[player_name]
+            api_key = self._get_api_key(cfg["provider"], cfg["api_key_env_var"])
+            self._agent_llm_clients[player_name] = create_llm_client(
+                provider=cfg["provider"],
+                model=cfg["model_name"],
+                api_key=api_key,
+                temperature=self.config.llm.temperature,
+                max_tokens=self.config.llm.max_tokens,
+                api_base_url=cfg.get("api_base_url") or self.config.llm.api_base_url,
+                timeout_seconds=self.config.llm.timeout_seconds,
+            )
+        return self._agent_llm_clients[player_name]
     
-    def _get_api_key(self) -> str:
+    def _get_api_key(self, provider: Optional[str] = None, api_key_env_var: Optional[str] = None) -> str:
         """Get API key from environment."""
         import os
-        key = os.environ.get(self.config.llm.api_key_env_var, "")
+        if api_key_env_var:
+            env_var = api_key_env_var
+        else:
+            provider_normalized = (provider or self.config.llm.provider).lower()
+            if provider_normalized in {"openrouter", "open-router"}:
+                env_var = "OPENROUTER_API_KEY"
+            elif provider_normalized == "gemini":
+                env_var = self.config.llm.api_key_env_var or "GEMINI_API_KEY"
+            else:
+                env_var = self.config.llm.api_key_env_var or f"{provider_normalized.upper()}_API_KEY"
+        key = os.environ.get(env_var, "")
         if not key:
             raise ValueError(
-                f"API key not found! Set environment variable: {self.config.llm.api_key_env_var}"
+                f"API key not found! Set environment variable: {env_var}"
             )
         return key
     
@@ -1126,7 +1183,7 @@ class AIManager:
                 agent=agent,
                 game_state=compact_state,
                 chat_history=self.chat_history,
-                llm_client=self.llm_client,
+                llm_client=self.get_llm_client(agent.player_name),
             )
         except Exception as e:
             self.logger.log_llm_communication(
@@ -1161,12 +1218,15 @@ class AIManager:
         if response:
             agent.total_tokens_used += getattr(response, "total_tokens", 0)
 
+        fallback_note = ""
+        if result.get("fallback_used"):
+            fallback_note = f" Fallback used: {result.get('fallback_reason') or 'unknown'}."
         discarded = result.get("discarded_as_irrelevant") or []
         discarded_text = f" Discarded: {discarded}" if discarded else ""
         self.logger.log_llm_communication(
             f"Memory compacted for {agent.player_name}: "
             f"{len(agent.memory_history)} recent notes kept. "
-            f"See {artifact_paths.get('txt')}.{discarded_text}",
+            f"See {artifact_paths.get('txt')}.{fallback_note}{discarded_text}",
             "MEMORY"
         )
 
@@ -1599,6 +1659,7 @@ class AIManager:
         """
         # Convert prompt to string
         prompt_str = json.dumps(prompt, indent=2, ensure_ascii=False)
+        llm_client = self.get_llm_client(player_name)
         
         # Get tool schemas
         tool_schemas = self.agent_tools.get_tools_schema() if tools_enabled else []
@@ -1656,7 +1717,7 @@ class AIManager:
             )
             
             # Send request to LLM
-            response = self.llm_client.generate(
+            response = llm_client.generate(
                 conversation_context,
                 **kwargs
             )
@@ -1748,7 +1809,7 @@ class AIManager:
                 accumulated_tool_tokens += batch.total_tokens
                 
                 # Add tool tokens to stats
-                self.llm_client.stats.add_tool_tokens(batch.total_tokens)
+                llm_client.stats.add_tool_tokens(batch.total_tokens)
                 
                 # Format results for LLM
                 tool_results = self.tool_executor.format_tool_results_for_llm(batch)
@@ -1785,7 +1846,7 @@ class AIManager:
                         is_tool_followup=True
                     )
                     
-                    final_response = self.llm_client.generate(
+                    final_response = llm_client.generate(
                         conversation_context,
                         **kwargs
                     )
@@ -1874,6 +1935,7 @@ class AIManager:
         
         # Convert prompt to string
         prompt_str = json.dumps(prompt, indent=2, ensure_ascii=False)
+        llm_client = self.get_llm_client(player_name)
         
         # Get tool schemas
         tool_schemas = self.agent_tools.get_tools_schema() if tools_enabled else []
@@ -1951,7 +2013,7 @@ class AIManager:
             
             # Stream the response
             try:
-                stream_generator = self.llm_client.generate_stream(
+                stream_generator = llm_client.generate_stream(
                     conversation_context,
                     on_chunk=on_chunk,
                     **kwargs
@@ -1974,10 +2036,10 @@ class AIManager:
                         success=True,
                         content=accumulated_text,
                         tool_calls=tool_calls,
-                        model=self.llm_client.model,
-                        prompt_tokens=self.llm_client._estimate_tokens(conversation_context),
-                        completion_tokens=self.llm_client._estimate_tokens(accumulated_text),
-                        thinking_tokens=self.llm_client._estimate_tokens(accumulated_thoughts),
+                        model=llm_client.model,
+                        prompt_tokens=llm_client._estimate_tokens(conversation_context),
+                        completion_tokens=llm_client._estimate_tokens(accumulated_text),
+                        thinking_tokens=llm_client._estimate_tokens(accumulated_thoughts),
                         total_tokens=0  # Will be calculated
                     )
                     response.total_tokens = response.prompt_tokens + response.completion_tokens + response.thinking_tokens
@@ -1991,7 +2053,7 @@ class AIManager:
                 response = LLMResponse(
                     success=False,
                     error=str(e),
-                    model=self.llm_client.model
+                    model=llm_client.model
                 )
             
             # Accumulate tokens from this iteration
@@ -2049,7 +2111,7 @@ class AIManager:
                 
                 # Add tool tokens
                 accumulated_tool_tokens += batch.total_tokens
-                self.llm_client.stats.add_tool_tokens(batch.total_tokens)
+                llm_client.stats.add_tool_tokens(batch.total_tokens)
                 
                 # Format results for LLM
                 tool_results = self.tool_executor.format_tool_results_for_llm(batch)

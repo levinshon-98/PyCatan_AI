@@ -276,3 +276,10 @@ This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE.t
 ---
 
 **Made with ❤️ for Catan enthusiasts and AI developers**
+---
+title: PyCatan AI
+sdk: docker
+app_port: 7860
+pinned: false
+license: mit
+---

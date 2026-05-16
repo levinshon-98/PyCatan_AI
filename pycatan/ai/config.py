@@ -59,7 +59,7 @@ class LLMConfig:
     """Configuration for LLM provider and model settings."""
     
     # Provider settings
-    provider: str = "gemini"  # "gemini", "openai", "anthropic", "azure"
+    provider: str = "gemini"  # "gemini", "openrouter", "openai", "anthropic", "azure"
     model_name: str = "gemini-3-flash-preview"  # Gemini 3 supports tools + JSON together
     
     # Generation parameters
@@ -298,6 +298,8 @@ class AIConfig:
         # Determine environment variable name
         if provider == "gemini":
             env_var = self.llm.api_key_env_var or "GEMINI_API_KEY"
+        elif provider in {"openrouter", "open-router"}:
+            env_var = "OPENROUTER_API_KEY"
         elif provider == "openai":
             env_var = "OPENAI_API_KEY"
         elif provider == "anthropic":
