@@ -217,9 +217,13 @@ class LogEntry:
                 return f"❌ {player_str} failed to build road {points}: {self.error}"
         
         elif self.event_type == EventType.BUY_DEV_CARD:
-            card = self.data.get('card', '?')
-            return f"🎴 {player_str} bought development card: {card}"
-        
+            if self.status == "SUCCESS":
+                card = self.data.get('card')
+                if card:
+                    return f"🎴 {player_str} bought development card: {card}"
+                return f"🎴 {player_str} bought a development card"
+            return f"❌ {player_str} failed to buy a development card: {self.error}"
+
         elif self.event_type == EventType.USE_DEV_CARD:
             card = self.data.get('card', '?')
             normalized_card = str(card).lower().replace("devcard.", "").replace(" ", "_")
@@ -231,7 +235,7 @@ class LogEntry:
                 if roads:
                     return f"✨ {player_str} used Road Building to build roads {roads}"
             return f"✨ {player_str} used {card}"
-        
+
         elif self.event_type == EventType.TRADE_BANK:
             give = self._format_resource_bundle(self.data.get('give') or self.data.get('offer'))
             receive = self._format_resource_bundle(self.data.get('receive') or self.data.get('request'))

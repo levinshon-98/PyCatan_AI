@@ -1,0 +1,30 @@
+{
+  "request_number": 42,
+  "iteration": 1,
+  "timestamp": "2026-05-17T20:59:33.145336",
+  "player_name": "ג'ימי",
+  "type": "intermediate",
+  "success": true,
+  "raw_content": "",
+  "has_tool_calls": true,
+  "tool_calls": [
+    {
+      "id": "tool_inspect_node_xdjJ0CyuOD0EuiQKM3GT",
+      "name": "inspect_node",
+      "parameters": {
+        "reasoning": "I want to settle here. Checking if it's blocked by other buildings or the 2-node rule.",
+        "node_id": 23
+      }
+    }
+  ],
+  "model": "google/gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 3205,
+    "completion": 0,
+    "thinking": 0,
+    "total": 3205
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}

@@ -539,6 +539,45 @@ class GameManager:
             return ActionResult.failure_result("Not connected to existing buildings", "ISOLATED")
         else:
             return ActionResult.failure_result(f"Unknown status: {status}", "UNKNOWN_ERROR")
+
+    def _map_status_to_result(self, status) -> ActionResult:
+        """Convert a core game status to an ActionResult with the current state."""
+        if status == Statuses.ALL_GOOD:
+            return ActionResult.success_result(self.get_full_state())
+        if status == Statuses.ERR_CARDS:
+            return ActionResult.failure_result(
+                "Not enough resources for this action",
+                "INSUFFICIENT_RESOURCES"
+            )
+        if status == Statuses.ERR_DECK:
+            return ActionResult.failure_result(
+                "No development cards left in the deck",
+                "DECK_EMPTY"
+            )
+        if status == Statuses.ERR_BLOCKED:
+            return ActionResult.failure_result("Location is blocked", "LOCATION_BLOCKED")
+        if status == Statuses.ERR_BAD_POINT:
+            return ActionResult.failure_result("Invalid board point", "INVALID_POINT")
+        if status == Statuses.ERR_NOT_CON:
+            return ActionResult.failure_result("Road points are not connected", "NOT_CONNECTED")
+        if status == Statuses.ERR_ISOLATED:
+            return ActionResult.failure_result(
+                "Not connected to your existing buildings or roads",
+                "ISOLATED"
+            )
+        if status == Statuses.ERR_HARBOR:
+            return ActionResult.failure_result("You are not connected to that harbor", "INVALID_HARBOR")
+        if status == Statuses.ERR_NOT_EXIST:
+            return ActionResult.failure_result("Required game piece does not exist", "NOT_FOUND")
+        if status == Statuses.ERR_BAD_OWNER:
+            return ActionResult.failure_result("You do not own the required game piece", "BAD_OWNER")
+        if status == Statuses.ERR_UPGRADE_CITY:
+            return ActionResult.failure_result("That settlement is already a city", "ALREADY_CITY")
+        if status == Statuses.ERR_INPUT:
+            return ActionResult.failure_result("Invalid input for this action", "INVALID_INPUT")
+        if status == Statuses.ERR_TEST:
+            return ActionResult.failure_result("Internal test status returned", "TEST_ERROR")
+        return ActionResult.failure_result(f"Unknown status: {status}", "UNKNOWN_ERROR")
     
     def _handle_trade_action(self, action: Action) -> ActionResult:
         """Handle trade-related actions."""

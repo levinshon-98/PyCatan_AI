@@ -213,6 +213,16 @@ class TestGameManagerActions:
         assert not result.success
         assert result.status_code == "INVALID_PLAYER_ID"
 
+    def test_buy_dev_card_without_resources_returns_resource_error(self):
+        gm = GameManager(self.users, random_seed=0)
+        action = Action(ActionType.BUY_DEV_CARD, 0, {})
+
+        result = gm._execute_buy_dev_card(action)
+
+        assert not result.success
+        assert result.status_code == "INSUFFICIENT_RESOURCES"
+        assert "resources" in result.error_message
+
     def test_trade_propose_prompts_target_to_reject_when_target_lacks_cards(self):
         alice = create_test_user("Alice", 0)
         bob = create_test_user("Bob", 1)

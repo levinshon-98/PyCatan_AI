@@ -1241,8 +1241,9 @@ class WebVisualization(Visualization):
         
         elif action.action_type == AT.BUY_DEV_CARD:
             event_type = EventType.BUY_DEV_CARD
-            event_data['card'] = params.get('card', 'Unknown')
             if result.success:
+                if params.get('card'):
+                    event_data['card'] = params['card']
                 event_data['cost'] = ['ORE', 'SHEEP', 'WHEAT']
         
         elif action.action_type == AT.USE_DEV_CARD:

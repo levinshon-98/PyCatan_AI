@@ -30,6 +30,8 @@ from urllib.parse import parse_qs, unquote, urlparse
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 LOGS_DIR = REPO_ROOT / "examples" / "ai_testing" / "my_games"
+PYCATAN_STATIC_ROOT = REPO_ROOT / "pycatan" / "static"
+VIEWER_STATIC_ROOT = Path(__file__).resolve().parent / "replay_viewer_static"
 MANIFEST_NAME = "replay_viewer_manifest.json"
 TRUE_VALUES = {"1", "true", "yes", "on"}
 RESOURCE_CODE_MAP = {
@@ -316,6 +318,8 @@ def _load_board_context(session_dir: Path) -> Dict[str, Any]:
             "r": axial[1],
             "type": resource["type"],
             "number": resource["number"],
+            "game_coords": hex_def.get("game_coords") or [],
+            "axial_coords": axial,
             "adjacent_points": hex_def.get("adjacent_points") or [],
         })
 
@@ -332,6 +336,7 @@ def _load_board_context(session_dir: Path) -> Dict[str, Any]:
             "id": point_id,
             "x": coords[0],
             "y": coords[1],
+            "game_coords": point_def.get("game_coords") or [],
             "adjacent_points": point_def.get("adjacent_points") or [],
             "adjacent_hexes": point_def.get("adjacent_hexes") or [],
         })
@@ -592,12 +597,12 @@ def write_manifest_artifact(session_dir: Path, manifest: Dict[str, Any]) -> Path
     return path
 
 
-HTML_PAGE = r"""<!doctype html>
+LEGACY_HTML_PAGE = r"""<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>PyCatan Replay Viewer</title>
+  <title>Catan - Game Simulation</title>
   <style>
     :root { --bg:#f4f6fb; --panel:#ffffff; --ink:#172033; --muted:#64748b; --brand:#4f6bed; --line:#d9e1f2; --good:#168a55; --warn:#b7791f; }
     * { box-sizing: border-box; }
@@ -1092,6 +1097,204 @@ HTML_PAGE = r"""<!doctype html>
 </html>"""
 
 
+HTML_PAGE = r"""<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Catan - Game Simulation</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="stylesheet" href="/static/css/unified.css">
+  <link rel="stylesheet" href="/viewer_static/replay_viewer.css">
+</head>
+<body>
+  <div class="unified-container replay-viewer-shell">
+    <nav class="top-nav">
+      <div class="nav-brand">
+        <span class="brand-icon">🎲</span>
+        <span class="brand-text">Catan - Game Simulation</span>
+      </div>
+      <div class="nav-tabs">
+        <button class="nav-tab active" type="button" data-view="game" onclick="switchView('game')">
+          <span class="tab-icon">🎮</span>
+          <span class="tab-text">Game Board</span>
+        </button>
+        <button class="nav-tab" type="button" data-view="ai" onclick="switchView('ai')" hidden>
+          <span class="tab-icon">🤖</span>
+          <span class="tab-text">AI Analysis</span>
+        </button>
+      </div>
+      <div class="replay-session-picker">
+        <select id="session-select" title="Choose session"></select>
+        <button class="replay-btn" id="session-load" type="button">Load</button>
+      </div>
+      <div class="replay-controls" id="replay-controls">
+        <div class="replay-transport">
+          <button class="replay-btn" id="replay-start" title="Start" type="button">|&lt;</button>
+          <button class="replay-btn" id="replay-prev" title="Previous" type="button">&lt;</button>
+          <button class="replay-btn replay-play" id="replay-play" title="Play" type="button">Play</button>
+          <button class="replay-btn" id="replay-next" title="Next" type="button">&gt;</button>
+          <button class="replay-btn" id="replay-end" title="End" type="button">&gt;|</button>
+        </div>
+        <div class="replay-scrub">
+          <input id="replay-slider" class="replay-slider" type="range" min="0" max="0" value="0">
+          <div class="replay-now">
+            <span class="replay-label" id="replay-label">0 / 0</span>
+            <span class="replay-context" id="replay-context">Ready</span>
+          </div>
+        </div>
+        <button class="replay-btn replay-analyse" id="replay-analyse" title="Analyse current decision" type="button">Analyse</button>
+      </div>
+      <div class="nav-status">
+        <span class="status-dot live"></span>
+        <span class="status-text">REPLAY</span>
+      </div>
+    </nav>
+
+    <div class="replay-timeline-panel" id="replay-timeline-panel">
+      <div class="replay-player-filters" id="replay-player-filters"></div>
+      <div class="replay-timeline-track" id="replay-timeline-track"></div>
+    </div>
+
+    <div id="game-view" class="view-container active">
+      <div class="game-layout">
+        <aside class="panel panel-left">
+          <div class="panel-header">
+            <h3>👥 Player Hub</h3>
+          </div>
+          <div class="player-hub" id="player-hub">
+            <div class="loading-state">Loading players...</div>
+          </div>
+          <div id="game-info" style="display:none"></div>
+        </aside>
+
+        <main class="board-section">
+          <div class="board-container" id="boardContainer">
+            <div class="board-controls">
+              <button onclick="zoomIn()" class="control-btn" title="Zoom In" type="button">🔍+</button>
+              <button onclick="zoomOut()" class="control-btn" title="Zoom Out" type="button">🔍−</button>
+              <button onclick="resetZoom()" class="control-btn" title="Reset View" type="button">⌂</button>
+              <button id="toggleVertices" onclick="toggleVertices()" class="control-btn" title="Show Vertices" type="button">📍</button>
+              <button id="toggleInfo" onclick="toggleBuildingCosts()" class="control-btn" title="Building Costs" type="button">ℹ️</button>
+            </div>
+            <svg id="catan-board" width="100%" height="100%" role="img" aria-label="Catan replay board"></svg>
+            <div id="board-event-layer" class="board-event-layer" aria-live="polite">
+              <div id="board-dice-popover" class="board-dice-popover" hidden></div>
+              <div id="board-card-piles" class="board-card-piles"></div>
+              <div id="board-card-events" class="board-card-events"></div>
+            </div>
+          </div>
+
+          <div id="buildingCostsModal" class="modal hidden">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h3>Building Costs</h3>
+                <button class="modal-close" onclick="toggleBuildingCosts()" type="button">×</button>
+              </div>
+              <div class="modal-body">
+                <table class="costs-table">
+                  <thead><tr><th>Building</th><th>Resources Required</th><th>VP</th></tr></thead>
+                  <tbody>
+                    <tr><td>Road</td><td>1 Brick + 1 Wood</td><td>-</td></tr>
+                    <tr><td>Settlement</td><td>1 Brick + 1 Wood + 1 Wheat + 1 Sheep</td><td>1</td></tr>
+                    <tr><td>City</td><td>3 Ore + 2 Wheat</td><td>2</td></tr>
+                    <tr><td>Dev Card</td><td>1 Ore + 1 Sheep + 1 Wheat</td><td>1*</td></tr>
+                  </tbody>
+                </table>
+                <p class="costs-note">* VP awarded only for Victory Point dev cards</p>
+              </div>
+            </div>
+          </div>
+        </main>
+
+        <aside class="panel panel-right">
+          <div class="panel-header">
+            <h3>📋 System & Logs</h3>
+            <div class="panel-tabs">
+              <button class="panel-tab active" type="button" onclick="switchLogTab('actions', event)">Action Log</button>
+              <button class="panel-tab" type="button" onclick="switchLogTab('details', event)" hidden>Game Details</button>
+              <button class="panel-tab" type="button" onclick="switchLogTab('chat', event)">💬 Chat</button>
+            </div>
+          </div>
+          <div id="log-content" class="log-content">
+            <div id="actions-log-panel" class="log-panel active">
+              <div id="action-log" class="action-log"></div>
+            </div>
+            <div id="details-log-panel" class="log-panel">
+              <div id="game-details" class="game-details"></div>
+            </div>
+            <div id="chat-log-panel" class="log-panel">
+              <div id="chat-log" class="chat-log"></div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <div id="ai-view" class="view-container">
+      <div class="ai-layout">
+        <aside class="ai-sidebar">
+          <div class="sidebar-section">
+            <h3>🎮 Players</h3>
+            <div id="ai-players-nav" class="nav-list"></div>
+          </div>
+          <div class="sidebar-section">
+            <h3>📊 Views</h3>
+            <div class="nav-list">
+              <div class="nav-item active" data-ai-view="chat" onclick="showAIView('chat')">
+                <span class="nav-icon">💬</span>
+                <span>Chat History</span>
+                <span class="badge" id="chat-count">0</span>
+              </div>
+              <div class="nav-item" data-ai-view="requests" onclick="showAIView('requests')">
+                <span class="nav-icon">📡</span>
+                <span>All Requests</span>
+                <span class="badge" id="requests-count">0</span>
+              </div>
+            </div>
+          </div>
+          <div class="sidebar-section">
+            <h3>📁 Session</h3>
+            <div id="session-info" class="session-info">No active session</div>
+          </div>
+        </aside>
+        <main class="ai-content">
+          <div class="ai-content-header">
+            <h2 id="ai-content-title">AI Analysis</h2>
+            <div class="ai-status">
+              <span class="status-dot live"></span>
+              <span>Replay data</span>
+            </div>
+          </div>
+          <div id="ai-content-body" class="ai-content-body"></div>
+        </main>
+      </div>
+    </div>
+  </div>
+
+  <div id="analysis-modal" class="analysis-modal hidden" role="dialog" aria-modal="true" aria-labelledby="analysis-title">
+    <div class="analysis-dialog">
+      <div class="analysis-header">
+        <div>
+          <div class="analysis-kicker">Decision Trace</div>
+          <h2 id="analysis-title">AI Decision Analysis</h2>
+          <div id="analysis-subtitle" class="analysis-subtitle"></div>
+        </div>
+        <button class="analysis-close" onclick="closeReplayAnalysis()" title="Close" type="button">×</button>
+      </div>
+      <div id="analysis-body" class="analysis-body">
+        <div class="analysis-loading">Loading analysis...</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/gameData.js"></script>
+  <script src="/static/js/board.js"></script>
+  <script src="/viewer_static/replay_viewer.js"></script>
+</body>
+</html>"""
+
+
 class ReplayViewerServer(ThreadingHTTPServer):
     def __init__(
         self,
@@ -1135,6 +1338,12 @@ class ReplayViewerHandler(BaseHTTPRequestHandler):
         if path in {"/", "/index.html"}:
             self._send_bytes(HTML_PAGE.encode("utf-8"), "text/html; charset=utf-8")
             return
+        if path.startswith("/static/"):
+            self._send_static_file(PYCATAN_STATIC_ROOT, path[len("/static/"):])
+            return
+        if path.startswith("/viewer_static/"):
+            self._send_static_file(VIEWER_STATIC_ROOT, path[len("/viewer_static/"):])
+            return
         if path == "/api/sessions":
             self._send_json({
                 "sessions": list_sessions(),
@@ -1149,6 +1358,14 @@ class ReplayViewerHandler(BaseHTTPRequestHandler):
                 self._send_json({"error": "No session selected"}, status=400)
                 return
             self._send_json(public_manifest(manifest))
+            return
+        if path == "/api/board_mapping":
+            manifest = self.server.get_manifest()
+            board = (manifest or {}).get("board") or {}
+            self._send_json({
+                "points": board.get("points") or [],
+                "hexes": board.get("hexes") or [],
+            })
             return
         if path.startswith("/api/audio/"):
             event_id = path.rsplit("/", 1)[-1]
@@ -1170,10 +1387,24 @@ class ReplayViewerHandler(BaseHTTPRequestHandler):
         data = path.read_bytes()
         self._send_bytes(data, content_type)
 
+    def _send_static_file(self, root: Path, relative_path: str) -> None:
+        try:
+            target = (root / relative_path).resolve()
+            target.relative_to(root.resolve())
+        except Exception:
+            self._send_json({"error": "Invalid static path"}, status=400)
+            return
+        if not target.exists() or not target.is_file():
+            self._send_json({"error": "Static file not found"}, status=404)
+            return
+        mime = mimetypes.guess_type(str(target))[0] or "application/octet-stream"
+        self._send_file(target, mime)
+
     def _send_bytes(self, body: bytes, content_type: str, status: int = 200) -> None:
         self.send_response(status)
         self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(len(body)))
+        self.send_header("Cache-Control", "no-store, max-age=0")
         self.end_headers()
         self.wfile.write(body)
 

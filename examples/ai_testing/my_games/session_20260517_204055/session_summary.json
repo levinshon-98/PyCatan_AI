@@ -1,0 +1,1143 @@
+{
+  "session_id": "session_20260517_204055",
+  "start_time": "2026-05-17T20:40:55.718528",
+  "end_time": "2026-05-17T21:02:45.251198",
+  "duration_seconds": 1309.532678,
+  "agents": {
+    "ג'מה": {
+      "player_name": "ג'מה",
+      "player_id": 0,
+      "player_color": "Red",
+      "memory": "Received 1 Wheat from roll 11. Total resources: 1 Sheep, 2 Wheat, 1 Wood. Still need Brick to build a settlement at node 33 or 34.",
+      "memory_updated_at": 1779040905.7186363,
+      "compacted_memory": "Strategy: Settle Node 33 (Wh9,Wh6,O2) or Node 34 (Wh6,O3) for Wheat/Ore dominance. Critical Need: Wood/Brick. Board: Robber blocks Jimmy's Brick 10 (Hex 13). Opponents: Jimmy and Claude are in a resource-starved feud. Jimmy is low on Brick after a bank trade and road building (24-23) to bypass Claude's block at 25. Claude built road 36-37 toward the 3:1 port after a 4:1 bank trade for Brick. Jimmy has Wood/Ore and seeks Sheep. Claude has 1 revealed Knight and 1 hidden dev card. Exploiting their mutual blockade is the current priority.",
+      "compacted_memory_updated_at": 1779040833.9706962,
+      "compaction_count": 5,
+      "memory_history": [
+        {
+          "note": "Current resources: 1 Sheep, 1 Wheat. Settlements on strong numbers: 6 (Brick/Wheat), 8 (Sheep), 9 (Wheat). Goal: Expand towards Node 34 or a port.",
+          "timestamp": 1779040811.015073
+        },
+        {
+          "note": "I need Brick and Wood to utilize my road at 34. Node 33 is the priority for high-pip Wheat production. Jimmy has Wood and Ore, and might be willing to part with Brick if he needs Sheep.",
+          "timestamp": 1779040830.4219038
+        },
+        {
+          "note": "Jimmy has Wood and Ore but no Brick. Claude has Wood, Ore, and Sheep. I am stuck until I get Wood/Brick or can trade for them. Node 33 (Wheat 9, Wheat 6, Ore 2) remains the primary target.",
+          "timestamp": 1779040862.463215
+        },
+        {
+          "note": "Received 1 Wheat from roll 11. Total resources: 1 Sheep, 2 Wheat, 1 Wood. Still need Brick to build a settlement at node 33 or 34.",
+          "timestamp": 1779040905.7186363
+        }
+      ],
+      "relationship_context_updates": [
+        {
+          "note": "Claude: Confirmed as a primary antagonist; continues to incite others against my 'highways' while hiding his own dev car",
+          "timestamp": 1779040446.598885
+        },
+        {
+          "note": "Jimmy/Claude: Relationship devolved into an open feud; Claude used a Knight to steal from Jimmy after Jimmy rejected a t",
+          "timestamp": 1779040627.8994076
+        },
+        {
+          "note": "Claude/ג'מה: Hostility slightly eased as Claude targeted Jimmy instead of my Sheep 8, though his manipulative playstyle",
+          "timestamp": 1779040627.8994088
+        },
+        {
+          "note": "Jimmy: Offered a trade (2 Wheat for 1 Sheep) despite the feud with Claude, showing pragmatic desperation.",
+          "timestamp": 1779040833.9707031
+        },
+        {
+          "note": "Claude/Jimmy: Conflict solidified; Claude blocked Jimmy at Node 25, prompting Jimmy to bypass him via road 24-23.",
+          "timestamp": 1779040833.9707062
+        }
+      ],
+      "relationship_context_updated_at": 1779040833.9707062,
+      "chat_summaries": [],
+      "recent_events": [
+        {
+          "type": "action_performed",
+          "message": "ג'מה ended their turn",
+          "timestamp": 1779040872.2787836,
+          "data": {
+            "affected_players": [
+              0
+            ]
+          }
+        },
+        {
+          "type": "turn_change",
+          "message": "Turn 16: Player 1's turn begins.",
+          "timestamp": 1779040872.2849948,
+          "data": {
+            "affected_players": []
+          }
+        },
+        {
+          "type": "dice_roll",
+          "message": "Rolled 11 (5+6). Resources distributed: ג'מה +1 wood.",
+          "timestamp": 1779040892.097208,
+          "data": {
+            "affected_players": []
+          }
+        },
+        {
+          "type": "action_performed",
+          "message": "FACTS evt=roll actor=קלוד dice=11(5+6) prod={ג'מה:{W:1}}",
+          "timestamp": 1779040899.252039,
+          "data": {
+            "affected_players": [
+              0
+            ]
+          }
+        }
+      ],
+      "last_prompt_number": 44,
+      "stats": {
+        "player_name": "ג'מה",
+        "player_id": 0,
+        "total_requests": 44,
+        "successful_requests": 44,
+        "failed_requests": 0,
+        "total_tokens_used": 219063,
+        "success_rate": "100.0%"
+      }
+    },
+    "קלוד": {
+      "player_name": "קלוד",
+      "player_id": 1,
+      "player_color": "Blue",
+      "memory": "Bought a Dev card. Resources remaining: 1 Wood, 2 Sheep. Still need Brick to settle node 37.",
+      "memory_updated_at": 1779040953.6546462,
+      "compacted_memory": "Settlements: N[12] (B6, S5, W3) and N[25] (Wh8, O3, S4). VP: 2. Strategy: Secured road to N[37] (?3 port). Current goal is to settle N[37]. Need 1 Brick and 1 Wood to complete the settlement (already have Ore, Sheep, Wheat). Traded 4 Wheat to bank for 1 Brick to build the road. Jimmy is hostile after I blocked his B10 and stole via Knight; he is currently expanding road 24-23 to bypass my N[25] block but is short on Brick. Gemma is frustrated by lack of resources and views my play as aggressive. Jimmy has Wheat but needs Sheep. Hand: 1 Wood, 1 Ore, 2 Sheep, 1 Wheat.",
+      "compacted_memory_updated_at": 1779040825.6845257,
+      "compaction_count": 5,
+      "memory_history": [
+        {
+          "note": "Jimmy is short on Brick after building road 24-23. I have 2 Sheep. Need Brick, Wood, and Wheat for node 37.",
+          "timestamp": 1779040795.9627235
+        },
+        {
+          "note": "Roll 3 yielded me 1 Wheat and 1 Ore. Hand: 1W, 1O, 2S, 1Wh. Need 1 Brick to build settlement at 37.",
+          "timestamp": 1779040821.7758408
+        },
+        {
+          "note": "Gemma is actively trying to coordinate with Jimmy against me. I have 1 Wood, 1 Ore, 2 Sheep, and 1 Wheat. I still need 1 Brick for the settlement at node 37. Jimmy is also hunting for Brick (needs a 10).",
+          "timestamp": 1779040877.1861541
+        },
+        {
+          "note": "Need 1 Brick and 1 Wood for settlement at node 37. Robber is on Hex 13 (Brick 10), blocking Jimmy.",
+          "timestamp": 1779040892.0963738
+        },
+        {
+          "note": "Bought a Dev card. Still need 1 Brick and 1 Wood (if I use the current one) to settle node 37. Current resources: 1 Wood, 1 Sheep.",
+          "timestamp": 1779040911.6502137
+        },
+        {
+          "note": "Bought a Dev card after 11 roll. Current goal: Node 37 (?3 port). Resources left: 1 Wood, 1 Sheep. Need 1 Brick and 1 Wheat/Ore/Sheep to settle/progress.",
+          "timestamp": 1779040925.6982083
+        },
+        {
+          "note": "Bought a Dev card after 11 roll. Current hand: 1 Wood, 2 Sheep. Still aiming for Node 37 (?3 port) once I get Brick.",
+          "timestamp": 1779040939.5435126
+        },
+        {
+          "note": "Bought a Dev card. Resources remaining: 1 Wood, 2 Sheep. Still need Brick to settle node 37.",
+          "timestamp": 1779040953.6546462
+        }
+      ],
+      "relationship_context_updates": [
+        {
+          "note": "Gemma: Hostile; remains resentful of my early robber placement on Hex 15 and is now also feuding with Jimmy over road bl",
+          "timestamp": 1779040412.6384354
+        },
+        {
+          "note": "Jimmy: Hostile/Vengeful; threatened retaliation with the robber after I blocked his B10 and stole his brick following a",
+          "timestamp": 1779040641.7570066
+        },
+        {
+          "note": "Gemma: Critical; views my playstyle as aggressive and 'managing others by force' after the Jimmy incident.",
+          "timestamp": 1779040641.7570078
+        },
+        {
+          "note": "Jimmy: Pragmatic/Wary; despite hostility, offered a 2:1 Wheat-for-Sheep trade showing a willingness to prioritize growth",
+          "timestamp": 1779040825.684528
+        },
+        {
+          "note": "Gemma: Neutral-Stagnant; lacks building materials and remains observant but uninvolved in the main conflict.",
+          "timestamp": 1779040825.6845303
+        }
+      ],
+      "relationship_context_updated_at": 1779040825.6845303,
+      "chat_summaries": [],
+      "recent_events": [
+        {
+          "type": "action_failed",
+          "message": "Your previous action failed: BUY_DEV_CARD {'_ai_say_outloud': '11 זה נחמד, לפחות הכבשים מתרבות. נראה מה יש לקלפי הפיתוח להציע הפעם, אולי זה יקדם אותי קצת.', '_ai_response_id': 'קלוד:48', '_ai_request_number': 48, '_ai_response_type': 'active_turn'}. Error: Error buying development card: 'GameManager' object has no attribute '_map_status_to_result'. The say_outloud from that failed attempt was not said publicly; choose a new legal action.",
+          "timestamp": 1779040953.6562803,
+          "data": {
+            "action_type": "BUY_DEV_CARD",
+            "parameters": {
+              "_ai_say_outloud": "11 זה נחמד, לפחות הכבשים מתרבות. נראה מה יש לקלפי הפיתוח להציע הפעם, אולי זה יקדם אותי קצת.",
+              "_ai_response_id": "קלוד:48",
+              "_ai_request_number": 48,
+              "_ai_response_type": "active_turn",
+              "player_name": "קלוד",
+              "turn_number": 16
+            },
+            "error": "Error buying development card: 'GameManager' object has no attribute '_map_status_to_result'"
+          }
+        }
+      ],
+      "last_prompt_number": 49,
+      "stats": {
+        "player_name": "קלוד",
+        "player_id": 1,
+        "total_requests": 49,
+        "successful_requests": 48,
+        "failed_requests": 0,
+        "total_tokens_used": 271475,
+        "success_rate": "98.0%"
+      }
+    },
+    "ג'ימי": {
+      "player_name": "ג'ימי",
+      "player_id": 2,
+      "player_color": "White",
+      "memory": "Roll 11: Gemma gained 1 Wheat. My hand remains {W:2, S:1, Wh:2, O:1}. Still waiting for Brick (10) to build at node 23.",
+      "memory_updated_at": 1779040905.3164418,
+      "compacted_memory": "Settled at 41 (Wh9,O5,B10) and 14 (Wh8,W3,W4). Claude blocked my expansion to node 25 (O2 port) and previously stole my Brick via Knight after a failed trade. I have extended my road from node 24 to 23 (Wh9,Wh10,W6) and am currently 1 Brick short of a settlement there. Robber remains on my B10 (H13). Both Claude and Gemma have been resource-poor, resorting to 4:1 bank trades. Future goals: Settle node 23 for resource diversity, then move toward the 3:1 port (50/51) or upgrade to a city. Claude is moving towards the coast/ports.",
+      "compacted_memory_updated_at": 1779040785.8419945,
+      "compaction_count": 5,
+      "memory_history": [
+        {
+          "note": "Node 24 is blocked by Claude at 25. Moving toward node 23 (Wh9, Wh10, W6) to settle there next. Current resources after road: 1W, 1S, 1Wh, 1O.",
+          "timestamp": 1779040760.5284193
+        },
+        {
+          "note": "I am at node 23 with a road. I need 1 Brick to settle there. Current hand: {O:1, S:1, Wh:1, W:1}. Need to watch for 6 (Wood), 10 (Brick), or 8 (Wheat) to facilitate building or trading.",
+          "timestamp": 1779040781.8607457
+        },
+        {
+          "note": "Roll 3 gave me 1 Wheat. Hand: 2 Wood, 1 Sheep, 2 Wheat, 1 Ore. Still need 1 Brick for the settlement at node 23. Claude gained Wheat and Ore.",
+          "timestamp": 1779040822.9534678
+        },
+        {
+          "note": "Gemma is looking for Brick or Wood and is willing to trade Sheep. I currently have 1 Wood, 1 Sheep, 1 Wheat, and 1 Ore. I still need 1 Brick to settle at node 23.",
+          "timestamp": 1779040853.9308627
+        },
+        {
+          "note": "Dice roll 3 gave me 1 Wheat. Current hand: 2 Wood, 1 Sheep, 2 Wheat, 1 Ore. Still need 1 Brick for node 23. Claude gained Wheat (H18) and Ore (H19).",
+          "timestamp": 1779040879.0889845
+        },
+        {
+          "note": "Roll 11: Gemma gained 1 Wheat. My hand remains {W:2, S:1, Wh:2, O:1}. Still waiting for Brick (10) to build at node 23.",
+          "timestamp": 1779040905.3164418
+        }
+      ],
+      "relationship_context_updates": [
+        {
+          "note": "Claude: Trust remains low; he attempted a lopsided trade (Wh for B) while I am short on Brick.",
+          "timestamp": 1779040428.7228515
+        },
+        {
+          "note": "Gemma: Relationship is openly hostile; justified the robber on her S8 as 'balance' for her blocking my central expansion",
+          "timestamp": 1779040428.7228534
+        },
+        {
+          "note": "Claude: Hostility escalated; he used a Knight to steal my Brick specifically as punishment for a rejected trade.",
+          "timestamp": 1779040622.4076085
+        },
+        {
+          "note": "Gemma: Slight reduction in active hostility as she is currently resource-poor and focusing her criticism on Claude's agg",
+          "timestamp": 1779040622.40761
+        },
+        {
+          "note": "Claude: Hostility reinforced as he blocked node 25, cutting off my direct path to the Ore port.",
+          "timestamp": 1779040785.8419976
+        }
+      ],
+      "relationship_context_updated_at": 1779040785.8419976,
+      "chat_summaries": [],
+      "recent_events": [
+        {
+          "type": "action_performed",
+          "message": "ג'ימי ended their turn",
+          "timestamp": 1779040791.4903393,
+          "data": {
+            "affected_players": [
+              2
+            ]
+          }
+        },
+        {
+          "type": "turn_change",
+          "message": "Turn 15: Player 0's turn begins.",
+          "timestamp": 1779040791.4965305,
+          "data": {
+            "affected_players": []
+          }
+        },
+        {
+          "type": "dice_roll",
+          "message": "Rolled 3 (2+1). Resources distributed: קלוד +1 ore, 1 wood; ג'ימי +1 wood.",
+          "timestamp": 1779040811.016241,
+          "data": {
+            "affected_players": []
+          }
+        },
+        {
+          "type": "action_performed",
+          "message": "FACTS evt=roll actor=ג'מה dice=3(2+1) prod={קלוד:{W:1,O:1};ג'ימי:{W:1}}",
+          "timestamp": 1779040816.482546,
+          "data": {
+            "affected_players": [
+              1,
+              2
+            ]
+          }
+        },
+        {
+          "type": "trade_attempt_failed",
+          "message": "ג'מה tried to propose a trade to you: [1x sheep] for [1x brick], but you do not have the requested cards (1 brick). No trade is pending; you do not need to accept or reject it.",
+          "timestamp": 1779040848.544034,
+          "data": {
+            "proposer": "ג'מה",
+            "target": "ג'ימי",
+            "offer": {
+              "sheep": 1
+            },
+            "request": {
+              "brick": 1
+            },
+            "reason": "you do not have the requested cards (1 brick)"
+          }
+        },
+        {
+          "type": "action_performed",
+          "message": "ג'מה ended their turn",
+          "timestamp": 1779040872.2787871,
+          "data": {
+            "affected_players": [
+              0
+            ]
+          }
+        },
+        {
+          "type": "turn_change",
+          "message": "Turn 16: Player 1's turn begins.",
+          "timestamp": 1779040872.2849982,
+          "data": {
+            "affected_players": []
+          }
+        },
+        {
+          "type": "dice_roll",
+          "message": "Rolled 11 (5+6). Resources distributed: ג'מה +1 wood.",
+          "timestamp": 1779040892.0972102,
+          "data": {
+            "affected_players": []
+          }
+        },
+        {
+          "type": "action_performed",
+          "message": "FACTS evt=roll actor=קלוד dice=11(5+6) prod={ג'מה:{W:1}}",
+          "timestamp": 1779040899.252041,
+          "data": {
+            "affected_players": [
+              0
+            ]
+          }
+        }
+      ],
+      "last_prompt_number": 46,
+      "stats": {
+        "player_name": "ג'ימי",
+        "player_id": 2,
+        "total_requests": 46,
+        "successful_requests": 46,
+        "failed_requests": 0,
+        "total_tokens_used": 233562,
+        "success_rate": "100.0%"
+      }
+    }
+  },
+  "final_game_state": {
+    "meta": {
+      "curr": "קלוד",
+      "phase": "NORMAL_PLAY",
+      "turn_phase": "PLAYER_ACTIONS",
+      "robber": 13,
+      "dice": [
+        5,
+        6
+      ],
+      "vp_to_win": 5,
+      "dice_total": 11
+    },
+    "H": [
+      "",
+      "W12",
+      "S5",
+      "W4",
+      "S8",
+      "B6",
+      "W3",
+      "Wh8",
+      "B10",
+      "W11",
+      "D",
+      "O3",
+      "S4",
+      "B10",
+      "Wh9",
+      "Wh6",
+      "S11",
+      "O5",
+      "Wh9",
+      "O2"
+    ],
+    "N": [
+      null,
+      [
+        [
+          2,
+          9
+        ],
+        [
+          1
+        ]
+      ],
+      [
+        [
+          1,
+          3
+        ],
+        [
+          1
+        ],
+        "Wh2"
+      ],
+      [
+        [
+          2,
+          4,
+          11
+        ],
+        [
+          2,
+          1
+        ],
+        "Wh2"
+      ],
+      [
+        [
+          3,
+          5
+        ],
+        [
+          2
+        ]
+      ],
+      [
+        [
+          4,
+          6,
+          13
+        ],
+        [
+          3,
+          2
+        ]
+      ],
+      [
+        [
+          5,
+          7
+        ],
+        [
+          3
+        ],
+        "B2"
+      ],
+      [
+        [
+          6,
+          15
+        ],
+        [
+          3
+        ],
+        "B2"
+      ],
+      [
+        [
+          9,
+          18
+        ],
+        [
+          4
+        ],
+        "?3"
+      ],
+      [
+        [
+          8,
+          10,
+          1
+        ],
+        [
+          4,
+          1
+        ],
+        "?3"
+      ],
+      [
+        [
+          9,
+          11,
+          20
+        ],
+        [
+          5,
+          4,
+          1
+        ]
+      ],
+      [
+        [
+          10,
+          12,
+          3
+        ],
+        [
+          5,
+          2,
+          1
+        ]
+      ],
+      [
+        [
+          11,
+          13,
+          22
+        ],
+        [
+          6,
+          5,
+          2
+        ]
+      ],
+      [
+        [
+          12,
+          14,
+          5
+        ],
+        [
+          6,
+          3,
+          2
+        ]
+      ],
+      [
+        [
+          13,
+          15,
+          24
+        ],
+        [
+          7,
+          6,
+          3
+        ]
+      ],
+      [
+        [
+          14,
+          16,
+          7
+        ],
+        [
+          7,
+          3
+        ]
+      ],
+      [
+        [
+          15,
+          26
+        ],
+        [
+          7
+        ],
+        "O2"
+      ],
+      [
+        [
+          18,
+          28
+        ],
+        [
+          8
+        ],
+        "S2"
+      ],
+      [
+        [
+          17,
+          19,
+          8
+        ],
+        [
+          8,
+          4
+        ]
+      ],
+      [
+        [
+          18,
+          20,
+          30
+        ],
+        [
+          9,
+          8,
+          4
+        ]
+      ],
+      [
+        [
+          19,
+          21,
+          10
+        ],
+        [
+          9,
+          5,
+          4
+        ]
+      ],
+      [
+        [
+          20,
+          22,
+          32
+        ],
+        [
+          10,
+          9,
+          5
+        ]
+      ],
+      [
+        [
+          21,
+          23,
+          12
+        ],
+        [
+          10,
+          6,
+          5
+        ]
+      ],
+      [
+        [
+          22,
+          24,
+          34
+        ],
+        [
+          11,
+          10,
+          6
+        ]
+      ],
+      [
+        [
+          23,
+          25,
+          14
+        ],
+        [
+          11,
+          7,
+          6
+        ]
+      ],
+      [
+        [
+          24,
+          26,
+          36
+        ],
+        [
+          12,
+          11,
+          7
+        ]
+      ],
+      [
+        [
+          25,
+          27,
+          16
+        ],
+        [
+          12,
+          7
+        ],
+        "O2"
+      ],
+      [
+        [
+          26,
+          38
+        ],
+        [
+          12
+        ]
+      ],
+      [
+        [
+          29,
+          17
+        ],
+        [
+          8
+        ],
+        "S2"
+      ],
+      [
+        [
+          28,
+          30,
+          39
+        ],
+        [
+          13,
+          8
+        ]
+      ],
+      [
+        [
+          29,
+          31,
+          19
+        ],
+        [
+          13,
+          9,
+          8
+        ]
+      ],
+      [
+        [
+          30,
+          32,
+          41
+        ],
+        [
+          14,
+          13,
+          9
+        ]
+      ],
+      [
+        [
+          31,
+          33,
+          21
+        ],
+        [
+          14,
+          10,
+          9
+        ]
+      ],
+      [
+        [
+          32,
+          34,
+          43
+        ],
+        [
+          15,
+          14,
+          10
+        ]
+      ],
+      [
+        [
+          33,
+          35,
+          23
+        ],
+        [
+          15,
+          11,
+          10
+        ]
+      ],
+      [
+        [
+          34,
+          36,
+          45
+        ],
+        [
+          16,
+          15,
+          11
+        ]
+      ],
+      [
+        [
+          35,
+          37,
+          25
+        ],
+        [
+          16,
+          12,
+          11
+        ]
+      ],
+      [
+        [
+          36,
+          38,
+          47
+        ],
+        [
+          16,
+          12
+        ],
+        "?3"
+      ],
+      [
+        [
+          37,
+          27
+        ],
+        [
+          12
+        ],
+        "?3"
+      ],
+      [
+        [
+          40,
+          29
+        ],
+        [
+          13
+        ]
+      ],
+      [
+        [
+          39,
+          41,
+          48
+        ],
+        [
+          17,
+          13
+        ],
+        "W2"
+      ],
+      [
+        [
+          40,
+          42,
+          31
+        ],
+        [
+          17,
+          14,
+          13
+        ]
+      ],
+      [
+        [
+          41,
+          43,
+          50
+        ],
+        [
+          18,
+          17,
+          14
+        ]
+      ],
+      [
+        [
+          42,
+          44,
+          33
+        ],
+        [
+          18,
+          15,
+          14
+        ]
+      ],
+      [
+        [
+          43,
+          45,
+          52
+        ],
+        [
+          19,
+          18,
+          15
+        ]
+      ],
+      [
+        [
+          44,
+          46,
+          35
+        ],
+        [
+          19,
+          16,
+          15
+        ]
+      ],
+      [
+        [
+          45,
+          47,
+          54
+        ],
+        [
+          19,
+          16
+        ]
+      ],
+      [
+        [
+          46,
+          37
+        ],
+        [
+          16
+        ]
+      ],
+      [
+        [
+          49,
+          40
+        ],
+        [
+          17
+        ],
+        "W2"
+      ],
+      [
+        [
+          48,
+          50
+        ],
+        [
+          17
+        ]
+      ],
+      [
+        [
+          49,
+          51,
+          42
+        ],
+        [
+          18,
+          17
+        ],
+        "?3"
+      ],
+      [
+        [
+          50,
+          52
+        ],
+        [
+          18
+        ],
+        "?3"
+      ],
+      [
+        [
+          51,
+          53,
+          44
+        ],
+        [
+          19,
+          18
+        ]
+      ],
+      [
+        [
+          52,
+          54
+        ],
+        [
+          19
+        ],
+        "?3"
+      ],
+      [
+        [
+          53,
+          46
+        ],
+        [
+          19
+        ],
+        "?3"
+      ]
+    ],
+    "state": {
+      "bld": [
+        [
+          12,
+          "קלוד",
+          "S"
+        ],
+        [
+          14,
+          "ג'ימי",
+          "S"
+        ],
+        [
+          20,
+          "ג'מה",
+          "S"
+        ],
+        [
+          25,
+          "קלוד",
+          "S"
+        ],
+        [
+          41,
+          "ג'ימי",
+          "S"
+        ],
+        [
+          44,
+          "ג'מה",
+          "S"
+        ]
+      ],
+      "rds": [
+        [
+          [
+            20,
+            10
+          ],
+          "ג'מה"
+        ],
+        [
+          [
+            12,
+            11
+          ],
+          "קלוד"
+        ],
+        [
+          [
+            41,
+            42
+          ],
+          "ג'ימי"
+        ],
+        [
+          [
+            14,
+            24
+          ],
+          "ג'ימי"
+        ],
+        [
+          [
+            25,
+            36
+          ],
+          "קלוד"
+        ],
+        [
+          [
+            44,
+            43
+          ],
+          "ג'מה"
+        ],
+        [
+          [
+            43,
+            33
+          ],
+          "ג'מה"
+        ],
+        [
+          [
+            33,
+            34
+          ],
+          "ג'מה"
+        ],
+        [
+          [
+            36,
+            37
+          ],
+          "קלוד"
+        ],
+        [
+          [
+            24,
+            23
+          ],
+          "ג'ימי"
+        ]
+      ]
+    },
+    "players": {
+      "ג'מה": {
+        "vp": 2,
+        "res": {
+          "S": 1,
+          "Wh": 1,
+          "W": 1
+        }
+      },
+      "קלוד": {
+        "vp": 2,
+        "res": {
+          "O": 1,
+          "S": 2,
+          "W": 1
+        },
+        "dev": {
+          "r": [
+            "K"
+          ]
+        }
+      },
+      "ג'ימי": {
+        "vp": 2,
+        "res": {
+          "O": 1,
+          "S": 1,
+          "Wh": 1,
+          "W": 2
+        }
+      }
+    }
+  }
+}
