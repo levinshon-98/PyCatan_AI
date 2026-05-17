@@ -26,6 +26,468 @@
     color: #111827;
 }
 
+.replay-help-btn {
+    width: 26px;
+    height: 26px;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.replay-admin-secret {
+    position: fixed;
+    right: 8px;
+    bottom: 8px;
+    z-index: 4000;
+    width: 18px;
+    height: 18px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(15, 23, 42, 0.12);
+    color: transparent;
+    cursor: pointer;
+}
+
+.replay-admin-secret:hover {
+    background: rgba(15, 23, 42, 0.45);
+}
+
+.mobile-gate {
+    position: fixed;
+    inset: 0;
+    z-index: 6000;
+    display: grid;
+    place-items: center;
+    padding: 22px;
+    background: #111827;
+    color: #f8fafc;
+}
+
+.mobile-gate[hidden] {
+    display: none;
+}
+
+.mobile-gate-card {
+    width: min(440px, 100%);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 8px;
+    background: #f8fafc;
+    color: #111827;
+    padding: 24px;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.38);
+}
+
+.mobile-gate-kicker {
+    margin-bottom: 10px;
+    color: #2f6fed;
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.mobile-gate h1 {
+    margin: 0 0 14px;
+    font-size: 29px;
+    line-height: 1.1;
+    color: #111827;
+}
+
+.mobile-gate p {
+    margin: 0 0 14px;
+    color: #475569;
+    font-size: 15px;
+    line-height: 1.55;
+}
+
+.mobile-link-form {
+    display: grid;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.mobile-link-form input,
+.mobile-link-form button {
+    width: 100%;
+    border-radius: 8px;
+    font: inherit;
+    min-height: 46px;
+}
+
+.mobile-link-form input {
+    border: 1px solid rgba(148, 163, 184, 0.48);
+    padding: 0 12px;
+}
+
+.mobile-link-form button {
+    border: 0;
+    background: #2f6fed;
+    color: #ffffff;
+    font-weight: 900;
+}
+
+.mobile-link-status {
+    min-height: 22px;
+    margin-top: 12px;
+    color: #315071;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.replay-intro-modal,
+.replay-admin-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 3500;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: rgba(15, 23, 42, 0.62);
+    backdrop-filter: blur(6px);
+}
+
+.replay-intro-modal.hidden,
+.replay-admin-modal.hidden {
+    display: none;
+}
+
+.replay-intro-dialog,
+.replay-admin-dialog {
+    width: min(820px, calc(100vw - 64px));
+    max-height: min(84vh, 720px);
+    overflow: auto;
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    border-radius: 8px;
+    background: #f8fafc;
+    color: #172033;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+}
+
+.replay-intro-dialog {
+    position: relative;
+    padding: 28px 34px 26px;
+}
+
+.replay-intro-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 32px;
+    height: 32px;
+    border: 0;
+    border-radius: 50%;
+    background: #e2e8f0;
+    color: #334155;
+    font-size: 22px;
+    cursor: pointer;
+}
+
+.replay-intro-kicker {
+    margin-bottom: 10px;
+    color: #2f6fed;
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.replay-intro-progress {
+    display: flex;
+    gap: 7px;
+    margin: 12px 0 24px;
+}
+
+.replay-intro-progress span {
+    display: inline-grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border: 1px solid rgba(47, 111, 237, 0.26);
+    border-radius: 50%;
+    color: #2f6fed;
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.replay-intro-progress span.active {
+    background: #2f6fed;
+    color: #ffffff;
+}
+
+.replay-intro-step {
+    display: none;
+    min-height: 230px;
+}
+
+.replay-intro-step.active {
+    display: block;
+}
+
+.replay-intro-dialog h1,
+.replay-admin-dialog h2 {
+    margin: 0;
+    color: #111827;
+}
+
+.replay-intro-dialog h1 {
+    max-width: 700px;
+    font-size: 30px;
+    line-height: 1.14;
+    margin-bottom: 16px;
+}
+
+.replay-intro-copy {
+    max-width: 680px;
+    color: #475569;
+    font-size: 15px;
+    line-height: 1.58;
+}
+
+.replay-intro-highlight {
+    margin-top: 18px;
+    border: 1px solid rgba(47, 111, 237, 0.22);
+    border-radius: 8px;
+    background: #eff6ff;
+    color: #1e3a8a;
+    padding: 14px 16px;
+    font-size: 14px;
+    line-height: 1.55;
+}
+
+.replay-guide-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin: 18px 0 0;
+}
+
+.replay-guide-grid section {
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    border-radius: 8px;
+    background: #ffffff;
+    padding: 16px;
+}
+
+.replay-guide-grid h3 {
+    margin: 0 0 10px;
+    color: #111827;
+    font-size: 16px;
+}
+
+.replay-guide-grid p {
+    margin: 0 0 10px;
+    color: #475569;
+    font-size: 13px;
+    line-height: 1.55;
+}
+
+.replay-guide-grid p:last-child {
+    margin-bottom: 0;
+}
+
+.replay-intro-steps {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin: 22px 0;
+}
+
+.replay-intro-steps div,
+.replay-intro-session,
+.replay-admin-session {
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    border-radius: 8px;
+    background: #ffffff;
+}
+
+.replay-intro-steps div {
+    padding: 14px;
+}
+
+.replay-intro-steps strong {
+    display: inline-grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    margin-bottom: 10px;
+    border-radius: 50%;
+    background: #2f6fed;
+    color: #ffffff;
+}
+
+.replay-intro-steps span {
+    display: block;
+    color: #475569;
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+.replay-intro-sessions {
+    display: grid;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.replay-intro-session-title {
+    margin: 22px 0 0;
+    color: #111827;
+    font-size: 18px;
+}
+
+.replay-intro-session {
+    width: 100%;
+    padding: 14px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.replay-intro-session:hover {
+    border-color: rgba(47, 111, 237, 0.45);
+    background: #eff6ff;
+}
+
+.replay-intro-session strong,
+.replay-intro-session span {
+    display: block;
+}
+
+.replay-intro-session strong {
+    color: #111827;
+    font-size: 15px;
+}
+
+.replay-intro-session span,
+.replay-intro-empty {
+    margin-top: 5px;
+    color: #64748b;
+    font-size: 13px;
+}
+
+.replay-intro-actions,
+.replay-admin-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 24px;
+    padding-top: 18px;
+    border-top: 1px solid rgba(148, 163, 184, 0.22);
+}
+
+.replay-intro-primary {
+    border: 0;
+    border-radius: 8px;
+    background: #2f6fed;
+    color: #ffffff;
+    padding: 11px 16px;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.replay-intro-secondary {
+    border: 1px solid rgba(148, 163, 184, 0.45);
+    border-radius: 8px;
+    background: #ffffff;
+    color: #334155;
+    padding: 11px 16px;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.replay-intro-secondary:disabled {
+    cursor: default;
+    opacity: 0.45;
+}
+
+.replay-intro-check {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #64748b;
+    font-size: 13px;
+}
+
+.replay-admin-dialog {
+    padding: 0;
+}
+
+.replay-admin-header,
+.replay-admin-footer {
+    padding: 20px 24px;
+}
+
+.replay-admin-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.22);
+}
+
+.replay-admin-header p {
+    margin: 8px 0 0;
+    color: #64748b;
+}
+
+.replay-admin-session-list {
+    display: grid;
+    gap: 10px;
+    padding: 18px 24px;
+}
+
+.replay-admin-session {
+    display: grid;
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: 14px;
+    padding: 14px;
+}
+
+.replay-admin-toggle {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    color: #334155;
+    font-weight: 800;
+}
+
+.replay-admin-session-main {
+    display: grid;
+    gap: 8px;
+}
+
+.replay-admin-session-name {
+    color: #64748b;
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 12px;
+}
+
+.replay-admin-session input[type="text"],
+.replay-admin-session input[type="number"],
+.replay-admin-session input:not([type]),
+.replay-admin-session textarea {
+    width: 100%;
+    border: 1px solid rgba(148, 163, 184, 0.45);
+    border-radius: 6px;
+    background: #ffffff;
+    color: #111827;
+    padding: 9px 10px;
+    font: inherit;
+}
+
+.replay-admin-session textarea {
+    min-height: 64px;
+    resize: vertical;
+}
+
+.replay-admin-status {
+    color: #64748b;
+    font-size: 13px;
+}
+
 .replay-viewer-shell .replay-point.chat-only {
     border-color: #60d394;
     background: #eafff3;
@@ -58,7 +520,42 @@
 }
 
 .replay-viewer-shell .player-card.replay-speaking .player-chat-bubble {
-    border-left: 4px solid #2f6fed;
+    border-left: 5px solid #2f6fed;
+    box-shadow: 0 12px 28px rgba(47, 111, 237, 0.18), 0 0 0 2px rgba(47, 111, 237, 0.22);
+}
+
+.replay-viewer-shell .player-card.replay-speaking {
+    box-shadow: 0 6px 22px rgba(47, 111, 237, 0.26);
+}
+
+.replay-viewer-shell .player-chat-bubble.now-speaking-bubble {
+    background: linear-gradient(135deg, #eff6ff, #ffffff);
+    border-top: 1px solid rgba(47, 111, 237, 0.24);
+    border-right: 1px solid rgba(47, 111, 237, 0.16);
+    border-bottom: 1px solid rgba(47, 111, 237, 0.16);
+}
+
+.replay-viewer-shell .player-chat-bubble .speech-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: #2f6fed;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.replay-viewer-shell .player-chat-bubble.now-speaking-bubble .speech-label::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #86efac;
+    box-shadow: 0 0 0 4px rgba(134, 239, 172, 0.28);
 }
 
 .replay-viewer-shell .player-card.replay-thinking {
@@ -213,5 +710,22 @@
 
     .replay-session-picker select {
         width: 160px;
+    }
+}
+
+@media (max-width: 760px) {
+    .replay-guide-grid,
+    .replay-intro-steps {
+        grid-template-columns: 1fr;
+    }
+
+    .replay-admin-session {
+        grid-template-columns: 1fr;
+    }
+
+    .replay-intro-actions,
+    .replay-admin-footer {
+        align-items: stretch;
+        flex-direction: column;
     }
 }

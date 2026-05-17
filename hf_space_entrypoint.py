@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Hugging Face Spaces entrypoint for the public PyCatan demo."""
+"""Hugging Face Spaces entrypoint for the standalone PyCatan replay viewer."""
 
 import os
 import sys
@@ -10,16 +10,18 @@ def main() -> None:
 
     # Spaces needs the HTTP server to listen publicly inside the container.
     # Local scripts keep their safer localhost default.
-    os.environ.setdefault("PYCATAN_BIND_HOST", "0.0.0.0")
-    os.environ.setdefault("PYCATAN_PUBLIC_HOST", os.environ.get("SPACE_HOST", "localhost"))
-    os.environ.setdefault("PYCATAN_NO_BROWSER", "1")
+    os.environ.setdefault("REPLAY_VIEWER_REQUIRE_PUBLIC_CONFIG", "1")
+    from examples.ai_testing.replay_viewer import main as replay_main
 
-    from examples.ai_testing.play_public_entry import main as public_main
-
-    sys.argv = ["play_public_entry.py", "--port", port]
-    if os.environ.get("OPENROUTER_API_KEY") and os.environ.get("GEMINI_API_KEY"):
-        sys.argv.append("--use-env-keys")
-    public_main()
+    sys.argv = [
+        "replay_viewer.py",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        port,
+        "--no-browser",
+    ]
+    replay_main()
 
 
 if __name__ == "__main__":

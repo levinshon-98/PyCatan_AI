@@ -19,6 +19,8 @@ import re
 import sys
 import threading
 import time
+import urllib.error
+import urllib.request
 import wave
 import webbrowser
 from datetime import datetime
@@ -27,12 +29,37 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 from urllib.parse import parse_qs, unquote, urlparse
 
+try:
+    import requests
+except Exception:  # pragma: no cover - urllib fallback keeps the viewer usable.
+    requests = None
+REQUESTS_EXCEPTIONS = (requests.RequestException,) if requests is not None else ()
+try:
+    import certifi
+except Exception:  # pragma: no cover - system certificates are still fine on most hosts.
+    certifi = None
+
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 LOGS_DIR = REPO_ROOT / "examples" / "ai_testing" / "my_games"
 PYCATAN_STATIC_ROOT = REPO_ROOT / "pycatan" / "static"
 VIEWER_STATIC_ROOT = Path(__file__).resolve().parent / "replay_viewer_static"
 MANIFEST_NAME = "replay_viewer_manifest.json"
+PUBLIC_CONFIG_NAME = "replay_public_sessions.json"
+MOBILE_LINK_REQUESTS_NAME = "mobile_link_requests.jsonl"
+MOBILE_EMAIL_WEBHOOK_ENV = "REPLAY_VIEWER_MOBILE_EMAIL_WEBHOOK_URL"
+MOBILE_EMAIL_SECRET_ENV = "REPLAY_VIEWER_MOBILE_EMAIL_SECRET"
+EMAILJS_SERVICE_ID_ENV = "REPLAY_VIEWER_EMAILJS_SERVICE_ID"
+EMAILJS_TEMPLATE_ID_ENV = "REPLAY_VIEWER_EMAILJS_TEMPLATE_ID"
+EMAILJS_PUBLIC_KEY_ENV = "REPLAY_VIEWER_EMAILJS_PUBLIC_KEY"
+EMAILJS_PRIVATE_KEY_ENV = "REPLAY_VIEWER_EMAILJS_PRIVATE_KEY"
+EMAILJS_INSECURE_TLS_ENV = "REPLAY_VIEWER_EMAILJS_INSECURE_TLS"
+EMAILJS_DEFAULT_SERVICE_ID = "service_7zvgf1d"
+EMAILJS_DEFAULT_TEMPLATE_ID = "template_8fhb9w1"
+EMAILJS_DEFAULT_PUBLIC_KEY = "IxysEF7YkU8-Qnd-s"
+OWNER_EMAIL = "levinshon@gmail.com"
+LINKEDIN_URL = "https://www.linkedin.com/in/shon-levin/"
+ADMIN_PASSWORD = "catan-replay"
 TRUE_VALUES = {"1", "true", "yes", "on"}
 RESOURCE_CODE_MAP = {
     "W": "wood",
@@ -130,6 +157,395 @@ def list_sessions(logs_dir: Path = LOGS_DIR) -> List[Dict[str, Any]]:
 
     sessions.sort(key=lambda item: item.get("start_time") or item.get("modified_at") or item.get("name"), reverse=True)
     return sessions
+
+
+def public_config_path(logs_dir: Path = LOGS_DIR) -> Path:
+    configured = os.environ.get("REPLAY_VIEWER_PUBLIC_CONFIG")
+    if configured:
+        return (REPO_ROOT / configured).resolve() if not Path(configured).is_absolute() else Path(configured)
+    return logs_dir / PUBLIC_CONFIG_NAME
+
+
+def read_public_config(logs_dir: Path = LOGS_DIR) -> Dict[str, Any]:
+    target = public_config_path(logs_dir)
+    configured = target.exists() or os.environ.get("REPLAY_VIEWER_REQUIRE_PUBLIC_CONFIG", "").lower() in TRUE_VALUES
+    payload = _read_json(target, {}) or {}
+    sessions = payload.get("sessions") if isinstance(payload.get("sessions"), list) else []
+    normalized = []
+    for index, item in enumerate(sessions):
+        if not isinstance(item, dict):
+            continue
+        name = str(item.get("name") or "").strip()
+        if not name:
+            continue
+        normalized.append({
+            "name": name,
+            "enabled": bool(item.get("enabled", True)),
+            "title": str(item.get("title") or "").strip(),
+            "description": str(item.get("description") or "").strip(),
+            "order": int(item.get("order", index) or 0),
+        })
+    return {
+        "version": 1,
+        "configured": configured,
+        "sessions": normalized,
+        "updated_at": payload.get("updated_at") or "",
+    }
+
+
+def write_public_config(payload: Dict[str, Any], logs_dir: Path = LOGS_DIR) -> Dict[str, Any]:
+    sessions = payload.get("sessions") if isinstance(payload.get("sessions"), list) else []
+    cleaned = []
+    for index, item in enumerate(sessions):
+        if not isinstance(item, dict):
+            continue
+        name = str(item.get("name") or "").strip()
+        if not name:
+            continue
+        cleaned.append({
+            "name": name,
+            "enabled": bool(item.get("enabled", False)),
+            "title": str(item.get("title") or "").strip(),
+            "description": str(item.get("description") or "").strip(),
+            "order": int(item.get("order", index) or 0),
+        })
+    config = {
+        "version": 1,
+        "updated_at": datetime.now().isoformat(timespec="seconds"),
+        "sessions": cleaned,
+    }
+    target = public_config_path(logs_dir)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(json.dumps(config, ensure_ascii=False, indent=2), encoding="utf-8")
+    return config
+
+
+def write_mobile_link_request(payload: Dict[str, Any], logs_dir: Path = LOGS_DIR) -> Dict[str, Any]:
+    email = str(payload.get("email") or "").strip().lower()
+    if not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email):
+        raise ValueError("Invalid email")
+    record = {
+        "email": email,
+        "session": str(payload.get("session") or "").strip(),
+        "page": str(payload.get("page") or "").strip(),
+        "created_at": datetime.now().isoformat(timespec="seconds"),
+        "user_agent": str(payload.get("user_agent") or "").strip()[:500],
+    }
+    target = logs_dir / MOBILE_LINK_REQUESTS_NAME
+    target.parent.mkdir(parents=True, exist_ok=True)
+    with target.open("a", encoding="utf-8") as file:
+        file.write(json.dumps(record, ensure_ascii=False) + "\n")
+    return record
+
+
+def send_mobile_link_email(record: Dict[str, Any]) -> Dict[str, Any]:
+    emailjs_result = send_mobile_link_email_emailjs(record)
+    if emailjs_result.get("sent") or emailjs_result.get("configured"):
+        return emailjs_result
+
+    webhook_url = os.environ.get(MOBILE_EMAIL_WEBHOOK_ENV, "").strip()
+    if not webhook_url:
+        return {"sent": False, "reason": "webhook_not_configured"}
+
+    payload = {
+        "secret": os.environ.get(MOBILE_EMAIL_SECRET_ENV, ""),
+        "email": record.get("email", ""),
+        "session": record.get("session", ""),
+        "link": record.get("page", ""),
+        "created_at": record.get("created_at", ""),
+    }
+    body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+    request = urllib.request.Request(
+        webhook_url,
+        data=body,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=8) as response:
+            response_body = response.read().decode("utf-8", errors="replace")
+            return {
+                "sent": 200 <= response.status < 300,
+                "status": response.status,
+                "response": response_body[:500],
+            }
+    except urllib.error.HTTPError as exc:
+        return {"sent": False, "status": exc.code, "reason": exc.read().decode("utf-8", errors="replace")[:500]}
+    except Exception as exc:
+        return {"sent": False, "reason": str(exc)}
+
+
+def send_mobile_link_email_emailjs(record: Dict[str, Any]) -> Dict[str, Any]:
+    service_id = os.environ.get(EMAILJS_SERVICE_ID_ENV, EMAILJS_DEFAULT_SERVICE_ID).strip()
+    template_id = os.environ.get(EMAILJS_TEMPLATE_ID_ENV, EMAILJS_DEFAULT_TEMPLATE_ID).strip()
+    public_key = os.environ.get(EMAILJS_PUBLIC_KEY_ENV, EMAILJS_DEFAULT_PUBLIC_KEY).strip()
+    private_key = os.environ.get(EMAILJS_PRIVATE_KEY_ENV, "").strip()
+    if not service_id or not template_id or not public_key:
+        return {"sent": False, "configured": False, "reason": "emailjs_not_configured"}
+
+    url = "https://api.emailjs.com/api/v1.0/email/send"
+    try:
+        send_result = _send_emailjs_payload(
+            url,
+            service_id,
+            template_id,
+            public_key,
+            _mobile_link_template_params(record),
+            private_key,
+        )
+        if not send_result.get("sent"):
+            return send_result
+        notification_result = _send_emailjs_payload(
+            url,
+            service_id,
+            template_id,
+            public_key,
+            _owner_notification_template_params(record),
+            private_key,
+        )
+        send_result["owner_notification_sent"] = bool(notification_result.get("sent"))
+        if not notification_result.get("sent"):
+            send_result["owner_notification_reason"] = notification_result.get("reason") or notification_result.get("response")
+        return send_result
+    except REQUESTS_EXCEPTIONS as exc:
+        response = getattr(exc, "response", None)
+        return {
+            "sent": False,
+            "configured": True,
+            "provider": "emailjs",
+            "status": getattr(response, "status_code", None),
+            "reason": (getattr(response, "text", "") or str(exc))[:500],
+        }
+    except urllib.error.HTTPError as exc:
+        return {
+            "sent": False,
+            "configured": True,
+            "provider": "emailjs",
+            "status": exc.code,
+            "reason": exc.read().decode("utf-8", errors="replace")[:500],
+        }
+    except Exception as exc:
+        return {"sent": False, "configured": True, "provider": "emailjs", "reason": str(exc)}
+
+
+def _mobile_link_template_params(record: Dict[str, Any]) -> Dict[str, Any]:
+    return {
+        "title": "Your AI Catan replay link is ready",
+        "to": record.get("email", ""),
+        "name": "AI Catan Replay Viewer",
+        "email": OWNER_EMAIL,
+        "data": build_mobile_email_html(record),
+        "message": build_mobile_email_text(record),
+        "link": record.get("page", ""),
+        "session": record.get("session", ""),
+        "linkedin": LINKEDIN_URL,
+    }
+
+
+def _owner_notification_template_params(record: Dict[str, Any]) -> Dict[str, Any]:
+    recipient = str(record.get("email") or "")
+    session = str(record.get("session") or "Selected replay")
+    link = str(record.get("page") or "")
+    created_at = str(record.get("created_at") or datetime.now().isoformat(timespec="seconds"))
+    text_body = (
+        "A mobile replay link email was sent.\n\n"
+        f"Recipient: {recipient}\n"
+        f"Session: {session}\n"
+        f"Link: {link}\n"
+        f"Sent at: {created_at}\n"
+    )
+    html_body = f"""
+<div style="margin:0;padding:0;background:#f3f6fb;font-family:Inter,Segoe UI,Arial,sans-serif;color:#172033;">
+  <div style="max-width:620px;margin:0 auto;padding:32px 18px;">
+    <div style="background:#ffffff;border:1px solid #dbe4f0;border-radius:14px;padding:28px;box-shadow:0 14px 38px rgba(15,23,42,0.10);">
+      <div style="font-size:12px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#2f6fed;">AI Catan Replay Viewer</div>
+      <h1 style="margin:10px 0 16px;font-size:24px;line-height:1.2;color:#111827;">Replay link email sent</h1>
+      <p style="margin:0 0 18px;font-size:15px;line-height:1.6;color:#475569;">A desktop replay link was sent to a mobile visitor.</p>
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px;font-size:14px;line-height:1.7;color:#334155;">
+        <div><strong>Recipient:</strong> {html.escape(recipient)}</div>
+        <div><strong>Session:</strong> {html.escape(session)}</div>
+        <div><strong>Sent at:</strong> {html.escape(created_at)}</div>
+      </div>
+      <div style="margin-top:22px;">
+        <a href="{html.escape(link, quote=True)}" style="display:inline-block;background:#2f6fed;color:#ffffff;text-decoration:none;font-weight:900;border-radius:10px;padding:12px 18px;">Open replay link</a>
+      </div>
+    </div>
+  </div>
+</div>
+""".strip()
+    return {
+        "title": f"Replay link sent to {recipient}",
+        "to": OWNER_EMAIL,
+        "name": "AI Catan Replay Viewer",
+        "email": OWNER_EMAIL,
+        "data": html_body,
+        "message": text_body,
+        "link": link,
+        "session": session,
+        "visitor_email": recipient,
+        "linkedin": LINKEDIN_URL,
+    }
+
+
+def _send_emailjs_payload(
+    url: str,
+    service_id: str,
+    template_id: str,
+    public_key: str,
+    template_params: Dict[str, Any],
+    private_key: str = "",
+) -> Dict[str, Any]:
+    payload: Dict[str, Any] = {
+        "service_id": service_id,
+        "template_id": template_id,
+        "user_id": public_key,
+        "template_params": template_params,
+    }
+    if private_key:
+        payload["accessToken"] = private_key
+
+    if requests is not None:
+        verify: Any = certifi.where() if certifi is not None else True
+        try:
+            response = requests.post(url, json=payload, timeout=8, verify=verify)
+        except REQUESTS_EXCEPTIONS as exc:
+            if EMAILJS_INSECURE_TLS_ENV and os.environ.get(EMAILJS_INSECURE_TLS_ENV, "").lower() in TRUE_VALUES:
+                response = requests.post(url, json=payload, timeout=8, verify=False)
+            else:
+                raise exc
+        return {
+            "sent": 200 <= response.status_code < 300,
+            "configured": True,
+            "provider": "emailjs",
+            "status": response.status_code,
+            "response": response.text[:500],
+        }
+
+    request = urllib.request.Request(
+        url,
+        data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    with urllib.request.urlopen(request, timeout=8) as response:
+        response_body = response.read().decode("utf-8", errors="replace")
+        return {
+            "sent": 200 <= response.status < 300,
+            "configured": True,
+            "provider": "emailjs",
+            "status": response.status,
+            "response": response_body[:500],
+        }
+
+
+def build_mobile_email_text(record: Dict[str, Any]) -> str:
+    session = record.get("session") or "the selected replay"
+    return (
+        "Thanks for checking out the AI Catan Replay Viewer.\n\n"
+        "This is an experimental replay interface for Catan games played by AI agents. "
+        "Instead of only seeing the final board, you can replay a recorded session step by step: "
+        "the board state, table talk, actions, dice rolls, resource changes, and parts of the AI decision trace.\n\n"
+        "It is best viewed on a laptop or desktop because the board, timeline, logs, chat, audio, and analysis panel all need room.\n\n"
+        f"Open the replay: {record.get('page', '')}\n"
+        f"Session: {session}\n\n"
+        f"Shon Levin: {LINKEDIN_URL}\n"
+    )
+
+
+def build_mobile_email_html(record: Dict[str, Any]) -> str:
+    link = html.escape(str(record.get("page") or ""), quote=True)
+    session = html.escape(str(record.get("session") or "Selected replay"), quote=True)
+    linkedin = html.escape(LINKEDIN_URL, quote=True)
+    return f"""
+<div style="margin:0;padding:0;background:#f3f6fb;font-family:Inter,Segoe UI,Arial,sans-serif;color:#172033;">
+  <div style="max-width:660px;margin:0 auto;padding:36px 18px;">
+    <div style="background:#ffffff;border:1px solid #dbe4f0;border-radius:14px;overflow:hidden;box-shadow:0 18px 48px rgba(15,23,42,0.12);">
+      <div style="background:#111827;color:#ffffff;padding:30px;">
+        <div style="font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#93c5fd;">AI Catan Replay Viewer</div>
+        <h1 style="margin:12px 0 0;font-size:28px;line-height:1.15;font-weight:900;">Your replay link is ready</h1>
+      </div>
+      <div style="padding:30px;">
+        <p style="margin:0 0 16px;font-size:16px;line-height:1.65;color:#334155;">Thanks for checking out the AI Catan Replay Viewer.</p>
+        <p style="margin:0 0 16px;font-size:16px;line-height:1.65;color:#334155;">
+          This is an experimental replay interface for Catan games played by AI agents. Instead of only seeing the final board,
+          you can replay a recorded session step by step.
+        </p>
+        <div style="margin:22px 0;padding:18px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;">
+          <div style="font-size:13px;font-weight:900;color:#111827;margin-bottom:10px;">Inside the replay you can follow:</div>
+          <ul style="margin:0;padding-left:20px;color:#475569;font-size:14px;line-height:1.75;">
+            <li>the board state as it changes over time</li>
+            <li>the table talk and recorded audio</li>
+            <li>actions, dice rolls, and resource changes</li>
+            <li>the AI decision trace behind interesting moves</li>
+          </ul>
+        </div>
+        <p style="margin:0 0 24px;font-size:16px;line-height:1.65;color:#334155;">
+          The viewer is best on a laptop or desktop because the board, timeline, logs, chat, audio, and analysis panel all need room to breathe.
+        </p>
+        <div style="margin:24px 0;text-align:center;">
+          <a href="{link}" style="display:inline-block;background:#2f6fed;color:#ffffff;text-decoration:none;font-weight:900;border-radius:10px;padding:14px 22px;">Open the replay</a>
+        </div>
+        <div style="margin:22px 0;padding:14px 16px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;color:#1e3a8a;font-size:14px;">
+          <strong>Session:</strong> {session}
+        </div>
+        <p style="margin:24px 0 0;font-size:14px;line-height:1.6;color:#64748b;">
+          Curious about the project or want to follow along?
+          <a href="{linkedin}" style="color:#2f6fed;font-weight:800;text-decoration:none;">Connect with Shon Levin on LinkedIn</a>.
+        </p>
+      </div>
+    </div>
+    <p style="margin:18px 0 0;text-align:center;font-size:12px;color:#94a3b8;">Sent because this replay is much happier on a real screen.</p>
+  </div>
+</div>
+""".strip()
+
+
+def _public_entries_by_name(config: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
+    return {
+        str(item.get("name")): item
+        for item in (config.get("sessions") or [])
+        if isinstance(item, dict) and item.get("name")
+    }
+
+
+def _decorate_session(session: Dict[str, Any], entry: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    decorated = dict(session)
+    title = (entry or {}).get("title") or session.get("name") or ""
+    decorated["title"] = title
+    decorated["display_name"] = title
+    decorated["description"] = (entry or {}).get("description") or ""
+    decorated["public_enabled"] = bool((entry or {}).get("enabled", True))
+    decorated["public_order"] = int((entry or {}).get("order", 0) or 0)
+    return decorated
+
+
+def public_sessions(sessions: List[Dict[str, Any]], config: Dict[str, Any]) -> List[Dict[str, Any]]:
+    entries = _public_entries_by_name(config)
+    if not entries:
+        return [] if config.get("configured") else [_decorate_session(session) for session in sessions]
+    by_name = {session.get("name"): session for session in sessions}
+    exposed = [
+        _decorate_session(by_name[name], entry)
+        for name, entry in entries.items()
+        if entry.get("enabled") and name in by_name
+    ]
+    exposed.sort(key=lambda item: (item.get("public_order", 0), item.get("title") or item.get("name") or ""))
+    return exposed
+
+
+def admin_sessions(sessions: List[Dict[str, Any]], config: Dict[str, Any]) -> List[Dict[str, Any]]:
+    entries = _public_entries_by_name(config)
+    decorated = [_decorate_session(session, entries.get(session.get("name"))) for session in sessions]
+    decorated.sort(key=lambda item: (item.get("public_order", 0), item.get("modified_at") or ""), reverse=True)
+    return decorated
+
+
+def session_is_public(session_name: str, config: Dict[str, Any]) -> bool:
+    entries = _public_entries_by_name(config)
+    if not entries:
+        return not config.get("configured")
+    entry = entries.get(session_name)
+    return bool(entry and entry.get("enabled"))
 
 
 def _players_from_metadata(session_dir: Path) -> List[Dict[str, Any]]:
@@ -1442,6 +1858,7 @@ HTML_PAGE = r"""<!doctype html>
         <button class="replay-btn replay-analyse" id="replay-analyse" title="Analyse current decision" type="button">Analyse</button>
       </div>
       <div class="nav-status">
+        <button class="replay-help-btn" id="replay-help" type="button" title="How to use">?</button>
         <span class="status-dot live"></span>
         <span class="status-text">REPLAY</span>
       </div>
@@ -1568,6 +1985,115 @@ HTML_PAGE = r"""<!doctype html>
     </div>
   </div>
 
+  <button id="replay-admin-unlock" class="replay-admin-secret" type="button" title="Admin">.</button>
+
+  <div id="intro-modal" class="replay-intro-modal hidden" role="dialog" aria-modal="true" aria-labelledby="intro-title">
+    <div class="replay-intro-dialog">
+      <button id="intro-close" class="replay-intro-close" type="button" title="Close">×</button>
+      <div class="replay-intro-kicker">AI Catan Replay Viewer</div>
+      <div class="replay-intro-progress" id="intro-progress"></div>
+      <div class="replay-intro-step active" data-intro-step="0">
+        <h1 id="intro-title">Replay previous AI Catan games</h1>
+        <p class="replay-intro-copy">
+          This viewer does not start a new game. It plays back recorded sessions that already happened,
+          so you can review the match step by step: board state, speech, actions, dice, resources, and AI decisions.
+        </p>
+        <div class="replay-intro-highlight">
+          Use it to answer: what happened at this moment, who said it, what changed on the board, and why the AI chose that move.
+        </div>
+      </div>
+      <div class="replay-intro-step" data-intro-step="1">
+        <h1>Read the replay layout</h1>
+        <div class="replay-guide-grid">
+          <section>
+            <h3>Center</h3>
+            <p>The Catan board shows the exact replay state: roads, settlements, robber placement, dice moments, and board changes.</p>
+          </section>
+          <section>
+            <h3>Left side</h3>
+            <p>The Player Hub shows each player's score, resources, development cards, awards, and the latest or currently playing speech bubble.</p>
+          </section>
+          <section>
+            <h3>Right side</h3>
+            <p>The tabs show the game history: Action Log for moves and resource changes, and Chat for the table conversation.</p>
+          </section>
+        </div>
+      </div>
+      <div class="replay-intro-step" data-intro-step="2">
+        <h1>Move through the game timeline</h1>
+        <p class="replay-intro-copy">
+          The row of squares at the top is a unified response timeline. Each square represents one AI response:
+          an action, speech, a reaction, or a memory-only update.
+        </p>
+        <div class="replay-intro-steps">
+          <div><strong>1</strong><span>Press Play to watch the replay with browser-owned audio.</span></div>
+          <div><strong>2</strong><span>Use Pause, arrows, or the slider to stop and jump between moments.</span></div>
+          <div><strong>3</strong><span>Click any square to jump directly to that response in the game.</span></div>
+        </div>
+      </div>
+      <div class="replay-intro-step" data-intro-step="3">
+        <h1>Inspect decisions with Analyse</h1>
+        <p class="replay-intro-copy">
+          When a moment is interesting, click Analyse. It opens the selected AI response with the parsed action,
+          raw output, internal thinking when available, tokens, model metadata, and the exact parameters used in the move.
+        </p>
+        <div class="replay-intro-highlight">
+          Use it to understand not only what happened, but why an agent chose that trade, robber move, build, or reply.
+        </div>
+      </div>
+      <div class="replay-intro-step" data-intro-step="4">
+        <h1>Choose a session to begin</h1>
+        <p class="replay-intro-copy">
+          Pick one published session below. You can always switch sessions later from the selector in the top bar.
+        </p>
+        <div class="replay-intro-sessions" id="intro-session-list"></div>
+      </div>
+      <div class="replay-intro-actions">
+        <button id="intro-back" class="replay-intro-secondary" type="button">Back</button>
+        <button id="intro-next" class="replay-intro-primary" type="button">Next</button>
+        <label class="replay-intro-check">
+          <input id="intro-hide-next" type="checkbox">
+          <span>Do not show this guide again on this browser</span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div id="admin-modal" class="replay-admin-modal hidden" role="dialog" aria-modal="true" aria-labelledby="admin-title">
+    <div class="replay-admin-dialog">
+      <div class="replay-admin-header">
+        <div>
+          <div class="replay-intro-kicker">Private Controls</div>
+          <h2 id="admin-title">Published sessions</h2>
+          <p>Select which sessions appear publicly, then give them friendly names and descriptions.</p>
+        </div>
+        <button id="admin-close" class="analysis-close" type="button" title="Close">×</button>
+      </div>
+      <div id="admin-session-list" class="replay-admin-session-list"></div>
+      <div class="replay-admin-footer">
+        <span id="admin-status" class="replay-admin-status"></span>
+        <button id="admin-save" class="replay-intro-primary" type="button">Save published list</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="mobile-gate" class="mobile-gate" hidden>
+    <div class="mobile-gate-card">
+      <div class="mobile-gate-kicker">Tiny Screen Detected</div>
+      <h1>This replay deserves a real screen.</h1>
+      <p>
+        Love the curiosity, truly. But this viewer has a full Catan board, timelines, logs, chat,
+        audio, and AI analysis. Asking all of that to behave on a phone is optimistic in a way the board does not reward.
+      </p>
+      <p>Drop your email and we will send you a desktop-friendly link.</p>
+      <form id="mobile-link-form" class="mobile-link-form">
+        <input id="mobile-link-email" type="email" name="email" placeholder="you@example.com" autocomplete="email" required>
+        <button type="submit">Send me the link</button>
+      </form>
+      <div id="mobile-link-status" class="mobile-link-status" role="status"></div>
+    </div>
+  </div>
+
   <div id="analysis-modal" class="analysis-modal hidden" role="dialog" aria-modal="true" aria-labelledby="analysis-title">
     <div class="analysis-dialog">
       <div class="analysis-header">
@@ -1641,14 +2167,40 @@ class ReplayViewerHandler(BaseHTTPRequestHandler):
             self._send_static_file(VIEWER_STATIC_ROOT, path[len("/viewer_static/"):])
             return
         if path == "/api/sessions":
+            config = read_public_config()
+            exposed_sessions = public_sessions(list_sessions(), config)
+            default_session = self.server.default_session
+            if default_session and not session_is_public(default_session, config):
+                default_session = ""
+            if not default_session and exposed_sessions:
+                default_session = exposed_sessions[0].get("name") or ""
             self._send_json({
-                "sessions": list_sessions(),
-                "default_session": self.server.default_session,
+                "sessions": exposed_sessions,
+                "default_session": default_session,
+                "public_config": config,
             })
+            return
+        if path == "/api/admin/sessions":
+            if not self._has_admin_access():
+                self._send_json({"error": "Forbidden"}, status=403)
+                return
+            config = read_public_config()
+            self._send_json({
+                "sessions": admin_sessions(list_sessions(), config),
+                "config": config,
+            })
+            return
+        if path == "/api/public_config":
+            self._send_json(read_public_config())
             return
         if path == "/api/manifest":
             query = parse_qs(parsed.query)
             session_ref = (query.get("session") or [""])[0].strip() or None
+            if session_ref:
+                session_name = resolve_session_path(session_ref).name
+                if not session_is_public(session_name, read_public_config()):
+                    self._send_json({"error": "Session is not published"}, status=403)
+                    return
             manifest = self.server.get_manifest(session_ref)
             if not manifest:
                 self._send_json({"error": "No session selected"}, status=400)
@@ -1674,6 +2226,50 @@ class ReplayViewerHandler(BaseHTTPRequestHandler):
             self._send_file(Path(audio_path), mime)
             return
         self._send_json({"error": "Not found"}, status=404)
+
+    def do_POST(self) -> None:
+        parsed = urlparse(self.path)
+        path = unquote(parsed.path)
+        if path == "/api/public_config":
+            if not self._has_admin_access():
+                self._send_json({"error": "Forbidden"}, status=403)
+                return
+            try:
+                length = int(self.headers.get("Content-Length") or "0")
+                payload = json.loads(self.rfile.read(length).decode("utf-8")) if length else {}
+            except Exception:
+                self._send_json({"error": "Invalid JSON"}, status=400)
+                return
+            config = write_public_config(payload)
+            self._send_json({
+                "config": config,
+                "sessions": public_sessions(list_sessions(), config),
+            })
+            return
+        if path == "/api/mobile_link_request":
+            try:
+                length = int(self.headers.get("Content-Length") or "0")
+                payload = json.loads(self.rfile.read(length).decode("utf-8")) if length else {}
+                payload["user_agent"] = self.headers.get("User-Agent", "")
+                record = write_mobile_link_request(payload)
+                email_result = send_mobile_link_email(record)
+            except ValueError as exc:
+                self._send_json({"error": str(exc)}, status=400)
+                return
+            except Exception:
+                self._send_json({"error": "Could not save request"}, status=500)
+                return
+            self._send_json({
+                "ok": True,
+                "message": "Email sent." if email_result.get("sent") else "Saved. We will send the link soon.",
+                "email": record["email"],
+                "email_sent": bool(email_result.get("sent")),
+            })
+            return
+        self._send_json({"error": "Not found"}, status=404)
+
+    def _has_admin_access(self) -> bool:
+        return self.headers.get("X-Replay-Admin", "") == ADMIN_PASSWORD
 
     def _send_json(self, payload: Any, status: int = 200) -> None:
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")

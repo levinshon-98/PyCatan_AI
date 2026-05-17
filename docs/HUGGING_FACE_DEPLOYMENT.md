@@ -31,13 +31,14 @@ The container runs:
 python hf_space_entrypoint.py
 ```
 
-The entrypoint binds the setup/game server to the `PORT` supplied by Spaces, defaulting to `7860`.
+The entrypoint binds the standalone replay viewer to the `PORT` supplied by Spaces, defaulting to `7860`.
 
-Routes before a game starts:
+Important routes:
 
-- `/` public single-page app with `New game` and `Replay library`.
+- `/` public replay viewer.
 - `/api/sessions` public replay sessions selected by the admin manifest.
 - `/api/admin/sessions` session availability list for the in-page admin panel.
+- `/api/mobile_link_request` stores mobile email requests and sends a desktop link when email is configured.
 - `/healthz` lightweight health check.
 
 ## Optional CLI deploy
@@ -70,7 +71,9 @@ python scripts/deploy_hf_space.py <your-user>/PyCatan-AI --push
 ## Runtime notes
 
 - Users can watch/analyse public replay sessions without an OpenRouter key.
-- Starting a live AI game asks for OpenRouter and Gemini keys in the browser.
-- The Space entrypoint runs `play_public_entry.py`; when both `OPENROUTER_API_KEY` and `GEMINI_API_KEY` are configured as Space secrets, it adds `--use-env-keys` and the browser skips the API-key step.
-- Replay visibility is controlled by `examples/ai_testing/public_sessions.json`; the temporary admin unlock password in the client UI is `20209`.
-- The unified AI Analysis tab now reads `/api/current` from the same server, so the deployment does not need a second `5001` web viewer process.
+- The Space entrypoint only serves replay sessions. It does not start a new live game.
+- Replay visibility is controlled by `examples/ai_testing/my_games/replay_public_sessions.json` unless `REPLAY_VIEWER_PUBLIC_CONFIG` points somewhere else.
+- Hugging Face runs with `REPLAY_VIEWER_REQUIRE_PUBLIC_CONFIG=1`, so no sessions are public until they are selected in the public config.
+- The temporary admin unlock password in the client UI is `catan-replay`.
+- For persistent admin edits on Hugging Face, either commit `replay_public_sessions.json` or enable Space persistent storage and set `REPLAY_VIEWER_PUBLIC_CONFIG=/data/replay_public_sessions.json`.
+- Mobile email sending can use EmailJS. See `docs/mobile_link_emailjs.md`.

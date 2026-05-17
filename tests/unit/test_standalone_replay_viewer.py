@@ -4,7 +4,18 @@ import unittest
 import wave
 from pathlib import Path
 
-from examples.ai_testing.replay_viewer import build_manifest, list_sessions, public_manifest, write_manifest_artifact
+from examples.ai_testing.replay_viewer import (
+    build_mobile_email_html,
+    build_mobile_email_text,
+    build_manifest,
+    list_sessions,
+    public_manifest,
+    public_sessions,
+    read_public_config,
+    _owner_notification_template_params,
+    write_manifest_artifact,
+    write_public_config,
+)
 
 
 def _write_json(path: Path, payload: dict) -> None:
@@ -133,6 +144,38 @@ class StandaloneReplayViewerTests(unittest.TestCase):
             self.assertEqual(len(sessions), 1)
             self.assertEqual(sessions[0]["name"], "session_20260517_120000")
             self.assertEqual(sessions[0]["responses"], 1)
+
+    def test_public_config_filters_and_decorates_sessions(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            logs_dir = Path(tmp)
+            for name in ("session_alpha", "session_beta"):
+                _write_json(
+                    logs_dir / name / "Dana" / "responses" / "response_1.json",
+                    {
+                        "request_number": 1,
+                        "timestamp": "2026-05-17T12:00:00",
+                        "player_name": "Dana",
+                        "type": "final",
+                        "parsed": {},
+                    },
+                )
+
+            write_public_config(
+                {
+                    "sessions": [
+                        {"name": "session_alpha", "enabled": False, "title": "Hidden"},
+                        {"name": "session_beta", "enabled": True, "title": "Public game", "description": "Demo replay"},
+                    ]
+                },
+                logs_dir=logs_dir,
+            )
+
+            config = read_public_config(logs_dir)
+            exposed = public_sessions(list_sessions(logs_dir), config)
+
+            self.assertEqual([session["name"] for session in exposed], ["session_beta"])
+            self.assertEqual(exposed[0]["title"], "Public game")
+            self.assertEqual(exposed[0]["description"], "Demo replay")
 
     def test_build_manifest_adds_chat_only_messages_without_duplicates(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -295,6 +338,38 @@ class StandaloneReplayViewerTests(unittest.TestCase):
             self.assertEqual(manifest["events"][0]["timeline_role"], "source")
             self.assertEqual(manifest["events"][1]["timeline_role"], "current")
             self.assertNotIn("chat:0", [event["response_id"] for event in manifest["events"]])
+
+    def test_mobile_email_includes_context_and_links(self) -> None:
+        record = {
+            "email": "viewer@example.com",
+            "session": "session_20260517_222029",
+            "page": "https://example.com/?session=session_20260517_222029",
+        }
+
+        html_body = build_mobile_email_html(record)
+        text_body = build_mobile_email_text(record)
+
+        self.assertIn("experimental replay interface", html_body)
+        self.assertIn("https://example.com/?session=session_20260517_222029", html_body)
+        self.assertIn("session_20260517_222029", html_body)
+        self.assertIn("https://www.linkedin.com/in/shon-levin/", html_body)
+        self.assertIn("Catan games played by AI agents", text_body)
+
+    def test_owner_notification_includes_recipient_and_session(self) -> None:
+        record = {
+            "email": "viewer@example.com",
+            "session": "session_20260517_222029",
+            "page": "https://example.com/?session=session_20260517_222029",
+            "created_at": "2026-05-17T23:59:00",
+        }
+
+        params = _owner_notification_template_params(record)
+
+        self.assertEqual(params["to"], "levinshon@gmail.com")
+        self.assertIn("viewer@example.com", params["title"])
+        self.assertIn("viewer@example.com", params["data"])
+        self.assertIn("session_20260517_222029", params["data"])
+        self.assertIn("https://example.com/?session=session_20260517_222029", params["message"])
 
 
 if __name__ == "__main__":

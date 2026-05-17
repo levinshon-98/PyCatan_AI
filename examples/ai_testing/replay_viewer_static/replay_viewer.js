@@ -11,6 +11,9 @@ const replayState = {
     filter: "all",
     boardReady: false,
     selectedAIView: "chat",
+    adminUnlocked: false,
+    publicConfig: null,
+    introStep: 0,
 };
 
 let catanBoard = null;
@@ -39,6 +42,13 @@ const DEV_CARD_LABELS = {
     YEAR_OF_PLENTY: "Plenty",
     YOP: "Plenty",
 };
+const INTRO_STORAGE_KEY = "pycatan_replay_intro_seen";
+const ADMIN_PASSWORD = "catan-replay";
+const EMAILJS_SERVICE_ID = "service_7zvgf1d";
+const EMAILJS_TEMPLATE_ID = "template_8fhb9w1";
+const EMAILJS_PUBLIC_KEY = "IxysEF7YkU8-Qnd-s";
+const OWNER_EMAIL = "levinshon@gmail.com";
+const LINKEDIN_URL = "https://www.linkedin.com/in/shon-levin/";
 
 document.addEventListener("DOMContentLoaded", () => {
     bindReplayControls();
@@ -71,8 +81,19 @@ function bindReplayControls() {
     $("replay-analyse").addEventListener("click", () => openReplayAnalysis());
     $("session-load").addEventListener("click", () => loadManifest($("session-select").value));
     $("session-select").addEventListener("change", () => loadManifest($("session-select").value));
+    $("replay-help")?.addEventListener("click", () => showIntro(true));
+    $("intro-close")?.addEventListener("click", closeIntro);
+    $("intro-back")?.addEventListener("click", () => setIntroStep(replayState.introStep - 1));
+    $("intro-next")?.addEventListener("click", nextIntroStep);
+    $("replay-admin-unlock")?.addEventListener("click", unlockAdmin);
+    $("admin-close")?.addEventListener("click", closeAdmin);
+    $("admin-save")?.addEventListener("click", saveAdminConfig);
+    $("mobile-link-form")?.addEventListener("submit", submitMobileLinkRequest);
+    window.addEventListener("resize", updateMobileGate);
+    window.addEventListener("orientationchange", updateMobileGate);
     window.addEventListener("pagehide", stopAudio);
     window.addEventListener("beforeunload", stopAudio);
+    updateMobileGate();
 }
 
 function initialiseBoard() {
@@ -95,6 +116,7 @@ async function initialiseSessions() {
     const payload = await response.json();
     replayState.sessions = payload.sessions || [];
     replayState.defaultSession = payload.default_session || "";
+    replayState.publicConfig = payload.public_config || null;
 
     const selected = new URLSearchParams(location.search).get("session")
         || replayState.defaultSession
@@ -103,16 +125,346 @@ async function initialiseSessions() {
 
     $("session-select").innerHTML = replayState.sessions.length
         ? replayState.sessions.map((session) => {
-            const label = `${session.name} (${session.responses || 0} responses${session.audio != null ? `, ${session.audio} audio` : ""})`;
+            const label = `${sessionLabel(session)} (${session.responses || 0} responses${session.audio != null ? `, ${session.audio} audio` : ""})`;
             return `<option value="${escapeAttr(session.name)}" ${session.name === selected ? "selected" : ""}>${escapeHtml(label)}</option>`;
         }).join("")
-        : "<option value=\"\">No sessions found</option>";
+        : "<option value=\"\">No published sessions</option>";
+
+    renderIntroSessions();
+    showIntro(false);
 
     if (selected) {
         await loadManifest(selected);
     } else {
         renderCurrent();
     }
+}
+
+function sessionLabel(session) {
+    return session?.title || session?.display_name || session?.name || "";
+}
+
+function renderIntroSessions() {
+    const container = $("intro-session-list");
+    if (!container) return;
+    container.innerHTML = replayState.sessions.length
+        ? replayState.sessions.map((session) => `
+            <button class="replay-intro-session" type="button" data-session="${escapeAttr(session.name)}">
+                <strong>${escapeHtml(sessionLabel(session))}</strong>
+                <span>${escapeHtml(session.description || `${session.responses || 0} responses · ${session.audio || 0} audio clips`)}</span>
+            </button>
+        `).join("")
+        : "<div class=\"replay-intro-empty\">No published sessions yet.</div>";
+    container.querySelectorAll("[data-session]").forEach((button) => {
+        button.addEventListener("click", async () => {
+            await loadManifest(button.dataset.session);
+            closeIntro();
+        });
+    });
+}
+
+function showIntro(force) {
+    const modal = $("intro-modal");
+    if (!modal) return;
+    const seen = localStorage.getItem(INTRO_STORAGE_KEY) === "1";
+    if (force || !seen) {
+        setIntroStep(0);
+        modal.classList.remove("hidden");
+    }
+}
+
+function closeIntro() {
+    if ($("intro-hide-next")?.checked) {
+        localStorage.setItem(INTRO_STORAGE_KEY, "1");
+    }
+    $("intro-modal")?.classList.add("hidden");
+}
+
+function setIntroStep(step) {
+    const steps = [...document.querySelectorAll(".replay-intro-step")];
+    if (!steps.length) return;
+    replayState.introStep = Math.max(0, Math.min(step, steps.length - 1));
+    steps.forEach((node, index) => node.classList.toggle("active", index === replayState.introStep));
+    $("intro-back").disabled = replayState.introStep === 0;
+    $("intro-next").textContent = replayState.introStep === steps.length - 1 ? "Close guide" : "Next";
+    renderIntroProgress(steps.length);
+}
+
+function nextIntroStep() {
+    const steps = document.querySelectorAll(".replay-intro-step").length;
+    if (replayState.introStep >= steps - 1) {
+        closeIntro();
+        return;
+    }
+    setIntroStep(replayState.introStep + 1);
+}
+
+function renderIntroProgress(total) {
+    const progress = $("intro-progress");
+    if (!progress) return;
+    progress.innerHTML = Array.from({ length: total }, (_, index) => `
+        <span class="${index === replayState.introStep ? "active" : ""}">${index + 1}</span>
+    `).join("");
+}
+
+async function unlockAdmin() {
+    const password = window.prompt("Admin password");
+    if (password !== ADMIN_PASSWORD) return;
+    replayState.adminUnlocked = true;
+    await openAdmin();
+}
+
+async function openAdmin() {
+    const modal = $("admin-modal");
+    if (!modal) return;
+    modal.classList.remove("hidden");
+    $("admin-status").textContent = "Loading sessions...";
+    const response = await fetch("/api/admin/sessions", {
+        headers: { "X-Replay-Admin": ADMIN_PASSWORD },
+    });
+    if (!response.ok) {
+        $("admin-status").textContent = "Could not load sessions.";
+        return;
+    }
+    const payload = await response.json();
+    renderAdminSessions(payload.sessions || []);
+    $("admin-status").textContent = "Client-side lock only. Use for demo publishing, not private data.";
+}
+
+function closeAdmin() {
+    $("admin-modal")?.classList.add("hidden");
+}
+
+function isMobileReplayViewport() {
+    const narrow = window.matchMedia("(max-width: 820px)").matches;
+    const compactTouch = window.matchMedia("(pointer: coarse)").matches && window.innerWidth < 1024;
+    return narrow || compactTouch;
+}
+
+function updateMobileGate() {
+    const gate = $("mobile-gate");
+    if (!gate) return;
+    gate.hidden = !isMobileReplayViewport();
+}
+
+async function submitMobileLinkRequest(event) {
+    event.preventDefault();
+    const email = $("mobile-link-email")?.value?.trim() || "";
+    const status = $("mobile-link-status");
+    if (!email) return;
+    if (status) status.textContent = "Saving your email...";
+    const response = await fetch("/api/mobile_link_request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            email,
+            session: $("session-select")?.value || replayState.defaultSession || "",
+            page: window.location.href,
+        }),
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+        if (status) status.textContent = payload.error || "Could not save this email. Please try again.";
+        return;
+    }
+    if (payload.email_sent) {
+        if (status) status.textContent = "Sent. Check your inbox for the desktop link.";
+        $("mobile-link-form")?.reset();
+        return;
+    }
+    if (status) status.textContent = "Saved. Sending the email from your browser...";
+    try {
+        await sendMobileLinkWithEmailJs(email);
+        if (status) status.textContent = "Sent. Check your inbox for the desktop link.";
+    } catch (error) {
+        console.warn("EmailJS browser fallback failed", error);
+        if (status) status.textContent = "Got it. We saved your email, but the automatic send failed.";
+    }
+    $("mobile-link-form")?.reset();
+}
+
+async function sendMobileLinkWithEmailJs(email) {
+    const sessionName = $("session-select")?.value || replayState.defaultSession || "";
+    const link = window.location.href;
+    await sendEmailJsTemplate({
+        title: "Your AI Catan replay link is ready",
+        to: email,
+        data: buildMobileEmailHtml({ link, sessionName }),
+        message: buildMobileEmailText({ link, sessionName }),
+        link,
+        session: sessionName,
+    });
+    try {
+        await sendEmailJsTemplate({
+            title: `Replay link sent to ${email}`,
+            to: OWNER_EMAIL,
+            data: buildOwnerNotificationHtml({ recipient: email, link, sessionName }),
+            message: buildOwnerNotificationText({ recipient: email, link, sessionName }),
+            link,
+            session: sessionName,
+            visitor_email: email,
+        });
+    } catch (error) {
+        console.warn("Owner notification email failed", error);
+    }
+}
+
+async function sendEmailJsTemplate(templateParams) {
+    const payload = {
+        service_id: EMAILJS_SERVICE_ID,
+        template_id: EMAILJS_TEMPLATE_ID,
+        user_id: EMAILJS_PUBLIC_KEY,
+        template_params: {
+            ...templateParams,
+            name: "AI Catan Replay Viewer",
+            email: OWNER_EMAIL,
+            linkedin: LINKEDIN_URL,
+        },
+    };
+    const response = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+    });
+    if (!response.ok) {
+        throw new Error(await response.text());
+    }
+}
+
+function buildOwnerNotificationText({ recipient, link, sessionName }) {
+    return [
+        "A mobile replay link email was sent.",
+        "",
+        `Recipient: ${recipient}`,
+        `Session: ${sessionName || "Selected replay"}`,
+        `Link: ${link}`,
+    ].join("\n");
+}
+
+function buildOwnerNotificationHtml({ recipient, link, sessionName }) {
+    const safeLink = escapeAttr(link);
+    const safeRecipient = escapeHtml(recipient);
+    const safeSession = escapeHtml(sessionName || "Selected replay");
+    return `
+        <div style="margin:0;padding:0;background:#f3f6fb;font-family:Inter,Segoe UI,Arial,sans-serif;color:#172033;">
+          <div style="max-width:620px;margin:0 auto;padding:32px 18px;">
+            <div style="background:#ffffff;border:1px solid #dbe4f0;border-radius:14px;padding:28px;box-shadow:0 14px 38px rgba(15,23,42,0.10);">
+              <div style="font-size:12px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#2f6fed;">AI Catan Replay Viewer</div>
+              <h1 style="margin:10px 0 16px;font-size:24px;line-height:1.2;color:#111827;">Replay link email sent</h1>
+              <p style="margin:0 0 18px;font-size:15px;line-height:1.6;color:#475569;">A desktop replay link was sent to a mobile visitor.</p>
+              <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px;font-size:14px;line-height:1.7;color:#334155;">
+                <div><strong>Recipient:</strong> ${safeRecipient}</div>
+                <div><strong>Session:</strong> ${safeSession}</div>
+              </div>
+              <div style="margin-top:22px;">
+                <a href="${safeLink}" style="display:inline-block;background:#2f6fed;color:#ffffff;text-decoration:none;font-weight:900;border-radius:10px;padding:12px 18px;">Open replay link</a>
+              </div>
+            </div>
+          </div>
+        </div>
+    `.trim();
+}
+
+function buildMobileEmailText({ link, sessionName }) {
+    return [
+        "Thanks for checking out the AI Catan Replay Viewer.",
+        "",
+        "This is an experimental replay interface for Catan games played by AI agents. Instead of only seeing the final board, you can replay a recorded session step by step: board state, table talk, actions, dice rolls, resource changes, and parts of the AI decision trace.",
+        "",
+        "It is best viewed on a laptop or desktop because the board, timeline, logs, chat, audio, and analysis panel all need room.",
+        "",
+        `Open the replay: ${link}`,
+        `Session: ${sessionName || "Selected replay"}`,
+        "",
+        `Shon Levin: ${LINKEDIN_URL}`,
+    ].join("\n");
+}
+
+function buildMobileEmailHtml({ link, sessionName }) {
+    const safeLink = escapeAttr(link);
+    const safeSession = escapeHtml(sessionName || "Selected replay");
+    return `
+        <div style="margin:0;padding:0;background:#f3f6fb;font-family:Inter,Segoe UI,Arial,sans-serif;color:#172033;">
+          <div style="max-width:660px;margin:0 auto;padding:36px 18px;">
+            <div style="background:#ffffff;border:1px solid #dbe4f0;border-radius:14px;overflow:hidden;box-shadow:0 18px 48px rgba(15,23,42,0.12);">
+              <div style="background:#111827;color:#ffffff;padding:30px;">
+                <div style="font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#93c5fd;">AI Catan Replay Viewer</div>
+                <h1 style="margin:12px 0 0;font-size:28px;line-height:1.15;font-weight:900;">Your replay link is ready</h1>
+              </div>
+              <div style="padding:30px;">
+                <p style="margin:0 0 16px;font-size:16px;line-height:1.65;color:#334155;">Thanks for checking out the AI Catan Replay Viewer.</p>
+                <p style="margin:0 0 16px;font-size:16px;line-height:1.65;color:#334155;">This is an experimental replay interface for Catan games played by AI agents. Instead of only seeing the final board, you can replay a recorded session step by step.</p>
+                <div style="margin:22px 0;padding:18px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;">
+                  <div style="font-size:13px;font-weight:900;color:#111827;margin-bottom:10px;">Inside the replay you can follow:</div>
+                  <ul style="margin:0;padding-left:20px;color:#475569;font-size:14px;line-height:1.75;">
+                    <li>the board state as it changes over time</li>
+                    <li>the table talk and recorded audio</li>
+                    <li>actions, dice rolls, and resource changes</li>
+                    <li>the AI decision trace behind interesting moves</li>
+                  </ul>
+                </div>
+                <p style="margin:0 0 24px;font-size:16px;line-height:1.65;color:#334155;">The viewer is best on a laptop or desktop because the board, timeline, logs, chat, audio, and analysis panel all need room to breathe.</p>
+                <div style="margin:24px 0;text-align:center;">
+                  <a href="${safeLink}" style="display:inline-block;background:#2f6fed;color:#ffffff;text-decoration:none;font-weight:900;border-radius:10px;padding:14px 22px;">Open the replay</a>
+                </div>
+                <div style="margin:22px 0;padding:14px 16px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;color:#1e3a8a;font-size:14px;">
+                  <strong>Session:</strong> ${safeSession}
+                </div>
+                <p style="margin:24px 0 0;font-size:14px;line-height:1.6;color:#64748b;">
+                  Curious about the project or want to follow along?
+                  <a href="${escapeAttr(LINKEDIN_URL)}" style="color:#2f6fed;font-weight:800;text-decoration:none;">Connect with Shon Levin on LinkedIn</a>.
+                </p>
+              </div>
+            </div>
+            <p style="margin:18px 0 0;text-align:center;font-size:12px;color:#94a3b8;">Sent because this replay is much happier on a real screen.</p>
+          </div>
+        </div>
+    `.trim();
+}
+
+function renderAdminSessions(sessions) {
+    const container = $("admin-session-list");
+    if (!container) return;
+    container.innerHTML = sessions.length
+        ? sessions.map((session, index) => `
+            <div class="replay-admin-session" data-session="${escapeAttr(session.name)}">
+                <label class="replay-admin-toggle">
+                    <input type="checkbox" data-field="enabled" ${session.public_enabled ? "checked" : ""}>
+                    <span>Publish</span>
+                </label>
+                <div class="replay-admin-session-main">
+                    <div class="replay-admin-session-name">${escapeHtml(session.name)}</div>
+                    <input data-field="title" value="${escapeAttr(session.title || session.name)}" placeholder="Public title">
+                    <textarea data-field="description" placeholder="Short public description">${escapeHtml(session.description || "")}</textarea>
+                    <input data-field="order" type="number" value="${escapeAttr(String(session.public_order ?? index))}" placeholder="Order">
+                </div>
+            </div>
+        `).join("")
+        : "<div class=\"replay-intro-empty\">No recorded sessions were found.</div>";
+}
+
+async function saveAdminConfig() {
+    if (!replayState.adminUnlocked) return;
+    const rows = [...document.querySelectorAll(".replay-admin-session")];
+    const sessions = rows.map((row, index) => ({
+        name: row.dataset.session,
+        enabled: row.querySelector('[data-field="enabled"]')?.checked || false,
+        title: row.querySelector('[data-field="title"]')?.value || "",
+        description: row.querySelector('[data-field="description"]')?.value || "",
+        order: Number(row.querySelector('[data-field="order"]')?.value || index),
+    }));
+    $("admin-status").textContent = "Saving...";
+    const response = await fetch("/api/public_config", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Replay-Admin": ADMIN_PASSWORD },
+        body: JSON.stringify({ sessions }),
+    });
+    if (!response.ok) {
+        $("admin-status").textContent = "Save failed.";
+        return;
+    }
+    $("admin-status").textContent = "Saved. Public list updated.";
+    await initialiseSessions();
 }
 
 async function loadManifest(sessionName) {
@@ -459,7 +811,7 @@ function renderPlayerHub(gameState) {
                     <span class="dev-card-empty">${player.total_cards} resource cards</span>
                     ${renderDevCards(player.dev_cards)}
                 </div>
-                ${latestSpeech ? `<div class="player-chat-bubble ${latestSpeech.isThinking ? "thinking-bubble" : ""}"><strong>${escapeHtml(latestSpeech.kindLabel)}</strong><br>${latestSpeech.isThinking ? "<span class=\"thinking-dots\"><span></span><span></span><span></span></span>" : escapeHtml(latestSpeech.text)}</div>` : ""}
+                ${latestSpeech ? `<div class="player-chat-bubble ${latestSpeech.isThinking ? "thinking-bubble" : ""} ${latestSpeech.isCurrentSpeech ? "now-speaking-bubble" : ""}"><strong class="speech-label">${escapeHtml(latestSpeech.kindLabel)}</strong><br>${latestSpeech.isThinking ? "<span class=\"thinking-dots\"><span></span><span></span><span></span></span>" : escapeHtml(latestSpeech.text)}</div>` : ""}
             </div>`;
     }).join("");
 }
@@ -480,6 +832,7 @@ function latestSpeechForPlayer(playerName) {
     return {
         text: event.say_outloud,
         kindLabel: event.index === replayState.index ? "Now speaking" : "Last said",
+        isCurrentSpeech: event.index === replayState.index,
     };
 }
 
