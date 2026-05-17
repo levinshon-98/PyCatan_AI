@@ -157,6 +157,7 @@ function renderPlayerHub(players) {
                 </div>
                 
                 ${renderPlayerDevCardsDetailed(player)}
+                ${renderPlayerPublicCards(player)}
             </div>
         `;
     }).join('');
@@ -1373,6 +1374,37 @@ function normalizeDevCounts(player) {
     return counts;
 }
 
+function getPlayedKnightCount(player) {
+    const directCount = Number(player.knights_played ?? player.knights ?? player.knight_cards ?? 0);
+    let revealedCount = 0;
+    const devCards = player.development_cards || player.dev_cards || player.dev || {};
+
+    const revealed = Array.isArray(devCards.r)
+        ? devCards.r
+        : Array.isArray(devCards.revealed)
+            ? devCards.revealed
+            : [];
+
+    revealed.forEach(card => {
+        if (normalizeDevCard(card) === 'knight' || String(card || '').trim().toLowerCase() === 'k') {
+            revealedCount += 1;
+        }
+    });
+
+    return Math.max(directCount, revealedCount);
+}
+
+function playerHasAward(player, key) {
+    const stat = Array.isArray(player.stat) ? player.stat : [];
+    if (key === 'LA') {
+        return Boolean(player.has_largest_army || stat.includes('LA'));
+    }
+    if (key === 'LR') {
+        return Boolean(player.has_longest_road || stat.includes('LR'));
+    }
+    return false;
+}
+
 function normalizeResourceCard(card) {
     const key = String(card || '').trim().toLowerCase().replace(/^rescard\./, '');
     const aliases = {
@@ -2170,6 +2202,58 @@ function renderPlayerDevCardsDetailed(player) {
                     <div class="dev-card-chip" title="${escapeHtml(label)}">
                         <span class="dev-chip-icon">${icon}</span>
                         <span class="dev-chip-name">${escapeHtml(label)}${suffix}</span>
+                    </div>
+                `;
+            }).join('')}
+        </div>
+    `;
+}
+
+function renderPlayerPublicCards(player) {
+    const publicCards = [];
+    const knightsPlayed = getPlayedKnightCount(player || {});
+
+    if (knightsPlayed > 0) {
+        publicCards.push({
+            icon: DEV_CARD_ICONS.knight || 'K',
+            label: 'Played Knight',
+            count: knightsPlayed,
+            className: 'played-knight',
+            title: `${knightsPlayed} knight${knightsPlayed === 1 ? '' : 's'} played`
+        });
+    }
+
+    if (playerHasAward(player || {}, 'LA')) {
+        publicCards.push({
+            icon: 'LA',
+            label: 'Largest Army',
+            count: 1,
+            className: 'award',
+            title: 'Largest Army (+2 VP)'
+        });
+    }
+
+    if (playerHasAward(player || {}, 'LR')) {
+        const roadLength = Number(player.longest_road || player.longest_road_length || 0);
+        publicCards.push({
+            icon: 'LR',
+            label: roadLength > 0 ? `Longest Road ${roadLength}` : 'Longest Road',
+            count: 1,
+            className: 'award',
+            title: 'Longest Road (+2 VP)'
+        });
+    }
+
+    if (!publicCards.length) return '';
+
+    return `
+        <div class="player-public-cards" aria-label="Public cards and awards">
+            ${publicCards.map(card => {
+                const suffix = Number(card.count || 0) > 1 ? ` x${Number(card.count)}` : '';
+                return `
+                    <div class="public-card-chip ${card.className}" title="${escapeHtml(card.title)}">
+                        <span class="public-chip-icon">${escapeHtml(card.icon)}</span>
+                        <span class="public-chip-name">${escapeHtml(card.label)}${suffix}</span>
                     </div>
                 `;
             }).join('')}

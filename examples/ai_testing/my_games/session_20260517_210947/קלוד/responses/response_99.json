@@ -1,0 +1,25 @@
+{
+  "request_number": 99,
+  "timestamp": "2026-05-17T22:05:30.494906",
+  "player_name": "קלוד",
+  "type": "final",
+  "success": true,
+  "raw_content": "{\n  \"internal_thinking\": \"I rolled a 3, but it didn't give me any resources as my settlements at 12, 25, and 37 are not on hexes 1, 2, or 19. I currently have 1 Sheep and 1 Wood. I need 1 Wood, 1 Brick, 1 Wheat, and 1 Sheep for a settlement at node 35. I am far from that goal. Gemma and Jimmy are clearly working together and won't trade with me. Since I can't build or buy anything with my current hand (1S, 1W), and nobody will trade, I must end my turn. I'll stay quiet to avoid drawing more heat while they squabble.\",\n  \"action\": {\n    \"type\": \"end_turn\",\n    \"parameters\": \"{}\"\n  },\n  \"note_to_self\": \"I have 1 Wood and 1 Sheep. Node 35 is still open and I have a road to it. Need Wheat and Brick urgently. Opponents are hostile.\",\n  \"say_outloud\": \"\"\n}",
+  "parsed": {
+    "internal_thinking": "I rolled a 3, but it didn't give me any resources as my settlements at 12, 25, and 37 are not on hexes 1, 2, or 19. I currently have 1 Sheep and 1 Wood. I need 1 Wood, 1 Brick, 1 Wheat, and 1 Sheep for a settlement at node 35. I am far from that goal. Gemma and Jimmy are clearly working together and won't trade with me. Since I can't build or buy anything with my current hand (1S, 1W), and nobody will trade, I must end my turn. I'll stay quiet to avoid drawing more heat while they squabble.",
+    "note_to_self": "I have 1 Wood and 1 Sheep. Node 35 is still open and I have a road to it. Need Wheat and Brick urgently. Opponents are hostile.",
+    "say_outloud": "",
+    "action_type": "end_turn",
+    "parameters": {}
+  },
+  "model": "google/gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 6886,
+    "completion": 190,
+    "thinking": 0,
+    "total": 7258
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}

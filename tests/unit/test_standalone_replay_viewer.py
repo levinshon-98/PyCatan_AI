@@ -186,7 +186,8 @@ class StandaloneReplayViewerTests(unittest.TestCase):
                             '{"meta":{"robber":10,"dice":[3,4],"dice_total":7},'
                             '"H":["","W12","S5","D"],'
                             '"state":{"bld":[[20,"Dana","S"]],"rds":[[[1,2],"Dana"]]},'
-                            '"players":{"Dana":{"vp":1,"res":{"W":2,"B":1,"Wh":3},"dev":{"hidden_count":1}}}}'
+                            '"players":{"Dana":{"vp":1,"res":{"W":2,"B":1,"Wh":3},'
+                            '"dev":{"hidden_count":1,"r":["K"]},"stat":["LR","LA"]}}}'
                         )
                     }
                 },
@@ -212,6 +213,8 @@ class StandaloneReplayViewerTests(unittest.TestCase):
             self.assertEqual(manifest["events"][0]["state_before"]["players"]["Dana"]["resources"]["wood"], 2)
             self.assertEqual(manifest["events"][0]["state_before"]["players"]["Dana"]["resources"]["brick"], 1)
             self.assertEqual(manifest["events"][0]["state_before"]["players"]["Dana"]["resources"]["wheat"], 3)
+            self.assertEqual(manifest["events"][0]["state_before"]["players"]["Dana"]["dev"]["r"], ["K"])
+            self.assertEqual(manifest["events"][0]["state_before"]["players"]["Dana"]["stat"], ["LR", "LA"])
             self.assertEqual(manifest["events"][0]["state_before"]["meta"]["dice_total"], 7)
             self.assertEqual(manifest["events"][0]["state_before"]["state"]["buildings"][0]["node"], 20)
 

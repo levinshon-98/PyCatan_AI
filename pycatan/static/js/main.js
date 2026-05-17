@@ -391,6 +391,26 @@ function updateGameInfo(state) {
                 }
                 devCardsHtml += '</ul></div>';
             }
+
+            const playedKnights = Number(player.knights_played ?? player.knights ?? 0);
+            const publicCards = [];
+            if (playedKnights > 0) {
+                publicCards.push(`Played Knight: ${playedKnights}`);
+            }
+            if (player.has_largest_army) {
+                publicCards.push('Largest Army (+2 VP)');
+            }
+            if (player.has_longest_road) {
+                const roadLength = Number(player.longest_road || player.longest_road_length || 0);
+                publicCards.push(roadLength > 0 ? `Longest Road ${roadLength} (+2 VP)` : 'Longest Road (+2 VP)');
+            }
+            if (publicCards.length > 0) {
+                devCardsHtml += '<div style="margin-top:5px;"><strong>Public:</strong><ul class="card-list">';
+                publicCards.forEach(card => {
+                    devCardsHtml += `<li>${card}</li>`;
+                });
+                devCardsHtml += '</ul></div>';
+            }
             
             html += `
                 <div class="player-info ${activeClass} ${isExpanded}" data-player-id="${index}" onclick="togglePlayerInfo(this)" style="border-left-color: ${playerColor};">

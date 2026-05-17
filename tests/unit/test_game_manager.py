@@ -223,6 +223,18 @@ class TestGameManagerActions:
         assert result.status_code == "INSUFFICIENT_RESOURCES"
         assert "resources" in result.error_message
 
+    def test_discard_cards_accepts_ai_lowercase_resource_names(self):
+        gm = GameManager(self.users, random_seed=0)
+        gm._current_game_state.players_must_discard = {0: 2}
+        gm.game.players[0].cards = [ResCard.Wood, ResCard.Sheep, ResCard.Wheat]
+        action = Action(ActionType.DISCARD_CARDS, 0, {"cards": ["wood", "sheep"]})
+
+        result = gm._handle_discard_cards(action)
+
+        assert result.success
+        assert action.parameters["discarded"] == {"Wood": 1, "Sheep": 1}
+        assert gm.game.players[0].cards == [ResCard.Wheat]
+
     def test_trade_propose_prompts_target_to_reject_when_target_lacks_cards(self):
         alice = create_test_user("Alice", 0)
         bob = create_test_user("Bob", 1)

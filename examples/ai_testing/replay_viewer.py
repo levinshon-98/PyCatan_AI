@@ -328,6 +328,7 @@ def _normalize_compact_game_state(payload: Dict[str, Any]) -> Dict[str, Any]:
             "vp": player_state.get("vp"),
             "resources": _normalize_resource_counts(player_state.get("res")),
             "dev": player_state.get("dev") if isinstance(player_state.get("dev"), dict) else {},
+            "stat": player_state.get("stat") if isinstance(player_state.get("stat"), list) else [],
         }
 
     buildings = []

@@ -1,0 +1,1211 @@
+{
+  "session_id": "session_20260517_222029",
+  "start_time": "2026-05-17T22:20:29.989857",
+  "end_time": "2026-05-17T22:28:36.629993",
+  "duration_seconds": 486.640138,
+  "agents": {
+    "ג'מה": {
+      "player_name": "ג'מה",
+      "player_id": 0,
+      "player_color": "Red",
+      "memory": "Game ended. Claude won with Largest Army. My strategy to block him worked for expansion, but I couldn't stop his development card rush. Jimmy's willingness to trade with the leader despite warnings was the turning point.",
+      "memory_updated_at": 1779046071.1156943,
+      "compacted_memory": "VP: 3. Secured N35 (S11, Wh6, O3), blocking Claude's expansion. Claude (3 VP, 2 Knights) is retaliating; he blocked my Wh6 (Hex 15) with the robber. Jimmy (3 VP, though chat suggests he claims proximity to win) has strong Wheat/Ore production and a 3:1 port. Current resources: {Wh:2, O:1, S:1}. Strategy: Need to clear the robber from Hex 15. Prioritize Ore (O) and Wheat (Wh) for City upgrades or Dev Cards to contest Largest Army. Target nodes: N50 (Ore/Port) or N33 (Wheat). Brick/Wood are secondary.",
+      "compacted_memory_updated_at": 1779045917.841002,
+      "compaction_count": 9,
+      "memory_history": [
+        {
+          "note": "Claude blocked my Wh6 (Hex 15) and stole a card. He is prioritizing his grudge over stopping Jimmy (4 VP). I need to reclaim the tempo by getting that robber off my Wheat as soon as possible.",
+          "timestamp": 1779045883.975174
+        },
+        {
+          "note": "Claude built road 37-47. He is still salty about the N35 block. Jimmy and Claude are both at 3 VP (displayed), but Claude is closer to Largest Army. I need Ore to build a city or buy dev cards.",
+          "timestamp": 1779045913.9304047
+        },
+        {
+          "note": "Jimmy rejected Claude's Sheep for Ore trade. Claude is actively seeking Ore, likely for a city or another Dev card to secure Largest Army.",
+          "timestamp": 1779045948.5992458
+        },
+        {
+          "note": "Claude traded 3 Sheep for 1 Ore at the bank. He is desperate for Ore and currently lacks trade partners.",
+          "timestamp": 1779045972.837249
+        },
+        {
+          "note": "Claude and Jimmy successfully traded: Wheat for Sheep. Both are at 3VP and collaborating despite my warnings about Jimmy's lead.",
+          "timestamp": 1779046012.1253426
+        },
+        {
+          "note": "Claude bought a development card and has 2 knights revealed. He is likely one knight away from Largest Army and winning the game (5 VP). Jimmy's trade enabled this.",
+          "timestamp": 1779046033.7988768
+        },
+        {
+          "note": "Claude reached 5 VP using Largest Army (3 knights) and his settlements. Jimmy's trade for sheep directly enabled Claude to buy the winning development card.",
+          "timestamp": 1779046058.782361
+        },
+        {
+          "note": "Game ended. Claude won with Largest Army. My strategy to block him worked for expansion, but I couldn't stop his development card rush. Jimmy's willingness to trade with the leader despite warnings was the turning point.",
+          "timestamp": 1779046071.1156943
+        }
+      ],
+      "relationship_context_updates": [
+        {
+          "note": "Claude: Solidifying as a tactical ally against Jimmy; shared goal of slowing Jimmy's lead, though Claude's 2 Knights mak",
+          "timestamp": 1779045726.4819248
+        },
+        {
+          "note": "Claude: Tension increased after I blocked his expansion at N35 and robbed him on Hex 11; he is no longer a 'lesser threa",
+          "timestamp": 1779045739.8966382
+        },
+        {
+          "note": "Jimmy: Slight thaw in hostility; although he rejected a trade, the focus of aggression has shifted toward Claude's army",
+          "timestamp": 1779045739.8966413
+        },
+        {
+          "note": "Claude: Hostility peaked; he explicitly prioritized a grudge-based robber placement on my Wh6 over blocking leader Jimmy",
+          "timestamp": 1779045917.8410058
+        },
+        {
+          "note": "Jimmy: Neutral but competitive; he is focused on his port advantage and is currently being ignored by Claude's aggressio",
+          "timestamp": 1779045917.8410077
+        }
+      ],
+      "relationship_context_updated_at": 1779045917.8410077,
+      "chat_summaries": [],
+      "recent_events": [
+        {
+          "type": "end_game",
+          "message": "ג'מה chose END_GAME.",
+          "timestamp": 1779046071.11687,
+          "data": {
+            "affected_players": []
+          }
+        },
+        {
+          "type": "action_performed",
+          "message": "ג'מה chose END_GAME",
+          "timestamp": 1779046081.7078972,
+          "data": {
+            "affected_players": [
+              0
+            ]
+          }
+        },
+        {
+          "type": "end_game",
+          "message": "קלוד chose END_GAME.",
+          "timestamp": 1779046087.4184022,
+          "data": {
+            "affected_players": []
+          }
+        },
+        {
+          "type": "action_performed",
+          "message": "קלוד chose END_GAME",
+          "timestamp": 1779046098.4755616,
+          "data": {
+            "affected_players": [
+              1
+            ]
+          }
+        },
+        {
+          "type": "end_game",
+          "message": "ג'ימי chose END_GAME.",
+          "timestamp": 1779046104.9540734,
+          "data": {
+            "affected_players": []
+          }
+        },
+        {
+          "type": "action_performed",
+          "message": "ג'ימי chose END_GAME",
+          "timestamp": 1779046116.6287909,
+          "data": {
+            "affected_players": [
+              2
+            ]
+          }
+        },
+        {
+          "type": "game_end",
+          "message": "Game has ended.",
+          "timestamp": 1779046116.6296825,
+          "data": {
+            "affected_players": []
+          }
+        }
+      ],
+      "last_prompt_number": 11,
+      "stats": {
+        "player_name": "ג'מה",
+        "player_id": 0,
+        "total_requests": 11,
+        "successful_requests": 11,
+        "failed_requests": 0,
+        "total_tokens_used": 77727,
+        "success_rate": "100.0%"
+      }
+    },
+    "קלוד": {
+      "player_name": "קלוד",
+      "player_id": 1,
+      "player_color": "Blue",
+      "memory": "Won the game with 5 VP via Largest Army. Jimmy's trade for sheep was the final piece needed for the dev card strategy.",
+      "memory_updated_at": 1779046087.416496,
+      "compacted_memory": "Settlements: N12, N25, N37 (?3 Port). VP: 3. Strategy: Pivot to Cities (N25/N12) or coastal expansion (N46) after Gemma blocked N35. Assets: 2 Knights (1 more for Largest Army/Win). Current goal: Collect Wheat/Ore/Sheep for Dev Cards or Cities. Blocked N35 makes road 36-35 dead. Robber moved to H15 (Wh6) to block Gemma's high production. Jimmy is at 3 VP with a port and remains a lead threat. Gemma has significant Wheat reserves (3). Avoid trading Brick to Jimmy. Use ?3 port at N37 to convert excess Sheep (3).",
+      "compacted_memory_updated_at": 1779045862.726295,
+      "compaction_count": 8,
+      "memory_history": [
+        {
+          "note": "Gemma discarded 2 Wheat and 2 Sheep. She still has 3 Wheat, 1 Ore, and 1 Sheep. Jimmy has 2 Wood, 1 Ore, 1 Wheat, 1 Sheep. I need to block someone who can reach 5 VP first. Node 35 is blocked by Gemma's settlement, making my road 36-35 dead.",
+          "timestamp": 1779045838.2564685
+        },
+        {
+          "note": "Moved robber to Hex 15 (Wheat 6) to block Gemma's double production. She has 3 Wheat, 1 Ore, 1 Sheep left. Jimmy has 2 Wood, 1 Ore, 1 Wheat, 1 Sheep.",
+          "timestamp": 1779045858.4757948
+        },
+        {
+          "note": "Built road 37-47. Aiming for N46. Have 3:1 port at N37. Resources left: 2 Wheat, 3 Sheep. Need Ore for Dev Cards/Cities.",
+          "timestamp": 1779045900.0702536
+        },
+        {
+          "note": "Targeting node 46 for Ore/Sheep. Have 3:1 port at 37. Need 1 Ore, 1 Wheat, 1 Sheep for Dev card. Currently have 3 Sheep, 2 Wheat.",
+          "timestamp": 1779045922.852673
+        },
+        {
+          "note": "Traded 3 Sheep for 1 Ore using the 3:1 port at node 37. Current resources: 2 Wheat, 1 Ore. Need 1 Sheep and 1 Wheat/Ore to either buy a Dev card or progress. Still aiming for Largest Army with one more Knight.",
+          "timestamp": 1779045959.8773153
+        },
+        {
+          "note": "Need 1 Sheep to buy a Dev card. Have 2 Wheat, 1 Ore. Aiming for a third Knight to get Largest Army (2 VP) and reach the 5 VP goal.",
+          "timestamp": 1779045984.2490182
+        },
+        {
+          "note": "Bought a dev card. If it's a Knight, I can play it next turn to get Largest Army and win (assuming no one else reaches 5 first). Current VP: 3 + potentially 2 from LA.",
+          "timestamp": 1779046024.1276407
+        },
+        {
+          "note": "Played third Knight. Secured Largest Army. Reached 5 VP.",
+          "timestamp": 1779046046.9810693
+        },
+        {
+          "note": "Won the game with 5 VP via Largest Army. Jimmy's trade for sheep was the final piece needed for the dev card strategy.",
+          "timestamp": 1779046087.416496
+        }
+      ],
+      "relationship_context_updates": [
+        {
+          "note": "Gemma: Solidified alliance against Jimmy; she is actively using the robber to target his Wheat 9 to help us both.",
+          "timestamp": 1779045722.5741346
+        },
+        {
+          "note": "Jimmy: Perception of my lead has hardened; he is actively framing my 2 Knights as an 'army' to unite the table against m",
+          "timestamp": 1779045730.580399
+        },
+        {
+          "note": "Gemma: Alliance has frayed; she now views me as a resource leader and is coordinating more closely with Jimmy to 'balanc",
+          "timestamp": 1779045730.5804017
+        },
+        {
+          "note": "Gemma: Strategic betrayal confirmed; she blocked N35 specifically to halt my expansion. Trust is low.",
+          "timestamp": 1779045862.7263007
+        },
+        {
+          "note": "Jimmy: Arrogance increased; openly boasting about being 'one step from victory', reinforcing his status as the primary t",
+          "timestamp": 1779045862.726304
+        }
+      ],
+      "relationship_context_updated_at": 1779045862.726304,
+      "chat_summaries": [],
+      "recent_events": [
+        {
+          "type": "end_game",
+          "message": "קלוד chose END_GAME.",
+          "timestamp": 1779046087.4184046,
+          "data": {
+            "affected_players": []
+          }
+        },
+        {
+          "type": "action_performed",
+          "message": "קלוד chose END_GAME",
+          "timestamp": 1779046098.4755633,
+          "data": {
+            "affected_players": [
+              1
+            ]
+          }
+        },
+        {
+          "type": "end_game",
+          "message": "ג'ימי chose END_GAME.",
+          "timestamp": 1779046104.9540758,
+          "data": {
+            "affected_players": []
+          }
+        },
+        {
+          "type": "action_performed",
+          "message": "ג'ימי chose END_GAME",
+          "timestamp": 1779046116.6287925,
+          "data": {
+            "affected_players": [
+              2
+            ]
+          }
+        },
+        {
+          "type": "game_end",
+          "message": "Game has ended.",
+          "timestamp": 1779046116.629684,
+          "data": {
+            "affected_players": []
+          }
+        }
+      ],
+      "last_prompt_number": 12,
+      "stats": {
+        "player_name": "קלוד",
+        "player_id": 1,
+        "total_requests": 12,
+        "successful_requests": 12,
+        "failed_requests": 0,
+        "total_tokens_used": 129641,
+        "success_rate": "100.0%"
+      }
+    },
+    "ג'ימי": {
+      "player_name": "ג'ימי",
+      "player_id": 2,
+      "player_color": "White",
+      "memory": "Claude won. My trade (Sheep for Wheat) likely gave him the resources for the final development card/Largest Army. I warned Gemma about him but fell for his charm myself. Next time, no trades with Claude when he's close to Largest Army.",
+      "memory_updated_at": 1779046104.9518816,
+      "compacted_memory": "Settled N50 (Wh9, O5) gaining 3:1 port access. VP is 4 (3 on board + 1 hidden/potential). Immediate goal: Upgrade to city (3O, 2Wh) or build one more settlement to reach 5 VP win condition. Production is strong on Wheat (9) and Ore (5), making a city upgrade viable via bank/port trades. Claude (3 VP, 2 Knights) is a threat but currently distracted by a rivalry with Gemma. Gemma blocked Claude at N35, leading Claude to retaliate by blocking her Wh6 (H15). This conflict protects my N50 production. Avoid trading Brick to Claude; he needs it for mountain expansion. Monitor robber placement on H17/H18. Current hand: 2W, 1O, 1Wh, 1S.",
+      "compacted_memory_updated_at": 1779045888.6952713,
+      "compaction_count": 8,
+      "memory_history": [
+        {
+          "note": "Gemma discarded 2 Wood and 2 Sheep. Claude is the current robber mover. My node 50 is safe for now as long as they focus on their 35/36 rivalry.",
+          "timestamp": 1779045838.6576385
+        },
+        {
+          "note": "Claude blocked Gemma's Wheat 6 (Hex 15) and stole from her. The rivalry between them is escalating, which protects my node 50 production (Hex 17, 18). I am at 3 VP (board) + 1 hidden/potential, very close to the 5 VP limit.",
+          "timestamp": 1779045884.9935334
+        },
+        {
+          "note": "Claude built a road to 37-47. He is still focused on Gemma but trying to use the robber as a psychological weapon against my N50 port position. I have 2 Wood, 1 Ore, 1 Wheat, 1 Sheep. Need Ore and Wheat for a city to hit 5 VP.",
+          "timestamp": 1779045915.8229012
+        },
+        {
+          "note": "Rejected Claude's Sheep for Ore trade. I need to accumulate 3 Ore and 2 Wheat for a city at node 50 or 41 to win. Current hand: 2W, 1O, 1Wh, 1S.",
+          "timestamp": 1779045935.604327
+        },
+        {
+          "note": "Claude used a 3:1 port (3 Sheep for 1 Ore). He is low on resources but has 2 Knights. Gemma and Claude are still focused on each other. I am 1 City away from winning (need 3 Ore, 2 Wheat). Current hand: 2 Wood, 1 Ore, 1 Wheat, 1 Sheep.",
+          "timestamp": 1779045973.2382457
+        },
+        {
+          "note": "Accepted Wheat for Sheep from Claude. Now have 2 Wheat, 1 Ore, 2 Wood. Need 2 more Ore for a City (5 VP). Can use 3:1 port at N50 to convert Wood once I get a third piece of wood or another resource.",
+          "timestamp": 1779046003.9274971
+        },
+        {
+          "note": "Claude bought a development card after our Wheat-for-Sheep trade. He now has 1 hidden card and 2 revealed Knights. My hand is 2 Wood, 1 Ore, 2 Wheat. I need 2 more Ore for a city at N50 to reach 5 VP.",
+          "timestamp": 1779046035.102194
+        },
+        {
+          "note": "Claude blocked Hex 11 (Ore 3). He has 3 revealed Knights and the Largest Army. I need Ore to finish my city and win.",
+          "timestamp": 1779046060.9119487
+        },
+        {
+          "note": "Claude won. My trade (Sheep for Wheat) likely gave him the resources for the final development card/Largest Army. I warned Gemma about him but fell for his charm myself. Next time, no trades with Claude when he's close to Largest Army.",
+          "timestamp": 1779046104.9518816
+        }
+      ],
+      "relationship_context_updates": [
+        {
+          "note": "Claude: Solidified boycott; he is using recent port success to signal independence from my resource pool.",
+          "timestamp": 1779045718.9415808
+        },
+        {
+          "note": "Gemma: Slight thaw in relations; she initiated a pragmatically beneficial trade (Wood for Sheep), though she remains war",
+          "timestamp": 1779045735.3398635
+        },
+        {
+          "note": "Claude: Antagonism increased; he is explicitly targeting my growth to 'slow me down' and using his port to justify total",
+          "timestamp": 1779045735.3398657
+        },
+        {
+          "note": "Gemma vs Claude: Conflict escalated significantly; Gemma blocked Claude's road at N35, and Claude retaliated by robbing",
+          "timestamp": 1779045888.6952758
+        },
+        {
+          "note": "Gemma: Remains wary of my proximity to victory (4/5 VP) and has warned the table to stop me.",
+          "timestamp": 1779045888.6952772
+        }
+      ],
+      "relationship_context_updated_at": 1779045888.6952772,
+      "chat_summaries": [],
+      "recent_events": [
+        {
+          "type": "end_game",
+          "message": "ג'ימי chose END_GAME.",
+          "timestamp": 1779046104.9540768,
+          "data": {
+            "affected_players": []
+          }
+        },
+        {
+          "type": "action_performed",
+          "message": "ג'ימי chose END_GAME",
+          "timestamp": 1779046116.6287932,
+          "data": {
+            "affected_players": [
+              2
+            ]
+          }
+        },
+        {
+          "type": "game_end",
+          "message": "Game has ended.",
+          "timestamp": 1779046116.629685,
+          "data": {
+            "affected_players": []
+          }
+        }
+      ],
+      "last_prompt_number": 11,
+      "stats": {
+        "player_name": "ג'ימי",
+        "player_id": 2,
+        "total_requests": 11,
+        "successful_requests": 11,
+        "failed_requests": 0,
+        "total_tokens_used": 73695,
+        "success_rate": "100.0%"
+      }
+    }
+  },
+  "final_game_state": {
+    "meta": {
+      "curr": "ג'ימי",
+      "phase": "ENDED",
+      "turn_phase": "END_TURN",
+      "robber": 11,
+      "dice": null,
+      "vp_to_win": 5
+    },
+    "H": [
+      "",
+      "W12",
+      "S5",
+      "W4",
+      "S8",
+      "B6",
+      "W3",
+      "Wh8",
+      "B10",
+      "W11",
+      "D",
+      "O3",
+      "S4",
+      "B10",
+      "Wh9",
+      "Wh6",
+      "S11",
+      "O5",
+      "Wh9",
+      "O2"
+    ],
+    "N": [
+      null,
+      [
+        [
+          2,
+          9
+        ],
+        [
+          1
+        ]
+      ],
+      [
+        [
+          1,
+          3
+        ],
+        [
+          1
+        ],
+        "Wh2"
+      ],
+      [
+        [
+          2,
+          4,
+          11
+        ],
+        [
+          2,
+          1
+        ],
+        "Wh2"
+      ],
+      [
+        [
+          3,
+          5
+        ],
+        [
+          2
+        ]
+      ],
+      [
+        [
+          4,
+          6,
+          13
+        ],
+        [
+          3,
+          2
+        ]
+      ],
+      [
+        [
+          5,
+          7
+        ],
+        [
+          3
+        ],
+        "B2"
+      ],
+      [
+        [
+          6,
+          15
+        ],
+        [
+          3
+        ],
+        "B2"
+      ],
+      [
+        [
+          9,
+          18
+        ],
+        [
+          4
+        ],
+        "?3"
+      ],
+      [
+        [
+          8,
+          10,
+          1
+        ],
+        [
+          4,
+          1
+        ],
+        "?3"
+      ],
+      [
+        [
+          9,
+          11,
+          20
+        ],
+        [
+          5,
+          4,
+          1
+        ]
+      ],
+      [
+        [
+          10,
+          12,
+          3
+        ],
+        [
+          5,
+          2,
+          1
+        ]
+      ],
+      [
+        [
+          11,
+          13,
+          22
+        ],
+        [
+          6,
+          5,
+          2
+        ]
+      ],
+      [
+        [
+          12,
+          14,
+          5
+        ],
+        [
+          6,
+          3,
+          2
+        ]
+      ],
+      [
+        [
+          13,
+          15,
+          24
+        ],
+        [
+          7,
+          6,
+          3
+        ]
+      ],
+      [
+        [
+          14,
+          16,
+          7
+        ],
+        [
+          7,
+          3
+        ]
+      ],
+      [
+        [
+          15,
+          26
+        ],
+        [
+          7
+        ],
+        "O2"
+      ],
+      [
+        [
+          18,
+          28
+        ],
+        [
+          8
+        ],
+        "S2"
+      ],
+      [
+        [
+          17,
+          19,
+          8
+        ],
+        [
+          8,
+          4
+        ]
+      ],
+      [
+        [
+          18,
+          20,
+          30
+        ],
+        [
+          9,
+          8,
+          4
+        ]
+      ],
+      [
+        [
+          19,
+          21,
+          10
+        ],
+        [
+          9,
+          5,
+          4
+        ]
+      ],
+      [
+        [
+          20,
+          22,
+          32
+        ],
+        [
+          10,
+          9,
+          5
+        ]
+      ],
+      [
+        [
+          21,
+          23,
+          12
+        ],
+        [
+          10,
+          6,
+          5
+        ]
+      ],
+      [
+        [
+          22,
+          24,
+          34
+        ],
+        [
+          11,
+          10,
+          6
+        ]
+      ],
+      [
+        [
+          23,
+          25,
+          14
+        ],
+        [
+          11,
+          7,
+          6
+        ]
+      ],
+      [
+        [
+          24,
+          26,
+          36
+        ],
+        [
+          12,
+          11,
+          7
+        ]
+      ],
+      [
+        [
+          25,
+          27,
+          16
+        ],
+        [
+          12,
+          7
+        ],
+        "O2"
+      ],
+      [
+        [
+          26,
+          38
+        ],
+        [
+          12
+        ]
+      ],
+      [
+        [
+          29,
+          17
+        ],
+        [
+          8
+        ],
+        "S2"
+      ],
+      [
+        [
+          28,
+          30,
+          39
+        ],
+        [
+          13,
+          8
+        ]
+      ],
+      [
+        [
+          29,
+          31,
+          19
+        ],
+        [
+          13,
+          9,
+          8
+        ]
+      ],
+      [
+        [
+          30,
+          32,
+          41
+        ],
+        [
+          14,
+          13,
+          9
+        ]
+      ],
+      [
+        [
+          31,
+          33,
+          21
+        ],
+        [
+          14,
+          10,
+          9
+        ]
+      ],
+      [
+        [
+          32,
+          34,
+          43
+        ],
+        [
+          15,
+          14,
+          10
+        ]
+      ],
+      [
+        [
+          33,
+          35,
+          23
+        ],
+        [
+          15,
+          11,
+          10
+        ]
+      ],
+      [
+        [
+          34,
+          36,
+          45
+        ],
+        [
+          16,
+          15,
+          11
+        ]
+      ],
+      [
+        [
+          35,
+          37,
+          25
+        ],
+        [
+          16,
+          12,
+          11
+        ]
+      ],
+      [
+        [
+          36,
+          38,
+          47
+        ],
+        [
+          16,
+          12
+        ],
+        "?3"
+      ],
+      [
+        [
+          37,
+          27
+        ],
+        [
+          12
+        ],
+        "?3"
+      ],
+      [
+        [
+          40,
+          29
+        ],
+        [
+          13
+        ]
+      ],
+      [
+        [
+          39,
+          41,
+          48
+        ],
+        [
+          17,
+          13
+        ],
+        "W2"
+      ],
+      [
+        [
+          40,
+          42,
+          31
+        ],
+        [
+          17,
+          14,
+          13
+        ]
+      ],
+      [
+        [
+          41,
+          43,
+          50
+        ],
+        [
+          18,
+          17,
+          14
+        ]
+      ],
+      [
+        [
+          42,
+          44,
+          33
+        ],
+        [
+          18,
+          15,
+          14
+        ]
+      ],
+      [
+        [
+          43,
+          45,
+          52
+        ],
+        [
+          19,
+          18,
+          15
+        ]
+      ],
+      [
+        [
+          44,
+          46,
+          35
+        ],
+        [
+          19,
+          16,
+          15
+        ]
+      ],
+      [
+        [
+          45,
+          47,
+          54
+        ],
+        [
+          19,
+          16
+        ]
+      ],
+      [
+        [
+          46,
+          37
+        ],
+        [
+          16
+        ]
+      ],
+      [
+        [
+          49,
+          40
+        ],
+        [
+          17
+        ],
+        "W2"
+      ],
+      [
+        [
+          48,
+          50
+        ],
+        [
+          17
+        ]
+      ],
+      [
+        [
+          49,
+          51,
+          42
+        ],
+        [
+          18,
+          17
+        ],
+        "?3"
+      ],
+      [
+        [
+          50,
+          52
+        ],
+        [
+          18
+        ],
+        "?3"
+      ],
+      [
+        [
+          51,
+          53,
+          44
+        ],
+        [
+          19,
+          18
+        ]
+      ],
+      [
+        [
+          52,
+          54
+        ],
+        [
+          19
+        ],
+        "?3"
+      ],
+      [
+        [
+          53,
+          46
+        ],
+        [
+          19
+        ],
+        "?3"
+      ]
+    ],
+    "state": {
+      "bld": [
+        [
+          12,
+          "קלוד",
+          "S"
+        ],
+        [
+          14,
+          "ג'ימי",
+          "S"
+        ],
+        [
+          20,
+          "ג'מה",
+          "S"
+        ],
+        [
+          23,
+          "ג'ימי",
+          "S"
+        ],
+        [
+          25,
+          "קלוד",
+          "S"
+        ],
+        [
+          35,
+          "ג'מה",
+          "S"
+        ],
+        [
+          37,
+          "קלוד",
+          "S"
+        ],
+        [
+          41,
+          "ג'ימי",
+          "S"
+        ],
+        [
+          44,
+          "ג'מה",
+          "S"
+        ]
+      ],
+      "rds": [
+        [
+          [
+            20,
+            10
+          ],
+          "ג'מה"
+        ],
+        [
+          [
+            12,
+            11
+          ],
+          "קלוד"
+        ],
+        [
+          [
+            41,
+            42
+          ],
+          "ג'ימי"
+        ],
+        [
+          [
+            14,
+            24
+          ],
+          "ג'ימי"
+        ],
+        [
+          [
+            25,
+            36
+          ],
+          "קלוד"
+        ],
+        [
+          [
+            44,
+            43
+          ],
+          "ג'מה"
+        ],
+        [
+          [
+            43,
+            33
+          ],
+          "ג'מה"
+        ],
+        [
+          [
+            33,
+            34
+          ],
+          "ג'מה"
+        ],
+        [
+          [
+            36,
+            37
+          ],
+          "קלוד"
+        ],
+        [
+          [
+            24,
+            23
+          ],
+          "ג'ימי"
+        ],
+        [
+          [
+            34,
+            35
+          ],
+          "ג'מה"
+        ],
+        [
+          [
+            42,
+            50
+          ],
+          "ג'ימי"
+        ],
+        [
+          [
+            36,
+            35
+          ],
+          "קלוד"
+        ],
+        [
+          [
+            37,
+            47
+          ],
+          "קלוד"
+        ]
+      ]
+    },
+    "players": {
+      "ג'מה": {
+        "vp": 3,
+        "res": {
+          "Wh": 2,
+          "O": 1,
+          "S": 1
+        },
+        "dev": {
+          "r": [
+            "K"
+          ]
+        }
+      },
+      "קלוד": {
+        "vp": 5,
+        "res": {
+          "W": 1
+        },
+        "dev": {
+          "r": [
+            "K",
+            "K",
+            "K"
+          ]
+        },
+        "stat": [
+          "LA"
+        ]
+      },
+      "ג'ימי": {
+        "vp": 3,
+        "res": {
+          "W": 1,
+          "Wh": 2,
+          "O": 1
+        }
+      }
+    }
+  }
+}

@@ -33,3 +33,21 @@ def test_failed_buy_dev_card_log_does_not_report_unknown_card():
     assert "failed to buy" in message
     assert "Unknown" not in message
     assert "bought development card" not in message
+
+
+def test_failed_discard_log_does_not_report_empty_success():
+    entry = LogEntry(
+        timestamp=datetime(2026, 5, 16, 13, 0, 0),
+        event_type=EventType.DISCARD_CARDS,
+        turn=6,
+        player_name="Gemma",
+        data={"cards": ["sheep", "wheat"]},
+        status="FAIL",
+        error="Unknown card type: sheep",
+    )
+
+    message = entry.to_human_string()
+
+    assert "failed to discard" in message
+    assert "nothing" not in message
+    assert "discarded [nothing]" not in message

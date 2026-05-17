@@ -258,6 +258,8 @@ class LogEntry:
             return f"{player_str} {response} trade"
 
         elif self.event_type == EventType.DISCARD_CARDS:
+            if self.status != "SUCCESS":
+                return f"❌ {player_str} failed to discard cards: {self.error}"
             cards = self._format_resource_bundle(self.data.get('discarded') or self.data.get('cards', []))
             return f"{player_str} discarded [{cards}]"
 

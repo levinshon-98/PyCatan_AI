@@ -1315,7 +1315,8 @@ class WebVisualization(Visualization):
         elif action.action_type == AT.DISCARD_CARDS:
             event_type = EventType.DISCARD_CARDS
             event_data['cards'] = params.get('cards', [])
-            event_data['discarded'] = params.get('discarded', {})
+            if params.get('discarded'):
+                event_data['discarded'] = params['discarded']
             event_data['count'] = len(event_data['cards'])
 
         elif action.action_type == AT.STEAL_CARD:

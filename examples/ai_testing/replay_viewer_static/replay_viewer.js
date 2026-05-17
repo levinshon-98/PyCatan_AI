@@ -5,6 +5,8 @@ const replayState = {
     index: -1,
     playing: false,
     timer: null,
+    thinkingTimer: null,
+    thinking: null,
     audio: null,
     filter: "all",
     boardReady: false,
@@ -23,6 +25,20 @@ const RESOURCE_ORDER = [
     ["wheat", "🌾", "wheat"],
     ["ore", "⛰️", "ore"],
 ];
+const DEV_CARD_LABELS = {
+    K: "Knight",
+    KNIGHT: "Knight",
+    VP: "VP",
+    VICTORY_POINT: "VP",
+    ROAD: "Road",
+    ROAD_BUILDING: "Road",
+    RB: "Road",
+    MONOPOLY: "Monopoly",
+    MON: "Monopoly",
+    PLENTY: "Plenty",
+    YEAR_OF_PLENTY: "Plenty",
+    YOP: "Plenty",
+};
 
 document.addEventListener("DOMContentLoaded", () => {
     bindReplayControls();
@@ -145,16 +161,21 @@ function renderCurrent() {
     renderPlayerHub(gameState);
     renderLogs();
     renderDetails(gameState);
+    renderDiceOverlay(gameState);
     renderAIContent();
 }
 
 function renderTransport() {
     const total = events().length;
-    const current = replayState.index < 0 ? 0 : replayState.index + 1;
-    const event = currentEvent();
+    const pending = replayState.thinking;
+    const event = pending?.event || currentEvent();
+    const shownIndex = pending ? pending.index : replayState.index;
+    const current = shownIndex < 0 ? 0 : shownIndex + 1;
     $("replay-label").textContent = `${current} / ${total}`;
-    $("replay-slider").value = Math.max(0, replayState.index);
-    $("replay-context").textContent = event
+    $("replay-slider").value = Math.max(0, shownIndex);
+    $("replay-context").textContent = pending
+        ? `${pending.event.player_name} thinking...`
+        : event
         ? `${event.player_name}${event.request_number ? ` #${event.request_number}` : ""} ${event.kind}`
         : (replayState.manifest ? "Press Play to start" : "Choose a session");
     $("replay-play").textContent = replayState.playing ? "Pause" : "Play";
@@ -176,7 +197,7 @@ function renderFilters() {
 }
 
 function renderTimeline() {
-    const active = currentEvent();
+    const active = replayState.thinking?.event || currentEvent();
     $("replay-timeline-track").innerHTML = events().map((event) => {
         const hidden = replayState.filter !== "all" && event.player_name !== replayState.filter;
         const label = pointLabel(event);
@@ -186,7 +207,8 @@ function renderTimeline() {
             event.has_speech ? "has-speech" : "",
             event.kind === "chat" ? "chat-only" : "",
             event.kind === "memory" ? "memory-only" : "",
-            event.index === replayState.index ? "active" : "",
+            event.index === active?.index ? "active" : "",
+            event.index === replayState.thinking?.index ? "thinking" : "",
             active && event.player_name === active.player_name ? "current-speaker" : "",
         ].filter(Boolean).join(" ");
         const title = `${event.player_name}${event.request_number ? ` #${event.request_number}` : ""} - ${event.kind}${event.action_type ? ` - ${event.action_type}` : ""}`;
@@ -345,6 +367,7 @@ function buildGameState(boardState) {
             total_cards: resourceTotal(recorded.resources),
             resources: normalizeRecordedResources(recorded.resources),
             dev_cards: recorded.dev || {},
+            stat: Array.isArray(recorded.stat) ? recorded.stat : [],
             roads_count: roads,
             settlements_count: settlements,
             cities_count: cities,
@@ -401,16 +424,18 @@ function resourceTotal(resources) {
 
 function renderPlayerHub(gameState) {
     const current = currentEvent();
+    const focus = replayState.thinking?.event || current;
     if (!gameState.players.length) {
         $("player-hub").innerHTML = "<div class=\"loading-state\">Choose a session...</div>";
         return;
     }
     $("player-hub").innerHTML = gameState.players.map((player) => {
         const cssIndex = player.id + 1;
-        const isSpeaking = current?.player_name === player.name && current?.say_outloud;
+        const isThinking = replayState.thinking?.event?.player_name === player.name;
+        const isSpeaking = !isThinking && current?.player_name === player.name && current?.say_outloud;
         const latestSpeech = latestSpeechForPlayer(player.name);
         return `
-            <div class="player-card player-${cssIndex} ${player.is_current ? "active" : ""} ${isSpeaking ? "replay-speaking" : ""}">
+            <div class="player-card player-${cssIndex} ${player.is_current || focus?.player_name === player.name ? "active" : ""} ${isSpeaking ? "replay-speaking" : ""} ${isThinking ? "replay-thinking" : ""}">
                 <div class="player-header">
                     <div class="player-avatar player-${cssIndex}">${escapeHtml(playerInitial(player.name))}</div>
                     <div class="player-info-header">
@@ -419,6 +444,7 @@ function renderPlayerHub(gameState) {
                             <span>🏆 ${player.victory_points} VP</span>
                             <span>${player.roads_count} roads</span>
                         </div>
+                        ${playerAwardBadges(player)}
                     </div>
                 </div>
                 <div class="player-resources-grid">
@@ -429,15 +455,23 @@ function renderPlayerHub(gameState) {
                         </div>
                     `).join("")}
                 </div>
-                <div class="player-dev-cards detailed empty">
-                    <span class="dev-card-empty">${player.total_cards} resource cards · ${devSummary(player.dev_cards)}</span>
+                <div class="player-dev-cards detailed">
+                    <span class="dev-card-empty">${player.total_cards} resource cards</span>
+                    ${renderDevCards(player.dev_cards)}
                 </div>
-                ${latestSpeech ? `<div class="player-chat-bubble"><strong>${escapeHtml(latestSpeech.kindLabel)}</strong><br>${escapeHtml(latestSpeech.text)}</div>` : ""}
+                ${latestSpeech ? `<div class="player-chat-bubble ${latestSpeech.isThinking ? "thinking-bubble" : ""}"><strong>${escapeHtml(latestSpeech.kindLabel)}</strong><br>${latestSpeech.isThinking ? "<span class=\"thinking-dots\"><span></span><span></span><span></span></span>" : escapeHtml(latestSpeech.text)}</div>` : ""}
             </div>`;
     }).join("");
 }
 
 function latestSpeechForPlayer(playerName) {
+    if (replayState.thinking?.event?.player_name === playerName) {
+        return {
+            text: "Thinking...",
+            kindLabel: "Thinking",
+            isThinking: true,
+        };
+    }
     if (replayState.index < 0) return null;
     const event = [...events().slice(0, replayState.index + 1)]
         .reverse()
@@ -458,6 +492,56 @@ function devSummary(devCards) {
     return total ? `${total} dev cards` : "no dev cards";
 }
 
+function playerAwardBadges(player) {
+    const stat = Array.isArray(player.stat) ? player.stat : [];
+    const badges = [];
+    if (stat.includes("LR")) badges.push(["LR", "Longest Road"]);
+    if (stat.includes("LA")) badges.push(["LA", "Largest Army"]);
+    if (!badges.length) return "";
+    return `<div class="player-public-cards replay-awards">${badges.map(([icon, label]) => `
+        <span class="public-card-chip award" title="${escapeAttr(label)}">
+            <span class="public-chip-icon">${escapeHtml(icon)}</span>
+            <span class="public-chip-name">${escapeHtml(label)}</span>
+        </span>
+    `).join("")}</div>`;
+}
+
+function renderDevCards(devCards) {
+    if (!devCards || typeof devCards !== "object") {
+        return "<span class=\"dev-card-empty\">no dev cards</span>";
+    }
+
+    const chips = [];
+    cardCounts(Array.isArray(devCards.r) ? devCards.r : []).forEach(([card, count]) => {
+        chips.push(`<span class="dev-card-chip replay-dev-revealed" title="Revealed development card"><span class="dev-chip-name">${escapeHtml(devCardLabel(card))}${count > 1 ? ` x${count}` : ""}</span></span>`);
+    });
+    cardCounts(Array.isArray(devCards.h) ? devCards.h : []).forEach(([card, count]) => {
+        chips.push(`<span class="dev-card-chip replay-dev-known" title="Known hidden card in this prompt"><span class="dev-chip-name">${escapeHtml(devCardLabel(card))}${count > 1 ? ` x${count}` : ""}</span></span>`);
+    });
+
+    const hidden = Number(devCards.hidden_count || 0);
+    if (hidden > 0) {
+        chips.push(`<span class="dev-card-chip replay-dev-hidden" title="Unrevealed development cards"><span class="dev-chip-name">Hidden x${hidden}</span></span>`);
+    }
+
+    return chips.length ? chips.join("") : "<span class=\"dev-card-empty\">no dev cards</span>";
+}
+
+function cardCounts(cards) {
+    const counts = new Map();
+    cards.forEach((card) => {
+        const key = String(card || "").trim();
+        if (!key) return;
+        counts.set(key, (counts.get(key) || 0) + 1);
+    });
+    return [...counts.entries()];
+}
+
+function devCardLabel(card) {
+    const normalized = String(card || "").trim().toUpperCase().replace(/[\s-]+/g, "_");
+    return DEV_CARD_LABELS[normalized] || String(card || "Dev");
+}
+
 function renderLogs() {
     const visible = replayState.index < 0 ? [] : events().filter((event) => event.index <= replayState.index);
     const actions = visible.filter((event) => event.has_action).slice(-40).reverse();
@@ -474,6 +558,7 @@ function renderLogs() {
                 ${event.request_number ? `<span>#${escapeHtml(String(event.request_number))}</span>` : ""}
                 ${event.has_audio ? "<span>audio</span>" : ""}
                 ${diceSummary(event) ? `<span>${escapeHtml(diceSummary(event))}</span>` : ""}
+                ${devActionSummary(event) ? `<span class="dev-action-chip">${escapeHtml(devActionSummary(event))}</span>` : ""}
                 ${resourceDelta(event).map((delta) => `<span class="${delta.amount > 0 ? "resource-plus" : "resource-minus"}">${escapeHtml(deltaLabel(delta))}</span>`).join("")}
             </div>
         </div>
@@ -510,6 +595,48 @@ function diceSummary(event) {
     const dice = Array.isArray(meta.dice) ? meta.dice : null;
     if (!total && !dice) return "";
     return dice && dice.length >= 2 ? `dice ${total || dice.reduce((sum, value) => sum + Number(value || 0), 0)} (${dice.join("+")})` : `dice ${total}`;
+}
+
+function devActionSummary(event) {
+    const action = String(event.action_type || "").toLowerCase();
+    if (action === "buy_dev_card") return "dev card bought";
+    if (action !== "use_dev_card") return "";
+    const cardType = event.parameters?.card_type || event.parameters?.card || "";
+    return `${devCardLabel(cardType)} played`;
+}
+
+function renderDiceOverlay(gameState) {
+    const layer = $("board-event-layer");
+    const popover = $("board-dice-popover");
+    if (!layer || !popover) return;
+    const event = currentEvent();
+    const dice = Array.isArray(gameState.dice_result) ? gameState.dice_result : [];
+    const total = Number(gameState.dice_total || (dice.length ? dice.reduce((sum, value) => sum + Number(value || 0), 0) : 0));
+    const shouldShow = Boolean(event && total && (String(event.action_type || "").toLowerCase() === "roll_dice" || diceChanged(event)));
+
+    layer.classList.toggle("active", shouldShow);
+    popover.hidden = !shouldShow;
+    if (!shouldShow) {
+        popover.innerHTML = "";
+        return;
+    }
+
+    const breakdown = dice.length ? dice.join(" + ") : String(total);
+    popover.innerHTML = `
+        <div class="board-dice-title">Dice roll</div>
+        <div class="board-dice-value">
+            <span class="board-dice-total">${escapeHtml(String(total))}</span>
+            <span class="board-dice-breakdown">${escapeHtml(breakdown)}</span>
+        </div>
+    `;
+}
+
+function diceChanged(event) {
+    const before = event.state_before?.meta || {};
+    const after = event.state_after?.meta || {};
+    if (!after.dice_total && !after.dice) return false;
+    return JSON.stringify(before.dice || null) !== JSON.stringify(after.dice || null)
+        || Number(before.dice_total || 0) !== Number(after.dice_total || 0);
 }
 
 function resourceDelta(event) {
@@ -633,12 +760,32 @@ function pausePlayback() {
     replayState.playing = false;
     if (replayState.timer) window.clearTimeout(replayState.timer);
     replayState.timer = null;
+    clearThinking();
     stopAudio();
-    renderTransport();
+    renderCurrent();
 }
 
 function goToEvent(index, speak) {
+    clearThinking();
     stopAudio();
+    const targetIndex = Math.max(-1, Math.min(index, events().length - 1));
+    const event = targetIndex >= 0 ? events()[targetIndex] : null;
+    if (shouldShowThinking(event, speak)) {
+        replayState.thinking = { index: targetIndex, event };
+        renderTimeline();
+        renderTransport();
+        renderPlayerHub(window.gameState || buildGameState(deriveBoardState(replayState.index)));
+        replayState.thinkingTimer = window.setTimeout(
+            () => applyEvent(targetIndex, speak),
+            thinkingDurationSeconds(event) * 1000,
+        );
+        return;
+    }
+    applyEvent(targetIndex, speak);
+}
+
+function applyEvent(index, speak) {
+    clearThinking();
     replayState.index = Math.max(-1, Math.min(index, events().length - 1));
     renderCurrent();
     const event = currentEvent();
@@ -648,6 +795,25 @@ function goToEvent(index, speak) {
     } else if (replayState.playing) {
         scheduleNext(event.timeline_gap_seconds || 0);
     }
+}
+
+function clearThinking() {
+    if (replayState.thinkingTimer) window.clearTimeout(replayState.thinkingTimer);
+    replayState.thinkingTimer = null;
+    replayState.thinking = null;
+}
+
+function shouldShowThinking(event, speak) {
+    return Boolean(speak && event && (event.has_action || event.has_speech));
+}
+
+function thinkingDurationSeconds(event) {
+    const action = String(event?.action_type || "").toLowerCase();
+    if (["trade_propose", "trade_accept", "trade_reject", "use_dev_card", "buy_dev_card", "build_road", "build_settlement", "build_city", "robber_move"].includes(action)) {
+        return 1.6;
+    }
+    if (event?.has_action) return 1.2;
+    return 0.75;
 }
 
 function playAudio(event) {

@@ -414,8 +414,15 @@ class AIUser(User):
             return self._normalize_dev_card_parameters(parameters)
         
         elif action_type == ActionType.DISCARD_CARDS:
-            # Keep cards list
-            return parameters
+            result = dict(parameters)
+            cards = result.get("cards")
+            if isinstance(cards, list):
+                normalized_cards = []
+                for card in cards:
+                    resource_name = self._normalize_resource_name(card)
+                    normalized_cards.append(resource_name or str(card))
+                result["cards"] = normalized_cards
+            return result
         
         return parameters
 

@@ -1,0 +1,30 @@
+{
+  "request_number": 87,
+  "iteration": 2,
+  "timestamp": "2026-05-17T21:57:44.538358",
+  "player_name": "קלוד",
+  "type": "intermediate",
+  "success": true,
+  "raw_content": "",
+  "has_tool_calls": true,
+  "tool_calls": [
+    {
+      "id": "tool_analyze_path_potential_cg5w7yTobEqE12F7utwg",
+      "name": "analyze_path_potential",
+      "parameters": {
+        "reasoning": "אני רוצה לבדוק לאן הדרך מ-25 מובילה. המטרה היא להגיע לצומת 35 שנותן חיטה ואבן, או לצומת 27/38 לנמל. צומת 35 נראה הכי חזק מבחינת משאבים.",
+        "from_node": 25
+      }
+    }
+  ],
+  "model": "google/gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 4855,
+    "completion": 0,
+    "thinking": 0,
+    "total": 4855
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}

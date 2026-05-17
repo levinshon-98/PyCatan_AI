@@ -2852,21 +2852,17 @@ class GameManager:
                 "WRONG_DISCARD_COUNT"
             )
         
-        # Convert card names to ResCard enum and verify player has them
-        from pycatan.core.card import ResCard
-        
         player = self.game.players[player_id]
         cards_enum = []
         
         for card_name in cards_to_discard:
-            try:
-                card = ResCard[card_name]
-                cards_enum.append(card)
-            except KeyError:
+            card = self._resource_name_to_card(card_name)
+            if card is None:
                 return ActionResult.failure_result(
                     f"Unknown card type: {card_name}",
                     "INVALID_CARD"
                 )
+            cards_enum.append(card)
         
         # Check if player has all these cards
         if not player.has_cards(cards_enum):

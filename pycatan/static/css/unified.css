@@ -1045,6 +1045,45 @@
     font-weight: 700;
 }
 
+.player-public-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 8px;
+}
+
+.public-card-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    max-width: 100%;
+    padding: 5px 7px;
+    border-radius: 6px;
+    background: #e0f2fe;
+    color: #0c4a6e;
+    border: 1px solid rgba(14, 116, 144, 0.22);
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.public-card-chip.award {
+    background: #fef3c7;
+    color: #78350f;
+    border-color: rgba(180, 83, 9, 0.28);
+}
+
+.public-chip-icon {
+    flex: 0 0 auto;
+    font-weight: 900;
+}
+
+.public-chip-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .dev-card-mini {
     display: flex;
     flex-direction: column;
