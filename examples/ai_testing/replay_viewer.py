@@ -32,6 +32,14 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 LOGS_DIR = REPO_ROOT / "examples" / "ai_testing" / "my_games"
 MANIFEST_NAME = "replay_viewer_manifest.json"
 TRUE_VALUES = {"1", "true", "yes", "on"}
+RESOURCE_CODE_MAP = {
+    "W": "wood",
+    "B": "brick",
+    "S": "sheep",
+    "Wh": "wheat",
+    "O": "ore",
+    "D": "desert",
+}
 
 
 def _read_json(path: Path, fallback: Any = None) -> Any:
@@ -245,6 +253,99 @@ def _load_chat_messages(session_dir: Path) -> List[Dict[str, Any]]:
     return loaded
 
 
+def _extract_json_object_from_text(text: str) -> Optional[Dict[str, Any]]:
+    marker_index = text.find("JSON:")
+    if marker_index >= 0:
+        text = text[marker_index + len("JSON:"):]
+    brace_index = text.find("{")
+    if brace_index < 0:
+        return None
+    try:
+        payload, _ = json.JSONDecoder().raw_decode(text[brace_index:])
+        return payload if isinstance(payload, dict) else None
+    except Exception:
+        return None
+
+
+def _parse_resource_code(value: Any) -> Dict[str, Any]:
+    raw = str(value or "")
+    if not raw:
+        return {"type": "unknown", "number": None}
+    if raw == "D":
+        return {"type": "desert", "number": None}
+    resource_code = "Wh" if raw.startswith("Wh") else raw[:1]
+    number_text = raw[len(resource_code):]
+    try:
+        number = int(number_text) if number_text else None
+    except ValueError:
+        number = None
+    return {"type": RESOURCE_CODE_MAP.get(resource_code, "unknown"), "number": number}
+
+
+def _load_board_context(session_dir: Path) -> Dict[str, Any]:
+    board_definition_path = REPO_ROOT / "pycatan" / "config" / "data" / "board_definition.json"
+    board_definition = _read_json(board_definition_path, {}) or {}
+
+    state_payload: Dict[str, Any] = {}
+    for prompt_path in sorted(session_dir.glob("*/prompts/prompt_*.json")):
+        prompt_doc = _read_json(prompt_path, {}) or {}
+        prompt = prompt_doc.get("prompt") if isinstance(prompt_doc.get("prompt"), dict) else {}
+        game_state = prompt.get("game_state")
+        if isinstance(game_state, str):
+            extracted = _extract_json_object_from_text(game_state)
+            if extracted:
+                state_payload = extracted
+                break
+
+    resource_lookup = state_payload.get("H") if isinstance(state_payload.get("H"), list) else []
+    meta = state_payload.get("meta") if isinstance(state_payload.get("meta"), dict) else {}
+
+    hexes = []
+    for hex_id_text, hex_def in (board_definition.get("hexes") or {}).items():
+        if not isinstance(hex_def, dict):
+            continue
+        try:
+            hex_id = int(hex_id_text)
+        except ValueError:
+            continue
+        resource = _parse_resource_code(resource_lookup[hex_id] if hex_id < len(resource_lookup) else "")
+        axial = hex_def.get("axial_coords") or [0, 0]
+        hexes.append({
+            "id": hex_id,
+            "q": axial[0],
+            "r": axial[1],
+            "type": resource["type"],
+            "number": resource["number"],
+            "adjacent_points": hex_def.get("adjacent_points") or [],
+        })
+
+    points = []
+    for point_id_text, point_def in (board_definition.get("points") or {}).items():
+        if not isinstance(point_def, dict):
+            continue
+        try:
+            point_id = int(point_id_text)
+        except ValueError:
+            continue
+        coords = point_def.get("pixel_coords") or [0, 0]
+        points.append({
+            "id": point_id,
+            "x": coords[0],
+            "y": coords[1],
+            "adjacent_points": point_def.get("adjacent_points") or [],
+            "adjacent_hexes": point_def.get("adjacent_hexes") or [],
+        })
+
+    hexes.sort(key=lambda item: item["id"])
+    points.sort(key=lambda item: item["id"])
+
+    return {
+        "hexes": hexes,
+        "points": points,
+        "initial_robber": meta.get("robber") or next((item["id"] for item in hexes if item["type"] == "desert"), None),
+    }
+
+
 def _audio_paths_from_existing_replay_logs(session_dir: Path) -> Dict[str, Path]:
     """Recover response->audio links from previous derived replay logs, if present."""
     mapping: Dict[str, Path] = {}
@@ -456,6 +557,7 @@ def build_manifest(session_dir: Path, max_gap_seconds: float = 2.5) -> Dict[str,
             "summary": _read_json(session_dir / "session_summary.json", {}) or {},
         },
         "players": players,
+        "board": _load_board_context(session_dir),
         "settings": {
             "max_gap_seconds": max_gap_seconds,
             "tts": tts,
@@ -519,23 +621,52 @@ HTML_PAGE = r"""<!doctype html>
     .dot.chat { border-color:#64d4a0; background:#e8fff3; }
     .dot.memory { border-color:#b9a7ff; background:#f0edff; }
     .dot.active { outline:3px solid var(--brand); }
-    .layout { display:grid; grid-template-columns:280px minmax(420px,1fr) 420px; gap:14px; padding:14px; min-height:calc(100vh - 130px); }
+    .layout { display:grid; grid-template-columns:300px minmax(560px,1fr) 380px; gap:14px; padding:14px; min-height:calc(100vh - 130px); }
     .panel { background:var(--panel); border:1px solid var(--line); border-radius:8px; overflow:hidden; min-height:0; }
     .panel h2 { font-size:15px; margin:0; padding:14px 16px; border-bottom:1px solid var(--line); background:#fbfcff; }
     .body { padding:14px 16px; overflow:auto; max-height:calc(100vh - 190px); }
     .player-filter { display:flex; flex-wrap:wrap; gap:8px; }
     .player-filter button.active { background:var(--brand); color:white; border-color:var(--brand); }
     .stat { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #edf1f8; color:var(--muted); }
-    .board-placeholder { height:360px; border:1px dashed var(--line); border-radius:8px; display:grid; place-items:center; color:var(--muted); background:#f8fbff; text-align:center; padding:24px; }
+    .board-wrap { height:560px; min-height:420px; border-bottom:1px solid var(--line); background:#6aa2d8; overflow:hidden; position:relative; }
+    #replayBoard { width:100%; height:100%; display:block; }
+    .board-water { fill:#6aa2d8; }
+    .hex { stroke:#ead7aa; stroke-width:4; }
+    .hex.wood { fill:#4f8f57; }
+    .hex.brick { fill:#b66543; }
+    .hex.sheep { fill:#8dcf73; }
+    .hex.wheat { fill:#dfc75f; }
+    .hex.ore { fill:#8a9299; }
+    .hex.desert { fill:#c99d6c; }
+    .hex.unknown { fill:#d7dee8; }
+    .hex-label { font-size:13px; fill:#172033; font-weight:800; text-anchor:middle; pointer-events:none; }
+    .hex-number { font-size:18px; fill:#172033; font-weight:900; text-anchor:middle; pointer-events:none; }
+    .node-label { font-size:9px; fill:#172033; font-weight:800; text-anchor:middle; pointer-events:none; paint-order:stroke; stroke:white; stroke-width:2px; }
+    .road-line { stroke-width:8; stroke-linecap:round; paint-order:stroke; stroke:#172033; }
+    .road-line.player { stroke-width:6; }
+    .building { stroke:white; stroke-width:3; }
+    .building-label { fill:white; font-size:13px; font-weight:900; text-anchor:middle; dominant-baseline:central; pointer-events:none; }
+    .robber { fill:#111827; stroke:white; stroke-width:3; }
+    .robber-text { fill:white; font-size:18px; font-weight:900; text-anchor:middle; dominant-baseline:central; pointer-events:none; }
+    .event-pane { padding:14px 16px; max-height:260px; overflow:auto; }
     .event-title { font-size:24px; margin:0 0 8px; }
     .meta { color:var(--muted); font-size:13px; margin-bottom:14px; }
     .speech { border-left:4px solid var(--brand); background:#eef4ff; padding:12px; border-radius:6px; margin:12px 0; line-height:1.5; direction:auto; }
     .action { border-left:4px solid #e7ad18; background:#fff8df; padding:12px; border-radius:6px; margin:12px 0; }
+    .side-list { display:flex; flex-direction:column; gap:8px; }
+    .side-item { border-left:4px solid var(--line); background:#f8fafc; padding:9px 10px; border-radius:6px; }
+    .side-item.active { border-left-color:var(--brand); background:#eef4ff; }
+    .side-item.action-log { border-left-color:#e7ad18; }
+    .side-item.chat-log { border-left-color:#64d4a0; }
+    .side-name { font-weight:900; margin-bottom:3px; }
+    .side-text { color:#334155; line-height:1.35; direction:auto; }
+    .side-meta { color:var(--muted); font-size:12px; margin-top:3px; }
+    .detail-panel { border-top:1px solid var(--line); margin-top:14px; padding-top:12px; }
     pre { white-space:pre-wrap; word-break:break-word; background:#0f172a; color:#e2e8f0; padding:12px; border-radius:6px; max-height:260px; overflow:auto; }
     .log-item { border-bottom:1px solid #edf1f8; padding:10px 0; }
     .tag { display:inline-flex; align-items:center; border-radius:999px; padding:2px 8px; font-size:12px; font-weight:800; background:#edf2ff; color:#2f4ab8; margin-left:6px; }
     .audio-state { color:var(--good); font-weight:800; }
-    @media (max-width:1100px) { .layout { grid-template-columns:1fr; } header { height:auto; flex-wrap:wrap; padding:14px; } .transport { min-width:100%; } }
+    @media (max-width:1100px) { .layout { grid-template-columns:1fr; } header { height:auto; flex-wrap:wrap; padding:14px; } .transport { min-width:100%; } .board-wrap { height:440px; } }
   </style>
 </head>
 <body>
@@ -559,26 +690,26 @@ HTML_PAGE = r"""<!doctype html>
   <div id="timeline" class="timeline"></div>
   <main class="layout">
     <section class="panel">
-      <h2>Players</h2>
+      <h2>Players & State</h2>
       <div class="body">
         <div id="filters" class="player-filter"></div>
         <div id="stats" style="margin-top:16px"></div>
+        <div id="playerState" class="detail-panel"></div>
       </div>
     </section>
     <section class="panel">
-      <h2>Replay</h2>
-      <div class="body">
-        <div class="board-placeholder">
-          Board snapshots are not executed in this standalone viewer yet.<br>
-          This view is driven by recorded responses and browser-owned audio.
-        </div>
-        <div id="currentEvent" style="margin-top:16px"></div>
-      </div>
+      <h2>Board Replay</h2>
+      <div class="board-wrap"><svg id="replayBoard" viewBox="40 40 720 520" role="img" aria-label="Catan replay board"></svg></div>
+      <div id="currentEvent" class="event-pane"></div>
     </section>
     <section class="panel">
-      <h2>Analysis</h2>
+      <h2>History</h2>
       <div class="body">
-        <div id="analysis"></div>
+        <h3>Chat</h3>
+        <div id="chatLog" class="side-list"></div>
+        <h3 style="margin-top:18px">Actions</h3>
+        <div id="actionLog" class="side-list"></div>
+        <div id="analysis" class="detail-panel"></div>
       </div>
     </section>
   </main>
@@ -662,6 +793,7 @@ HTML_PAGE = r"""<!doctype html>
     function renderStats() {
       if (!state.manifest) {
         $('stats').innerHTML = `<div class="stat"><strong>Sessions</strong><span>${state.sessions.length}</span></div>`;
+        $('playerState').innerHTML = '';
         return;
       }
       const s = state.manifest.stats;
@@ -673,6 +805,21 @@ HTML_PAGE = r"""<!doctype html>
         ['Chat-only', s.chat || 0],
         ['Audio found', s.audio],
       ].map(([k,v]) => `<div class="stat"><strong>${escapeHtml(k)}</strong><span>${escapeHtml(String(v))}</span></div>`).join('');
+    }
+
+    function playerColor(playerName) {
+      const player = (state.manifest?.players || []).find(p => p.name === playerName);
+      const color = String(player?.color || '').toLowerCase();
+      const colors = { red:'#d94a45', blue:'#4f5fed', white:'#f8fafc', green:'#56b85f', orange:'#e58f35' };
+      return colors[color] || ['#d94a45','#4f5fed','#56b85f','#e58f35','#8b5cf6'][Math.abs(hashCode(playerName)) % 5];
+    }
+
+    function playerInitial(playerName) {
+      return String(playerName || '?').trim().slice(0, 1) || '?';
+    }
+
+    function hashCode(text) {
+      return String(text || '').split('').reduce((acc, char) => ((acc << 5) - acc) + char.charCodeAt(0), 0);
     }
 
     function renderTimeline() {
@@ -692,6 +839,10 @@ HTML_PAGE = r"""<!doctype html>
       $('slider').value = Math.max(0, state.index);
       $('context').textContent = e ? `${e.player_name}${e.request_number ? ' #' + e.request_number : ''} ${e.kind}` : 'Ready';
       renderTimeline();
+      const boardState = deriveBoardState(state.index);
+      renderBoard(boardState);
+      renderPlayerState(boardState);
+      renderHistory();
 
       if (!e) {
         const title = state.manifest ? 'Ready' : 'Choose Session';
@@ -717,6 +868,156 @@ HTML_PAGE = r"""<!doctype html>
         }, null, 2))}</pre>
         ${e.raw_content ? `<h3>Raw</h3><pre>${escapeHtml(e.raw_content)}</pre>` : ''}
       `;
+    }
+
+    function deriveBoardState(untilIndex) {
+      const board = state.manifest?.board || {};
+      const derived = {
+        robber: board.initial_robber || null,
+        settlements:new Map(),
+        cities:new Map(),
+        roads:new Map(),
+        lastDice:null,
+      };
+      if (!state.manifest || untilIndex < 0) return derived;
+      events().slice(0, untilIndex + 1).forEach(e => {
+        const action = String(e.action_type || '').toLowerCase();
+        const p = e.parameters || {};
+        const player = e.player_name;
+        if (!action) return;
+        if (action === 'place_starting_settlement' || action === 'build_settlement') {
+          const node = Number(p.node ?? p.point ?? p.point_id);
+          if (node) derived.settlements.set(node, player);
+        } else if (action === 'build_city') {
+          const node = Number(p.node ?? p.point ?? p.point_id);
+          if (node) { derived.settlements.delete(node); derived.cities.set(node, player); }
+        } else if (action === 'place_starting_road' || action === 'build_road') {
+          addRoadToState(derived, p.from ?? p.start, p.to ?? p.end, player);
+        } else if (action === 'use_dev_card') {
+          collectRoadsFromParams(p).forEach(([from, to]) => addRoadToState(derived, from, to, player));
+        } else if (action === 'robber_move' || action === 'move_robber') {
+          derived.robber = Number(p.hex ?? p.tile ?? p.robber_position) || derived.robber;
+        } else if (action === 'roll_dice') {
+          derived.lastDice = p.dice || p.roll || p.result || null;
+        }
+      });
+      return derived;
+    }
+
+    function collectRoadsFromParams(params) {
+      const roads = [];
+      ['road_1','road_2'].forEach(key => {
+        const road = params[key];
+        if (Array.isArray(road) && road.length >= 2) roads.push([road[0], road[1]]);
+      });
+      ['road_edges','roads'].forEach(key => {
+        const value = params[key];
+        if (!Array.isArray(value)) return;
+        value.forEach(road => {
+          if (Array.isArray(road) && road.length >= 2) roads.push([road[0], road[1]]);
+          else if (road && typeof road === 'object') roads.push([road.from ?? road.start, road.to ?? road.end]);
+        });
+      });
+      return roads;
+    }
+
+    function addRoadToState(boardState, from, to, player) {
+      const a = Number(from), b = Number(to);
+      if (!a || !b) return;
+      const key = [a, b].sort((x, y) => x - y).join('-');
+      boardState.roads.set(key, {from:a, to:b, player});
+    }
+
+    function renderBoard(boardState) {
+      const svg = $('replayBoard');
+      if (!svg || !state.manifest) return;
+      const board = state.manifest.board || {};
+      const points = new Map((board.points || []).map(p => [Number(p.id), p]));
+      const point = id => points.get(Number(id));
+      const centerForHex = hex => {
+        const hexPoints = (hex.adjacent_points || []).map(point).filter(Boolean);
+        if (!hexPoints.length) return {x:380, y:280};
+        return {
+          x: hexPoints.reduce((sum, p) => sum + Number(p.x || 0), 0) / hexPoints.length,
+          y: hexPoints.reduce((sum, p) => sum + Number(p.y || 0), 0) / hexPoints.length,
+        };
+      };
+      const hexPolygon = hex => {
+        const center = centerForHex(hex);
+        return (hex.adjacent_points || []).map(point).filter(Boolean)
+          .sort((a, b) => Math.atan2(a.y - center.y, a.x - center.x) - Math.atan2(b.y - center.y, b.x - center.x))
+          .map(p => `${Number(p.x).toFixed(1)},${Number(p.y).toFixed(1)}`).join(' ');
+      };
+
+      const hexHtml = (board.hexes || []).map(hex => {
+        const center = centerForHex(hex);
+        const type = hex.type || 'unknown';
+        const label = {wood:'Wood', brick:'Brick', sheep:'Sheep', wheat:'Wheat', ore:'Ore', desert:'Desert', unknown:'?'}[type] || type;
+        const robber = Number(boardState.robber) === Number(hex.id);
+        return `
+          <g>
+            <polygon class="hex ${escapeAttr(type)}" points="${hexPolygon(hex)}"></polygon>
+            <text class="hex-label" x="${center.x}" y="${center.y - 12}">${escapeHtml(label)}</text>
+            ${hex.number ? `<text class="hex-number" x="${center.x}" y="${center.y + 13}">${escapeHtml(String(hex.number))}</text>` : ''}
+            ${robber ? `<circle class="robber" cx="${center.x}" cy="${center.y + 2}" r="18"></circle><text class="robber-text" x="${center.x}" y="${center.y + 2}">R</text>` : ''}
+          </g>`;
+      }).join('');
+
+      const roadHtml = [...boardState.roads.values()].map(road => {
+        const a = point(road.from), b = point(road.to);
+        if (!a || !b) return '';
+        const color = playerColor(road.player);
+        return `<line class="road-line player" x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" style="stroke:${color}"></line>`;
+      }).join('');
+
+      const buildingHtml = [
+        ...[...boardState.settlements.entries()].map(([node, player]) => ({node, player, kind:'S'})),
+        ...[...boardState.cities.entries()].map(([node, player]) => ({node, player, kind:'C'})),
+      ].map(item => {
+        const p = point(item.node);
+        if (!p) return '';
+        const color = playerColor(item.player);
+        if (item.kind === 'C') {
+          return `<rect class="building" x="${p.x - 11}" y="${p.y - 11}" width="22" height="22" rx="4" style="fill:${color}"></rect><text class="building-label" x="${p.x}" y="${p.y}">C</text>`;
+        }
+        return `<circle class="building" cx="${p.x}" cy="${p.y}" r="11" style="fill:${color}"></circle><text class="building-label" x="${p.x}" y="${p.y}">S</text>`;
+      }).join('');
+
+      const nodeHtml = (board.points || []).map(p => `<text class="node-label" x="${p.x}" y="${Number(p.y) + 4}">${p.id}</text>`).join('');
+      svg.innerHTML = `<rect class="board-water" x="0" y="0" width="900" height="700"></rect>${hexHtml}${roadHtml}${buildingHtml}${nodeHtml}`;
+    }
+
+    function renderPlayerState(boardState) {
+      if (!state.manifest) return;
+      const players = [...new Set(events().map(e => e.player_name))];
+      $('playerState').innerHTML = players.map(player => {
+        const settlements = [...boardState.settlements.values()].filter(value => value === player).length;
+        const cities = [...boardState.cities.values()].filter(value => value === player).length;
+        const roads = [...boardState.roads.values()].filter(value => value.player === player).length;
+        return `<div class="stat"><strong><span style="color:${playerColor(player)}">●</span> ${escapeHtml(player)}</strong><span>${settlements}S / ${cities}C / ${roads}R</span></div>`;
+      }).join('');
+    }
+
+    function renderHistory() {
+      const upto = Math.max(-1, state.index);
+      const visibleEvents = events().filter(e => upto < 0 ? false : e.index <= upto);
+      const chat = visibleEvents.filter(e => e.has_speech).slice(-12);
+      const actions = visibleEvents.filter(e => e.has_action).slice(-12);
+      $('chatLog').innerHTML = chat.length ? chat.map(e => `
+        <button class="side-item chat-log ${e.index === state.index ? 'active' : ''}" data-index="${e.index}">
+          <div class="side-name">${escapeHtml(e.player_name)}</div>
+          <div class="side-text">${escapeHtml(e.say_outloud || '')}</div>
+          <div class="side-meta">#${escapeHtml(String(e.request_number || ''))} · ${escapeHtml(e.kind)}</div>
+        </button>`).join('') : '<p class="meta">No chat yet.</p>';
+      $('actionLog').innerHTML = actions.length ? actions.map(e => `
+        <button class="side-item action-log ${e.index === state.index ? 'active' : ''}" data-index="${e.index}">
+          <div class="side-name">${escapeHtml(e.player_name)}</div>
+          <div class="side-text">${escapeHtml(e.action_type || '')}</div>
+          <div class="side-meta">#${escapeHtml(String(e.request_number || ''))}</div>
+        </button>`).join('') : '<p class="meta">No actions yet.</p>';
+      document.querySelectorAll('#chatLog .side-item, #actionLog .side-item').forEach(btn => {
+        btn.onclick = () => { pause(); go(Number(btn.dataset.index), true); };
+      });
     }
 
     function togglePlay() {

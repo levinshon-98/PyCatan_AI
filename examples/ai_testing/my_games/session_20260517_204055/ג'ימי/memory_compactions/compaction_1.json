@@ -1,0 +1,402 @@
+{
+  "player_name": "ג'ימי",
+  "compaction_number": 1,
+  "timestamp": "2026-05-17T20:46:43.989495",
+  "before": {
+    "existing_compacted_memory": null,
+    "existing_relationship_updates": [
+      {
+        "note": "Claude: Distrust increased after he blocked node 25 despite his 'harmony' claims.",
+        "timestamp": 1779040003.9857588
+      }
+    ],
+    "old_notes_to_compact": [
+      {
+        "note": "Gemma started at node 20. She is still wary of Claude. I should maintain my 'neutral but helpful' stance unless a clear opportunity arises.",
+        "timestamp": 1779039694.7237213
+      },
+      {
+        "note": "Claude placed his first settlement on node 12 (Sheep 4, Brick 10, Wood 3). He is actively trying to manage Gemma's suspicion.",
+        "timestamp": 1779039750.9046414
+      },
+      {
+        "note": "Placed first settlement on node 41 (Wheat 9, Ore 5, Brick 10). Good balance for expansion. Claude and Gemma are fighting over the Sheep/Brick area.",
+        "timestamp": 1779039785.680238
+      },
+      {
+        "note": "Placed starting road from 41 to 42. Planning to reach node 43 for high production (13 pips) or node 50 for the 3:1 port. Must monitor Claude and Gemma's expansion in the center.",
+        "timestamp": 1779039807.7595704
+      },
+      {
+        "note": "Placed second settlement on node 14 (Wheat 8, Wood 3, Wood 4). I now have access to Wheat, Ore, Brick, and Wood. Only missing Sheep. Planning to expand towards a port or a Sheep hex.",
+        "timestamp": 1779039835.9810054
+      },
+      {
+        "note": "Placed road from 14 to 24. Aiming for node 25 to boost Wheat and Ore production. I have a good balance of resources now, just need to watch Claude's expansion near my first settlement.",
+        "timestamp": 1779039856.9267879
+      },
+      {
+        "note": "Claude blocked my planned expansion to node 25. He now has a strong setup for Ore and Wheat. I need to find an alternative route for Sheep, possibly towards node 34 or the 3:1 port at 37/38.",
+        "timestamp": 1779039911.897085
+      },
+      {
+        "note": "Claude blocked my path to node 25 with his road to 36. I must pivot my expansion from node 24 towards node 23 or find another way to get Sheep.",
+        "timestamp": 1779039934.1290004
+      }
+    ],
+    "recent_notes_kept_verbatim": [
+      {
+        "note": "Gemma is wary of Claude's expansion and ports. Claude has blocked my path to node 25. My focus must shift to node 23 for production or node 33/34 to secure resources and a path forward.",
+        "timestamp": 1779039974.6375809
+      },
+      {
+        "note": "Gemma's road to 43 threatens my potential expansion to node 33/34. She is focused on Wheat and Ore. I already have node 41, so we are competing for the same central space.",
+        "timestamp": 1779040000.1066673
+      }
+    ],
+    "relevant_chat": [
+      {
+        "from": "ג'ימי",
+        "message": "אני אתמקם כאן, נראה לי כמו שילוב טוב של חיטה, אבן וטיט. קלוד, אני מקווה שהפעם ה'נוף' שלך לא יכלול את הדרכים שלי.",
+        "response_id": "ג'ימי:3",
+        "request_number": 3,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0003_player_3_ג_ימי.wav"
+      },
+      {
+        "from": "קלוד",
+        "message": "אל תדאג ג'ימי, יש מספיק נוף לכולם. אני רק מנסה לבנות קצת, לא לחסום לאף אחד את הדרך.",
+        "response_id": "קלוד:4",
+        "request_number": 4,
+        "response_type": "reaction",
+        "audio_path": "replay_audio/response_0004_player_2_קלוד.wav"
+      },
+      {
+        "from": "ג'ימי",
+        "message": "אני אלך על הפינה הזאת עם החיטה והעץ. קלוד, תשאיר לי קצת מרחב נשימה שם, אל תתחיל לבנות לי על הראש.",
+        "response_id": "ג'ימי:5",
+        "request_number": 5,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0005_player_3_ג_ימי.wav"
+      },
+      {
+        "from": "קלוד",
+        "message": "אל תדאג ג'ימי, המפה גדולה מספיק. אני לא מחפש צרות, רק קצת חיטה ואבן בשביל השקט הנפשי שלי.",
+        "response_id": "קלוד:5",
+        "request_number": 5,
+        "response_type": "reaction",
+        "audio_path": "replay_audio/response_0005_player_2_קלוד.wav"
+      },
+      {
+        "from": "ג'ימי",
+        "message": "טוב, אני מתפרס לכיוון המרכז. קלוד, תשתדל לא לחסום לי את כל האפשרויות, כן?",
+        "response_id": "ג'ימי:6",
+        "request_number": 6,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0006_player_3_ג_ימי.wav"
+      },
+      {
+        "from": "קלוד",
+        "message": "הכל בסדר ג'ימי, אני לא מחפש לחסום אף אחד. המרכז גדול מספיק בשביל כולנו.",
+        "response_id": "קלוד:6",
+        "request_number": 6,
+        "response_type": "reaction",
+        "audio_path": "replay_audio/response_0006_player_2_קלוד.wav"
+      },
+      {
+        "from": "קלוד",
+        "message": "אני אלך על הפינה הזאת. אני באמת רק מחפש קצת שקט, אולי איזה כבשה או שתיים וקצת אבן לבנות לעצמי משהו צנוע. אין צורך להתרגש, ג'ימי, אני רחוק מהדרכים שלך.",
+        "response_id": "קלוד:7",
+        "request_number": 7,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0007_player_2_קלוד.wav"
+      },
+      {
+        "from": "ג'מה",
+        "message": "אני אמשיך לכיוון המרכז. קצת צפוף שם עם ג'ימי, אבל אין ברירה אם אני רוצה לראות קצת חיטה ואבן בעיניים.",
+        "response_id": "ג'מה:10",
+        "request_number": 10,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0010_player_1_ג_מה.wav"
+      },
+      {
+        "from": "ג'מה",
+        "message": "טוב, בואו נתחיל. אני הולכת על המקום הזה עם הטיט והכבשים, נראה לי התחלה הוגנת לכולם. קלוד, אני מקווה שהפעם תשחק נקי.",
+        "response_id": "ג'מה:1",
+        "request_number": 1,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0001_player_1_ג_מה.wav"
+      },
+      {
+        "from": "קלוד",
+        "message": "ג'מה, הכל נשכח ונסלח מבחינתי. דף חדש, אני פה רק כדי לבנות ולהנות מהנוף.",
+        "response_id": "קלוד:1",
+        "request_number": 1,
+        "response_type": "reaction",
+        "audio_path": "replay_audio/response_0001_player_2_קלוד.wav"
+      },
+      {
+        "from": "קלוד",
+        "message": "ג'מה, את יודעת שאני תמיד בעד הרמוניה. אני אתמקם פה על הטיט והכבשים, נראה לי כמו פינה שקטה להתחיל בה בלי להפריע לאף אחד.",
+        "response_id": "קלוד:2",
+        "request_number": 2,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0002_player_2_קלוד.wav"
+      },
+      {
+        "from": "ג'מה",
+        "message": "הרמוניה זה נחמד, קלוד, אבל אל תשכח שגם אני צריכה טיט וכבשים. נראה כמה זמן הפינה הזאת תישאר שקטה.",
+        "response_id": "ג'מה:3",
+        "request_number": 3,
+        "response_type": "reaction",
+        "audio_path": "replay_audio/response_0003_player_1_ג_מה.wav"
+      },
+      {
+        "from": "קלוד",
+        "message": "אני פשוט אמשוך את הדרך לכאן, לכיוון הנוף הפתוח. אין מה למהר למרכז הצפוף.",
+        "response_id": "קלוד:8",
+        "request_number": 8,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0008_player_2_קלוד.wav"
+      },
+      {
+        "from": "ג'מה",
+        "message": "אני אלך על הפינה הזאת עם החיטה והאבן. קלוד, 'נוף פתוח' זה שם קוד לזה שאתה כבר מתכנן להשתלט על כל הנמלים? אני פשוט אבנה לי פה בשקט, בלי הבטחות שווא להרמוניה.",
+        "response_id": "ג'מה:9",
+        "request_number": 9,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0009_player_1_ג_מה.wav"
+      },
+      {
+        "from": "קלוד",
+        "message": "נמלים? אני? בסך הכל רציתי קצת אוויר לנשימה. תבני בכיף ג'מה, אני האחרון שיפריע לשקט שלך.",
+        "response_id": "קלוד:9",
+        "request_number": 9,
+        "response_type": "reaction",
+        "audio_path": "replay_audio/response_0009_player_2_קלוד.wav"
+      }
+    ]
+  },
+  "after": {
+    "long_term_summary": "Settled at 41 (Wh9, O5, B10) and 14 (Wh8, W3, W4). Lack Sheep access. Claude blocked my expansion to node 25 via road to 36; he has strong Ore/Wheat potential. Gemma and I are competing for the central space around nodes 33/34/43. Strategic priority: Pivot from node 24 toward node 23 for production, or aim for Sheep at 34 or the 3:1 port (37/38). Gemma remains highly suspicious of Claude's long-term port/expansion goals. Maintain neutral stance while navigating the central congestion.",
+    "recent_notes": [
+      {
+        "note": "Gemma is wary of Claude's expansion and ports. Claude has blocked my path to node 25. My focus must shift to node 23 for production or node 33/34 to secure resources and a path forward.",
+        "timestamp": 1779039974.6375809
+      },
+      {
+        "note": "Gemma's road to 43 threatens my potential expansion to node 33/34. She is focused on Wheat and Ore. I already have node 41, so we are competing for the same central space.",
+        "timestamp": 1779040000.1066673
+      }
+    ],
+    "relationship_updates": [
+      "Claude: Distrust increased after he blocked node 25 despite his 'harmony' claims.",
+      "Gemma: Competitive tension rising due to overlapping expansion paths at 33/34/43."
+    ],
+    "discarded_as_irrelevant": [
+      "Specific hex yields for nodes already built",
+      "Initial settlement placement banter",
+      "General 'neutral' stance repetition",
+      "Completed setup phase instructions"
+    ],
+    "fallback_used": false,
+    "fallback_reason": null
+  },
+  "llm": {
+    "success": true,
+    "content": "{\"compacted_memory\":\"Settled at 41 (Wh9, O5, B10) and 14 (Wh8, W3, W4). Lack Sheep access. Claude blocked my expansion to node 25 via road to 36; he has strong Ore/Wheat potential. Gemma and I are com...",
+    "error": null,
+    "model": "google/gemini-3-flash-preview-20251217",
+    "tokens": {
+      "prompt": 4656,
+      "completion": 339,
+      "total": 4995
+    },
+    "latency_seconds": 3.88,
+    "finish_reason": "stop",
+    "timestamp": "2026-05-17T20:46:43.983583"
+  },
+  "llm_raw": {
+    "success": true,
+    "content": "{\"compacted_memory\":\"Settled at 41 (Wh9, O5, B10) and 14 (Wh8, W3, W4). Lack Sheep access. Claude blocked my expansion to node 25 via road to 36; he has strong Ore/Wheat potential. Gemma and I are competing for the central space around nodes 33/34/43. Strategic priority: Pivot from node 24 toward node 23 for production, or aim for Sheep at 34 or the 3:1 port (37/38). Gemma remains highly suspicious of Claude's long-term port/expansion goals. Maintain neutral stance while navigating the central congestion.\",\"recent_notes_to_keep\":[\"Gemma is wary of Claude's expansion and ports. Claude has blocked my path to node 25. My focus must shift to node 23 for production or node 33/34 to secure resources and a path forward.\",\"Gemma's road to 43 threatens my potential expansion to node 33/34. She is focused on Wheat and Ore. I already have node 41, so we are competing for the same central space.\"],\"discarded_as_irrelevant\":[\"Specific hex yields for nodes already built\",\"Initial settlement placement banter\",\"General 'neutral' stance repetition\",\"Completed setup phase instructions\"],\"relationship_updates\":[\"Claude: Distrust increased after he blocked node 25 despite his 'harmony' claims.\",\"Gemma: Competitive tension rising due to overlapping expansion paths at 33/34/43.\"]}",
+    "error": null,
+    "model": "google/gemini-3-flash-preview-20251217",
+    "finish_reason": "stop",
+    "prompt_tokens": 4656,
+    "completion_tokens": 339,
+    "thinking_tokens": 0,
+    "total_tokens": 4995,
+    "latency_seconds": 3.8756911754608154
+  },
+  "prompt": {
+    "meta_data": {
+      "agent_name": "ג'ימי",
+      "task": "compact_agent_memory",
+      "model_instruction": "You are compacting memory for one Catan AI agent. Use the board only through the same compact H/N/state/players/meta format used in normal decision prompts."
+    },
+    "task_context": {
+      "instructions": "Compress old memories and relevant chat into one concise strategic memory. Preserve future-useful facts: current goals, next planned actions, confirmed board facts, known or likely opponent plans/resources/dev cards/trade tendencies, active negotiations, social commitments, and mistakes to avoid. Discard repeated, completed, impossible, vague, or superseded details. Do not invent facts; mark uncertainty clearly. Also extract only new meaningful relationship shifts from the old notes and relevant chat: trust changes, grudges, favors, threats, betrayals, promises, or emotional tension. Do not repeat existing relationship updates; leave relationship_updates empty if nothing changed. Target about 50% or less of the combined old memory length. Keep recent_notes_to_keep copied verbatim from the provided recent notes."
+    },
+    "game_state": "\n  1. LOOKUP TABLES:\n   • \"H\" (Hexes): Array where Index = HexID. Value = Resource+Num.\n     Example: H[1]=\"W12\" -> Hex 1 is Wood 12.\n   • \"N\" (Nodes): Array where Index = NodeID.\n     Format: [ [Neighbors], [HexIDs], Port? ]\n     Logic: To find yield of Node 10, check N[10]. Get HexIDs (e.g. [1,5]). Look up H[1] and H[5].\n\n2. CODES: W=Wood, B=Brick, S=Sheep, Wh=Wheat, O=Ore, D=Desert.\n          ?3=Any 3:1 port, X2=Specific Resource 2:1 port.\n\n3. STATE: \"bld\"=[NodeID, Owner, Type], \"rds\"=[[From,To], Owner].\n\n4. PLAYERS: \"res\"={Resource:Count}, \"dev\"={\"h\":[Your Hidden Cards], \"hidden_count\":OpponentHiddenCount, \"r\":[Revealed] (K=Knight)}, \n            \"stat\"=[\"LR\" (Longest Road), \"LA\" (Largest Army)].\n\n5. ROBBER: Located at HexID specified in \"meta.robber\". H[id] is blocked.\n\nJSON:\n{\"meta\":{\"curr\":\"ג'מה\",\"phase\":\"SETUP_SECOND_ROUND\",\"turn_phase\":\"ROLL_DICE\",\"robber\":10,\"dice\":null,\"vp_to_win\":5},\"H\":[\"\",\"W12\",\"S5\",\"W4\",\"S8\",\"B6\",\"W3\",\"Wh8\",\"B10\",\"W11\",\"D\",\"O3\",\"S4\",\"B10\",\"Wh9\",\"Wh6\",\"S11\",\"O5\",\"Wh9\",\"O2\"],\"N\":[null,[[2,9],[1]],[[1,3],[1],\"Wh2\"],[[2,4,11],[2,1],\"Wh2\"],[[3,5],[2]],[[4,6,13],[3,2]],[[5,7],[3],\"B2\"],[[6,15],[3],\"B2\"],[[9,18],[4],\"?3\"],[[8,10,1],[4,1],\"?3\"],[[9,11,20],[5,4,1]],[[10,12,3],[5,2,1]],[[11,13,22],[6,5,2]],[[12,14,5],[6,3,2]],[[13,15,24],[7,6,3]],[[14,16,7],[7,3]],[[15,26],[7],\"O2\"],[[18,28],[8],\"S2\"],[[17,19,8],[8,4]],[[18,20,30],[9,8,4]],[[19,21,10],[9,5,4]],[[20,22,32],[10,9,5]],[[21,23,12],[10,6,5]],[[22,24,34],[11,10,6]],[[23,25,14],[11,7,6]],[[24,26,36],[12,11,7]],[[25,27,16],[12,7],\"O2\"],[[26,38],[12]],[[29,17],[8],\"S2\"],[[28,30,39],[13,8]],[[29,31,19],[13,9,8]],[[30,32,41],[14,13,9]],[[31,33,21],[14,10,9]],[[32,34,43],[15,14,10]],[[33,35,23],[15,11,10]],[[34,36,45],[16,15,11]],[[35,37,25],[16,12,11]],[[36,38,47],[16,12],\"?3\"],[[37,27],[12],\"?3\"],[[40,29],[13]],[[39,41,48],[17,13],\"W2\"],[[40,42,31],[17,14,13]],[[41,43,50],[18,17,14]],[[42,44,33],[18,15,14]],[[43,45,52],[19,18,15]],[[44,46,35],[19,16,15]],[[45,47,54],[19,16]],[[46,37],[16]],[[49,40],[17],\"W2\"],[[48,50],[17]],[[49,51,42],[18,17],\"?3\"],[[50,52],[18],\"?3\"],[[51,53,44],[19,18]],[[52,54],[19],\"?3\"],[[53,46],[19],\"?3\"]],\"state\":{\"bld\":[[12,\"קלוד\",\"S\"],[14,\"ג'ימי\",\"S\"],[20,\"ג'מה\",\"S\"],[25,\"קלוד\",\"S\"],[41,\"ג'ימי\",\"S\"],[44,\"ג'מה\",\"S\"]],\"rds\":[[[20,10],\"ג'מה\"],[[12,11],\"קלוד\"],[[41,42],\"ג'ימי\"],[[14,24],\"ג'ימי\"],[[25,36],\"קלוד\"],[[44,43],\"ג'מה\"]]},\"players\":{\"ג'מה\":{\"vp\":2,\"res\":{\"O\":1,\"Wh\":2}},\"קלוד\":{\"vp\":2,\"res\":{\"O\":1,\"S\":1,\"Wh\":1}},\"ג'ימי\":{\"vp\":2,\"res\":{\"Wh\":1,\"W\":2}}}}",
+    "memory_input": {
+      "existing_compacted_memory": null,
+      "existing_relationship_updates": [
+        {
+          "note": "Claude: Distrust increased after he blocked node 25 despite his 'harmony' claims.",
+          "timestamp": 1779040003.9857588
+        }
+      ],
+      "old_notes_to_compact": [
+        "Gemma started at node 20. She is still wary of Claude. I should maintain my 'neutral but helpful' stance unless a clear opportunity arises.",
+        "Claude placed his first settlement on node 12 (Sheep 4, Brick 10, Wood 3). He is actively trying to manage Gemma's suspicion.",
+        "Placed first settlement on node 41 (Wheat 9, Ore 5, Brick 10). Good balance for expansion. Claude and Gemma are fighting over the Sheep/Brick area.",
+        "Placed starting road from 41 to 42. Planning to reach node 43 for high production (13 pips) or node 50 for the 3:1 port. Must monitor Claude and Gemma's expansion in the center.",
+        "Placed second settlement on node 14 (Wheat 8, Wood 3, Wood 4). I now have access to Wheat, Ore, Brick, and Wood. Only missing Sheep. Planning to expand towards a port or a Sheep hex.",
+        "Placed road from 14 to 24. Aiming for node 25 to boost Wheat and Ore production. I have a good balance of resources now, just need to watch Claude's expansion near my first settlement.",
+        "Claude blocked my planned expansion to node 25. He now has a strong setup for Ore and Wheat. I need to find an alternative route for Sheep, possibly towards node 34 or the 3:1 port at 37/38.",
+        "Claude blocked my path to node 25 with his road to 36. I must pivot my expansion from node 24 towards node 23 or find another way to get Sheep."
+      ],
+      "recent_notes_to_keep": [
+        "Gemma is wary of Claude's expansion and ports. Claude has blocked my path to node 25. My focus must shift to node 23 for production or node 33/34 to secure resources and a path forward.",
+        "Gemma's road to 43 threatens my potential expansion to node 33/34. She is focused on Wheat and Ore. I already have node 41, so we are competing for the same central space."
+      ],
+      "relevant_chat": [
+        {
+          "from": "ג'ימי",
+          "message": "אני אתמקם כאן, נראה לי כמו שילוב טוב של חיטה, אבן וטיט. קלוד, אני מקווה שהפעם ה'נוף' שלך לא יכלול את הדרכים שלי.",
+          "response_id": "ג'ימי:3",
+          "request_number": 3,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0003_player_3_ג_ימי.wav"
+        },
+        {
+          "from": "קלוד",
+          "message": "אל תדאג ג'ימי, יש מספיק נוף לכולם. אני רק מנסה לבנות קצת, לא לחסום לאף אחד את הדרך.",
+          "response_id": "קלוד:4",
+          "request_number": 4,
+          "response_type": "reaction",
+          "audio_path": "replay_audio/response_0004_player_2_קלוד.wav"
+        },
+        {
+          "from": "ג'ימי",
+          "message": "אני אלך על הפינה הזאת עם החיטה והעץ. קלוד, תשאיר לי קצת מרחב נשימה שם, אל תתחיל לבנות לי על הראש.",
+          "response_id": "ג'ימי:5",
+          "request_number": 5,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0005_player_3_ג_ימי.wav"
+        },
+        {
+          "from": "קלוד",
+          "message": "אל תדאג ג'ימי, המפה גדולה מספיק. אני לא מחפש צרות, רק קצת חיטה ואבן בשביל השקט הנפשי שלי.",
+          "response_id": "קלוד:5",
+          "request_number": 5,
+          "response_type": "reaction",
+          "audio_path": "replay_audio/response_0005_player_2_קלוד.wav"
+        },
+        {
+          "from": "ג'ימי",
+          "message": "טוב, אני מתפרס לכיוון המרכז. קלוד, תשתדל לא לחסום לי את כל האפשרויות, כן?",
+          "response_id": "ג'ימי:6",
+          "request_number": 6,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0006_player_3_ג_ימי.wav"
+        },
+        {
+          "from": "קלוד",
+          "message": "הכל בסדר ג'ימי, אני לא מחפש לחסום אף אחד. המרכז גדול מספיק בשביל כולנו.",
+          "response_id": "קלוד:6",
+          "request_number": 6,
+          "response_type": "reaction",
+          "audio_path": "replay_audio/response_0006_player_2_קלוד.wav"
+        },
+        {
+          "from": "קלוד",
+          "message": "אני אלך על הפינה הזאת. אני באמת רק מחפש קצת שקט, אולי איזה כבשה או שתיים וקצת אבן לבנות לעצמי משהו צנוע. אין צורך להתרגש, ג'ימי, אני רחוק מהדרכים שלך.",
+          "response_id": "קלוד:7",
+          "request_number": 7,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0007_player_2_קלוד.wav"
+        },
+        {
+          "from": "ג'מה",
+          "message": "אני אמשיך לכיוון המרכז. קצת צפוף שם עם ג'ימי, אבל אין ברירה אם אני רוצה לראות קצת חיטה ואבן בעיניים.",
+          "response_id": "ג'מה:10",
+          "request_number": 10,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0010_player_1_ג_מה.wav"
+        },
+        {
+          "from": "ג'מה",
+          "message": "טוב, בואו נתחיל. אני הולכת על המקום הזה עם הטיט והכבשים, נראה לי התחלה הוגנת לכולם. קלוד, אני מקווה שהפעם תשחק נקי.",
+          "response_id": "ג'מה:1",
+          "request_number": 1,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0001_player_1_ג_מה.wav"
+        },
+        {
+          "from": "קלוד",
+          "message": "ג'מה, הכל נשכח ונסלח מבחינתי. דף חדש, אני פה רק כדי לבנות ולהנות מהנוף.",
+          "response_id": "קלוד:1",
+          "request_number": 1,
+          "response_type": "reaction",
+          "audio_path": "replay_audio/response_0001_player_2_קלוד.wav"
+        },
+        {
+          "from": "קלוד",
+          "message": "ג'מה, את יודעת שאני תמיד בעד הרמוניה. אני אתמקם פה על הטיט והכבשים, נראה לי כמו פינה שקטה להתחיל בה בלי להפריע לאף אחד.",
+          "response_id": "קלוד:2",
+          "request_number": 2,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0002_player_2_קלוד.wav"
+        },
+        {
+          "from": "ג'מה",
+          "message": "הרמוניה זה נחמד, קלוד, אבל אל תשכח שגם אני צריכה טיט וכבשים. נראה כמה זמן הפינה הזאת תישאר שקטה.",
+          "response_id": "ג'מה:3",
+          "request_number": 3,
+          "response_type": "reaction",
+          "audio_path": "replay_audio/response_0003_player_1_ג_מה.wav"
+        },
+        {
+          "from": "קלוד",
+          "message": "אני פשוט אמשוך את הדרך לכאן, לכיוון הנוף הפתוח. אין מה למהר למרכז הצפוף.",
+          "response_id": "קלוד:8",
+          "request_number": 8,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0008_player_2_קלוד.wav"
+        },
+        {
+          "from": "ג'מה",
+          "message": "אני אלך על הפינה הזאת עם החיטה והאבן. קלוד, 'נוף פתוח' זה שם קוד לזה שאתה כבר מתכנן להשתלט על כל הנמלים? אני פשוט אבנה לי פה בשקט, בלי הבטחות שווא להרמוניה.",
+          "response_id": "ג'מה:9",
+          "request_number": 9,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0009_player_1_ג_מה.wav"
+        },
+        {
+          "from": "קלוד",
+          "message": "נמלים? אני? בסך הכל רציתי קצת אוויר לנשימה. תבני בכיף ג'מה, אני האחרון שיפריע לשקט שלך.",
+          "response_id": "קלוד:9",
+          "request_number": 9,
+          "response_type": "reaction",
+          "audio_path": "replay_audio/response_0009_player_2_קלוד.wav"
+        }
+      ]
+    },
+    "output_requirements": {
+      "format": "valid JSON only",
+      "schema": {
+        "compacted_memory": "string",
+        "recent_notes_to_keep": [
+          "string"
+        ],
+        "relationship_updates": [
+          "string"
+        ],
+        "discarded_as_irrelevant": [
+          "string"
+        ]
+      }
+    }
+  }
+}

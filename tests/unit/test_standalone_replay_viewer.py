@@ -174,6 +174,36 @@ class StandaloneReplayViewerTests(unittest.TestCase):
             self.assertEqual(manifest["events"][1]["kind"], "chat")
             self.assertEqual(manifest["events"][1]["chat_to"], "Dana")
 
+    def test_build_manifest_includes_board_context(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            session = Path(tmp) / "session_test"
+            _write_json(
+                session / "Dana" / "prompts" / "prompt_1.json",
+                {
+                    "prompt": {
+                        "game_state": 'Board facts\\nJSON:\\n{"meta":{"robber":10},"H":["","W12","S5","D"]}'
+                    }
+                },
+            )
+            _write_json(
+                session / "Dana" / "responses" / "response_1.json",
+                {
+                    "request_number": 1,
+                    "timestamp": "2026-05-17T12:00:00",
+                    "player_name": "Dana",
+                    "type": "final",
+                    "parsed": {"action_type": "place_starting_settlement", "parameters": {"node": 20}},
+                },
+            )
+
+            manifest = build_manifest(session)
+
+            self.assertIn("board", manifest)
+            self.assertEqual(len(manifest["board"]["points"]), 54)
+            self.assertEqual(manifest["board"]["initial_robber"], 10)
+            self.assertEqual(manifest["board"]["hexes"][0]["type"], "wood")
+            self.assertEqual(manifest["board"]["hexes"][0]["number"], 12)
+
 
 if __name__ == "__main__":
     unittest.main()
