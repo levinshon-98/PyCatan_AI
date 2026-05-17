@@ -272,8 +272,8 @@ class AIUser(User):
         
         # Convert parameters to expected format
         converted_params = self._convert_parameters(action_type, parameters)
-        if decision.get("say_outloud"):
-            converted_params["_ai_say_outloud"] = decision["say_outloud"]
+        if "say_outloud" in decision and decision.get("say_outloud") is not None:
+            converted_params["_ai_say_outloud"] = str(decision.get("say_outloud") or "")
         
         return Action(
             action_type=action_type,
@@ -356,14 +356,16 @@ class AIUser(User):
         
         elif action_type == ActionType.ROBBER_MOVE:
             # AI uses "hex" (hex ID), GameManager uses "tile_coords" ([row, col])
+            result = {}
             if "hex" in parameters:
                 hex_id = parameters["hex"]
                 coords = board_definition.hex_id_to_game_coords(hex_id)
-                return {"tile_coords": list(coords) if coords else hex_id}
+                result["tile_coords"] = list(coords) if coords else hex_id
             elif "tile_coords" in parameters:
-                return parameters
-            else:
-                return parameters
+                result["tile_coords"] = parameters["tile_coords"]
+            if parameters.get("confirm_self_block") is True:
+                result["confirm_self_block"] = True
+            return result or parameters
         
         elif action_type == ActionType.STEAL_CARD:
             # AI uses "target_player" or "victim"
@@ -648,6 +650,8 @@ class AIUser(User):
                 say_outloud = (action_parameters.get("_ai_say_outloud") or "").strip()
             if say_outloud:
                 self.ai_manager._broadcast_chat(self.name, say_outloud)
+                if isinstance(action_parameters, dict):
+                    action_parameters["_ai_say_outloud_public"] = True
             return
 
         if message:
@@ -656,6 +660,17 @@ class AIUser(User):
             if agent:
                 action_type = getattr(action, "action_type", None)
                 action_name = action_type.name if hasattr(action_type, "name") else str(action_type)
+                if str(message).startswith("ARE YOU SURE?"):
+                    agent.add_event(
+                        "action_failed",
+                        message,
+                        {
+                            "action_type": action_name,
+                            "parameters": action_parameters,
+                            "confirmation_required": True,
+                        },
+                    )
+                    return
                 speech_note = "The say_outloud from that failed attempt was not said publicly; choose a new legal action."
                 if isinstance(action_parameters, dict) and action_parameters.get("_ai_say_outloud_public"):
                     speech_note = "Your say_outloud was already said publicly; choose a new legal action."

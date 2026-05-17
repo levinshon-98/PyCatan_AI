@@ -27,13 +27,20 @@
                 </button>
             </div>
             <div class="replay-controls" id="replay-controls" style="display: none;">
-                <button class="replay-btn" id="replay-start" title="Start">|&lt;</button>
-                <button class="replay-btn" id="replay-prev" title="Previous">&lt;</button>
-                <button class="replay-btn replay-play" id="replay-play" title="Play">Play</button>
-                <button class="replay-btn" id="replay-next" title="Next">&gt;</button>
-                <button class="replay-btn" id="replay-end" title="End">&gt;|</button>
-                <input id="replay-slider" class="replay-slider" type="range" min="0" max="0" value="0">
-                <span class="replay-label" id="replay-label">0 / 0</span>
+                <div class="replay-transport">
+                    <button class="replay-btn" id="replay-start" title="Start">|&lt;</button>
+                    <button class="replay-btn" id="replay-prev" title="Previous">&lt;</button>
+                    <button class="replay-btn replay-play" id="replay-play" title="Play">Play</button>
+                    <button class="replay-btn" id="replay-next" title="Next">&gt;</button>
+                    <button class="replay-btn" id="replay-end" title="End">&gt;|</button>
+                </div>
+                <div class="replay-scrub">
+                    <input id="replay-slider" class="replay-slider" type="range" min="0" max="0" value="0">
+                    <div class="replay-now">
+                        <span class="replay-label" id="replay-label">0 / 0</span>
+                        <span class="replay-context" id="replay-context"></span>
+                    </div>
+                </div>
                 <button class="replay-btn replay-analyse" id="replay-analyse" title="Analyse current decision">Analyse</button>
             </div>
             <div class="nav-status">
@@ -41,6 +48,11 @@
                 <span class="status-text">LIVE</span>
             </div>
         </nav>
+
+        <div class="replay-timeline-panel" id="replay-timeline-panel" style="display: none;">
+            <div class="replay-player-filters" id="replay-player-filters"></div>
+            <div class="replay-timeline-track" id="replay-timeline-track"></div>
+        </div>
 
         <!-- Game View -->
         <div id="game-view" class="view-container active">

@@ -184,6 +184,77 @@ def _first_response_timestamp(player_dir: Path) -> str:
     return min(timestamps) if timestamps else ""
 
 
+def _player_names_from_run_settings(metadata: Dict[str, Any]) -> List[str]:
+    """Return player names stored by setup UIs in explicit slot order."""
+    run_settings = metadata.get("run_settings")
+    if not isinstance(run_settings, dict):
+        return []
+
+    players = run_settings.get("players")
+    if not isinstance(players, list):
+        return []
+
+    ordered = []
+    for index, player in enumerate(players):
+        if not isinstance(player, dict):
+            continue
+        name = str(player.get("name") or "").strip()
+        if not name:
+            continue
+        slot = player.get("slot")
+        try:
+            slot_number = int(slot)
+        except (TypeError, ValueError):
+            slot_number = index + 1
+        ordered.append((slot_number, index, name))
+
+    ordered.sort(key=lambda item: (item[0], item[1]))
+    names: List[str] = []
+    seen = set()
+    for _slot, _index, name in ordered:
+        lowered = name.lower()
+        if lowered not in seen:
+            names.append(name)
+            seen.add(lowered)
+    return names
+
+
+def _player_names_from_session_summary(session_dir: Path) -> List[str]:
+    """Return player names from the saved final summary, ordered by player_id."""
+    summary_file = session_dir / "session_summary.json"
+    if not summary_file.exists():
+        return []
+
+    try:
+        summary = json.loads(summary_file.read_text(encoding="utf-8"))
+    except Exception:
+        return []
+
+    agents = summary.get("agents")
+    if not isinstance(agents, dict):
+        return []
+
+    ordered_agents = sorted(
+        (
+            agent
+            for agent in agents.values()
+            if isinstance(agent, dict)
+            and agent.get("player_name")
+            and isinstance(agent.get("player_id"), int)
+        ),
+        key=lambda agent: agent["player_id"],
+    )
+    names: List[str] = []
+    seen = set()
+    for agent in ordered_agents:
+        name = str(agent["player_name"]).strip()
+        lowered = name.lower()
+        if name and lowered not in seen:
+            names.append(name)
+            seen.add(lowered)
+    return names
+
+
 def infer_players_from_session(session_dir: Path, _visited: Optional[Set[str]] = None) -> List[str]:
     """Infer player names from session folders, preserving original turn order when possible."""
     _visited = _visited or set()
@@ -191,6 +262,22 @@ def infer_players_from_session(session_dir: Path, _visited: Optional[Set[str]] =
     if session_key in _visited:
         return []
     _visited.add(session_key)
+
+    metadata = {}
+    metadata_file = session_dir / "session_metadata.json"
+    if metadata_file.exists():
+        try:
+            metadata = json.loads(metadata_file.read_text(encoding="utf-8"))
+        except Exception:
+            metadata = {}
+
+    stored_names = _player_names_from_run_settings(metadata)
+    if stored_names:
+        return stored_names
+
+    summary_names = _player_names_from_session_summary(session_dir)
+    if summary_names:
+        return summary_names
 
     ignored = {"prompts", "responses", "intermediate"}
     players = []
@@ -205,12 +292,7 @@ def infer_players_from_session(session_dir: Path, _visited: Optional[Set[str]] =
     local_inferred = [name for name, _timestamp in players]
 
     parent_inferred: List[str] = []
-    metadata_file = session_dir / "session_metadata.json"
-    if metadata_file.exists():
-        try:
-            metadata = json.loads(metadata_file.read_text(encoding="utf-8"))
-        except Exception:
-            metadata = {}
+    if metadata:
         derived_from = metadata.get("derived_from")
         if derived_from:
             try:
@@ -248,7 +330,7 @@ def load_replay_decisions(
     replay_through: Optional[str] = None,
     replay_stop_before: Optional[str] = None
 ) -> List[Dict[str, Any]]:
-    """Load parsed final responses from a previous session in chronological order."""
+    """Load final LLM responses from a previous session in chronological order."""
     through_marker = _parse_replay_marker(replay_through)
     stop_before_marker = _parse_replay_marker(replay_stop_before)
     decisions = []
@@ -266,8 +348,21 @@ def load_replay_decisions(
             except Exception:
                 continue
 
-            parsed = data.get("parsed")
-            if not parsed or not parsed.get("action_type"):
+            parsed = data.get("parsed") if isinstance(data.get("parsed"), dict) else {}
+            prompt_file = player_dir / "prompts" / f"prompt_{data.get('request_number', 0)}.json"
+            prompt_is_active = None
+            if prompt_file.exists():
+                try:
+                    prompt_data = json.loads(prompt_file.read_text(encoding="utf-8"))
+                    prompt_is_active = bool(prompt_data.get("is_active_turn"))
+                except Exception:
+                    prompt_is_active = None
+
+            has_action = bool(parsed.get("action_type"))
+            has_speech = bool((parsed.get("say_outloud") or "").strip())
+            has_memory = bool((parsed.get("note_to_self") or "").strip())
+            has_thinking = bool((parsed.get("internal_thinking") or "").strip())
+            if not (has_action or has_speech or has_memory or has_thinking or data.get("raw_content")):
                 continue
 
             decisions.append({
@@ -275,6 +370,10 @@ def load_replay_decisions(
                 "request_number": int(data.get("request_number", 0)),
                 "timestamp": data.get("timestamp", ""),
                 "parsed": parsed,
+                "has_action": has_action,
+                "has_speech": has_speech,
+                "has_memory": has_memory,
+                "is_active_turn": prompt_is_active,
                 "source_file": str(response_file),
             })
 
@@ -352,9 +451,11 @@ def load_replay_decision_chain(
 
 
 def group_replay_decisions(decisions: List[Dict[str, Any]]) -> Dict[str, List[Dict[str, Any]]]:
-    """Group replay decisions by player, preserving chronological order per player."""
+    """Group actionable replay responses by player, preserving chronological order."""
     grouped: Dict[str, List[Dict[str, Any]]] = {}
     for decision in decisions:
+        if not decision.get("has_action") and not (decision.get("parsed") or {}).get("action_type"):
+            continue
         grouped.setdefault(decision["player_name"], []).append(decision)
     return grouped
 
@@ -365,10 +466,13 @@ def list_replay_marker_options(session_dir: Path) -> List[Dict[str, str]]:
     for decision in load_replay_decisions(session_dir):
         marker = f"{decision['player_name']}:{decision['request_number']}"
         action_type = decision.get("parsed", {}).get("action_type", "")
+        say_outloud = (decision.get("parsed", {}).get("say_outloud") or "").strip()
+        kind = "action" if action_type else "speech" if say_outloud else "response"
         options.append({
             "value": marker,
-            "label": f"{marker} - {action_type}",
+            "label": f"{marker} - {action_type or kind}",
             "action_type": action_type,
+            "kind": kind,
         })
     return options
 
@@ -395,6 +499,7 @@ def annotate_replay_session(
     metadata["replay"] = {
         "source_session": source_session.name,
         "decisions_loaded": len(decisions),
+        "responses_loaded": len(decisions),
         "replay_through": replay_through,
         "replay_stop_before": replay_stop_before,
         "mode": mode,
@@ -430,7 +535,6 @@ class ReplayAIUser(AIUser):
             decision = dict(replay_item["parsed"])
             action = self._decision_to_action(decision, allowed_actions)
             if hasattr(action, "parameters") and isinstance(action.parameters, dict):
-                action.parameters.pop("_ai_say_outloud", None)
                 action.parameters["_ai_replay"] = True
 
             if allowed_actions and action.action_type.name not in allowed_actions:
@@ -472,7 +576,7 @@ class ReplayAIUser(AIUser):
             self.ai_manager.logger.save_agent_memories(self.ai_manager.agents)
 
         say_outloud = decision.get("say_outloud")
-        if self.replay_chat and say_outloud:
+        if self.replay_chat and say_outloud and not decision.get("action_type"):
             self.ai_manager._broadcast_chat(
                 self.name,
                 say_outloud,
@@ -895,7 +999,7 @@ def _render_browser_settings_page(
                             </label>
                             <datalist id="replay-marker-options"></datalist>
                             <label>
-                                Max decisions
+                                Max responses
                                 <input name="replay_max_decisions" type="number" min="1" step="1" value="{html_lib.escape(selected_replay_max_decisions)}">
                             </label>
                             <label>
@@ -915,7 +1019,7 @@ def _render_browser_settings_page(
                             <input name="replay_speak" type="checkbox" {'checked' if selected_replay_speak else ''}>
                             Speak recorded replay chat from cache
                         </label>
-                        <p class="hint" id="replay-marker-status">Replay markers are loaded from recorded game actions only.</p>
+                        <p class="hint" id="replay-marker-status">Replay markers are loaded from recorded LLM responses.</p>
                     </div>
                 </fieldset>
 
@@ -1356,7 +1460,7 @@ def collect_browser_settings(port: int = 5000, key_mode: str = "env") -> Dict[st
                     )
                 except (TypeError, ValueError) as exc:
                     errors.append(
-                        f"{exc}. Choose one of the suggested action markers; reaction-only table talk is not replayable as a marker."
+                        f"{exc}. Choose one of the suggested response markers."
                     )
             if reaction_mode not in valid_reaction_modes:
                 errors.append("Choose a valid reaction mode.")
@@ -1369,9 +1473,9 @@ def collect_browser_settings(port: int = 5000, key_mode: str = "env") -> Dict[st
                 try:
                     replay_max_decisions = int(replay_max_decisions_raw)
                     if replay_max_decisions < 1:
-                        errors.append("Replay max decisions must be at least 1.")
+                        errors.append("Replay max responses must be at least 1.")
                 except ValueError:
-                    errors.append("Replay max decisions must be a number.")
+                    errors.append("Replay max responses must be a number.")
             try:
                 replay_delay = float(replay_delay_raw)
                 if replay_delay < 0:
@@ -1750,6 +1854,52 @@ def _remaining_replay_decisions(game_manager: GameManager) -> int:
     return total
 
 
+def _format_replay_event_label(event: Optional[Dict[str, Any]]) -> str:
+    """Build a compact label for a replay response event."""
+    if not event:
+        return "Recorded response"
+
+    parsed = event.get("parsed") or {}
+    player = event.get("player_name") or "Unknown"
+    number = event.get("request_number")
+    prefix = f"{player} #{number}" if number else player
+    action_type = parsed.get("action_type")
+    if action_type:
+        return f"{prefix}: {action_type}"
+    if (parsed.get("say_outloud") or "").strip():
+        return f"{prefix}: table talk"
+    if (parsed.get("note_to_self") or "").strip():
+        return f"{prefix}: memory"
+    return f"{prefix}: response"
+
+
+def _apply_non_action_replay_event(
+    event: Dict[str, Any],
+    ai_manager: AIManager,
+    game_manager: GameManager,
+    replay_chat: bool = True
+) -> None:
+    """Apply memory/chat side effects for a response that has no board action."""
+    parsed = event.get("parsed") or {}
+    player_name = event.get("player_name")
+    if not player_name:
+        return
+
+    agent = ai_manager.agents.get(player_name)
+    note_to_self = parsed.get("note_to_self")
+    if agent and note_to_self:
+        agent.update_memory(note_to_self)
+        try:
+            ai_manager._maybe_compact_agent_memory(agent, game_manager.get_full_state())
+        except Exception:
+            pass
+        ai_manager.logger.save_agent_memories(ai_manager.agents)
+
+    say_outloud = (parsed.get("say_outloud") or "").strip()
+    if replay_chat and say_outloud:
+        ai_manager._broadcast_chat(player_name, say_outloud, speak=False)
+
+
 def run_replay_viewer(
     game_manager: GameManager,
     ai_manager: AIManager,
@@ -1758,6 +1908,7 @@ def run_replay_viewer(
     source_session: Optional[Path] = None,
     text_lead_seconds: float = 0.25,
     open_browser: bool = True,
+    replay_events: Optional[List[Dict[str, Any]]] = None,
 ) -> None:
     """
     Build a recorded-session timeline and serve it to the browser.
@@ -1781,6 +1932,7 @@ def run_replay_viewer(
             getattr(ai_manager.tts, "speak_blocking", None)
             or getattr(ai_manager.tts, "speak", None)
         )
+        raw_speech_stop_callback = getattr(ai_manager.tts, "stop", None)
 
         def speech_prepare_callback(player_name: str, message: str) -> None:
             if raw_speech_prepare_callback:
@@ -1796,54 +1948,79 @@ def run_replay_viewer(
                     message,
                 )
 
+        def speech_stop_callback() -> None:
+            if raw_speech_stop_callback:
+                raw_speech_stop_callback()
+
         web_viz.enable_replay_mode(
             source_session=str(source_session or ai_manager.get_session_path()),
             delay_seconds=delay_seconds,
             speech_prepare_callback=speech_prepare_callback,
             speech_play_callback=speech_play_callback,
+            speech_stop_callback=speech_stop_callback,
             text_lead_seconds=text_lead_seconds,
         )
 
         game_manager.start_game()
-        web_viz.capture_replay_snapshot("Start")
+        web_viz.capture_replay_baseline("Start")
         consumed_items = set()
+        replay_events = list(replay_events or [])
 
-        while game_manager.is_running and not game_manager._check_game_end_conditions():
-            remaining_before = _remaining_replay_decisions(game_manager)
-            if remaining_before <= 0:
-                print("[REPLAY] All recorded decisions were played.")
-                break
+        for replay_event in replay_events:
+            parsed = replay_event.get("parsed") or {}
+            has_action = bool(parsed.get("action_type"))
 
-            try:
-                turn_ended = game_manager._handle_single_turn()
-            except ReplayExhausted as exc:
-                print(f"[REPLAY] Stopping: {exc}")
-                break
-
-            remaining_after = _remaining_replay_decisions(game_manager)
-            if remaining_after == remaining_before:
-                print("[REPLAY] Stopping because no recorded decision was consumed.")
-                break
-
-            if turn_ended:
-                game_manager._advance_to_next_player()
-
-            consumed = None
-            for user in game_manager.users:
-                replay_item = getattr(user, "last_replay_item", None)
-                if replay_item is not None and id(replay_item) not in consumed_items:
-                    consumed = replay_item
-                    consumed_items.add(id(replay_item))
+            if has_action:
+                if not game_manager.is_running or game_manager._check_game_end_conditions():
                     break
 
-            label = "Recorded decision"
-            if consumed:
-                parsed = consumed.get("parsed") or {}
-                label = (
-                    f"{consumed.get('player_name')} #{consumed.get('request_number')}: "
-                    f"{parsed.get('action_type')}"
+                remaining_before = _remaining_replay_decisions(game_manager)
+                if remaining_before <= 0:
+                    print("[REPLAY] All recorded actions were played.")
+                    break
+
+                try:
+                    turn_ended = game_manager._handle_single_turn()
+                except ReplayExhausted as exc:
+                    print(f"[REPLAY] Stopping: {exc}")
+                    break
+
+                remaining_after = _remaining_replay_decisions(game_manager)
+                if remaining_after == remaining_before:
+                    print("[REPLAY] Stopping because no recorded action was consumed.")
+                    break
+
+                if turn_ended:
+                    game_manager._advance_to_next_player()
+
+                consumed = None
+                for user in game_manager.users:
+                    replay_item = getattr(user, "last_replay_item", None)
+                    if replay_item is not None and id(replay_item) not in consumed_items:
+                        consumed = replay_item
+                        consumed_items.add(id(replay_item))
+                        break
+
+                if consumed is not replay_event:
+                    expected = _format_replay_event_label(replay_event)
+                    actual = _format_replay_event_label(consumed)
+                    print(f"[REPLAY] Timeline/action mismatch. Expected {expected}; consumed {actual}.")
+
+                web_viz.capture_replay_snapshot(
+                    _format_replay_event_label(consumed or replay_event),
+                    consumed or replay_event,
                 )
-            web_viz.capture_replay_snapshot(label, consumed)
+            else:
+                _apply_non_action_replay_event(
+                    replay_event,
+                    ai_manager,
+                    game_manager,
+                    replay_chat=True,
+                )
+                web_viz.capture_replay_snapshot(
+                    _format_replay_event_label(replay_event),
+                    replay_event,
+                )
 
         print("\n" + "=" * 70)
         print(f"[REPLAY] Timeline ready: {len(web_viz.replay_timeline)} snapshots")
@@ -1935,7 +2112,7 @@ def main():
     parser.add_argument("--analyse-game", action="store_true",
                        help="Open a recorded session as a visual replay with per-decision analysis.")
     parser.add_argument("--replay-delay", type=float, default=2.5,
-                       help="Seconds to wait between recorded decisions in --watch-replay mode.")
+                       help="Maximum seconds to wait between recorded responses in --watch-replay mode.")
     parser.add_argument("--replay-text-lead", type=float, default=0.25,
                        help="Seconds to show recorded chat before rendering that step's game action.")
     parser.add_argument("--replay-speak", action="store_true",
@@ -2059,7 +2236,8 @@ def main():
         if not replay_player_names:
             replay_player_names = infer_players_from_decisions(replay_decision_list)
         print(f"[REPLAY] Source: {replay_session_path}")
-        print(f"[REPLAY] Loaded {len(replay_decision_list)} parsed decisions")
+        action_count = sum(1 for item in replay_decision_list if item.get("has_action"))
+        print(f"[REPLAY] Loaded {len(replay_decision_list)} parsed responses ({action_count} actions)")
         if (replay_session_path / "session_metadata.json").exists():
             print("[REPLAY] Derived-session lineage is included when present")
     
@@ -2117,9 +2295,9 @@ def main():
         send_to_llm = False
         manual_actions = False
         if args.analyse_game:
-            print("[ANALYSE] Analysis replay enabled: using recorded decisions only")
+            print("[ANALYSE] Analysis replay enabled: using recorded responses only")
         else:
-            print("[REPLAY] Watch mode enabled: using recorded decisions only")
+            print("[REPLAY] Watch mode enabled: using recorded responses only")
 
     print(f"[MODE] LLM: {'ON' if send_to_llm else 'OFF'} | Actions: {'Manual' if manual_actions else 'Auto'}")
     print(f"[CONFIG] {ai_config.llm.provider}/{ai_config.llm.model_name}")
@@ -2166,6 +2344,7 @@ def main():
             source_session=replay_session_path,
             text_lead_seconds=max(0.0, args.replay_text_lead),
             open_browser=not args.browser_settings,
+            replay_events=replay_decision_list,
         )
     else:
         run_game(game_manager, ai_manager, web_viz)

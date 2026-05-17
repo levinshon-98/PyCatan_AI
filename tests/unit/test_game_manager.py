@@ -8,10 +8,11 @@ import pytest
 from unittest.mock import Mock, patch
 import uuid
 
-from pycatan.management.actions import Action, ActionType, ActionResult, GameState, GamePhase
+from pycatan.management.actions import Action, ActionType, ActionResult, GameState, GamePhase, TurnPhase
 from pycatan.players.user import create_test_user, UserInputError
 from pycatan.management.game_manager import GameManager
 from pycatan.core.card import ResCard
+from pycatan.config.board_definition import board_definition
 
 
 class TestGameManagerInitialization:
@@ -358,6 +359,86 @@ class TestGameManagerActions:
         assert len(history) == 2
         assert history[0] == action1
         assert history[1] == action2
+
+    def test_robber_move_warns_before_self_block_and_keeps_original_speech_on_confirm(self):
+        """A robber self-block is allowed, but requires explicit confirmation."""
+        self.gm.start_game()
+        self.gm._current_game_state.game_phase = GamePhase.NORMAL_PLAY
+        self.gm._current_game_state.turn_phase = TurnPhase.ROBBER_MOVE
+        self.gm._current_game_state.current_player = 0
+
+        point20 = board_definition.point_id_to_game_coords(20)
+        point12 = board_definition.point_id_to_game_coords(12)
+        self.gm.game.add_settlement(
+            0,
+            self.gm.game.board.points[point20[0]][point20[1]],
+            is_starting=True,
+        )
+        self.gm.game.add_settlement(
+            1,
+            self.gm.game.board.points[point12[0]][point12[1]],
+            is_starting=True,
+        )
+
+        tile5 = list(board_definition.hex_id_to_game_coords(5))
+        original_say = "This brick is too strong."
+        action = Action(
+            ActionType.ROBBER_MOVE,
+            0,
+            {"tile_coords": tile5, "_ai_say_outloud": original_say},
+        )
+
+        result = self.gm.execute_action(action)
+
+        assert not result.success
+        assert result.status_code == "ROBBER_SELF_BLOCK_CONFIRMATION_REQUIRED"
+        assert result.error_message.startswith("ARE YOU SURE?")
+        assert "This hex is Brick 6" in result.error_message
+        assert "- You: settlement at Node 20" in result.error_message
+        assert "- Bob: settlement at Node 12" in result.error_message
+        assert self.gm.game.board.robber != tile5
+
+        confirm_action = Action(
+            ActionType.ROBBER_MOVE,
+            0,
+            {"tile_coords": tile5, "confirm_self_block": True},
+        )
+        confirm_result = self.gm.execute_action(confirm_action)
+
+        assert confirm_result.success
+        assert list(self.gm.game.board.robber) == tile5
+        assert confirm_action.parameters["_ai_say_outloud"] == original_say
+
+    def test_robber_move_changed_target_discards_pending_self_block_speech(self):
+        self.gm.start_game()
+        self.gm._current_game_state.game_phase = GamePhase.NORMAL_PLAY
+        self.gm._current_game_state.turn_phase = TurnPhase.ROBBER_MOVE
+        self.gm._current_game_state.current_player = 0
+
+        point20 = board_definition.point_id_to_game_coords(20)
+        self.gm.game.add_settlement(
+            0,
+            self.gm.game.board.points[point20[0]][point20[1]],
+            is_starting=True,
+        )
+
+        tile5 = list(board_definition.hex_id_to_game_coords(5))
+        result = self.gm.execute_action(
+            Action(
+                ActionType.ROBBER_MOVE,
+                0,
+                {"tile_coords": tile5, "_ai_say_outloud": "Blocking brick."},
+            )
+        )
+        assert not result.success
+
+        tile13 = list(board_definition.hex_id_to_game_coords(13))
+        changed_action = Action(ActionType.ROBBER_MOVE, 0, {"tile_coords": tile13})
+        changed_result = self.gm.execute_action(changed_action)
+
+        assert changed_result.success
+        assert list(self.gm.game.board.robber) == tile13
+        assert "_ai_say_outloud" not in changed_action.parameters
 
 
 class TestGameManagerUserInteraction:

@@ -183,6 +183,37 @@ def test_prompt_includes_five_point_game_context():
     )
 
 
+def test_prompt_hides_opponent_hidden_development_card_identities():
+    manager = PromptManager()
+    state = _game_state("Gemini", "Claude")
+    state["players"]["Gemini"]["dev"] = {"h": ["road"], "r": ["K"]}
+    state["players"]["Claude"]["dev"] = {"h": ["knight"]}
+
+    claude_prompt = manager.create_prompt(
+        player_num=1,
+        player_name="Claude",
+        player_color="Blue",
+        game_state=state,
+        what_happened="Gemini bought a development card.",
+        available_actions=[],
+    )
+    gemini_prompt = manager.create_prompt(
+        player_num=0,
+        player_name="Gemini",
+        player_color="Red",
+        game_state=state,
+        what_happened="Your turn.",
+        available_actions=[],
+    )
+
+    claude_state = claude_prompt["game_state"]
+    assert '"Claude":{"vp":0,"res":{},"dev":{"h":["knight"]}}' in claude_state
+    assert '"Gemini":{"vp":0,"res":{},"dev":{"hidden_count":1,"r":["K"]}}' in claude_state
+    assert '"road"' not in claude_state
+
+    assert '"Gemini":{"vp":0,"res":{},"dev":{"h":["road"],"r":["K"]}}' in gemini_prompt["game_state"]
+
+
 def test_trade_context_summarizes_resolved_trades_and_keeps_open_trades_structured():
     manager = PromptManager()
     state = _game_state("Shon", "Ziv")

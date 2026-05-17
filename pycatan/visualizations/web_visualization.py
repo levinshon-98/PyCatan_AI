@@ -86,10 +86,15 @@ class WebVisualization(Visualization):
         self.replay_source_session: Optional[str] = None
         self.replay_delay_seconds: float = 2.5
         self.replay_timeline: List[Dict[str, Any]] = []
+        self.replay_baseline_snapshot: Optional[Dict[str, Any]] = None
         self.replay_index: int = 0
         self.replay_speech_prepare_callback = None
         self.replay_speech_play_callback = None
+        self.replay_speech_stop_callback = None
         self.replay_text_lead_seconds: float = 0.25
+        self.replay_playback_generation: int = 0
+        self.replay_playback_lock = threading.RLock()
+        self.replay_speech_log: List[Dict[str, Any]] = []
         
         # SSE (Server-Sent Events) for real-time updates
         self.sse_clients: List[Queue] = []
@@ -271,6 +276,16 @@ class WebVisualization(Visualization):
             if snapshot is None:
                 return jsonify({"error": "Replay snapshot not found"}), 404
             return jsonify(snapshot)
+
+        @self.app.route('/api/replay/stop-speech', methods=['POST'])
+        def stop_replay_speech():
+            """Stop any currently playing replay speech."""
+            return jsonify(self.stop_replay_speech())
+
+        @self.app.route('/api/replay/speech-log')
+        def get_replay_speech_log():
+            """Return recent replay speech playback events."""
+            return jsonify(self.replay_speech_log[-200:])
 
         @self.app.route('/api/replay/analysis/<int:index>')
         def get_replay_analysis(index: int):
@@ -799,6 +814,7 @@ class WebVisualization(Visualization):
         speech_callback=None,
         speech_prepare_callback=None,
         speech_play_callback=None,
+        speech_stop_callback=None,
         text_lead_seconds: float = 0.25
     ) -> None:
         """Enable browser-controlled replay timeline mode."""
@@ -808,8 +824,58 @@ class WebVisualization(Visualization):
         self.replay_text_lead_seconds = max(0.0, text_lead_seconds)
         self.replay_speech_prepare_callback = speech_prepare_callback or speech_callback
         self.replay_speech_play_callback = speech_play_callback or speech_callback
+        self.replay_speech_stop_callback = speech_stop_callback
         self.replay_timeline = []
+        self.replay_baseline_snapshot = None
         self.replay_index = 0
+        self.replay_playback_generation = 0
+        self.replay_speech_log = []
+
+    def stop_replay_speech(self) -> Dict[str, Any]:
+        """Cancel stale replay speech and stop provider playback when possible."""
+        with self.replay_playback_lock:
+            self.replay_playback_generation += 1
+            generation = self.replay_playback_generation
+        self._log_replay_speech("stop", generation=generation)
+        if self.replay_speech_stop_callback:
+            try:
+                self.replay_speech_stop_callback()
+            except Exception as exc:
+                print(f"[REPLAY] Speech stop failed: {exc}")
+        return {"generation": generation}
+
+    def _log_replay_speech(self, event_type: str, **details: Any) -> None:
+        entry = {
+            "timestamp": datetime.now().isoformat(),
+            "type": event_type,
+            **details,
+        }
+        self.replay_speech_log.append(entry)
+        if len(self.replay_speech_log) > 300:
+            self.replay_speech_log = self.replay_speech_log[-300:]
+        player = details.get("player_name")
+        index = details.get("index")
+        message = (details.get("message") or "")
+        preview = f" {message[:80]}" if message else ""
+        who = f" {player}" if player else ""
+        where = f" index={index}" if index is not None else ""
+        print(f"[REPLAY:TTS] {event_type}{who}{where} gen={details.get('generation')}{preview}")
+
+    def capture_replay_baseline(self, label: str = "Start") -> None:
+        """Capture the pre-response board/log/chat state used before event 0."""
+        if not self.replay_enabled:
+            return
+
+        self.replay_baseline_snapshot = {
+            "index": -1,
+            "label": label,
+            "decision": {},
+            "event": {},
+            "game_state": copy.deepcopy(self.current_game_state),
+            "action_history": copy.deepcopy(self.action_history),
+            "chat_history": copy.deepcopy(self.chat_history),
+            "timestamp": datetime.now().isoformat(),
+        }
 
     def capture_replay_snapshot(
         self,
@@ -824,12 +890,48 @@ class WebVisualization(Visualization):
             "index": len(self.replay_timeline),
             "label": label,
             "decision": copy.deepcopy(decision or {}),
+            "event": self._replay_event_metadata(decision or {}),
             "game_state": copy.deepcopy(self.current_game_state),
             "action_history": copy.deepcopy(self.action_history),
             "chat_history": copy.deepcopy(self.chat_history),
             "timestamp": datetime.now().isoformat(),
         }
         self.replay_timeline.append(snapshot)
+
+    def _replay_event_metadata(self, decision: Dict[str, Any]) -> Dict[str, Any]:
+        """Return lightweight metadata for a response timeline point."""
+        parsed = decision.get("parsed") or {}
+        action_type = parsed.get("action_type")
+        say_outloud = (parsed.get("say_outloud") or "").strip()
+        return {
+            "player_name": decision.get("player_name"),
+            "request_number": decision.get("request_number"),
+            "timestamp": decision.get("timestamp"),
+            "action_type": action_type,
+            "has_action": bool(action_type),
+            "has_speech": bool(say_outloud),
+            "has_memory": bool((parsed.get("note_to_self") or "").strip()),
+            "say_outloud": say_outloud,
+            "source_file": decision.get("source_file"),
+        }
+
+    def _replay_delay_to_next(self, index: int) -> float:
+        """Return the playback delay from this response to the next, capped by replay delay."""
+        if not (0 <= index < len(self.replay_timeline) - 1):
+            return 0.0
+
+        current = ((self.replay_timeline[index].get("event") or {}).get("timestamp") or "")
+        nxt = ((self.replay_timeline[index + 1].get("event") or {}).get("timestamp") or "")
+        try:
+            current_dt = datetime.fromisoformat(str(current).replace("Z", "+00:00"))
+            next_dt = datetime.fromisoformat(str(nxt).replace("Z", "+00:00"))
+            real_delta = max(0.0, (next_dt - current_dt).total_seconds())
+        except Exception:
+            real_delta = self.replay_delay_seconds
+
+        if self.replay_delay_seconds <= 0:
+            return 0.0
+        return min(real_delta, self.replay_delay_seconds)
 
     def get_replay_status(self) -> Dict[str, Any]:
         """Return replay metadata and lightweight snapshot labels."""
@@ -844,8 +946,10 @@ class WebVisualization(Visualization):
                     "index": item["index"],
                     "label": item.get("label", ""),
                     "decision": item.get("decision", {}),
+                    "event": item.get("event", {}),
                     "action_count": len(item.get("action_history") or []),
                     "chat_count": len(item.get("chat_history") or []),
+                    "delay_to_next_seconds": self._replay_delay_to_next(item["index"]),
                 }
                 for item in self.replay_timeline
             ],
@@ -867,7 +971,7 @@ class WebVisualization(Visualization):
                 "message": "This replay point does not contain an AI decision.",
             }
 
-        latest_action = self._snapshot_latest_action(snapshot)
+        latest_action = self._snapshot_latest_action(snapshot) if (snapshot.get("event") or {}).get("has_action") else {}
         analysis = build_decision_analysis(
             Path(self.replay_source_session or "."),
             decision,
@@ -887,29 +991,53 @@ class WebVisualization(Visualization):
         if not self.replay_enabled or not self.replay_timeline:
             return None
 
-        index = max(0, min(index, len(self.replay_timeline) - 1))
-        previous_index = self.replay_index
-        previous_snapshot = (
-            self.replay_timeline[previous_index]
-            if 0 <= previous_index < len(self.replay_timeline)
-            else None
-        )
-        previous_chat_count = (
-            len(self.replay_timeline[previous_index].get("chat_history") or [])
-            if 0 <= previous_index < len(self.replay_timeline)
-            else 0
-        )
+        playback_generation = self.stop_replay_speech()["generation"]
 
+        index = max(0, min(index, len(self.replay_timeline) - 1))
         snapshot = self.replay_timeline[index]
+        event = snapshot.get("event") or {}
+
+        def playback_is_current() -> bool:
+            with self.replay_playback_lock:
+                return playback_generation == self.replay_playback_generation
+
+        def stale_payload() -> Dict[str, Any]:
+            return {
+                "index": index,
+                "total": len(self.replay_timeline),
+                "label": snapshot.get("label", ""),
+                "event": event,
+                "delay_seconds": self.replay_delay_seconds,
+                "delay_to_next_seconds": self._replay_delay_to_next(index),
+                "phase": "stale",
+                "stale": True,
+                "playback_generation": playback_generation,
+            }
 
         messages_to_speak = []
-        if speak and index > previous_index:
-            new_messages = (snapshot.get("chat_history") or [])[previous_chat_count:]
-            for chat in new_messages:
-                player_name = chat.get("player_name")
-                message = chat.get("message")
-                if player_name and message:
-                    messages_to_speak.append((player_name, message))
+        if speak and event.get("has_speech"):
+            player_name = event.get("player_name")
+            message = event.get("say_outloud")
+            if player_name and message:
+                messages_to_speak.append((player_name, message))
+                self._log_replay_speech(
+                    "scheduled",
+                    generation=playback_generation,
+                    index=index,
+                    player_name=player_name,
+                    message=message,
+                    has_action=bool(event.get("has_action")),
+                )
+
+        def remove_event_messages(chat_history: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+            trimmed = copy.deepcopy(chat_history or [])
+            for player_name, message in messages_to_speak:
+                for idx in range(len(trimmed) - 1, -1, -1):
+                    chat = trimmed[idx]
+                    if chat.get("player_name") == player_name and chat.get("message") == message:
+                        trimmed.pop(idx)
+                        break
+            return trimmed
 
         def apply_snapshot_state(
             source_snapshot: Dict[str, Any],
@@ -941,43 +1069,94 @@ class WebVisualization(Visualization):
                 "total": len(self.replay_timeline),
                 "label": source_snapshot.get("label", ""),
                 "decision": source_snapshot.get("decision", {}),
+                "event": source_snapshot.get("event", {}),
                 "game_state": self.current_game_state,
                 "action_history": self.action_history,
                 "chat_history": self.chat_history,
                 "delay_seconds": self.replay_delay_seconds,
+                "delay_to_next_seconds": self._replay_delay_to_next(index),
                 "phase": phase,
+                "playback_generation": playback_generation,
             }
 
-        # Wait until the audio is available before painting the action. Playback
-        # then runs before the final action snapshot is painted, keeping table
-        # talk visibly ahead of the game move that belongs to it.
+        if messages_to_speak and event.get("has_action"):
+            action_payload = apply_snapshot_state(
+                snapshot,
+                phase="action",
+                chat_history=remove_event_messages(snapshot.get("chat_history") or []),
+            )
+            self._broadcast_to_clients({
+                "type": "replay_seek",
+                "payload": action_payload,
+            })
+
         if messages_to_speak and self.replay_speech_prepare_callback:
             for player_name, message in messages_to_speak:
                 self.replay_speech_prepare_callback(player_name, message)
 
-        if messages_to_speak and previous_snapshot:
-            speech_payload = apply_snapshot_state(
-                snapshot,
-                phase="speech",
-                chat_history=snapshot.get("chat_history") or [],
-                action_history=previous_snapshot.get("action_history") or [],
-                game_state=previous_snapshot.get("game_state"),
-            )
-            self._broadcast_to_clients({
-                "type": "replay_seek",
-                "payload": speech_payload,
-            })
+        if not playback_is_current():
+            return stale_payload()
+
+        if messages_to_speak and event.get("has_action"):
             time.sleep(self.replay_text_lead_seconds)
+            if not playback_is_current():
+                return stale_payload()
 
-        if messages_to_speak and self.replay_speech_play_callback:
-            for player_name, message in messages_to_speak:
-                self.replay_speech_play_callback(player_name, message)
-
-        payload = apply_snapshot_state(snapshot, phase="action")
+        final_phase = "speech" if messages_to_speak else "action"
+        payload = apply_snapshot_state(snapshot, phase=final_phase)
         self._broadcast_to_clients({
             "type": "replay_seek",
             "payload": payload,
         })
+
+        if messages_to_speak and self.replay_speech_play_callback:
+            def play_messages() -> None:
+                if not playback_is_current():
+                    self._log_replay_speech(
+                        "skipped_stale_before_start",
+                        generation=playback_generation,
+                        index=index,
+                    )
+                    return
+                for player_name, message in messages_to_speak:
+                    if not playback_is_current():
+                        self._log_replay_speech(
+                            "skipped_stale",
+                            generation=playback_generation,
+                            index=index,
+                            player_name=player_name,
+                            message=message,
+                        )
+                        return
+                    try:
+                        self._log_replay_speech(
+                            "play_start",
+                            generation=playback_generation,
+                            index=index,
+                            player_name=player_name,
+                            message=message,
+                        )
+                        self.replay_speech_play_callback(player_name, message)
+                        self._log_replay_speech(
+                            "play_done",
+                            generation=playback_generation,
+                            index=index,
+                            player_name=player_name,
+                            message=message,
+                            stale=not playback_is_current(),
+                        )
+                    except Exception as exc:
+                        self._log_replay_speech(
+                            "play_error",
+                            generation=playback_generation,
+                            index=index,
+                            player_name=player_name,
+                            message=message,
+                            error=str(exc),
+                        )
+                        print(f"[REPLAY] Speech playback failed for {player_name}: {exc}")
+
+            threading.Thread(target=play_messages, daemon=True).start()
 
         return payload
 
@@ -1001,7 +1180,7 @@ class WebVisualization(Visualization):
             decision = snap.get("decision") or {}
             if not decision:
                 continue
-            action = self._snapshot_latest_action(snap)
+            action = self._snapshot_latest_action(snap) if (snap.get("event") or {}).get("has_action") else {}
             same_turn = (
                 target_turn not in (None, 0)
                 and action.get("turn_number") == target_turn

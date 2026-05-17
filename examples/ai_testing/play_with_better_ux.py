@@ -408,7 +408,7 @@ summary {{ cursor: pointer; font-weight: 850; }}
             <label id="resume-marker-label">Marker
               <select id="resume-marker"></select>
             </label>
-            <label id="resume-max-label" class="hidden">Max decisions
+            <label id="resume-max-label" class="hidden">Max responses
               <input id="resume-max" type="number" min="1" step="1">
             </label>
           </div>
@@ -1015,7 +1015,7 @@ def collect_settings(port: int = 5000, key_mode: str = "env") -> Dict[str, Any]:
                     )
                 except (TypeError, ValueError) as exc:
                     errors.append(
-                        f"{exc}. Choose one of the suggested action markers; reaction-only table talk is not replayable as a marker."
+                        f"{exc}. Choose one of the suggested response markers."
                     )
             if (
                 run_mode == "resume_session"
@@ -1052,7 +1052,7 @@ def collect_settings(port: int = 5000, key_mode: str = "env") -> Dict[str, Any]:
             fields["player_count"] = str(player_count)
 
             replay_max_decisions = _parse_optional_int(
-                fields.get("replay_max_decisions", ""), errors, "Replay max decisions"
+                fields.get("replay_max_decisions", ""), errors, "Replay max responses"
             )
             replay_delay = _parse_float(fields.get("replay_delay", "2.5"), 2.5, errors, "Replay delay")
             replay_text_lead = _parse_float(
@@ -1252,7 +1252,8 @@ def main() -> None:
         player_names = _infer_session_player_names(replay_session_path) or infer_players_from_decisions(replay_decision_list)
         player_configs = _player_configs_for_replay(player_names, settings["slot_llms"])
         print(f"[REPLAY] Source: {replay_session_path}")
-        print(f"[REPLAY] Loaded {len(replay_decision_list)} parsed decisions")
+        action_count = sum(1 for item in replay_decision_list if item.get("has_action"))
+        print(f"[REPLAY] Loaded {len(replay_decision_list)} parsed responses ({action_count} actions)")
     else:
         player_configs = settings["player_configs"]
 
@@ -1327,6 +1328,7 @@ def main() -> None:
             source_session=replay_session_path,
             text_lead_seconds=max(0.0, settings["replay_text_lead"]),
             open_browser=False,
+            replay_events=replay_decision_list,
         )
     else:
         run_game(game_manager, ai_manager, web_viz)

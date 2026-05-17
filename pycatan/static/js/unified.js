@@ -16,7 +16,13 @@ let replayState = {
     delayMs: 2500,
     playing: false,
     timer: null,
-    snapshots: []
+    snapshots: [],
+    playerFilter: 'all',
+    seekSerial: 0,
+    latestGeneration: 0,
+    scrubTimer: null,
+    scrubbing: false,
+    resumeAfterScrub: false
 };
 
 // Resource icons mapping
@@ -1705,17 +1711,25 @@ async function initReplayControls() {
         replayState.total = status.total || 0;
         replayState.delayMs = Math.max(250, Number(status.delay_seconds || 2.5) * 1000);
         replayState.snapshots = status.snapshots || [];
+        replayState.playerFilter = 'all';
 
         const controls = document.getElementById('replay-controls');
         const slider = document.getElementById('replay-slider');
+        const statusText = document.querySelector('.status-text');
         if (controls) controls.style.display = 'flex';
+        if (statusText) statusText.textContent = 'REPLAY';
         if (slider) {
             slider.min = 0;
             slider.max = Math.max(0, replayState.total - 1);
             slider.value = replayState.index;
-            slider.addEventListener('input', () => {
-                pauseReplay();
-                seekReplay(Number(slider.value), false);
+            slider.addEventListener('pointerdown', beginReplayScrub);
+            slider.addEventListener('input', () => previewReplayScrub(Number(slider.value)));
+            slider.addEventListener('change', () => finishReplayScrub(Number(slider.value)));
+            slider.addEventListener('pointerup', () => finishReplayScrub(Number(slider.value)));
+            slider.addEventListener('keyup', event => {
+                if (event.key === 'ArrowLeft' || event.key === 'ArrowRight' || event.key === 'Home' || event.key === 'End') {
+                    finishReplayScrub(Number(slider.value));
+                }
             });
         }
 
@@ -1742,6 +1756,7 @@ async function initReplayControls() {
         });
 
         updateReplayLabel();
+        renderReplayTimeline();
         await seekReplay(replayState.index, false);
         if (replayState.total > 1) {
             await waitForReplayEventStream(1500);
@@ -1775,9 +1790,60 @@ function waitForReplayEventStream(timeoutMs) {
     });
 }
 
-async function seekReplay(index, speak) {
+function beginReplayScrub() {
+    if (!replayState.enabled) return;
+    replayState.scrubbing = true;
+    replayState.resumeAfterScrub = replayState.playing;
+    pauseReplay();
+    stopReplaySpeech();
+}
+
+function previewReplayScrub(index) {
+    if (!replayState.enabled) return;
+    const nextIndex = Math.max(0, Math.min(index, replayState.total - 1));
+    replayState.index = nextIndex;
+    updateReplayLabel();
+    renderReplayTimeline();
+    if (replayState.scrubTimer) {
+        clearTimeout(replayState.scrubTimer);
+    }
+    replayState.scrubTimer = setTimeout(() => {
+        seekReplay(nextIndex, false, { preview: true });
+    }, 120);
+}
+
+async function finishReplayScrub(index) {
+    if (!replayState.enabled) return;
+    if (replayState.scrubTimer) {
+        clearTimeout(replayState.scrubTimer);
+        replayState.scrubTimer = null;
+    }
+    const shouldResume = replayState.resumeAfterScrub;
+    replayState.scrubbing = false;
+    replayState.resumeAfterScrub = false;
+    await seekReplay(index, true);
+    if (shouldResume && replayState.index < replayState.total - 1) {
+        playReplay();
+    }
+}
+
+async function stopReplaySpeech() {
+    try {
+        const response = await fetch('/api/replay/stop-speech', { method: 'POST' });
+        if (!response.ok) return;
+        const payload = await response.json();
+        if (payload && payload.generation !== undefined) {
+            replayState.latestGeneration = Math.max(replayState.latestGeneration, Number(payload.generation) || 0);
+        }
+    } catch (error) {
+        console.warn('Replay speech stop failed:', error);
+    }
+}
+
+async function seekReplay(index, speak, options = {}) {
     if (!replayState.enabled || replayState.total === 0) return;
     const nextIndex = Math.max(0, Math.min(index, replayState.total - 1));
+    const serial = ++replayState.seekSerial;
 
     try {
         const response = await fetch(`/api/replay/seek/${nextIndex}?speak=${speak ? '1' : '0'}`, {
@@ -1786,6 +1852,14 @@ async function seekReplay(index, speak) {
         if (!response.ok) return;
 
         const payload = await response.json();
+        if (serial !== replayState.seekSerial || payload?.stale) {
+            return;
+        }
+        if (payload?.playback_generation !== undefined) {
+            const generation = Number(payload.playback_generation) || 0;
+            if (generation < replayState.latestGeneration) return;
+            replayState.latestGeneration = generation;
+        }
         if (typeof handleReplaySeek === 'function') {
             handleReplaySeek(payload);
         } else {
@@ -1818,6 +1892,7 @@ function pauseReplay() {
         clearTimeout(replayState.timer);
         replayState.timer = null;
     }
+    stopReplaySpeech();
     updateReplayPlayButton();
 }
 
@@ -1831,7 +1906,16 @@ function scheduleReplayStep() {
         }
         await seekReplay(replayState.index + 1, true);
         scheduleReplayStep();
-    }, replayState.delayMs);
+    }, getReplayStepDelayMs());
+}
+
+function getReplayStepDelayMs() {
+    const current = replayState.snapshots?.[replayState.index];
+    const seconds = Number(current?.delay_to_next_seconds);
+    if (Number.isFinite(seconds) && seconds >= 0) {
+        return Math.max(0, seconds * 1000);
+    }
+    return replayState.delayMs;
 }
 
 function updateReplayControlsFromPayload(payload) {
@@ -1841,22 +1925,38 @@ function updateReplayControlsFromPayload(payload) {
     if (payload.delay_seconds) {
         replayState.delayMs = Math.max(250, Number(payload.delay_seconds) * 1000);
     }
+    const currentSnapshot = replayState.snapshots?.[replayState.index];
+    if (currentSnapshot && payload.delay_to_next_seconds !== undefined) {
+        currentSnapshot.delay_to_next_seconds = payload.delay_to_next_seconds;
+    }
     const slider = document.getElementById('replay-slider');
     if (slider) {
         slider.max = Math.max(0, replayState.total - 1);
         slider.value = replayState.index;
     }
-    updateReplayLabel(payload.label);
+    updateReplayLabel(payload.label, payload);
+    renderReplayTimeline();
     updateReplayPlayButton();
 }
 
-function updateReplayLabel(label) {
+function updateReplayLabel(label, payload = null) {
     const labelEl = document.getElementById('replay-label');
+    const contextEl = document.getElementById('replay-context');
     if (!labelEl) return;
     const current = replayState.total ? replayState.index + 1 : 0;
     const total = replayState.total || 0;
+    const snapshot = replayState.snapshots?.[replayState.index] || {};
+    const event = payload?.event || snapshot.event || {};
+    const player = event.player_name || '';
+    const request = event.request_number ? `#${event.request_number}` : '';
+    const action = event.action_type || (event.has_speech ? 'Table talk' : 'Response');
+    const phase = payload?.phase === 'speech' && event.has_speech ? 'Speaking now' : action;
     labelEl.textContent = `${current} / ${total}`;
-    labelEl.title = label || '';
+    labelEl.title = label || [player, request, action].filter(Boolean).join(' - ');
+    if (contextEl) {
+        contextEl.textContent = [player, request, phase].filter(Boolean).join(' - ');
+        contextEl.title = event.say_outloud || label || '';
+    }
 }
 
 function updateReplayPlayButton() {
@@ -1867,9 +1967,83 @@ function updateReplayPlayButton() {
 
 window.replayControls = {
     updateFromPayload: updateReplayControlsFromPayload,
+    shouldApplyPayload: shouldApplyReplayPayload,
     pause: pauseReplay,
-    play: playReplay
+    play: playReplay,
+    stopSpeech: stopReplaySpeech
 };
+
+function shouldApplyReplayPayload(payload) {
+    if (!payload || payload.stale) return false;
+    if (payload.playback_generation !== undefined) {
+        const generation = Number(payload.playback_generation) || 0;
+        if (generation < replayState.latestGeneration) {
+            return false;
+        }
+        replayState.latestGeneration = generation;
+    }
+    return true;
+}
+
+function renderReplayTimeline() {
+    const panel = document.getElementById('replay-timeline-panel');
+    const filters = document.getElementById('replay-player-filters');
+    const track = document.getElementById('replay-timeline-track');
+    if (!panel || !filters || !track || !replayState.enabled) return;
+
+    panel.style.display = 'block';
+    const snapshots = replayState.snapshots || [];
+    const players = [...new Set(snapshots.map(s => s.event?.player_name).filter(Boolean))];
+    const escapeAttr = value => escapeHtml(value).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    filters.innerHTML = [
+        `<button class="replay-filter ${replayState.playerFilter === 'all' ? 'active' : ''}" data-player="all">All</button>`,
+        ...players.map(player => (
+            `<button class="replay-filter ${replayState.playerFilter === player ? 'active' : ''}" data-player="${escapeAttr(player)}">${escapeHtml(player)}</button>`
+        ))
+    ].join('');
+
+    filters.querySelectorAll('.replay-filter').forEach(button => {
+        button.addEventListener('click', () => {
+            replayState.playerFilter = button.dataset.player || 'all';
+            renderReplayTimeline();
+        });
+    });
+
+    const visible = snapshots.filter(snapshot => {
+        const player = snapshot.event?.player_name;
+        return replayState.playerFilter === 'all' || player === replayState.playerFilter;
+    });
+
+    track.innerHTML = visible.map(snapshot => {
+        const event = snapshot.event || {};
+        const classes = [
+            'replay-point',
+            snapshot.index === replayState.index ? 'active' : '',
+            event.has_action ? 'has-action' : '',
+            event.has_speech ? 'has-speech' : '',
+        ].filter(Boolean).join(' ');
+        const titleParts = [
+            `${snapshot.index + 1}/${replayState.total}`,
+            event.player_name || 'Unknown',
+            event.request_number ? `#${event.request_number}` : '',
+            event.action_type || (event.has_speech ? 'table talk' : 'response'),
+            event.say_outloud || ''
+        ].filter(Boolean);
+        const shortLabel = event.action_type ? 'A' : event.has_speech ? 'S' : 'R';
+        return `
+            <button class="${classes}" data-index="${snapshot.index}" title="${escapeAttr(titleParts.join(' - '))}">
+                <span>${shortLabel}</span>
+            </button>
+        `;
+    }).join('');
+
+    track.querySelectorAll('.replay-point').forEach(button => {
+        button.addEventListener('click', () => {
+            pauseReplay();
+            seekReplay(Number(button.dataset.index), true);
+        });
+    });
+}
 
 // ========== Replay Decision Analysis ==========
 async function openReplayAnalysis(index) {
@@ -2280,3 +2454,4 @@ window.showBoardResourceDistribution = showBoardResourceDistribution;
 window.handleBoardActionEvent = handleBoardActionEvent;
 window.handleBoardReplaySnapshot = handleBoardReplaySnapshot;
 window.handleBoardStateUpdate = handleBoardStateUpdate;
+

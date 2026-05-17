@@ -149,17 +149,17 @@ def _generated_description(session_dir: Path, summary: Dict[str, Any], metadata:
     players, models = _session_players_and_models(session_dir)
     run_settings = metadata.get("run_settings") if isinstance(metadata.get("run_settings"), dict) else {}
     vp = run_settings.get("victory_points") or (summary.get("final_game_state") or {}).get("meta", {}).get("vp_to_win")
-    action_count = _response_count(session_dir)
+    response_count = _response_count(session_dir)
     player_label = ", ".join(players) if players else "unknown players"
     model_label = ", ".join(models) if models else "recorded AI models"
     if metadata.get("replay"):
         source = (metadata.get("replay") or {}).get("source_session") or metadata.get("derived_from") or "another session"
-        return f"Analysed replay derived from {source}. Players: {player_label}. {action_count} recorded AI decisions."
+        return f"Analysed replay derived from {source}. Players: {player_label}. {response_count} recorded AI responses."
     details = [f"{len(players) or '?'}-player AI Catan match", f"players: {player_label}"]
     if vp:
         details.append(f"target: {vp} VP")
-    if action_count:
-        details.append(f"{action_count} decisions")
+    if response_count:
+        details.append(f"{response_count} responses")
     if model_label:
         details.append(f"models: {model_label}")
     return ". ".join(details) + "."
@@ -228,7 +228,7 @@ def _session_preview(session_ref: str) -> Dict[str, Any]:
 
 
 def _save_admin_manifest(payload: Dict[str, Any]) -> Dict[str, Any]:
-    if str(payload.get("password") or "") != ADMIN_PASSWORD:
+    if not _admin_password_ok(payload.get("password")):
         raise PermissionError("Wrong admin password.")
     requested = payload.get("sessions") if isinstance(payload.get("sessions"), dict) else {}
     valid_names = {path.name for path in _session_dirs(500)}
@@ -246,7 +246,11 @@ def _save_admin_manifest(payload: Dict[str, Any]) -> Dict[str, Any]:
     return manifest
 
 
-def render_public_spa(models: List[Dict[str, Any]], key_mode: str) -> bytes:
+def _admin_password_ok(password: Any) -> bool:
+    return str(password or "") == ADMIN_PASSWORD
+
+
+def _legacy_render_public_spa(models: List[Dict[str, Any]], key_mode: str) -> bytes:
     bootstrap = {
         "models": models,
         "sessions": list_public_sessions(),
@@ -271,7 +275,7 @@ def render_public_spa(models: List[Dict[str, Any]], key_mode: str) -> bytes:
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PyCatan AI Table</title>
+<title>קטאן AI על השולחן</title>
 <style>
 :root {
   color-scheme: light;
@@ -1038,6 +1042,867 @@ renderSessions();
     return html.replace("__BOOTSTRAP_JSON__", safe_payload).encode("utf-8")
 
 
+def render_public_spa(models: List[Dict[str, Any]], key_mode: str) -> bytes:
+    bootstrap = {
+        "models": models,
+        "sessions": list_public_sessions(),
+        "allSessions": [],
+        "keyMode": key_mode,
+        "env": {
+            "openrouter": bool(os.environ.get("OPENROUTER_API_KEY")),
+            "gemini": bool(os.environ.get("GEMINI_API_KEY")),
+        },
+        "defaults": {
+            "players": DEFAULT_PLAYER_NAMES,
+            "colors": PLAYER_COLORS,
+            "genders": PLAYER_GENDERS,
+            "geminiTtsModels": GEMINI_TTS_MODELS,
+            "geminiTtsVoices": GEMINI_TTS_VOICES,
+            "relationshipModes": RELATIONSHIP_CONTEXT_MODES,
+        },
+    }
+    safe_payload = json.dumps(bootstrap, ensure_ascii=False).replace("</", "<\\/")
+    html = """<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PyCatan AI Table</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #20231f;
+  --muted: #687066;
+  --line: #d8d1c0;
+  --paper: #fffaf0;
+  --surface: #ffffff;
+  --wash: #f3efe3;
+  --wood: #9a642d;
+  --wood-dark: #53351d;
+  --forest: #2d7050;
+  --sea: #2e7282;
+  --danger: #b42318;
+  --shadow: 0 18px 46px rgba(44, 39, 30, .14);
+  --soft-shadow: 0 10px 28px rgba(44, 39, 30, .10);
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 12% 10%, rgba(216,169,61,.18), transparent 30%),
+    linear-gradient(135deg, rgba(46,114,130,.13), transparent 34%),
+    linear-gradient(315deg, rgba(184,90,66,.14), transparent 42%),
+    var(--wash);
+  font-family: Inter, ui-sans-serif, "Segoe UI", Arial, sans-serif;
+}
+button, input, select, textarea { font: inherit; }
+button { cursor: pointer; }
+.app { min-height: 100vh; }
+.hero {
+  min-height: 430px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 420px);
+  gap: clamp(22px, 4vw, 54px);
+  align-items: center;
+  padding: 34px clamp(18px, 5vw, 72px) 76px;
+  color: #fff;
+  background:
+    linear-gradient(90deg, rgba(29,35,29,.96), rgba(37,46,39,.78) 52%, rgba(31,44,48,.70)),
+    url("/static/images/Fields.png");
+  background-size: cover, 240px 210px;
+  background-position: center, left bottom;
+  position: relative;
+  overflow: hidden;
+}
+.hero::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  bottom: 0;
+  width: 100%;
+  height: 74px;
+  background:
+    linear-gradient(0deg, rgba(32,35,31,.28), transparent),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.07) 0 1px, transparent 1px 64px);
+  pointer-events: none;
+}
+.eyebrow {
+  color: rgba(255,255,255,.72);
+  font-weight: 850;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+.hero h1 {
+  margin: 0;
+  font-size: clamp(42px, 7vw, 86px);
+  line-height: .95;
+  letter-spacing: 0;
+}
+.hero p {
+  max-width: 760px;
+  margin: 20px 0 0;
+  color: rgba(255,255,255,.84);
+  font-size: clamp(17px, 2vw, 22px);
+  line-height: 1.5;
+}
+.hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
+.status {
+  width: min(100%, 420px);
+  justify-self: end;
+  border: 1px solid rgba(255,255,255,.22);
+  border-radius: 8px;
+  padding: 18px;
+  background: rgba(255,255,255,.12);
+  box-shadow: 0 20px 60px rgba(0,0,0,.22);
+  backdrop-filter: blur(12px);
+}
+.status strong { display: block; margin-bottom: 8px; font-size: 18px; }
+.status span { display: block; color: rgba(255,255,255,.76); line-height: 1.45; }
+.table-preview { margin-top: 18px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.terrain {
+  min-height: 74px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,.22);
+  background-size: cover;
+  background-position: center;
+}
+.terrain.field { background-image: url("/static/images/Fields.png"); }
+.terrain.forest { background-image: url("/static/images/Forest.png"); }
+.terrain.hills { background-image: url("/static/images/Hills.png"); }
+.terrain.pasture { background-image: url("/static/images/Pasture.png"); }
+.terrain.mountain { background-image: url("/static/images/Mountains.png"); }
+.terrain.sea { background: linear-gradient(135deg, #276d7c, #62a7b5); }
+.workspace {
+  width: min(1240px, calc(100% - 28px));
+  margin: -58px auto 36px;
+  display: grid;
+  gap: 16px;
+  position: relative;
+  z-index: 2;
+}
+.choicebar { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.choice {
+  min-height: 118px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 20px;
+  text-align: left;
+  color: var(--ink);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  display: grid;
+  gap: 8px;
+}
+.choice.active { border-color: var(--wood); box-shadow: inset 0 0 0 2px var(--wood), var(--shadow); background: #fffdf8; }
+.choice strong { display: block; font-size: 24px; }
+.choice span { color: var(--muted); line-height: 1.45; }
+.view { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 16px; align-items: start; }
+.section {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 18px;
+  box-shadow: var(--soft-shadow);
+}
+.section h2, .section h3 { margin: 0 0 12px; letter-spacing: 0; }
+.section h2 { font-size: 23px; }
+.section h3 { font-size: 18px; }
+.section-title { display: flex; justify-content: space-between; gap: 14px; align-items: start; margin-bottom: 14px; }
+.section-title p { margin: 4px 0 0; color: var(--muted); line-height: 1.45; }
+.stack { display: grid; gap: 14px; }
+.grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+label { display: grid; gap: 7px; font-weight: 750; }
+input, select, textarea {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid #bac8bf;
+  border-radius: 6px;
+  padding: 9px 11px;
+  background: #fff;
+  color: var(--ink);
+}
+textarea { min-height: 92px; resize: vertical; }
+.players { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.player { border: 1px solid var(--line); border-radius: 8px; padding: 13px; background: var(--surface); display: grid; gap: 10px; }
+.player.hidden, .hidden { display: none !important; }
+.player-head { display: flex; justify-content: space-between; gap: 8px; color: var(--muted); font-size: 13px; }
+.player-head strong { color: var(--ink); }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.primary, .secondary, .quiet {
+  min-height: 43px;
+  border-radius: 7px;
+  padding: 0 15px;
+  font-weight: 850;
+}
+.primary { border: 1px solid var(--forest); background: var(--forest); color: #fff; }
+.primary:hover { background: #245c42; }
+.secondary { border: 1px solid var(--line); background: #fff; color: var(--wood-dark); }
+.quiet { border: 0; background: transparent; color: var(--sea); padding: 0 4px; }
+.side { position: sticky; top: 14px; }
+.note { color: var(--muted); line-height: 1.55; font-size: 14px; }
+.model-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; max-height: 372px; overflow: auto; }
+.model-list li { border: 1px solid var(--line); border-radius: 7px; padding: 9px; background: #fff; }
+.model-list strong { display: block; font-size: 12px; overflow-wrap: anywhere; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.steps li { display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: start; color: var(--muted); line-height: 1.45; }
+.steps b { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: #efe2c4; color: var(--wood-dark); }
+.session-tools { display: flex; gap: 8px; margin-bottom: 12px; }
+.session-list { display: grid; gap: 9px; max-height: 610px; overflow: auto; padding-right: 4px; }
+.session-row {
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  padding: 13px;
+  display: grid;
+  gap: 8px;
+}
+.session-row.active { border-color: var(--forest); box-shadow: inset 0 0 0 1px var(--forest); background: #fbfff8; }
+.session-name { font-family: Consolas, "SFMono-Regular", monospace; font-weight: 850; font-size: 13px; }
+.session-desc { color: var(--muted); line-height: 1.45; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { border: 1px solid var(--line); border-radius: 999px; padding: 3px 8px; color: var(--muted); font-size: 12px; background: #f7f8f4; }
+.errors { display: none; border: 1px solid #efb3aa; background: #fff5f2; color: var(--danger); border-radius: 8px; padding: 12px 14px; }
+.errors.visible { display: block; }
+.errors ul { margin: 0; padding-left: 20px; }
+details { border: 1px solid var(--line); border-radius: 8px; padding: 12px; background: #fff; }
+summary { cursor: pointer; font-weight: 850; }
+.admin-entry { justify-content: flex-end; margin-top: 16px; }
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: rgba(23, 28, 24, .58);
+  display: grid;
+  place-items: center;
+  padding: 18px;
+}
+.modal {
+  width: min(980px, 100%);
+  max-height: min(760px, calc(100vh - 36px));
+  overflow: hidden;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 32px 90px rgba(0,0,0,.30);
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+}
+.modal-head { display: flex; justify-content: space-between; align-items: start; gap: 16px; padding: 18px; border-bottom: 1px solid var(--line); }
+.modal-head h2 { margin: 0 0 4px; }
+.modal-body { padding: 16px 18px; overflow: auto; }
+.admin-list { display: grid; gap: 10px; max-height: 480px; overflow: auto; }
+.admin-row { border: 1px solid var(--line); border-radius: 8px; padding: 12px; background: #fff; display: grid; gap: 9px; }
+.check { display: flex; gap: 8px; align-items: center; font-weight: 800; }
+.check input { width: auto; min-height: auto; }
+.admin-status { color: var(--muted); min-height: 20px; }
+.admin-status.error { color: var(--danger); }
+.modal-actions { display: flex; justify-content: space-between; gap: 10px; align-items: center; padding: 14px 18px; border-top: 1px solid var(--line); }
+@media (max-width: 980px) {
+  .hero { grid-template-columns: 1fr; }
+  .status { justify-self: stretch; }
+  .view { grid-template-columns: 1fr; }
+  .side { position: static; }
+}
+@media (max-width: 720px) {
+  .choicebar, .grid-2, .grid-3, .players { grid-template-columns: 1fr; }
+  .hero { min-height: 520px; padding-bottom: 86px; }
+  .workspace { width: min(100% - 20px, 1240px); }
+  .session-tools, .modal-actions { display: grid; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="hero">
+    <div>
+      <div class="eyebrow">Public table</div>
+      <h1>PyCatan AI Table</h1>
+      <p>Start a live AI match or open a curated replay with decision analysis. The page should feel like a table, not a developer settings dump.</p>
+      <div class="hero-actions">
+        <button class="primary" type="button" onclick="setView('new')">Start a game</button>
+        <button class="secondary" type="button" onclick="setView('replay')">Watch a replay</button>
+      </div>
+    </div>
+    <div class="status">
+      <strong>Table status</strong>
+      <span id="runtime-status"></span>
+      <div class="table-preview" aria-hidden="true">
+        <div class="terrain field"></div>
+        <div class="terrain forest"></div>
+        <div class="terrain hills"></div>
+        <div class="terrain pasture"></div>
+        <div class="terrain mountain"></div>
+        <div class="terrain sea"></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <div class="choicebar">
+      <button class="choice active" id="choose-new" type="button">
+        <strong>New game</strong>
+        <span>Choose the players, victory target, and table language. Model details stay available without taking over the screen.</span>
+      </button>
+      <button class="choice" id="choose-replay" type="button">
+        <strong>Replay library</strong>
+        <span>Open a recorded match with the timeline, table talk, and decision trace ready for viewing.</span>
+      </button>
+    </div>
+    <div id="errors" class="errors"></div>
+
+    <section id="new-view" class="view">
+      <div class="stack">
+        <div class="section" id="keys-section">
+          <div class="section-title">
+            <div>
+              <h2>Table access</h2>
+              <p>Only needed for live games. Replays can be watched without entering keys.</p>
+            </div>
+          </div>
+          <div class="grid-2">
+            <label>OpenRouter key
+              <input id="openrouter-key" type="password" autocomplete="off" placeholder="sk-or-...">
+            </label>
+            <label>Gemini voice key
+              <input id="gemini-key" type="password" autocomplete="off" placeholder="AIza...">
+            </label>
+          </div>
+          <p class="note">Keys stay in this local process and are not written to session metadata.</p>
+        </div>
+
+        <div class="section">
+          <div class="section-title">
+            <div>
+              <h2>Game feel</h2>
+              <p>The settings that shape the experience are here. Specialist controls are tucked away.</p>
+            </div>
+          </div>
+          <div class="grid-3">
+            <label>Players
+              <select id="player-count">
+                <option value="2">2 players</option>
+                <option value="3">3 players</option>
+                <option value="4" selected>4 players</option>
+              </select>
+            </label>
+            <label>Victory target
+              <input id="victory-points" type="number" min="1" step="1" value="5">
+            </label>
+            <label>Table language
+              <select id="chat-language">
+                <option value="english" selected>English</option>
+                <option value="hebrew">Hebrew</option>
+              </select>
+            </label>
+            <label>Table reactions
+              <select id="reaction-mode">
+                <option value="async" selected>Live and quick</option>
+                <option value="sync">Orderly turns</option>
+                <option value="off">Off</option>
+                <option value="default">From config</option>
+              </select>
+            </label>
+            <label>Relationship memory
+              <select id="relationship-mode"></select>
+            </label>
+            <label>Random seed
+              <input id="random-seed" type="number" step="1" placeholder="0">
+            </label>
+          </div>
+          <label style="margin-top:12px">Table premise
+            <textarea id="game-context" maxlength="4000" placeholder="Example: make the agents play like confident tournament commentators."></textarea>
+          </label>
+          <details style="margin-top:12px">
+            <summary>Advanced controls</summary>
+            <div class="grid-3" style="margin-top:12px">
+              <label>Config file
+                <input id="config-path" placeholder="pycatan/ai/config_dev.yaml">
+              </label>
+              <label>Reaction batch size
+                <input id="reaction-batch-size" type="number" min="1" step="1" placeholder="5">
+              </label>
+              <label>Gemini TTS model
+                <select id="gemini-tts-model"></select>
+              </label>
+              <label>Gemini voice
+                <select id="gemini-tts-voice"></select>
+              </label>
+              <label>Voice
+                <select id="tts-provider">
+                  <option value="gemini" selected>Gemini</option>
+                  <option value="off">Off</option>
+                </select>
+              </label>
+            </div>
+            <label class="check" style="margin-top:12px"><input id="no-llm" type="checkbox"> Offline mode, no new LLM calls</label>
+          </details>
+        </div>
+
+        <div class="section">
+          <div class="section-title">
+            <div>
+              <h2>Seats at the table</h2>
+              <p>Keep the defaults or give each player a name and a different AI model.</p>
+            </div>
+          </div>
+          <div class="players" id="players"></div>
+        </div>
+
+        <div class="actions">
+          <button class="primary" type="button" id="start-game">Open the table</button>
+          <button class="secondary" type="button" id="reset-defaults">Reset</button>
+        </div>
+      </div>
+
+      <aside class="section side">
+        <h3>What happens next</h3>
+        <ol class="steps">
+          <li><b>1</b><span>A live Catan board opens in the browser.</span></li>
+          <li><b>2</b><span>Each AI takes turns, talks, checks options, and commits a move.</span></li>
+          <li><b>3</b><span>You can follow the board, chat, and analysis as the game unfolds.</span></li>
+        </ol>
+        <details style="margin-top:14px">
+          <summary>Available model list</summary>
+          <p class="note">Only models that fit the game's tool and structured-output needs are shown.</p>
+          <ol id="model-list" class="model-list"></ol>
+        </details>
+      </aside>
+    </section>
+
+    <section id="replay-view" class="view hidden">
+      <div class="section">
+        <div class="section-title">
+          <div>
+            <h2>Replay library</h2>
+            <p>Pick a recorded match and open it as a guided replay with player decisions.</p>
+          </div>
+        </div>
+        <div class="session-tools">
+          <input id="session-search" placeholder="Search sessions, players, models">
+          <button class="secondary" id="refresh-sessions" type="button">Refresh</button>
+        </div>
+        <div id="session-list" class="session-list"></div>
+      </div>
+      <aside class="section side">
+        <h3>Selected replay</h3>
+        <div id="session-preview" class="note">Choose a match from the library.</div>
+        <div class="grid-2" style="margin-top:12px">
+          <label>Replay pace
+            <input id="replay-delay" type="number" min="0" step="0.1" value="2.5">
+          </label>
+          <label>Text lead
+            <input id="replay-text-lead" type="number" min="0" step="0.05" value="0.25">
+          </label>
+        </div>
+        <label class="check" style="margin-top:12px"><input id="replay-speak" type="checkbox"> Play cached table talk when available</label>
+        <div class="actions" style="margin-top:14px">
+          <button class="primary" type="button" id="start-replay">Open analysed replay</button>
+        </div>
+        <div class="actions admin-entry">
+          <button class="quiet" type="button" id="admin-open">Manage replay library</button>
+        </div>
+      </aside>
+    </section>
+  </main>
+</div>
+
+<div class="modal-backdrop hidden" id="admin-modal" role="dialog" aria-modal="true" aria-labelledby="admin-title">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <h2 id="admin-title">Replay library management</h2>
+        <div class="note">Choose which sessions are visible to guests and edit their public descriptions.</div>
+      </div>
+      <button class="secondary" type="button" id="admin-close">Close</button>
+    </div>
+    <div class="modal-body">
+      <div class="grid-2">
+        <label>Admin password
+          <input id="admin-password" type="password" placeholder="Password">
+        </label>
+        <div class="actions" style="align-self:end">
+          <button class="secondary" type="button" id="admin-unlock">Load sessions</button>
+        </div>
+      </div>
+      <div id="admin-status" class="admin-status" style="margin-top:12px"></div>
+      <div id="admin-list" class="admin-list hidden" style="margin-top:12px"></div>
+    </div>
+    <div class="modal-actions">
+      <span class="note">Saved changes update the public replay list immediately.</span>
+      <button class="primary hidden" type="button" id="admin-save">Save library</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const state = __BOOTSTRAP_JSON__;
+const byId = (id) => document.getElementById(id);
+let currentView = "new";
+let selectedSession = "";
+let adminUnlocked = false;
+
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
+  }[char]));
+}
+
+function showErrors(errors) {
+  const box = byId("errors");
+  if (!errors || !errors.length) {
+    box.classList.remove("visible");
+    box.innerHTML = "";
+    return;
+  }
+  box.innerHTML = "<ul>" + errors.map((error) => `<li>${escapeHtml(error)}</li>`).join("") + "</ul>";
+  box.classList.add("visible");
+  box.scrollIntoView({behavior: "smooth", block: "center"});
+}
+
+function setAdminStatus(message, isError = false) {
+  const status = byId("admin-status");
+  status.textContent = message || "";
+  status.classList.toggle("error", Boolean(isError));
+}
+
+function setView(view) {
+  currentView = view;
+  byId("choose-new").classList.toggle("active", view === "new");
+  byId("choose-replay").classList.toggle("active", view === "replay");
+  byId("new-view").classList.toggle("hidden", view !== "new");
+  byId("replay-view").classList.toggle("hidden", view !== "replay");
+  showErrors([]);
+}
+
+function optionHtml(value, label, selected = false) {
+  return `<option value="${escapeHtml(value)}" ${selected ? "selected" : ""}>${escapeHtml(label)}</option>`;
+}
+
+function renderStatus() {
+  const hidden = state.keyMode === "env_hidden";
+  byId("keys-section").classList.toggle("hidden", hidden);
+  const llm = state.env.openrouter ? "OpenRouter connected" : "OpenRouter key needed";
+  const tts = state.env.gemini ? "Gemini connected" : "Gemini key needed for voice";
+  byId("runtime-status").textContent = hidden
+    ? `${llm}. ${tts}. The key step is hidden because environment keys are enabled.`
+    : "Enter keys once for a live game, then the table opens in the browser.";
+}
+
+function renderModels() {
+  const models = state.models || [];
+  byId("model-list").innerHTML = models.map((model) =>
+    `<li><strong>${escapeHtml(model.id)}</strong><span class="note">${escapeHtml(model.name || "")}</span></li>`
+  ).join("") || "<li>No model list loaded. Check OpenRouter connectivity.</li>";
+}
+
+function renderStaticSelects() {
+  byId("relationship-mode").innerHTML = (state.defaults.relationshipModes || [])
+    .map(([value, label], index) => optionHtml(value, label, index === 0)).join("");
+  byId("gemini-tts-model").innerHTML = (state.defaults.geminiTtsModels || [])
+    .map((value, index) => optionHtml(value, value, index === 0)).join("");
+  byId("gemini-tts-voice").innerHTML = (state.defaults.geminiTtsVoices || [])
+    .map((value) => optionHtml(value, value, value === "Kore")).join("");
+}
+
+function renderPlayers() {
+  const models = state.models || [];
+  const defaults = state.defaults.players || ["Alice", "Bob", "Charlie", "Diana"];
+  const modelOptions = models.map((model, index) =>
+    optionHtml(model.id, `${model.name || model.id} - ${model.id}`, index === 0)
+  ).join("");
+  byId("players").innerHTML = [1, 2, 3, 4].map((slot) => {
+    const color = (state.defaults.colors || [])[slot - 1] || "";
+    const gender = (state.defaults.genders || {})[slot] || "";
+    return `<div class="player" data-player-card="${slot}">
+      <div class="player-head"><strong>Player ${slot}</strong><span>${escapeHtml(color)} ${gender ? " / " + escapeHtml(gender) : ""}</span></div>
+      <label>Name <input id="player-${slot}" value="${escapeHtml(defaults[slot - 1] || `Player ${slot}`)}"></label>
+      <label>AI model <select id="model-${slot}">${modelOptions}</select></label>
+    </div>`;
+  }).join("");
+  updatePlayerCount();
+}
+
+function updatePlayerCount() {
+  const count = Number(byId("player-count").value || 4);
+  document.querySelectorAll("[data-player-card]").forEach((card) => {
+    card.classList.toggle("hidden", Number(card.dataset.playerCard) > count);
+  });
+}
+
+function sessionMatches(session, term) {
+  if (!term) return true;
+  const haystack = [
+    session.name,
+    session.description,
+    (session.players || []).join(" "),
+    (session.models || []).join(" "),
+    session.mode
+  ].join(" ").toLowerCase();
+  return haystack.includes(term.toLowerCase());
+}
+
+function publicDescription(session) {
+  const raw = String(session.description || session.generated_description || "");
+  if (raw.includes("׳") || raw.includes("�")) {
+    const players = (session.players || []).length || "?";
+    const decisions = session.response_count || 0;
+    return `${players}-player AI Catan match with ${decisions} recorded AI responses.`;
+  }
+  return raw;
+}
+
+function sessionLine(session) {
+  const players = (session.players || []).join(", ") || "Players not detected";
+  const models = (session.models || []).join(", ") || "Model metadata unavailable";
+  return `<span class="session-name">${escapeHtml(session.name)}</span>
+    <span class="session-desc">${escapeHtml(publicDescription(session))}</span>
+    <span class="note">${escapeHtml(players)}</span>
+    <span class="note">${escapeHtml(models)}</span>
+    <span class="chips">
+      <span class="chip">${escapeHtml(session.mode || "recorded")}</span>
+      <span class="chip">${session.response_count || 0} decisions</span>
+      ${session.has_summary ? '<span class="chip">summary</span>' : ""}
+      ${session.has_tts ? '<span class="chip">voice cache</span>' : ""}
+    </span>`;
+}
+
+function renderSessions() {
+  const term = byId("session-search").value || "";
+  const sessions = (state.sessions || []).filter((session) => sessionMatches(session, term));
+  byId("session-list").innerHTML = sessions.map((session) =>
+    `<button class="session-row ${selectedSession === session.name ? "active" : ""}" type="button" data-session="${escapeHtml(session.name)}">${sessionLine(session)}</button>`
+  ).join("") || '<div class="note">No public replay sessions are available yet.</div>';
+  document.querySelectorAll("[data-session]").forEach((row) => {
+    row.addEventListener("click", () => selectSession(row.dataset.session));
+  });
+}
+
+async function refreshSessions() {
+  const response = await fetch("/api/sessions", {cache: "no-store"});
+  const payload = await response.json();
+  state.sessions = payload.sessions || [];
+  if (!state.sessions.some((session) => session.name === selectedSession)) selectedSession = "";
+  renderSessions();
+  renderSessionPreview(null);
+}
+
+async function selectSession(name) {
+  selectedSession = name;
+  renderSessions();
+  renderSessionPreview({loading: true});
+  try {
+    const response = await fetch(`/api/session?session=${encodeURIComponent(name)}`, {cache: "no-store"});
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.error || "Could not load session.");
+    renderSessionPreview(payload);
+  } catch (error) {
+    renderSessionPreview({error: error.message});
+  }
+}
+
+function renderSessionPreview(preview) {
+  if (!preview) {
+    byId("session-preview").innerHTML = selectedSession ? "Loading..." : "Choose a match from the library.";
+    return;
+  }
+  if (preview.loading) {
+    byId("session-preview").textContent = "Loading session details...";
+    return;
+  }
+  if (preview.error) {
+    byId("session-preview").innerHTML = `<span style="color:var(--danger)">${escapeHtml(preview.error)}</span>`;
+    return;
+  }
+  byId("session-preview").innerHTML = `<div class="session-name">${escapeHtml(preview.name)}</div>
+    <p>${escapeHtml(publicDescription(preview))}</p>
+    <div class="chips">
+      <span class="chip">${(preview.players || []).length || "?"} players</span>
+      <span class="chip">${preview.response_count || 0} decisions</span>
+      <span class="chip">${(preview.markers || []).length} markers</span>
+    </div>`;
+}
+
+function openAdminModal() {
+  byId("admin-modal").classList.remove("hidden");
+  setAdminStatus("");
+  byId("admin-password").focus();
+}
+
+function closeAdminModal() {
+  byId("admin-modal").classList.add("hidden");
+}
+
+function renderAdminList() {
+  const sessions = state.allSessions || [];
+  byId("admin-list").innerHTML = sessions.map((session) => `
+    <div class="admin-row" data-admin-session="${escapeHtml(session.name)}">
+      <label class="check"><input type="checkbox" class="admin-available" ${session.available ? "checked" : ""}> Public: ${escapeHtml(session.name)}</label>
+      <div class="note">${escapeHtml((session.players || []).join(", ") || "No players detected")} / ${session.response_count || 0} decisions</div>
+      <label>Public description
+        <textarea class="admin-description" maxlength="600">${escapeHtml(session.description || session.generated_description || "")}</textarea>
+      </label>
+    </div>
+  `).join("") || '<div class="note">No sessions found.</div>';
+}
+
+async function unlockAdmin() {
+  const password = byId("admin-password").value;
+  setAdminStatus("Loading sessions...");
+  const response = await fetch(`/api/admin/sessions?password=${encodeURIComponent(password)}`, {cache: "no-store"});
+  const payload = await response.json();
+  if (!response.ok) {
+    adminUnlocked = false;
+    byId("admin-list").classList.add("hidden");
+    byId("admin-save").classList.add("hidden");
+    setAdminStatus(payload.error || "Wrong admin password.", true);
+    return;
+  }
+  adminUnlocked = true;
+  state.allSessions = payload.sessions || [];
+  byId("admin-list").classList.remove("hidden");
+  byId("admin-save").classList.remove("hidden");
+  renderAdminList();
+  setAdminStatus(`${state.allSessions.length} sessions loaded.`);
+}
+
+async function saveAdmin() {
+  if (!adminUnlocked) {
+    setAdminStatus("Load sessions before saving.", true);
+    return;
+  }
+  const sessions = {};
+  document.querySelectorAll("[data-admin-session]").forEach((row) => {
+    sessions[row.dataset.adminSession] = {
+      available: row.querySelector(".admin-available").checked,
+      description: row.querySelector(".admin-description").value
+    };
+  });
+  byId("admin-save").disabled = true;
+  setAdminStatus("Saving...");
+  try {
+    const response = await fetch("/api/admin/sessions", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({password: byId("admin-password").value, sessions})
+    });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.error || "Could not save library settings.");
+    state.allSessions = payload.sessions || [];
+    state.sessions = payload.publicSessions || [];
+    renderSessions();
+    renderSessionPreview(null);
+    renderAdminList();
+    setAdminStatus("Saved. Public replay library updated.");
+  } catch (error) {
+    setAdminStatus(error.message, true);
+  } finally {
+    byId("admin-save").disabled = false;
+  }
+}
+
+function collectNewGameFields() {
+  const fields = new URLSearchParams();
+  fields.set("run_mode", "new_game");
+  fields.set("player_count", byId("player-count").value);
+  fields.set("openrouter_api_key", byId("openrouter-key").value);
+  fields.set("gemini_api_key", byId("gemini-key").value);
+  fields.set("chat_language", byId("chat-language").value);
+  fields.set("relationship_context_mode", byId("relationship-mode").value);
+  fields.set("reaction_mode", byId("reaction-mode").value);
+  fields.set("victory_points", byId("victory-points").value);
+  fields.set("random_seed", byId("random-seed").value);
+  fields.set("game_context", byId("game-context").value);
+  fields.set("config_path", byId("config-path").value);
+  fields.set("reaction_batch_size", byId("reaction-batch-size").value);
+  fields.set("tts_provider", byId("tts-provider").value);
+  fields.set("gemini_tts_model", byId("gemini-tts-model").value);
+  fields.set("gemini_tts_voice", byId("gemini-tts-voice").value);
+  if (byId("no-llm").checked) fields.set("no_llm", "on");
+  for (let slot = 1; slot <= 4; slot += 1) {
+    fields.set(`player_${slot}`, byId(`player-${slot}`).value);
+    fields.set(`model_${slot}`, byId(`model-${slot}`).value);
+  }
+  return fields;
+}
+
+function collectReplayFields() {
+  const fields = new URLSearchParams();
+  fields.set("run_mode", "analyse_game");
+  fields.set("replay_session", selectedSession);
+  fields.set("replay_delay", byId("replay-delay").value);
+  fields.set("replay_text_lead", byId("replay-text-lead").value);
+  if (byId("replay-speak").checked) fields.set("replay_speak", "on");
+  return fields;
+}
+
+async function postStart(fields) {
+  showErrors([]);
+  const response = await fetch("/start", {
+    method: "POST",
+    headers: {"Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"},
+    body: fields.toString()
+  });
+  const contentType = response.headers.get("content-type") || "";
+  if (!response.ok && contentType.includes("application/json")) {
+    const payload = await response.json();
+    showErrors(payload.errors || [payload.error || "Could not start."]);
+    return;
+  }
+  document.open();
+  document.write(await response.text());
+  document.close();
+}
+
+function resetDefaults() {
+  byId("player-count").value = "4";
+  byId("victory-points").value = "5";
+  byId("chat-language").value = "english";
+  byId("reaction-mode").value = "async";
+  byId("game-context").value = "";
+  updatePlayerCount();
+}
+
+byId("choose-new").addEventListener("click", () => setView("new"));
+byId("choose-replay").addEventListener("click", () => setView("replay"));
+byId("player-count").addEventListener("change", updatePlayerCount);
+byId("session-search").addEventListener("input", renderSessions);
+byId("refresh-sessions").addEventListener("click", refreshSessions);
+byId("start-game").addEventListener("click", () => postStart(collectNewGameFields()));
+byId("start-replay").addEventListener("click", () => {
+  if (!selectedSession) {
+    showErrors(["Choose a replay session first."]);
+    return;
+  }
+  postStart(collectReplayFields());
+});
+byId("reset-defaults").addEventListener("click", resetDefaults);
+byId("admin-open").addEventListener("click", openAdminModal);
+byId("admin-close").addEventListener("click", closeAdminModal);
+byId("admin-unlock").addEventListener("click", unlockAdmin);
+byId("admin-save").addEventListener("click", saveAdmin);
+byId("admin-modal").addEventListener("click", (event) => {
+  if (event.target === byId("admin-modal")) closeAdminModal();
+});
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") closeAdminModal();
+});
+
+renderStatus();
+renderStaticSelects();
+renderModels();
+renderPlayers();
+renderSessions();
+</script>
+</body>
+</html>"""
+    return html.replace("__BOOTSTRAP_JSON__", safe_payload).encode("utf-8")
+
+
 def _request_fields(handler: BaseHTTPRequestHandler) -> Dict[str, str]:
     length = int(handler.headers.get("Content-Length", "0"))
     body = handler.rfile.read(length).decode("utf-8")
@@ -1102,6 +1967,10 @@ def collect_public_settings(port: int = 5000, key_mode: str = "ask") -> Dict[str
                 _json_response(self, {"sessions": list_public_sessions()})
                 return
             if parsed_url.path == "/api/admin/sessions":
+                password = parse_qs(parsed_url.query).get("password", [""])[0]
+                if not _admin_password_ok(password):
+                    _json_response(self, {"error": "Wrong admin password."}, status=403)
+                    return
                 _json_response(self, {"sessions": list_all_sessions()})
                 return
             if parsed_url.path == "/api/session":
@@ -1362,7 +2231,8 @@ def main() -> None:
         player_names = _infer_session_player_names(replay_session_path) or infer_players_from_decisions(replay_decision_list)
         player_configs = _player_configs_for_replay(player_names, settings["slot_llms"])
         print(f"[REPLAY] Source: {replay_session_path}")
-        print(f"[REPLAY] Loaded {len(replay_decision_list)} parsed decisions")
+        action_count = sum(1 for item in replay_decision_list if item.get("has_action"))
+        print(f"[REPLAY] Loaded {len(replay_decision_list)} parsed responses ({action_count} actions)")
     else:
         player_configs = settings["player_configs"]
 
@@ -1425,6 +2295,7 @@ def main() -> None:
             source_session=replay_session_path,
             text_lead_seconds=max(0.0, settings["replay_text_lead"]),
             open_browser=False,
+            replay_events=replay_decision_list,
         )
     else:
         run_game(game_manager, ai_manager, web_viz)

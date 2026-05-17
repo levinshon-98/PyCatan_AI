@@ -84,6 +84,7 @@ class GameManager:
         self._pending_actions: List[Action] = []
         self._trade_counter = 0
         self._processed_reaction_keys: List[str] = []
+        self._pending_robber_self_block_confirmation: Optional[Dict[str, Any]] = None
         self._winner_announced = False
         self._winner_player_id: Optional[int] = None
         self._winner_victory_points: Optional[int] = None
@@ -2878,7 +2879,26 @@ class GameManager:
                 f"Invalid tile coordinates: [{row}, {index}]",
                 "INVALID_COORDS"
             )
-        
+
+        from pycatan.config.board_definition import board_definition
+        hex_id = board_definition.game_coords_to_hex_id(row, index)
+        pending_confirmation = self._pending_robber_self_block_confirmation
+        pending_matches = (
+            isinstance(pending_confirmation, dict)
+            and pending_confirmation.get("player_id") == action.player_id
+            and pending_confirmation.get("hex_id") == hex_id
+        )
+        if (
+            pending_matches
+            and action.parameters.get("confirm_self_block") is True
+            and "_ai_say_outloud" not in action.parameters
+            and pending_confirmation.get("say_outloud")
+        ):
+            action.parameters["_ai_say_outloud"] = pending_confirmation["say_outloud"]
+
+        if not pending_matches:
+            self._pending_robber_self_block_confirmation = None
+
         # Can't place robber on desert (already there) - check if it's the same position
         current_robber_pos = getattr(self.game.board, 'robber', None)
         if current_robber_pos and current_robber_pos == [row, index]:
@@ -2886,7 +2906,28 @@ class GameManager:
                 "You must move the robber to a different tile.",
                 "SAME_POSITION"
             )
-        
+
+        adjacent_buildings = self._get_tile_adjacent_buildings(tile)
+        own_adjacent_buildings = [
+            building for building in adjacent_buildings
+            if building.get("owner_id") == action.player_id
+        ]
+        if own_adjacent_buildings and action.parameters.get("confirm_self_block") is not True:
+            self._pending_robber_self_block_confirmation = {
+                "player_id": action.player_id,
+                "hex_id": hex_id,
+                "say_outloud": (action.parameters.get("_ai_say_outloud") or "").strip(),
+            }
+            return ActionResult.failure_result(
+                self._format_robber_self_block_confirmation_message(
+                    hex_id=hex_id,
+                    tile=tile,
+                    own_adjacent_buildings=own_adjacent_buildings,
+                    adjacent_buildings=adjacent_buildings,
+                ),
+                "ROBBER_SELF_BLOCK_CONFIRMATION_REQUIRED"
+            )
+
         # Move the robber
         # First, remove robber from current position
         if current_robber_pos:
@@ -2899,7 +2940,8 @@ class GameManager:
         # Place robber on new position
         tile.has_robber = True
         self.game.board.robber = [row, index]  # Use the Board's robber attribute
-        
+        self._pending_robber_self_block_confirmation = None
+
         self._current_game_state.robber_moved = True
         
         # Find players adjacent to this tile who can be stolen from
@@ -3004,6 +3046,114 @@ class GameManager:
                         stealable.append(owner_id)
         
         return stealable
+
+    def _get_tile_adjacent_buildings(self, tile) -> List[Dict[str, Any]]:
+        """Return owner/building details for all buildings touching a tile."""
+        from pycatan.config.board_definition import board_definition
+        from pycatan.core.building import Building
+
+        adjacent_buildings = []
+        for point in getattr(tile, "points", []) or []:
+            building = getattr(point, "building", None)
+            if building is None:
+                continue
+
+            owner_id = building.owner
+            owner_name = (
+                self.users[owner_id].name
+                if 0 <= owner_id < len(self.users) and hasattr(self.users[owner_id], "name")
+                else f"Player {owner_id}"
+            )
+            node_id = None
+            try:
+                node_id = board_definition.game_coords_to_point_id(
+                    point.position[0],
+                    point.position[1],
+                )
+            except Exception:
+                node_id = None
+
+            adjacent_buildings.append({
+                "node_id": node_id,
+                "owner_id": owner_id,
+                "owner_name": owner_name,
+                "building_type": (
+                    "city"
+                    if building.type == Building.BUILDING_CITY
+                    else "settlement"
+                ),
+            })
+
+        adjacent_buildings.sort(
+            key=lambda item: (
+                item.get("owner_id") != self.current_player_id,
+                item.get("node_id") if item.get("node_id") is not None else 9999,
+            )
+        )
+        return adjacent_buildings
+
+    def _format_robber_self_block_confirmation_message(
+        self,
+        hex_id: Optional[int],
+        tile,
+        own_adjacent_buildings: List[Dict[str, Any]],
+        adjacent_buildings: List[Dict[str, Any]],
+    ) -> str:
+        """Build the private confirmation prompt for robber moves that self-block."""
+        from pycatan.core.board import Board
+
+        resource_card = Board.get_card_from_tile(tile.type)
+        resource_name = resource_card.name if resource_card else "Desert"
+        token_num = getattr(tile, "token_num", None)
+        tile_label = (
+            f"{resource_name} {token_num}"
+            if token_num not in (None, 0)
+            else resource_name
+        )
+        target_hex = hex_id if hex_id is not None else getattr(tile, "position", "?")
+
+        if len(own_adjacent_buildings) == 1:
+            own_building = own_adjacent_buildings[0]
+            own_location = f"Node {own_building.get('node_id')}"
+            own_description = (
+                f"your own {own_building.get('building_type', 'building')} "
+                f"at {own_location}"
+            )
+        else:
+            own_nodes = ", ".join(
+                f"Node {building.get('node_id')}"
+                for building in own_adjacent_buildings
+            )
+            own_description = f"your own buildings at {own_nodes}"
+
+        adjacent_lines = []
+        for building in adjacent_buildings:
+            owner = "You" if building.get("owner_id") == self.current_player_id else building.get("owner_name")
+            adjacent_lines.append(
+                f"- {owner}: {building.get('building_type', 'building')} "
+                f"at Node {building.get('node_id')}"
+            )
+
+        adjacent_text = "\n".join(adjacent_lines)
+        return (
+            "ARE YOU SURE?\n"
+            f"You chose robber_move {{\"hex\": {target_hex}}}.\n\n"
+            f"This hex is {tile_label} and it is adjacent to {own_description}.\n"
+            f"If the robber stays here, your own {tile_label} production will also be blocked.\n\n"
+            "Adjacent buildings:\n"
+            f"{adjacent_text}\n\n"
+            "Your original say_outloud has NOT been sent yet.\n\n"
+            "Choose exactly one:\n\n"
+            "1. Confirm the same move:\n"
+            f"   Return robber_move {{\"hex\": {target_hex}, \"confirm_self_block\": true}}.\n"
+            "   If this confirmed move succeeds, your say_outloud WILL be sent publicly.\n\n"
+            "2. Change the robber target:\n"
+            "   Return robber_move {\"hex\": NEW_HEX}.\n"
+            "   Your previous say_outloud will be discarded and will NOT be sent.\n"
+            "   Write a new say_outloud only if it still fits the new target.\n\n"
+            "3. Stay silent:\n"
+            "   You may leave say_outloud empty in either option."
+        )
     
     def _handle_steal_card(self, action: Action) -> ActionResult:
         """

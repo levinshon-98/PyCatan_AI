@@ -22,6 +22,9 @@ class NoopTTS:
     def prepare_blocking(self, player_name: str, text: str) -> None:
         return
 
+    def stop(self) -> None:
+        return
+
     def close(self) -> None:
         return
 

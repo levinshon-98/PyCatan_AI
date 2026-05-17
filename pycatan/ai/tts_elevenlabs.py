@@ -14,7 +14,9 @@ import os
 import queue
 import re
 import sys
+import tempfile
 import threading
+import time
 import wave
 from dataclasses import dataclass
 from pathlib import Path
@@ -122,6 +124,8 @@ class ElevenLabsTTS:
         self._warned_unconfigured = False
         self._warned_playback = False
         self._worker: Optional[threading.Thread] = None
+        self._playback_generation = 0
+        self._playback_lock = threading.RLock()
 
         if self.enabled and self._is_configured():
             if not self.config.verify_ssl:
@@ -266,6 +270,19 @@ class ElevenLabsTTS:
         except Exception as exc:
             print(f"[TTS] ElevenLabs prepare error: {exc}")
 
+    def stop(self) -> None:
+        """Best-effort stop for currently playing Windows audio."""
+        with self._playback_lock:
+            self._playback_generation += 1
+        if sys.platform != "win32":
+            return
+        try:
+            import winsound
+
+            winsound.PlaySound(None, 0)
+        except Exception:
+            pass
+
     def _voice_id_for_player(self, player_name: str) -> str:
         for suffix in _speaker_env_suffixes(player_name):
             voice_id = (
@@ -356,9 +373,45 @@ class ElevenLabsTTS:
         if sys.platform == "win32":
             import winsound
 
-            winsound.PlaySound(audio, winsound.SND_MEMORY)
+            with self._playback_lock:
+                self._playback_generation += 1
+                generation = self._playback_generation
+
+            duration = self._wav_duration_seconds(audio)
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
+                tmp.write(audio)
+                tmp_path = Path(tmp.name)
+
+            try:
+                winsound.PlaySound(
+                    str(tmp_path),
+                    winsound.SND_FILENAME | winsound.SND_ASYNC,
+                )
+                deadline = time.monotonic() + max(0.1, duration) + 0.25
+                while time.monotonic() < deadline:
+                    with self._playback_lock:
+                        if generation != self._playback_generation:
+                            break
+                    time.sleep(0.05)
+                with self._playback_lock:
+                    still_current = generation == self._playback_generation
+                if still_current:
+                    winsound.PlaySound(None, 0)
+            finally:
+                try:
+                    tmp_path.unlink(missing_ok=True)
+                except Exception:
+                    pass
             return
 
         if not self._warned_playback:
             print("[TTS] Audio playback is currently implemented for Windows only.")
             self._warned_playback = True
+
+    def _wav_duration_seconds(self, audio: bytes) -> float:
+        try:
+            with wave.open(io.BytesIO(audio), "rb") as wav_file:
+                frame_rate = wav_file.getframerate() or 16000
+                return wav_file.getnframes() / float(frame_rate)
+        except Exception:
+            return 10.0

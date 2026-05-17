@@ -14,6 +14,7 @@ Key principles:
 - Keep prompts concise but complete
 """
 
+import copy
 from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
 
@@ -51,8 +52,8 @@ class StateFilter:
         Main filtering method - returns optimized compact state.
         
         The state is now in compact format (H, N, players, bld, rds, meta).
-        This filter can apply perspective-specific filtering if needed,
-        but for now returns it directly as the compactness IS the optimization.
+        This filter applies perspective-specific privacy rules while preserving
+        the compact representation expected by prompts and tools.
         
         Args:
             raw_state: Optimized game state from state_optimizer (compact format)
@@ -60,10 +61,47 @@ class StateFilter:
         Returns:
             The same compact state (H, N arrays, etc.)
         """
-        # The optimized state from state_optimizer is already perfect for LLM consumption
-        # It uses compact arrays and codes to minimize token usage
-        # Just return it as-is
-        return raw_state
+        return self._hide_opponent_hidden_dev_cards(raw_state)
+
+    def _hide_opponent_hidden_dev_cards(self, raw_state: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Hide the identities of opponents' unplayed development cards.
+
+        The active agent still sees their own hidden cards so they can legally
+        choose use_dev_card, while opponents expose only a hidden-card count and
+        public revealed cards such as played knights.
+        """
+        filtered = copy.deepcopy(raw_state)
+        players = filtered.get("players", {})
+        if not isinstance(players, dict):
+            return filtered
+
+        for player_name, player_data in players.items():
+            if player_name == self.perspective.player_name:
+                continue
+            if not isinstance(player_data, dict):
+                continue
+
+            dev = player_data.get("dev")
+            if not isinstance(dev, dict):
+                continue
+
+            hidden_cards = dev.get("h", [])
+            hidden_count = len(hidden_cards) if isinstance(hidden_cards, list) else 0
+            revealed = dev.get("r", [])
+
+            public_dev = {}
+            if hidden_count:
+                public_dev["hidden_count"] = hidden_count
+            if revealed:
+                public_dev["r"] = revealed
+
+            if public_dev:
+                player_data["dev"] = public_dev
+            else:
+                player_data.pop("dev", None)
+
+        return filtered
     
     def _extract_my_info(self, raw_state: Dict[str, Any]) -> Dict[str, Any]:
         """

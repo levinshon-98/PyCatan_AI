@@ -344,7 +344,7 @@ def format_with_legend(optimized_state: Dict[str, Any]) -> str:
 
 3. STATE: "bld"=[NodeID, Owner, Type], "rds"=[[From,To], Owner].
 
-4. PLAYERS: "res"={Resource:Count}, "dev"={"h":[Hidden Cards], "r":[Revealed] (K=Knight)}, 
+4. PLAYERS: "res"={Resource:Count}, "dev"={"h":[Your Hidden Cards], "hidden_count":OpponentHiddenCount, "r":[Revealed] (K=Knight)}, 
             "stat"=["LR" (Longest Road), "LA" (Largest Army)].
 
 5. ROBBER: Located at HexID specified in "meta.robber". H[id] is blocked.

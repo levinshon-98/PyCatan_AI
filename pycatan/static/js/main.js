@@ -211,6 +211,13 @@ function connectToSSE() {
 
 function handleReplaySeek(payload) {
     if (!payload) return;
+    if (
+        window.replayControls &&
+        typeof window.replayControls.shouldApplyPayload === 'function' &&
+        !window.replayControls.shouldApplyPayload(payload)
+    ) {
+        return;
+    }
 
     if (payload.game_state) {
         updateGameState(payload.game_state);

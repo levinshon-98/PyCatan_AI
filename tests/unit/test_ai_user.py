@@ -146,6 +146,36 @@ def test_trade_bank_give_receive_converts_to_engine_offer_request():
     assert action.parameters == {"offer": {"wheat": 4}, "request": {"ore": 1}}
 
 
+def test_robber_move_preserves_self_block_confirmation():
+    user = make_ai_user()
+
+    action = user._decision_to_action(
+        {
+            "action_type": "robber_move",
+            "parameters": {"hex": 5, "confirm_self_block": True},
+        },
+        ["ROBBER_MOVE"],
+    )
+
+    assert action.action_type == ActionType.ROBBER_MOVE
+    assert action.parameters["confirm_self_block"] is True
+
+
+def test_empty_say_outloud_is_preserved_as_intentional_silence():
+    user = make_ai_user()
+
+    action = user._decision_to_action(
+        {
+            "action_type": "robber_move",
+            "parameters": {"hex": 5, "confirm_self_block": True},
+            "say_outloud": "",
+        },
+        ["ROBBER_MOVE"],
+    )
+
+    assert action.parameters["_ai_say_outloud"] == ""
+
+
 def test_failed_action_is_added_to_agent_events():
     user = make_ai_user()
     action = user._decision_to_action(
@@ -191,6 +221,26 @@ def test_success_notification_does_not_repeat_public_say_outloud():
     assert user.ai_manager.chat == []
 
 
+def test_success_notification_marks_say_outloud_public_after_broadcast():
+    user = make_ai_user()
+    action = Action(
+        ActionType.ROBBER_MOVE,
+        1,
+        {
+            "tile_coords": [0, 0],
+            "_ai_say_outloud": "Sorry, this tile is too strong.",
+        },
+    )
+
+    user.notify_action(action, success=True)
+    user.notify_action(action, success=True)
+
+    assert user.ai_manager.chat == [
+        {"from": "Bob", "message": "Sorry, this tile is too strong."}
+    ]
+    assert action.parameters["_ai_say_outloud_public"] is True
+
+
 def test_failed_notification_with_missing_action_is_recorded():
     user = make_ai_user()
 
@@ -220,6 +270,27 @@ def test_failed_action_feedback_notes_when_say_outloud_was_public():
     event = user.ai_manager.get_agent("Bob").recent_events[-1]
     assert "already said publicly" in event["message"]
     assert "not said publicly" not in event["message"]
+
+
+def test_confirmation_required_feedback_is_not_wrapped_as_generic_failure():
+    user = make_ai_user()
+    action = Action(
+        ActionType.ROBBER_MOVE,
+        1,
+        {
+            "tile_coords": [1, 1],
+            "_ai_say_outloud": "This tile is too strong.",
+        },
+    )
+    message = "ARE YOU SURE?\nYou chose robber_move {\"hex\": 5}."
+
+    user.notify_action(action, success=False, message=message)
+
+    event = user.ai_manager.get_agent("Bob").recent_events[-1]
+    assert event["type"] == "action_failed"
+    assert event["message"] == message
+    assert event["data"]["confirmation_required"] is True
+    assert user.ai_manager.chat == []
 
 
 def test_action_processing_error_is_added_to_agent_events():

@@ -696,13 +696,13 @@ button {{ border:0; border-radius:7px; padding:13px 18px; font:inherit; font-wei
 <label>Stop before<input name="replay_stop_before" list="replay-marker-options" value="{html_lib.escape(selected.get('replay_stop_before', ''))}" placeholder="Shon:4"></label>
 <label>Replay through<input name="replay_through" list="replay-marker-options" value="{html_lib.escape(selected.get('replay_through', ''))}" placeholder="Ziv:8"></label>
 <datalist id="replay-marker-options"></datalist>
-<label>Max decisions<input name="replay_max_decisions" type="number" min="1" step="1" value="{html_lib.escape(selected.get('replay_max_decisions', ''))}"></label>
+<label>Max responses<input name="replay_max_decisions" type="number" min="1" step="1" value="{html_lib.escape(selected.get('replay_max_decisions', ''))}"></label>
 <label>Replay delay<input name="replay_delay" type="number" min="0" step="0.1" value="{html_lib.escape(selected.get('replay_delay', '2.5'))}"></label>
 <label>Text lead<input name="replay_text_lead" type="number" min="0" step="0.05" value="{html_lib.escape(selected.get('replay_text_lead', '0.25'))}"></label>
 </div>
 <label class="checkbox-row"><input name="replay_skip_chat" type="checkbox" {"checked" if selected.get("replay_skip_chat") else ""}>Skip recorded chat during fast replay</label>
 <label class="checkbox-row"><input name="replay_speak" type="checkbox" {"checked" if selected.get("replay_speak") else ""}>Speak recorded replay chat from cache</label>
-<p class="hint" id="replay-marker-status">Replay markers are loaded from recorded game actions only.</p>
+<p class="hint" id="replay-marker-status">Replay markers are loaded from recorded LLM responses.</p>
 </fieldset>
 
 <fieldset>
@@ -1041,27 +1041,6 @@ def _settings_selection_from_query(query: Dict[str, List[str]]) -> Dict[str, Any
 
 def _infer_session_player_names(session_dir: Path) -> List[str]:
     """Infer locked player names for a replay/resume source session."""
-    summary_file = session_dir / "session_summary.json"
-    if summary_file.exists():
-        try:
-            summary = json.loads(summary_file.read_text(encoding="utf-8"))
-            agents = summary.get("agents") or {}
-            ordered_agents = sorted(
-                (
-                    agent
-                    for agent in agents.values()
-                    if isinstance(agent, dict)
-                    and agent.get("player_name")
-                    and isinstance(agent.get("player_id"), int)
-                ),
-                key=lambda agent: agent["player_id"],
-            )
-            names = [str(agent["player_name"]) for agent in ordered_agents]
-            if names:
-                return names[:4]
-        except Exception:
-            pass
-
     names = infer_players_from_session(session_dir)
     if names:
         return names[:4]
@@ -1451,7 +1430,7 @@ def collect_settings(port: int = 5000, key_mode: str = "env") -> Dict[str, Any]:
                     )
                 except (TypeError, ValueError) as exc:
                     errors.append(
-                        f"{exc}. Choose one of the suggested action markers; reaction-only table talk is not replayable as a marker."
+                        f"{exc}. Choose one of the suggested response markers."
                     )
             if (
                 run_mode == "resume_session"
@@ -1487,7 +1466,7 @@ def collect_settings(port: int = 5000, key_mode: str = "env") -> Dict[str, Any]:
                 player_count = 4
             fields["player_count"] = str(player_count)
 
-            replay_max_decisions = _parse_optional_int(fields.get("replay_max_decisions", ""), errors, "Replay max decisions")
+            replay_max_decisions = _parse_optional_int(fields.get("replay_max_decisions", ""), errors, "Replay max responses")
             replay_delay = _parse_float(fields.get("replay_delay", "2.5"), 2.5, errors, "Replay delay")
             replay_text_lead = _parse_float(fields.get("replay_text_lead", "0.25"), 0.25, errors, "Replay text lead")
 
@@ -1720,7 +1699,8 @@ def main() -> None:
         player_names = _infer_session_player_names(replay_session_path) or infer_players_from_decisions(replay_decision_list)
         player_configs = _player_configs_for_replay(player_names, settings["slot_llms"])
         print(f"[REPLAY] Source: {replay_session_path}")
-        print(f"[REPLAY] Loaded {len(replay_decision_list)} parsed decisions")
+        action_count = sum(1 for item in replay_decision_list if item.get("has_action"))
+        print(f"[REPLAY] Loaded {len(replay_decision_list)} parsed responses ({action_count} actions)")
     else:
         player_configs = settings["player_configs"]
 
@@ -1797,6 +1777,7 @@ def main() -> None:
             source_session=replay_session_path,
             text_lead_seconds=max(0.0, settings["replay_text_lead"]),
             open_browser=False,
+            replay_events=replay_decision_list,
         )
     else:
         run_game(game_manager, ai_manager, web_viz)

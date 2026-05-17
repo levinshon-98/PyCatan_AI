@@ -1173,6 +1173,11 @@ class AIManager:
                 "MEMORY"
             )
             return
+        compact_state = self.prompt_manager._get_filter(
+            agent.player_id,
+            agent.player_name,
+            agent.player_color,
+        ).filter_game_state(compact_state)
 
         self.logger.log_llm_communication(
             f"Compacting memory for {agent.player_name} ({len(agent.memory_history)} notes)",

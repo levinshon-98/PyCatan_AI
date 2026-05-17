@@ -18,7 +18,14 @@ echo   - Analysed replay library
 echo   - Replay availability admin panel
 echo.
 
-set PYTHON_CMD=python
+if exist ".venv\Scripts\python.exe" (
+    set PYTHON_CMD=.venv\Scripts\python.exe
+    echo [OK] Using virtual environment
+) else (
+    set PYTHON_CMD=python
+    echo [!] No virtual environment found, using system Python
+)
+
 %PYTHON_CMD% --version >nul 2>&1
 if errorlevel 1 (
     echo ERROR: Python is not available on PATH.
