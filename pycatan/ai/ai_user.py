@@ -274,6 +274,9 @@ class AIUser(User):
         converted_params = self._convert_parameters(action_type, parameters)
         if "say_outloud" in decision and decision.get("say_outloud") is not None:
             converted_params["_ai_say_outloud"] = str(decision.get("say_outloud") or "")
+        for key in ("_ai_response_id", "_ai_request_number", "_ai_response_type"):
+            if key in decision and decision.get(key) is not None:
+                converted_params[key] = decision.get(key)
         
         return Action(
             action_type=action_type,
@@ -649,7 +652,13 @@ class AIUser(User):
                     return
                 say_outloud = (action_parameters.get("_ai_say_outloud") or "").strip()
             if say_outloud:
-                self.ai_manager._broadcast_chat(self.name, say_outloud)
+                self.ai_manager._broadcast_chat(
+                    self.name,
+                    say_outloud,
+                    response_id=action_parameters.get("_ai_response_id") if isinstance(action_parameters, dict) else None,
+                    request_number=action_parameters.get("_ai_request_number") if isinstance(action_parameters, dict) else None,
+                    response_type=action_parameters.get("_ai_response_type") if isinstance(action_parameters, dict) else None,
+                )
                 if isinstance(action_parameters, dict):
                     action_parameters["_ai_say_outloud_public"] = True
             return

@@ -37,8 +37,10 @@ class DummyAIManager:
     def get_agent(self, name):
         return self.agents.get(name)
 
-    def _broadcast_chat(self, from_player, message):
-        self.chat.append({"from": from_player, "message": message})
+    def _broadcast_chat(self, from_player, message, **metadata):
+        entry = {"from": from_player, "message": message}
+        entry.update({key: value for key, value in metadata.items() if value is not None})
+        self.chat.append(entry)
 
 
 def make_ai_user():
@@ -176,6 +178,26 @@ def test_empty_say_outloud_is_preserved_as_intentional_silence():
     assert action.parameters["_ai_say_outloud"] == ""
 
 
+def test_response_metadata_is_preserved_on_action_parameters():
+    user = make_ai_user()
+
+    action = user._decision_to_action(
+        {
+            "action_type": "roll_dice",
+            "parameters": {},
+            "say_outloud": "Rolling now.",
+            "_ai_response_id": "Bob:7",
+            "_ai_request_number": 7,
+            "_ai_response_type": "active_turn",
+        },
+        ["ROLL_DICE"],
+    )
+
+    assert action.parameters["_ai_response_id"] == "Bob:7"
+    assert action.parameters["_ai_request_number"] == 7
+    assert action.parameters["_ai_response_type"] == "active_turn"
+
+
 def test_failed_action_is_added_to_agent_events():
     user = make_ai_user()
     action = user._decision_to_action(
@@ -239,6 +261,32 @@ def test_success_notification_marks_say_outloud_public_after_broadcast():
         {"from": "Bob", "message": "Sorry, this tile is too strong."}
     ]
     assert action.parameters["_ai_say_outloud_public"] is True
+
+
+def test_success_notification_forwards_response_metadata_to_chat():
+    user = make_ai_user()
+    action = Action(
+        ActionType.ROLL_DICE,
+        1,
+        {
+            "_ai_say_outloud": "Rolling now.",
+            "_ai_response_id": "Bob:7",
+            "_ai_request_number": 7,
+            "_ai_response_type": "active_turn",
+        },
+    )
+
+    user.notify_action(action, success=True)
+
+    assert user.ai_manager.chat == [
+        {
+            "from": "Bob",
+            "message": "Rolling now.",
+            "response_id": "Bob:7",
+            "request_number": 7,
+            "response_type": "active_turn",
+        }
+    ]
 
 
 def test_failed_notification_with_missing_action_is_recorded():

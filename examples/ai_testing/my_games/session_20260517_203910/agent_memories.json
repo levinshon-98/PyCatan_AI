@@ -1,0 +1,55 @@
+{
+  "Alice": {
+    "note_to_self": "Starting settlement at node 20. Best verified road choice: 20-10. Node 10 path has depth-2 access to node 11 (10 pips) and port at node 9.",
+    "long_term_summary": null,
+    "recent_notes": [
+      {
+        "note": "Setup board: best verified available node is 20 (Wood 11, Brick 6, Sheep 8). No occupied nodes or adjacent buildings were reported in tool results for it.",
+        "timestamp": 1779039568.3456566
+      },
+      {
+        "note": "Starting settlement at node 20. Best verified road choice: 20-10. Node 10 path has depth-2 access to node 11 (10 pips) and port at node 9.",
+        "timestamp": 1779039583.7268739
+      }
+    ],
+    "relationship_context_updates": [],
+    "compaction_count": 0,
+    "last_updated": "2026-05-17T20:39:43.726874",
+    "long_term_updated": null,
+    "relationship_context_updated": null
+  },
+  "Bob": {
+    "note_to_self": "Alice has settlement at node 20 and road 20-10. Node 10 is blocked by adjacency to Alice. Node 11 is legal and unoccupied. Top verified legal candidate used: node 11.",
+    "long_term_summary": null,
+    "recent_notes": [
+      {
+        "note": "Alice has opening settlement at node 20 and road 20-10. We are in setup first round; no board action requested.",
+        "timestamp": 1779039595.8732393
+      },
+      {
+        "note": "Alice has settlement at node 20 and road 20-10. Node 10 is blocked by adjacency to Alice. Node 11 is legal and unoccupied. Top verified legal candidate used: node 11.",
+        "timestamp": 1779039610.9629142
+      }
+    ],
+    "relationship_context_updates": [],
+    "compaction_count": 0,
+    "last_updated": "2026-05-17T20:40:10.962914",
+    "long_term_updated": null,
+    "relationship_context_updated": null
+  },
+  "Charlie": {
+    "note_to_self": "Alice opened with settlement at node 20 and road 20-10. Current phase is setup first round; no board action for me now. Robber on hex 10.",
+    "long_term_summary": null,
+    "recent_notes": [
+      {
+        "note": "Alice opened with settlement at node 20 and road 20-10. Current phase is setup first round; no board action for me now. Robber on hex 10.",
+        "timestamp": 1779039594.360281
+      }
+    ],
+    "relationship_context_updates": [],
+    "compaction_count": 0,
+    "last_updated": "2026-05-17T20:39:54.360281",
+    "long_term_updated": null,
+    "relationship_context_updated": null
+  }
+}

@@ -612,14 +612,15 @@ class GameManager:
             # Validate that the proposer has the cards before involving another player.
             if not self.game.players[proposer_id].has_cards(offer_cards):
                 print(f"    [X] You don't have the required cards to offer")
-                self._notify_invalid_trade_attempt(
-                    target_id,
-                    proposer_name,
-                    target_name,
-                    offer,
-                    request,
-                    f"{proposer_name} does not have the offered cards ({offer_str})",
-                )
+                if not action.parameters.get("_ai_replay"):
+                    self._notify_invalid_trade_attempt(
+                        target_id,
+                        proposer_name,
+                        target_name,
+                        offer,
+                        request,
+                        f"{proposer_name} does not have the offered cards ({offer_str})",
+                    )
                 return ActionResult.failure_result(
                     f"You don't have the required cards to offer",
                     "INSUFFICIENT_RESOURCES"
@@ -629,22 +630,23 @@ class GameManager:
 
             if not self.game.players[target_id].has_cards(request_cards):
                 print(f"    [X] {target_name} doesn't have the required cards")
-                self._notify_invalid_trade_attempt(
-                    target_id,
-                    proposer_name,
-                    target_name,
-                    offer,
-                    request,
-                    f"you do not have the requested cards ({request_str})",
-                )
-                self._prompt_invalid_trade_target_reaction(
-                    target_id=target_id,
-                    proposer_name=proposer_name,
-                    target_name=target_name,
-                    trade_message=trade_message,
-                    request_str=request_str,
-                    trade_id=trade_id,
-                )
+                if not action.parameters.get("_ai_replay"):
+                    self._notify_invalid_trade_attempt(
+                        target_id,
+                        proposer_name,
+                        target_name,
+                        offer,
+                        request,
+                        f"you do not have the requested cards ({request_str})",
+                    )
+                    self._prompt_invalid_trade_target_reaction(
+                        target_id=target_id,
+                        proposer_name=proposer_name,
+                        target_name=target_name,
+                        trade_message=trade_message,
+                        request_str=request_str,
+                        trade_id=trade_id,
+                    )
                 action.parameters['trade_status'] = 'invalid_target_missing_cards'
                 return ActionResult.failure_result(
                     f"{target_name} doesn't have the required cards",
@@ -726,6 +728,8 @@ class GameManager:
         params = getattr(action, "parameters", None)
         if not isinstance(params, dict) or params.get("_ai_say_outloud_public"):
             return False
+        if params.get("_ai_replay"):
+            return False
 
         say_outloud = (params.get("_ai_say_outloud") or "").strip()
         if not say_outloud:
@@ -738,7 +742,13 @@ class GameManager:
             if not broadcaster:
                 return False
             player_name = user.name if hasattr(user, "name") else f"Player {action.player_id}"
-            broadcaster(player_name, say_outloud)
+            broadcaster(
+                player_name,
+                say_outloud,
+                response_id=params.get("_ai_response_id"),
+                request_number=params.get("_ai_request_number"),
+                response_type=params.get("_ai_response_type") or "active_turn",
+            )
             params["_ai_say_outloud_public"] = True
             return True
         except Exception as exc:

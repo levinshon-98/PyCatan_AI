@@ -31,6 +31,7 @@ import os
 import ssl
 import json
 import html as html_lib
+import wave
 from pathlib import Path
 
 # Fix SSL certificate verification on Windows (must be before any other imports)
@@ -562,6 +563,29 @@ class ReplayAIUser(AIUser):
             raise ReplayExhausted(f"No more recorded replay decisions for {self.name}")
 
         return super().get_input(game_state, prompt_message, allowed_actions)
+
+    def notify_action(self, action, success: bool, message: str = "") -> None:
+        parameters = getattr(action, "parameters", {})
+        is_replay_action = isinstance(parameters, dict) and parameters.get("_ai_replay")
+        if not is_replay_action:
+            return super().notify_action(action, success, message)
+
+        if not success:
+            return super().notify_action(action, success, message)
+
+        action_player_id = getattr(action, "player_id", None)
+        if action_player_id != self.user_id:
+            return
+
+        say_outloud = (parameters.get("_ai_say_outloud") or "").strip()
+        if say_outloud and self.replay_chat:
+            self.ai_manager._broadcast_chat(
+                self.name,
+                say_outloud,
+                speak=self.replay_speak,
+            )
+        if say_outloud:
+            parameters["_ai_say_outloud_public"] = True
 
     def _apply_replay_memory_and_chat(
         self,
@@ -1900,6 +1924,24 @@ def _apply_non_action_replay_event(
         ai_manager._broadcast_chat(player_name, say_outloud, speak=False)
 
 
+def _write_replay_response_timeline(
+    ai_manager: AIManager,
+    web_viz: WebVisualization,
+) -> Optional[Path]:
+    """Persist the normalized response timeline next to the derived replay session."""
+    try:
+        timeline_path = Path(ai_manager.get_session_path()) / "replay_response_timeline.json"
+        timeline_path.parent.mkdir(parents=True, exist_ok=True)
+        timeline_path.write_text(
+            json.dumps(web_viz.get_replay_response_timeline(), ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+        return timeline_path
+    except Exception as exc:
+        print(f"[REPLAY] Failed to save response timeline: {exc}")
+        return None
+
+
 def run_replay_viewer(
     game_manager: GameManager,
     ai_manager: AIManager,
@@ -1923,41 +1965,42 @@ def run_replay_viewer(
     print()
 
     try:
-        raw_speech_prepare_callback = (
-            getattr(ai_manager.tts, "prepare_blocking", None)
-            or getattr(ai_manager.tts, "speak_blocking", None)
-            or getattr(ai_manager.tts, "speak", None)
-        )
-        raw_speech_play_callback = (
-            getattr(ai_manager.tts, "speak_blocking", None)
-            or getattr(ai_manager.tts, "speak", None)
-        )
         raw_speech_stop_callback = getattr(ai_manager.tts, "stop", None)
-
-        def speech_prepare_callback(player_name: str, message: str) -> None:
-            if raw_speech_prepare_callback:
-                raw_speech_prepare_callback(
-                    ai_manager.get_tts_speaker_key(player_name),
-                    message,
-                )
-
-        def speech_play_callback(player_name: str, message: str) -> None:
-            if raw_speech_play_callback:
-                raw_speech_play_callback(
-                    ai_manager.get_tts_speaker_key(player_name),
-                    message,
-                )
 
         def speech_stop_callback() -> None:
             if raw_speech_stop_callback:
                 raw_speech_stop_callback()
 
+        speech_stop_callback()
+
+        def speech_info_callback(player_name: str, message: str) -> Dict[str, Any]:
+            speaker_key = ai_manager.get_tts_speaker_key(player_name)
+            info: Dict[str, Any] = {"speaker_key": speaker_key}
+            cache_path_fn = getattr(ai_manager.tts, "_cache_path", None)
+            if callable(cache_path_fn):
+                try:
+                    audio_path = Path(cache_path_fn(speaker_key, message))
+                    info["audio_cache_path"] = str(audio_path)
+                    info["audio_exists"] = audio_path.exists()
+                    if audio_path.exists():
+                        try:
+                            with wave.open(str(audio_path), "rb") as wav_file:
+                                frame_rate = wav_file.getframerate() or 1
+                                info["audio_duration_seconds"] = wav_file.getnframes() / float(frame_rate)
+                        except Exception as exc:
+                            info["audio_duration_error"] = str(exc)
+                except Exception as exc:
+                    info["audio_cache_error"] = str(exc)
+            return info
+
+        replay_session_path = Path(ai_manager.get_session_path())
+
         web_viz.enable_replay_mode(
-            source_session=str(source_session or ai_manager.get_session_path()),
+            source_session=str(source_session or replay_session_path),
             delay_seconds=delay_seconds,
-            speech_prepare_callback=speech_prepare_callback,
-            speech_play_callback=speech_play_callback,
             speech_stop_callback=speech_stop_callback,
+            speech_info_callback=speech_info_callback,
+            speech_log_path=str(replay_session_path / "replay_speech_log.json"),
             text_lead_seconds=text_lead_seconds,
         )
 
@@ -2027,9 +2070,13 @@ def run_replay_viewer(
         print("[WEB] Board: http://localhost:5000/unified")
         print(f"[REPLAY] Browser playback delay: {delay_seconds:.1f}s")
         print(f"[REPLAY] Text lead before action: {text_lead_seconds:.2f}s")
+        timeline_path = _write_replay_response_timeline(ai_manager, web_viz)
+        if timeline_path:
+            print(f"[REPLAY] Response timeline: {timeline_path}")
+            print(f"[REPLAY] Speech playback log: {replay_session_path / 'replay_speech_log.json'}")
         print("=" * 70)
 
-        web_viz.seek_replay(0, speak=False)
+        web_viz.restore_replay_baseline()
         web_viz.start_server()
         if open_browser and os.environ.get("PYCATAN_NO_BROWSER", "").lower() not in {"1", "true", "yes", "on"}:
             try:

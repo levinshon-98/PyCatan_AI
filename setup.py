@@ -24,4 +24,9 @@ setup(name='pycatan',
           ]
       },
       include_package_data=True,
+      entry_points={
+          'console_scripts': [
+              'pycatan-replay-viewer=examples.ai_testing.replay_viewer:main',
+          ],
+      },
       zip_safe=False)

@@ -799,7 +799,15 @@ See: [prompt_{original_prompt_number}_iter{iteration}.json](prompts/iterations/p
         with open(md_path, 'a', encoding='utf-8') as f:
             f.write(section)
     
-    def log_chat(self, from_player: str, message: str, to_player: Optional[str] = None) -> None:
+    def log_chat(
+        self,
+        from_player: str,
+        message: str,
+        to_player: Optional[str] = None,
+        response_id: Optional[str] = None,
+        request_number: Optional[int] = None,
+        audio_path: Optional[str] = None,
+    ) -> None:
         """
         Log a chat message.
         
@@ -822,12 +830,20 @@ See: [prompt_{original_prompt_number}_iter{iteration}.json](prompts/iterations/p
                     chat_data = {"messages": loaded}
         
         # Add new message
-        chat_data["messages"].append({
+        chat_entry = {
             "timestamp": datetime.now().isoformat(),
             "from": from_player,
             "to": to_player or "all",
             "message": message
-        })
+        }
+        if response_id:
+            chat_entry["response_id"] = response_id
+        if request_number is not None:
+            chat_entry["request_number"] = request_number
+        if audio_path:
+            chat_entry["audio_path"] = audio_path
+
+        chat_data["messages"].append(chat_entry)
         
         # Save (wrapped in object for viewer)
         with open(chat_file, 'w', encoding='utf-8') as f:

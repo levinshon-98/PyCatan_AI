@@ -1,0 +1,4882 @@
+{
+  "schema_version": 1,
+  "session": {
+    "name": "session_20260517_202149",
+    "path": "C:\\GIT_new\\PyCatan_AI\\examples\\ai_testing\\my_games\\session_20260517_202149",
+    "metadata": {
+      "session_id": "session_20260517_202149",
+      "start_time": "2026-05-17T20:21:49.380341",
+      "version": "2.0",
+      "tts_cache": {
+        "enabled": "true",
+        "path": "examples\\ai_testing\\my_games\\session_20260517_202149\\tts_cache",
+        "source": "session_default"
+      },
+      "derived_from": "examples\\ai_testing\\my_games\\session_20260517_200941",
+      "replay": {
+        "source_session": "session_20260517_200941",
+        "decisions_loaded": 277,
+        "responses_loaded": 277,
+        "replay_through": null,
+        "replay_stop_before": null,
+        "mode": "fast_action_replay_then_live_ai"
+      }
+    },
+    "summary": {
+      "session_id": "session_20260517_202149",
+      "start_time": "2026-05-17T20:21:49.380341",
+      "end_time": "2026-05-17T20:22:47.772497",
+      "duration_seconds": 58.392163,
+      "agents": {
+        "ג'מה": {
+          "player_name": "ג'מה",
+          "player_id": 0,
+          "player_color": "Red",
+          "memory": "Rejected Jimmy's Wood for Ore trade. Jimmy is at 3 VP and likely looking for Ore to build a city. I still need 1 Brick for the settlement at N51.",
+          "memory_updated_at": 1779038562.8271832,
+          "compacted_memory": "Previous long-term memory: Previous long-term memory: Strategic notes: Placed first settlement on node 20 (Brick 6, Sheep 8, Wood 11). Strong starting pips (12). Need to look for Wheat and Ore in the second placement. | Started road from 20 towards 10 to aim for the 3:1 port at node 9 or the pips at node 11. | Second settlement at N44 (Wh9, Wh6, O2). Total production now includes Brick, Sheep, Wood, Wheat, and Ore. Focus on Wheat/Ore for cities and devs. Jimmy is the main threat. | Placed road 44-52 to target the 3:1 port at 51. This will help manage the Wheat/Ore surplus from my second settlement. | Starting normal play. Current production: N20 (W11, B6, S8) and N44 (O2, Wh9, Wh6). Total pips: 22. Target: 3:1 port at N51 via road 44-52. | Targeting node 51 for the 3:1 port. Currently need Wood and Brick. Jimmy has 2 Wood. | Need Brick and Sheep to settle at N51 (3:1 port). Current resources: O:1, W:1, Wh:2. Road exists at 44-52. | Rolling dice. Robber is off my 9 Wheat. Need Brick and Sheep for N51 settlement. Strategic notes: Attempting to trade Wheat for Sheep with Jimmy to get closer to a settlement at N51 or a development card. I have 2 Wheat and 1 Ore, so a Sheep would also allow a dev card purchase if the settlement remains out of reach. | Jimmy rejected Wheat for Sheep. Trying Wood for Sheep. If rejected, I have no moves this turn. | Bought a dev card with the sheep from Jimmy. Still need Wood and Brick for the N51 settlement. Jimmy is friendly for now, Claude is still the main threat. | I have a Knight ready for next turn. Goal remains N51 settlement. Need Wood, Brick, Sheep, and Wheat. | החלטתי לשמור את האביר לבינתיים כי השודד כבר חוסם את קלוד ב-3 אבן ולא חוסם אותי. מחכה לראות מה יצא בקוביות לפני שאני פועלת. | Keeping the Knight for now.......",
+          "compacted_memory_updated_at": 1779038562.6866345,
+          "compaction_count": 3,
+          "memory_history": [
+            {
+              "note": "Starting turn by rolling. Current plan is to reach the 3:1 port at N51. I need Wood and Brick. I'm holding a Knight card in case my Wheat or Ore gets blocked.",
+              "timestamp": 1779038558.045149
+            },
+            {
+              "note": "Jimmy got a Brick on a 10. I'm trying to trade my Sheep for it to advance towards node 51. I still have a Knight in hand.",
+              "timestamp": 1779038558.0523617
+            },
+            {
+              "note": "Built road to node 51. Next objective: get 1 Wood, 1 Brick, 1 Sheep, and 1 Wheat to build a settlement on the 3:1 port at node 51. I still have a Knight card for defense.",
+              "timestamp": 1779038562.7037125
+            },
+            {
+              "note": "Reached node 51 (3:1 port). Need Wood, Brick, Sheep, and Wheat for the settlement. Holding a Knight card.",
+              "timestamp": 1779038562.7117574
+            },
+            {
+              "note": "Rejected Jimmy's Wood for Ore trade. Jimmy is at 3 VP and likely looking for Ore to build a city. I still need 1 Brick for the settlement at N51.",
+              "timestamp": 1779038562.8271832
+            }
+          ],
+          "relationship_context_updates": [],
+          "relationship_context_updated_at": null,
+          "chat_summaries": [],
+          "recent_events": [
+            {
+              "type": "game_start",
+              "message": "Game 2853327e-f831-4d17-bb14-7b02046611c2 has started with 3 players!",
+              "timestamp": 1779038512.4484763,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 0: Player 0's turn begins.",
+              "timestamp": 1779038512.4485235,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=setup_settlement actor=ג'מה node=20",
+              "timestamp": 1779038512.4562685,
+              "data": {
+                "affected_players": [
+                  0
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=setup_road actor=ג'מה edge=20-10",
+              "timestamp": 1779038512.4637754,
+              "data": {
+                "affected_players": [
+                  0
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 1: Player 1's turn begins.",
+              "timestamp": 1779038512.4657102,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=setup_settlement actor=קלוד node=12",
+              "timestamp": 1779038512.471815,
+              "data": {
+                "affected_players": [
+                  1
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=setup_road actor=קלוד edge=12-11",
+              "timestamp": 1779038512.477605,
+              "data": {
+                "affected_players": [
+                  1
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 2: Player 2's turn begins.",
+              "timestamp": 1779038512.4794843,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=setup_settlement actor=ג'ימי node=42",
+              "timestamp": 1779038512.4857223,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=setup_road actor=ג'ימי edge=42-41",
+              "timestamp": 1779038512.4957538,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "phase_change",
+              "message": "First round of setup complete! Starting second round (reverse order).",
+              "timestamp": 1779038512.4990792,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 3: Player 2's turn begins.",
+              "timestamp": 1779038512.4991932,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=setup_settlement actor=ג'ימי node=14 gain={W:2,Wh:1}",
+              "timestamp": 1779038512.5138195,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=setup_road actor=ג'ימי edge=14-24",
+              "timestamp": 1779038512.524015,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 4: Player 1's turn begins.",
+              "timestamp": 1779038512.5263977,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=setup_settlement actor=קלוד node=25 gain={S:1,Wh:1,O:1}",
+              "timestamp": 1779038512.5365114,
+              "data": {
+                "affected_players": [
+                  1
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=setup_road actor=קלוד edge=25-26",
+              "timestamp": 1779038512.5431128,
+              "data": {
+                "affected_players": [
+                  1
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 5: Player 0's turn begins.",
+              "timestamp": 1779038512.5464232,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=setup_settlement actor=ג'מה node=44 gain={Wh:2,O:1}",
+              "timestamp": 1779038512.553205,
+              "data": {
+                "affected_players": [
+                  0
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=setup_road actor=ג'מה edge=44-52",
+              "timestamp": 1779038512.5628319,
+              "data": {
+                "affected_players": [
+                  0
+                ]
+              }
+            },
+            {
+              "type": "phase_change",
+              "message": "Setup complete! Entering Normal Play phase.",
+              "timestamp": 1779038512.5649176,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 6: Player 0's turn begins.",
+              "timestamp": 1779038512.5649362,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 8 (5+3). Resources distributed: ג'ימי +1 wheat; ג'מה +1 sheep; קלוד +1 wheat.",
+              "timestamp": 1779038512.5774586,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll actor=ג'מה dice=8(5+3) prod={ג'ימי:{Wh:1};ג'מה:{S:1};קלוד:{Wh:1}}",
+              "timestamp": 1779038512.5792425,
+              "data": {
+                "affected_players": [
+                  2,
+                  0,
+                  1
+                ]
+              }
+            },
+            {
+              "type": "trade_offer",
+              "message": "Trade offer trade_6_1: ג'מה offers 1 sheep to ג'ימי for 1 wood.",
+              "timestamp": 1779038512.5990982,
+              "data": {
+                "trade_id": "trade_6_1"
+              }
+            },
+            {
+              "type": "trade_response",
+              "message": "Trade trade_6_1 was accepted by ג'ימי.",
+              "timestamp": 1779038512.6086388,
+              "data": {
+                "trade_id": "trade_6_1",
+                "status": "accepted"
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=trade actor=ג'מה target=ג'ימי status=accepted offer={S:1} request={W:1}",
+              "timestamp": 1779038512.6127484,
+              "data": {
+                "affected_players": [
+                  0,
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "ג'מה ended their turn",
+              "timestamp": 1779038512.6242158,
+              "data": {
+                "affected_players": [
+                  0
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 7: Player 1's turn begins.",
+              "timestamp": 1779038512.6261804,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "robber",
+              "message": "🏴‍☠️ קלוד must move the robber!",
+              "timestamp": 1779038512.6346648,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 7 (6+1)! 🏴‍☠️ Robber activated!",
+              "timestamp": 1779038512.6346774,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll7 actor=קלוד dice=7(6+1) prod={} next=discard_or_robber",
+              "timestamp": 1779038512.6360211,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "robber_moved",
+              "message": "🏴‍☠️ קלוד moved the robber to [4, 1].",
+              "timestamp": 1779038512.6521404,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "steal_available",
+              "message": "🎯 קלוד can steal from: ג'ימי, ג'מה",
+              "timestamp": 1779038512.6521626,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=robber actor=קלוד hex=18",
+              "timestamp": 1779038512.6533184,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "steal_complete",
+              "message": "🎯 קלוד stole a card from ג'ימי!",
+              "timestamp": 1779038512.659118,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=steal actor=קלוד victim=ג'ימי stolen=1",
+              "timestamp": 1779038512.6605437,
+              "data": {
+                "affected_players": [
+                  1,
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=buy_dev actor=קלוד cost={S:1,Wh:1,O:1} dev_delta={hidden:+1}",
+              "timestamp": 1779038512.6684637,
+              "data": {
+                "affected_players": [
+                  1
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "קלוד ended their turn",
+              "timestamp": 1779038521.503227,
+              "data": {
+                "affected_players": [
+                  1
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 8: Player 2's turn begins.",
+              "timestamp": 1779038521.5047927,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "robber",
+              "message": "🏴‍☠️ ג'ימי must move the robber!",
+              "timestamp": 1779038521.5139136,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 7 (5+2)! 🏴‍☠️ Robber activated!",
+              "timestamp": 1779038521.5139258,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll7 actor=ג'ימי dice=7(5+2) prod={} next=discard_or_robber",
+              "timestamp": 1779038521.5150065,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "robber_moved",
+              "message": "🏴‍☠️ ג'ימי moved the robber to [2, 3].",
+              "timestamp": 1779038521.5254717,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "steal_complete",
+              "message": "🎯 ג'ימי stole a card from קלוד (only adjacent player).",
+              "timestamp": 1779038521.5255477,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=robber actor=ג'ימי hex=11 victim=קלוד stolen=1",
+              "timestamp": 1779038521.5265343,
+              "data": {
+                "affected_players": [
+                  2,
+                  1
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "ג'ימי ended their turn",
+              "timestamp": 1779038526.4670515,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 9: Player 0's turn begins.",
+              "timestamp": 1779038526.468159,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 5 (4+1). Resources distributed: קלוד +1 sheep; ג'ימי +1 ore.",
+              "timestamp": 1779038526.472608,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll actor=ג'מה dice=5(4+1) prod={קלוד:{S:1};ג'ימי:{O:1}}",
+              "timestamp": 1779038526.4736757,
+              "data": {
+                "affected_players": [
+                  1,
+                  2
+                ]
+              }
+            },
+            {
+              "type": "trade_offer",
+              "message": "Trade offer trade_9_4: ג'מה offers 1 wheat to ג'ימי for 1 sheep.",
+              "timestamp": 1779038526.477226,
+              "data": {
+                "trade_id": "trade_9_4"
+              }
+            },
+            {
+              "type": "trade_response",
+              "message": "Trade trade_9_4 was rejected by ג'ימי.",
+              "timestamp": 1779038526.4801226,
+              "data": {
+                "trade_id": "trade_9_4",
+                "status": "rejected"
+              }
+            },
+            {
+              "type": "action_failed",
+              "message": "Your previous action failed: TRADE_PROPOSE {'offer': {'wheat': 1}, 'request': {'sheep': 1}, 'target_player': 2, '_ai_say_outloud': \"ג'ימי, ראיתי שקיבלת כבשה מה-5. אין לי טיט להציע לך, אבל אולי תרצה עוד חיטה בתמורה לכבשה? זה יעזור לשנינו להתקדם.\", '_ai_replay': True, 'trade_id': 'trade_9_4', 'to_player': \"ג'ימי\", 'trade_status': 'rejected'}. Error: ג'ימי rejected your trade offer. The say_outloud from that failed attempt was not said publicly; choose a new legal action.",
+              "timestamp": 1779038526.4802022,
+              "data": {
+                "action_type": "TRADE_PROPOSE",
+                "parameters": {
+                  "offer": {
+                    "wheat": 1
+                  },
+                  "request": {
+                    "sheep": 1
+                  },
+                  "target_player": 2,
+                  "_ai_say_outloud": "ג'ימי, ראיתי שקיבלת כבשה מה-5. אין לי טיט להציע לך, אבל אולי תרצה עוד חיטה בתמורה לכבשה? זה יעזור לשנינו להתקדם.",
+                  "_ai_replay": true,
+                  "trade_id": "trade_9_4",
+                  "to_player": "ג'ימי",
+                  "trade_status": "rejected",
+                  "player_name": "ג'מה",
+                  "turn_number": 9
+                },
+                "error": "ג'ימי rejected your trade offer"
+              }
+            },
+            {
+              "type": "trade_offer",
+              "message": "Trade offer trade_9_5: ג'מה offers 1 wood to ג'ימי for 1 sheep.",
+              "timestamp": 1779038530.8373673,
+              "data": {
+                "trade_id": "trade_9_5"
+              }
+            },
+            {
+              "type": "trade_response",
+              "message": "Trade trade_9_5 was accepted by ג'ימי.",
+              "timestamp": 1779038530.8389285,
+              "data": {
+                "trade_id": "trade_9_5",
+                "status": "accepted"
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=trade actor=ג'מה target=ג'ימי status=accepted offer={W:1} request={S:1}",
+              "timestamp": 1779038530.8394523,
+              "data": {
+                "affected_players": [
+                  0,
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=buy_dev actor=ג'מה cost={S:1,Wh:1,O:1} dev_delta={hidden:+1}",
+              "timestamp": 1779038530.841833,
+              "data": {
+                "affected_players": [
+                  0
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "ג'מה ended their turn",
+              "timestamp": 1779038530.8457174,
+              "data": {
+                "affected_players": [
+                  0
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 10: Player 1's turn begins.",
+              "timestamp": 1779038530.846839,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 9 (5+4). Resources distributed: ג'ימי +2 wheat; ג'מה +1 wheat.",
+              "timestamp": 1779038530.8508584,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll actor=קלוד dice=9(5+4) prod={ג'ימי:{Wh:2};ג'מה:{Wh:1}}",
+              "timestamp": 1779038530.8516333,
+              "data": {
+                "affected_players": [
+                  2,
+                  0
+                ]
+              }
+            },
+            {
+              "type": "trade_offer",
+              "message": "Trade offer trade_10_7: קלוד offers 1 sheep to ג'ימי for 1 wood.",
+              "timestamp": 1779038530.8585956,
+              "data": {
+                "trade_id": "trade_10_7"
+              }
+            },
+            {
+              "type": "trade_response",
+              "message": "Trade trade_10_7 was accepted by ג'ימי.",
+              "timestamp": 1779038530.860589,
+              "data": {
+                "trade_id": "trade_10_7",
+                "status": "accepted"
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=trade actor=קלוד target=ג'ימי status=accepted offer={S:1} request={W:1}",
+              "timestamp": 1779038530.8613827,
+              "data": {
+                "affected_players": [
+                  1,
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "קלוד ended their turn",
+              "timestamp": 1779038530.866123,
+              "data": {
+                "affected_players": [
+                  1
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 11: Player 2's turn begins.",
+              "timestamp": 1779038530.8672583,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 8 (3+5). Resources distributed: ג'ימי +1 wheat; ג'מה +1 sheep; קלוד +1 wheat.",
+              "timestamp": 1779038530.8715427,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll actor=ג'ימי dice=8(3+5) prod={ג'ימי:{Wh:1};ג'מה:{S:1};קלוד:{Wh:1}}",
+              "timestamp": 1779038530.8723526,
+              "data": {
+                "affected_players": [
+                  2,
+                  0,
+                  1
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=buy_dev actor=ג'ימי cost={S:1,Wh:1,O:1} dev_delta={hidden:+1}",
+              "timestamp": 1779038530.8771083,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=bank_trade actor=ג'ימי give={Wh:4} receive={B:1}",
+              "timestamp": 1779038535.658016,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=build_road actor=ג'ימי edge=41-31 cost={W:1,B:1}",
+              "timestamp": 1779038535.663077,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "ג'ימי ended their turn",
+              "timestamp": 1779038535.6683326,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 12: Player 0's turn begins.",
+              "timestamp": 1779038535.669682,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 5 (2+3). Resources distributed: קלוד +1 sheep; ג'ימי +1 ore.",
+              "timestamp": 1779038535.6745484,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll actor=ג'מה dice=5(2+3) prod={קלוד:{S:1};ג'ימי:{O:1}}",
+              "timestamp": 1779038535.6754425,
+              "data": {
+                "affected_players": [
+                  1,
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "ג'מה ended their turn",
+              "timestamp": 1779038535.6804092,
+              "data": {
+                "affected_players": [
+                  0
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 13: Player 1's turn begins.",
+              "timestamp": 1779038535.6818545,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 4 (2+2). Resources distributed: ג'ימי +1 wood; קלוד +1 sheep.",
+              "timestamp": 1779038535.6859465,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll actor=קלוד dice=4(2+2) prod={ג'ימי:{W:1};קלוד:{S:1}}",
+              "timestamp": 1779038535.6868997,
+              "data": {
+                "affected_players": [
+                  2,
+                  1
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "קלוד ended their turn",
+              "timestamp": 1779038535.6913881,
+              "data": {
+                "affected_players": [
+                  1
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 14: Player 2's turn begins.",
+              "timestamp": 1779038535.6926694,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 3 (2+1). Resources distributed: קלוד +1 wood; ג'ימי +1 wood.",
+              "timestamp": 1779038535.696204,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll actor=ג'ימי dice=3(2+1) prod={קלוד:{W:1};ג'ימי:{W:1}}",
+              "timestamp": 1779038535.6971993,
+              "data": {
+                "affected_players": [
+                  1,
+                  2
+                ]
+              }
+            },
+            {
+              "type": "trade_offer",
+              "message": "Trade offer trade_14_10: ג'ימי offers 1 wood to קלוד for 1 sheep.",
+              "timestamp": 1779038535.7017388,
+              "data": {
+                "trade_id": "trade_14_10"
+              }
+            },
+            {
+              "type": "trade_response",
+              "message": "Trade trade_14_10 was accepted by קלוד.",
+              "timestamp": 1779038535.704785,
+              "data": {
+                "trade_id": "trade_14_10",
+                "status": "accepted"
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=trade actor=ג'ימי target=קלוד status=accepted offer={W:1} request={S:1}",
+              "timestamp": 1779038535.7057464,
+              "data": {
+                "affected_players": [
+                  2,
+                  1
+                ]
+              }
+            },
+            {
+              "type": "trade_offer",
+              "message": "Trade offer trade_14_11: ג'ימי offers 1 wood to ג'מה for 1 wheat.",
+              "timestamp": 1779038535.7100885,
+              "data": {
+                "trade_id": "trade_14_11"
+              }
+            },
+            {
+              "type": "trade_response",
+              "message": "Trade trade_14_11 was accepted by ג'מה.",
+              "timestamp": 1779038535.7131777,
+              "data": {
+                "trade_id": "trade_14_11",
+                "status": "accepted"
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=trade actor=ג'ימי target=ג'מה status=accepted offer={W:1} request={Wh:1}",
+              "timestamp": 1779038535.7141893,
+              "data": {
+                "affected_players": [
+                  2,
+                  0
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "ג'ימי ended their turn",
+              "timestamp": 1779038535.7226353,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 15: Player 0's turn begins.",
+              "timestamp": 1779038535.724108,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 11 (5+6). Resources distributed: ג'מה +1 wood.",
+              "timestamp": 1779038535.7317984,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll actor=ג'מה dice=11(5+6) prod={ג'מה:{W:1}}",
+              "timestamp": 1779038535.7328682,
+              "data": {
+                "affected_players": [
+                  0
+                ]
+              }
+            },
+            {
+              "type": "action_failed",
+              "message": "Your previous action failed: TRADE_PROPOSE {'offer': {'wheat': 1}, 'request': {'brick': 1}, 'target_player': 2, '_ai_say_outloud': \"ג'ימי, מה אומר? יש לך אולי טיט פנוי בתמורה לחיטה? זה יעזור לשנינו להתקדם קצת בזמן שקלוד מחכה שהשמש תזרח על האבן שלו.\", '_ai_replay': True, 'trade_id': 'trade_15_12', 'to_player': \"ג'ימי\", 'trade_status': 'invalid_target_missing_cards'}. Error: ג'ימי doesn't have the required cards. The say_outloud from that failed attempt was not said publicly; choose a new legal action.",
+              "timestamp": 1779038535.7384436,
+              "data": {
+                "action_type": "TRADE_PROPOSE",
+                "parameters": {
+                  "offer": {
+                    "wheat": 1
+                  },
+                  "request": {
+                    "brick": 1
+                  },
+                  "target_player": 2,
+                  "_ai_say_outloud": "ג'ימי, מה אומר? יש לך אולי טיט פנוי בתמורה לחיטה? זה יעזור לשנינו להתקדם קצת בזמן שקלוד מחכה שהשמש תזרח על האבן שלו.",
+                  "_ai_replay": true,
+                  "trade_id": "trade_15_12",
+                  "to_player": "ג'ימי",
+                  "trade_status": "invalid_target_missing_cards",
+                  "player_name": "ג'מה",
+                  "turn_number": 15
+                },
+                "error": "ג'ימי doesn't have the required cards"
+              }
+            },
+            {
+              "type": "action_failed",
+              "message": "Your previous action failed: TRADE_PROPOSE {'offer': {'sheep': 1}, 'request': {'brick': 1}, 'target_player': 1, '_ai_say_outloud': \"קלוד, אני רואה שג'ימי יבש מטיט. אולי אתה תהיה יותר יעיל? אתן לך כבשה בתמורה לטיט אחד, שתוכל להתחיל לבנות משהו במקום רק להתלונן על השודד.\", '_ai_replay': True, 'trade_id': 'trade_15_13', 'to_player': 'קלוד', 'trade_status': 'invalid_target_missing_cards'}. Error: קלוד doesn't have the required cards. The say_outloud from that failed attempt was not said publicly; choose a new legal action.",
+              "timestamp": 1779038539.9335592,
+              "data": {
+                "action_type": "TRADE_PROPOSE",
+                "parameters": {
+                  "offer": {
+                    "sheep": 1
+                  },
+                  "request": {
+                    "brick": 1
+                  },
+                  "target_player": 1,
+                  "_ai_say_outloud": "קלוד, אני רואה שג'ימי יבש מטיט. אולי אתה תהיה יותר יעיל? אתן לך כבשה בתמורה לטיט אחד, שתוכל להתחיל לבנות משהו במקום רק להתלונן על השודד.",
+                  "_ai_replay": true,
+                  "trade_id": "trade_15_13",
+                  "to_player": "קלוד",
+                  "trade_status": "invalid_target_missing_cards",
+                  "player_name": "ג'מה",
+                  "turn_number": 15
+                },
+                "error": "קלוד doesn't have the required cards"
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "ג'מה ended their turn",
+              "timestamp": 1779038539.938402,
+              "data": {
+                "affected_players": [
+                  0
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 16: Player 1's turn begins.",
+              "timestamp": 1779038539.9397843,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "robber",
+              "message": "🏴‍☠️ קלוד must move the robber!",
+              "timestamp": 1779038544.6095397,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 7 (3+4)! 🏴‍☠️ Robber activated!",
+              "timestamp": 1779038544.60955,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll7 actor=קלוד dice=7(3+4) prod={} next=discard_or_robber",
+              "timestamp": 1779038544.6106036,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "robber_moved",
+              "message": "🏴‍☠️ קלוד moved the robber to [3, 2].",
+              "timestamp": 1779038544.6150405,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "steal_complete",
+              "message": "🎯 קלוד stole a card from ג'מה (only adjacent player).",
+              "timestamp": 1779038544.6150782,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=robber actor=קלוד hex=15 victim=ג'מה stolen=1",
+              "timestamp": 1779038544.6162977,
+              "data": {
+                "affected_players": [
+                  1,
+                  0
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=use_dev actor=קלוד card=RoadBuilding roads=[26-16,16-15] dev_delta={hidden:-1}",
+              "timestamp": 1779038544.6242793,
+              "data": {
+                "affected_players": [
+                  1
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "קלוד ended their turn",
+              "timestamp": 1779038544.6282156,
+              "data": {
+                "affected_players": [
+                  1
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 17: Player 2's turn begins.",
+              "timestamp": 1779038544.6295054,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "robber",
+              "message": "🏴‍☠️ ג'ימי must move the robber!",
+              "timestamp": 1779038544.6329694,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 7 (1+6)! 🏴‍☠️ Robber activated!",
+              "timestamp": 1779038544.632976,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll7 actor=ג'ימי dice=7(1+6) prod={} next=discard_or_robber",
+              "timestamp": 1779038544.6339831,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "robber_moved",
+              "message": "🏴‍☠️ ג'ימי moved the robber to [2, 4].",
+              "timestamp": 1779038549.120641,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "steal_complete",
+              "message": "🎯 ג'ימי stole a card from קלוד (only adjacent player).",
+              "timestamp": 1779038549.1206887,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=robber actor=ג'ימי hex=12 victim=קלוד stolen=1",
+              "timestamp": 1779038549.1213288,
+              "data": {
+                "affected_players": [
+                  2,
+                  1
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=use_dev actor=ג'ימי card=Monopoly resource=W taken={W:5} dev_delta={hidden:-1}",
+              "timestamp": 1779038549.129644,
+              "data": {
+                "affected_players": [
+                  0,
+                  1,
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=bank_trade actor=ג'ימי give={W:4} receive={B:1}",
+              "timestamp": 1779038549.1350517,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=build_settlement actor=ג'ימי node=31 cost={W:1,B:1,S:1,Wh:1}",
+              "timestamp": 1779038549.141741,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "ג'ימי ended their turn",
+              "timestamp": 1779038549.1481402,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 18: Player 0's turn begins.",
+              "timestamp": 1779038549.1496818,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 4 (2+2). Resources distributed: ג'ימי +1 wood.",
+              "timestamp": 1779038549.1561732,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll actor=ג'מה dice=4(2+2) prod={ג'ימי:{W:1}}",
+              "timestamp": 1779038549.1574755,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_failed",
+              "message": "Your previous action failed: TRADE_PROPOSE {'offer': {'sheep': 1}, 'request': {'brick': 1}, 'target_player': 2, '_ai_say_outloud': \"ג'ימי, יש לך אולי טיט פנוי? אני מוכנה לתת כבשה בתמורה. אני חייבת להתקדם לאנשהו.\", '_ai_replay': True, 'trade_id': 'trade_18_15', 'to_player': \"ג'ימי\", 'trade_status': 'invalid_target_missing_cards'}. Error: ג'ימי doesn't have the required cards. The say_outloud from that failed attempt was not said publicly; choose a new legal action.",
+              "timestamp": 1779038549.1630113,
+              "data": {
+                "action_type": "TRADE_PROPOSE",
+                "parameters": {
+                  "offer": {
+                    "sheep": 1
+                  },
+                  "request": {
+                    "brick": 1
+                  },
+                  "target_player": 2,
+                  "_ai_say_outloud": "ג'ימי, יש לך אולי טיט פנוי? אני מוכנה לתת כבשה בתמורה. אני חייבת להתקדם לאנשהו.",
+                  "_ai_replay": true,
+                  "trade_id": "trade_18_15",
+                  "to_player": "ג'ימי",
+                  "trade_status": "invalid_target_missing_cards",
+                  "player_name": "ג'מה",
+                  "turn_number": 18
+                },
+                "error": "ג'ימי doesn't have the required cards"
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "ג'מה ended their turn",
+              "timestamp": 1779038549.1681826,
+              "data": {
+                "affected_players": [
+                  0
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 19: Player 1's turn begins.",
+              "timestamp": 1779038549.169888,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 2 (1+1). Resources distributed: ג'מה +1 ore.",
+              "timestamp": 1779038549.1748788,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll actor=קלוד dice=2(1+1) prod={ג'מה:{O:1}}",
+              "timestamp": 1779038549.1758995,
+              "data": {
+                "affected_players": [
+                  0
+                ]
+              }
+            },
+            {
+              "type": "trade_offer",
+              "message": "Trade offer trade_19_17: קלוד offers 1 wheat to ג'ימי for 1 wood.",
+              "timestamp": 1779038549.1850824,
+              "data": {
+                "trade_id": "trade_19_17"
+              }
+            },
+            {
+              "type": "trade_response",
+              "message": "Trade trade_19_17 was rejected by ג'ימי.",
+              "timestamp": 1779038549.188528,
+              "data": {
+                "trade_id": "trade_19_17",
+                "status": "rejected"
+              }
+            },
+            {
+              "type": "trade_offer",
+              "message": "Trade offer trade_19_18: קלוד offers 1 wheat to ג'מה for 1 ore.",
+              "timestamp": 1779038553.5555222,
+              "data": {
+                "trade_id": "trade_19_18"
+              }
+            },
+            {
+              "type": "trade_response",
+              "message": "Trade trade_19_18 was rejected by ג'מה.",
+              "timestamp": 1779038553.557199,
+              "data": {
+                "trade_id": "trade_19_18",
+                "status": "rejected"
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "קלוד ended their turn",
+              "timestamp": 1779038553.5620852,
+              "data": {
+                "affected_players": [
+                  1
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 20: Player 2's turn begins.",
+              "timestamp": 1779038553.5630536,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 11 (6+5). Resources distributed: ג'מה +1 wood; ג'ימי +1 wood.",
+              "timestamp": 1779038553.5681233,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll actor=ג'ימי dice=11(6+5) prod={ג'מה:{W:1};ג'ימי:{W:1}}",
+              "timestamp": 1779038553.5691066,
+              "data": {
+                "affected_players": [
+                  0,
+                  2
+                ]
+              }
+            },
+            {
+              "type": "trade_offer",
+              "message": "Trade offer trade_20_19: ג'ימי offers 1 wood to ג'מה for 1 ore.",
+              "timestamp": 1779038558.030498,
+              "data": {
+                "trade_id": "trade_20_19"
+              }
+            },
+            {
+              "type": "trade_response",
+              "message": "Trade trade_20_19 was rejected by ג'מה.",
+              "timestamp": 1779038558.0337033,
+              "data": {
+                "trade_id": "trade_20_19",
+                "status": "rejected"
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "ג'ימי ended their turn",
+              "timestamp": 1779038558.0407946,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 21: Player 0's turn begins.",
+              "timestamp": 1779038558.0425053,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 10 (6+4). Resources distributed: ג'ימי +1 brick.",
+              "timestamp": 1779038558.047898,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll actor=ג'מה dice=10(6+4) prod={ג'ימי:{B:1}}",
+              "timestamp": 1779038558.0492878,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "trade_offer",
+              "message": "Trade offer trade_21_20: ג'מה offers 1 sheep to ג'ימי for 1 brick.",
+              "timestamp": 1779038562.6964085,
+              "data": {
+                "trade_id": "trade_21_20"
+              }
+            },
+            {
+              "type": "trade_response",
+              "message": "Trade trade_21_20 was accepted by ג'ימי.",
+              "timestamp": 1779038562.699345,
+              "data": {
+                "trade_id": "trade_21_20",
+                "status": "accepted"
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=trade actor=ג'מה target=ג'ימי status=accepted offer={S:1} request={B:1}",
+              "timestamp": 1779038562.7007735,
+              "data": {
+                "affected_players": [
+                  0,
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=build_road actor=ג'מה edge=52-51 cost={W:1,B:1}",
+              "timestamp": 1779038562.7081094,
+              "data": {
+                "affected_players": [
+                  0
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "ג'מה ended their turn",
+              "timestamp": 1779038562.7152274,
+              "data": {
+                "affected_players": [
+                  0
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 22: Player 1's turn begins.",
+              "timestamp": 1779038562.7169168,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 11 (6+5). Resources distributed: ג'מה +1 wood; ג'ימי +1 wood.",
+              "timestamp": 1779038562.7241712,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll actor=קלוד dice=11(6+5) prod={ג'מה:{W:1};ג'ימי:{W:1}}",
+              "timestamp": 1779038562.7258582,
+              "data": {
+                "affected_players": [
+                  0,
+                  2
+                ]
+              }
+            },
+            {
+              "type": "trade_offer",
+              "message": "Trade offer trade_22_22: קלוד offers 1 wheat to ג'ימי for 1 wood.",
+              "timestamp": 1779038562.7515924,
+              "data": {
+                "trade_id": "trade_22_22"
+              }
+            },
+            {
+              "type": "trade_response",
+              "message": "Trade trade_22_22 was accepted by ג'ימי.",
+              "timestamp": 1779038562.7854705,
+              "data": {
+                "trade_id": "trade_22_22",
+                "status": "accepted"
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=trade actor=קלוד target=ג'ימי status=accepted offer={Wh:1} request={W:1}",
+              "timestamp": 1779038562.786944,
+              "data": {
+                "affected_players": [
+                  1,
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "קלוד ended their turn",
+              "timestamp": 1779038562.7967196,
+              "data": {
+                "affected_players": [
+                  1
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 23: Player 2's turn begins.",
+              "timestamp": 1779038562.7988462,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 8 (3+5). Resources distributed: ג'ימי +1 wheat; ג'מה +1 sheep; קלוד +1 wheat.",
+              "timestamp": 1779038562.8177283,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll actor=ג'ימי dice=8(3+5) prod={ג'ימי:{Wh:1};ג'מה:{S:1};קלוד:{Wh:1}}",
+              "timestamp": 1779038562.8194554,
+              "data": {
+                "affected_players": [
+                  2,
+                  0,
+                  1
+                ]
+              }
+            },
+            {
+              "type": "trade_offer",
+              "message": "Trade offer trade_23_23: ג'ימי offers 1 wood to ג'מה for 1 ore.",
+              "timestamp": 1779038562.8256721,
+              "data": {
+                "trade_id": "trade_23_23"
+              }
+            },
+            {
+              "type": "trade_response",
+              "message": "Trade trade_23_23 was rejected by ג'מה.",
+              "timestamp": 1779038562.8296027,
+              "data": {
+                "trade_id": "trade_23_23",
+                "status": "rejected"
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=buy_dev actor=ג'ימי cost={S:1,Wh:1,O:1} dev_delta={hidden:+1}",
+              "timestamp": 1779038562.8380513,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            }
+          ],
+          "last_prompt_number": 0,
+          "stats": {
+            "player_name": "ג'מה",
+            "player_id": 0,
+            "total_requests": 0,
+            "successful_requests": 0,
+            "failed_requests": 0,
+            "total_tokens_used": 10495,
+            "success_rate": "N/A"
+          }
+        },
+        "קלוד": {
+          "player_name": "קלוד",
+          "player_id": 1,
+          "player_color": "Blue",
+          "memory": "I need 1 Brick and 1 Wheat to build at N16. I currently have 1 Sheep, 1 Wheat, and 1 Wood. Jimmy is the main threat at 3 VP. Gemma is building towards a port.",
+          "memory_updated_at": 1779038562.7909093,
+          "compacted_memory": "Previous long-term memory: Previous long-term memory: Strategic notes: Placed first settlement on node 12 (Wood 3, Brick 6, Sheep 5). Gemma's node 20 is weak on resources (W11, B6, Desert). | Road placed towards node 11. Aiming for the Wheat port at node 3 or high pip nodes in that area. | Placed second settlement on node 25. Starting resources: Wheat, Sheep, Ore. Jimmy has strong Ore/Wheat production on 42, so I need to prioritize expanding to more Ore or getting a port soon. | Placed road from 25 to 26 to secure the Ore port. My production is Ore-heavy (O3, O4, O5 across both settlements), so this port is critical for my mid-game flexibility. | I am at 2 VP. My current production is solid on Brick (6), Sheep (4,5), Ore (3), and Wheat (8). Need Wood (3) or more Brick to reach the Ore port at Node 26. Gemma is watching me closely. | Moved robber to Hex 18 (Wheat 9). This blocks both Jimmy and Gemma. Stole from Jimmy to slow his city-building potential. | Stole from Jimmy on Hex 18. He had Wheat and Wood; need to see what I get. Gemma is still watching my move to the Ore port. | Node 26 is illegal for a settlement due to proximity to Node 25. Need to plan a longer route to a port or different expansion. Bought a Dev card with 1 Wheat, 1 Sheep, 1 Ore. Strategic notes: I have a road_building card. Plan is to use it to reach the Ore port at node 16 once I have settlement resources. Node 26 is just a stepping stone. | I have a road_building card. Plan to use it from node 11 towards node 9 (3:1 port) once I have the resources for a settlement. Node 26 is a dead end for settlements. Need Wood and Brick. | Rolled dice. Still holding Road Building card. Need to clear the robber from Hex 11 (Ore 3) to start producing Ore again. | Still holding Road Building....",
+          "compacted_memory_updated_at": 1779038553.5484633,
+          "compaction_count": 3,
+          "memory_history": [
+            {
+              "note": "Attempted to trade Wheat for Wood with Jimmy since he's the only one with Wood. Node 16 is still open and my primary target. I have 1 Sheep and 2 Wheat left.",
+              "timestamp": 1779038549.1827884
+            },
+            {
+              "note": "Jimmy and Gemma are hoarding Wood and Brick. Node 16 is still the goal but I'm resource-starved. Need to watch Jimmy's lead (3VP).",
+              "timestamp": 1779038549.1912704
+            },
+            {
+              "note": "Still stuck without Brick or Wood for node 16. Gemma and Jimmy are refusing to trade even when it might benefit them, likely due to my past betrayal and Jimmy's current lead. Need to wait for production.",
+              "timestamp": 1779038553.5595753
+            },
+            {
+              "note": "I am stuck with 2 Wheat and 1 Sheep. Jimmy is at 3 VP and very close to a city. I need to reach N16 for the Ore port. Robber is currently on my Sheep 4 (Hex 12).",
+              "timestamp": 1779038562.7206686
+            },
+            {
+              "note": "Node 16 is still open and I have a road leading to it. I need 1 Wood, 1 Brick, and 1 Wheat to build there. Jimmy is dangerous with 3W and 1O.",
+              "timestamp": 1779038562.730026
+            },
+            {
+              "note": "Attempted to trade Wheat for Wood with Jimmy since Gemma has no Brick. N16 is still open and I have a road connected to it. I still need 1 Wood, 1 Brick, and 1 Wheat to build the next settlement.",
+              "timestamp": 1779038562.739735
+            },
+            {
+              "note": "I need 1 Brick and 1 Wheat to build at N16. I currently have 1 Sheep, 1 Wheat, and 1 Wood. Jimmy is the main threat at 3 VP. Gemma is building towards a port.",
+              "timestamp": 1779038562.7909093
+            }
+          ],
+          "relationship_context_updates": [],
+          "relationship_context_updated_at": null,
+          "chat_summaries": [],
+          "recent_events": [
+            {
+              "type": "game_start",
+              "message": "Game 2853327e-f831-4d17-bb14-7b02046611c2 has started with 3 players!",
+              "timestamp": 1779038512.4484885,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 0: Player 0's turn begins.",
+              "timestamp": 1779038512.4485254,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=setup_settlement actor=ג'מה node=20",
+              "timestamp": 1779038512.4562724,
+              "data": {
+                "affected_players": [
+                  0
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=setup_road actor=ג'מה edge=20-10",
+              "timestamp": 1779038512.4637792,
+              "data": {
+                "affected_players": [
+                  0
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 1: Player 1's turn begins.",
+              "timestamp": 1779038512.4657128,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=setup_settlement actor=קלוד node=12",
+              "timestamp": 1779038512.4718196,
+              "data": {
+                "affected_players": [
+                  1
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=setup_road actor=קלוד edge=12-11",
+              "timestamp": 1779038512.4776082,
+              "data": {
+                "affected_players": [
+                  1
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 2: Player 2's turn begins.",
+              "timestamp": 1779038512.4794877,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=setup_settlement actor=ג'ימי node=42",
+              "timestamp": 1779038512.4857254,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=setup_road actor=ג'ימי edge=42-41",
+              "timestamp": 1779038512.4957583,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "phase_change",
+              "message": "First round of setup complete! Starting second round (reverse order).",
+              "timestamp": 1779038512.4990828,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 3: Player 2's turn begins.",
+              "timestamp": 1779038512.4991953,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=setup_settlement actor=ג'ימי node=14 gain={W:2,Wh:1}",
+              "timestamp": 1779038512.5138242,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=setup_road actor=ג'ימי edge=14-24",
+              "timestamp": 1779038512.5240178,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 4: Player 1's turn begins.",
+              "timestamp": 1779038512.5264027,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=setup_settlement actor=קלוד node=25 gain={S:1,Wh:1,O:1}",
+              "timestamp": 1779038512.5365148,
+              "data": {
+                "affected_players": [
+                  1
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=setup_road actor=קלוד edge=25-26",
+              "timestamp": 1779038512.5431173,
+              "data": {
+                "affected_players": [
+                  1
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 5: Player 0's turn begins.",
+              "timestamp": 1779038512.5464265,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=setup_settlement actor=ג'מה node=44 gain={Wh:2,O:1}",
+              "timestamp": 1779038512.553209,
+              "data": {
+                "affected_players": [
+                  0
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=setup_road actor=ג'מה edge=44-52",
+              "timestamp": 1779038512.5628352,
+              "data": {
+                "affected_players": [
+                  0
+                ]
+              }
+            },
+            {
+              "type": "phase_change",
+              "message": "Setup complete! Entering Normal Play phase.",
+              "timestamp": 1779038512.564921,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 6: Player 0's turn begins.",
+              "timestamp": 1779038512.564937,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 8 (5+3). Resources distributed: ג'ימי +1 wheat; ג'מה +1 sheep; קלוד +1 wheat.",
+              "timestamp": 1779038512.5774615,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll actor=ג'מה dice=8(5+3) prod={ג'ימי:{Wh:1};ג'מה:{S:1};קלוד:{Wh:1}}",
+              "timestamp": 1779038512.5792463,
+              "data": {
+                "affected_players": [
+                  2,
+                  0,
+                  1
+                ]
+              }
+            },
+            {
+              "type": "trade_offer",
+              "message": "Trade offer trade_6_1: ג'מה offers 1 sheep to ג'ימי for 1 wood.",
+              "timestamp": 1779038512.5991058,
+              "data": {
+                "trade_id": "trade_6_1"
+              }
+            },
+            {
+              "type": "trade_response",
+              "message": "Trade trade_6_1 was accepted by ג'ימי.",
+              "timestamp": 1779038512.608645,
+              "data": {
+                "trade_id": "trade_6_1",
+                "status": "accepted"
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=trade actor=ג'מה target=ג'ימי status=accepted offer={S:1} request={W:1}",
+              "timestamp": 1779038512.612753,
+              "data": {
+                "affected_players": [
+                  0,
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "ג'מה ended their turn",
+              "timestamp": 1779038512.6242201,
+              "data": {
+                "affected_players": [
+                  0
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 7: Player 1's turn begins.",
+              "timestamp": 1779038512.6261842,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "robber",
+              "message": "🏴‍☠️ קלוד must move the robber!",
+              "timestamp": 1779038512.634668,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 7 (6+1)! 🏴‍☠️ Robber activated!",
+              "timestamp": 1779038512.6346786,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll7 actor=קלוד dice=7(6+1) prod={} next=discard_or_robber",
+              "timestamp": 1779038512.6360238,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "robber_moved",
+              "message": "🏴‍☠️ קלוד moved the robber to [4, 1].",
+              "timestamp": 1779038512.6521456,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "steal_available",
+              "message": "🎯 קלוד can steal from: ג'ימי, ג'מה",
+              "timestamp": 1779038512.6521637,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=robber actor=קלוד hex=18",
+              "timestamp": 1779038512.6533213,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "steal_complete",
+              "message": "🎯 קלוד stole a card from ג'ימי!",
+              "timestamp": 1779038512.6591208,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=steal actor=קלוד victim=ג'ימי stolen=1",
+              "timestamp": 1779038512.660547,
+              "data": {
+                "affected_players": [
+                  1,
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=buy_dev actor=קלוד cost={S:1,Wh:1,O:1} dev_delta={hidden:+1}",
+              "timestamp": 1779038512.668468,
+              "data": {
+                "affected_players": [
+                  1
+                ]
+              }
+            },
+            {
+              "type": "action_failed",
+              "message": "Your previous action failed: TRADE_PROPOSE {'offer': {'wheat': 1}, 'request': {'brick': 1}, 'target_player': 0, '_ai_say_outloud': \"ג'מה, אני רואה שאת מחפשת חיטה. יש לי קצת אקסטרה, מעוניינת להחליף תמורת טיט? זה יעזור לשנינו להתקדם קצת.\", '_ai_replay': True, 'trade_id': 'trade_7_2', 'to_player': \"ג'מה\", 'trade_status': 'invalid_target_missing_cards'}. Error: ג'מה doesn't have the required cards. The say_outloud from that failed attempt was not said publicly; choose a new legal action.",
+              "timestamp": 1779038512.6746256,
+              "data": {
+                "action_type": "TRADE_PROPOSE",
+                "parameters": {
+                  "offer": {
+                    "wheat": 1
+                  },
+                  "request": {
+                    "brick": 1
+                  },
+                  "target_player": 0,
+                  "_ai_say_outloud": "ג'מה, אני רואה שאת מחפשת חיטה. יש לי קצת אקסטרה, מעוניינת להחליף תמורת טיט? זה יעזור לשנינו להתקדם קצת.",
+                  "_ai_replay": true,
+                  "trade_id": "trade_7_2",
+                  "to_player": "ג'מה",
+                  "trade_status": "invalid_target_missing_cards",
+                  "player_name": "קלוד",
+                  "turn_number": 7
+                },
+                "error": "ג'מה doesn't have the required cards"
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "קלוד ended their turn",
+              "timestamp": 1779038521.503231,
+              "data": {
+                "affected_players": [
+                  1
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 8: Player 2's turn begins.",
+              "timestamp": 1779038521.5047946,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "robber",
+              "message": "🏴‍☠️ ג'ימי must move the robber!",
+              "timestamp": 1779038521.5139172,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 7 (5+2)! 🏴‍☠️ Robber activated!",
+              "timestamp": 1779038521.5139272,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll7 actor=ג'ימי dice=7(5+2) prod={} next=discard_or_robber",
+              "timestamp": 1779038521.515009,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "robber_moved",
+              "message": "🏴‍☠️ ג'ימי moved the robber to [2, 3].",
+              "timestamp": 1779038521.5255,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "steal_complete",
+              "message": "🎯 ג'ימי stole a card from קלוד (only adjacent player).",
+              "timestamp": 1779038521.5255492,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=robber actor=ג'ימי hex=11 victim=קלוד stolen=1",
+              "timestamp": 1779038521.5265367,
+              "data": {
+                "affected_players": [
+                  2,
+                  1
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "ג'ימי ended their turn",
+              "timestamp": 1779038526.4670546,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 9: Player 0's turn begins.",
+              "timestamp": 1779038526.4681606,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 5 (4+1). Resources distributed: קלוד +1 sheep; ג'ימי +1 ore.",
+              "timestamp": 1779038526.4726126,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll actor=ג'מה dice=5(4+1) prod={קלוד:{S:1};ג'ימי:{O:1}}",
+              "timestamp": 1779038526.473678,
+              "data": {
+                "affected_players": [
+                  1,
+                  2
+                ]
+              }
+            },
+            {
+              "type": "trade_offer",
+              "message": "Trade offer trade_9_4: ג'מה offers 1 wheat to ג'ימי for 1 sheep.",
+              "timestamp": 1779038526.4772289,
+              "data": {
+                "trade_id": "trade_9_4"
+              }
+            },
+            {
+              "type": "trade_response",
+              "message": "Trade trade_9_4 was rejected by ג'ימי.",
+              "timestamp": 1779038526.4801252,
+              "data": {
+                "trade_id": "trade_9_4",
+                "status": "rejected"
+              }
+            },
+            {
+              "type": "trade_offer",
+              "message": "Trade offer trade_9_5: ג'מה offers 1 wood to ג'ימי for 1 sheep.",
+              "timestamp": 1779038530.8373694,
+              "data": {
+                "trade_id": "trade_9_5"
+              }
+            },
+            {
+              "type": "trade_response",
+              "message": "Trade trade_9_5 was accepted by ג'ימי.",
+              "timestamp": 1779038530.83893,
+              "data": {
+                "trade_id": "trade_9_5",
+                "status": "accepted"
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=trade actor=ג'מה target=ג'ימי status=accepted offer={W:1} request={S:1}",
+              "timestamp": 1779038530.8394532,
+              "data": {
+                "affected_players": [
+                  0,
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=buy_dev actor=ג'מה cost={S:1,Wh:1,O:1} dev_delta={hidden:+1}",
+              "timestamp": 1779038530.8418348,
+              "data": {
+                "affected_players": [
+                  0
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "ג'מה ended their turn",
+              "timestamp": 1779038530.8457196,
+              "data": {
+                "affected_players": [
+                  0
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 10: Player 1's turn begins.",
+              "timestamp": 1779038530.8468423,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 9 (5+4). Resources distributed: ג'ימי +2 wheat; ג'מה +1 wheat.",
+              "timestamp": 1779038530.8508599,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll actor=קלוד dice=9(5+4) prod={ג'ימי:{Wh:2};ג'מה:{Wh:1}}",
+              "timestamp": 1779038530.8516357,
+              "data": {
+                "affected_players": [
+                  2,
+                  0
+                ]
+              }
+            },
+            {
+              "type": "action_failed",
+              "message": "Your previous action failed: TRADE_PROPOSE {'offer': {'sheep': 1}, 'request': {'brick': 1}, 'target_player': 0, '_ai_say_outloud': \"ג'מה, שמעתי שאת מחפשת כבשה. אני מוכן לתת לך אחת תמורת טיט. חבל שסתם תתקעו שניכם כשאפשר להתקדם, לא חבל על הזמן של כולנו?\", '_ai_replay': True, 'trade_id': 'trade_10_6', 'to_player': \"ג'מה\", 'trade_status': 'invalid_target_missing_cards'}. Error: ג'מה doesn't have the required cards. The say_outloud from that failed attempt was not said publicly; choose a new legal action.",
+              "timestamp": 1779038530.8552368,
+              "data": {
+                "action_type": "TRADE_PROPOSE",
+                "parameters": {
+                  "offer": {
+                    "sheep": 1
+                  },
+                  "request": {
+                    "brick": 1
+                  },
+                  "target_player": 0,
+                  "_ai_say_outloud": "ג'מה, שמעתי שאת מחפשת כבשה. אני מוכן לתת לך אחת תמורת טיט. חבל שסתם תתקעו שניכם כשאפשר להתקדם, לא חבל על הזמן של כולנו?",
+                  "_ai_replay": true,
+                  "trade_id": "trade_10_6",
+                  "to_player": "ג'מה",
+                  "trade_status": "invalid_target_missing_cards",
+                  "player_name": "קלוד",
+                  "turn_number": 10
+                },
+                "error": "ג'מה doesn't have the required cards"
+              }
+            },
+            {
+              "type": "trade_offer",
+              "message": "Trade offer trade_10_7: קלוד offers 1 sheep to ג'ימי for 1 wood.",
+              "timestamp": 1779038530.8585973,
+              "data": {
+                "trade_id": "trade_10_7"
+              }
+            },
+            {
+              "type": "trade_response",
+              "message": "Trade trade_10_7 was accepted by ג'ימי.",
+              "timestamp": 1779038530.8605907,
+              "data": {
+                "trade_id": "trade_10_7",
+                "status": "accepted"
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=trade actor=קלוד target=ג'ימי status=accepted offer={S:1} request={W:1}",
+              "timestamp": 1779038530.861384,
+              "data": {
+                "affected_players": [
+                  1,
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "קלוד ended their turn",
+              "timestamp": 1779038530.866127,
+              "data": {
+                "affected_players": [
+                  1
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 11: Player 2's turn begins.",
+              "timestamp": 1779038530.8672602,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 8 (3+5). Resources distributed: ג'ימי +1 wheat; ג'מה +1 sheep; קלוד +1 wheat.",
+              "timestamp": 1779038530.871545,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll actor=ג'ימי dice=8(3+5) prod={ג'ימי:{Wh:1};ג'מה:{S:1};קלוד:{Wh:1}}",
+              "timestamp": 1779038530.8723543,
+              "data": {
+                "affected_players": [
+                  2,
+                  0,
+                  1
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=buy_dev actor=ג'ימי cost={S:1,Wh:1,O:1} dev_delta={hidden:+1}",
+              "timestamp": 1779038530.8771107,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=bank_trade actor=ג'ימי give={Wh:4} receive={B:1}",
+              "timestamp": 1779038535.6580179,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=build_road actor=ג'ימי edge=41-31 cost={W:1,B:1}",
+              "timestamp": 1779038535.6630807,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "ג'ימי ended their turn",
+              "timestamp": 1779038535.6683354,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 12: Player 0's turn begins.",
+              "timestamp": 1779038535.669684,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 5 (2+3). Resources distributed: קלוד +1 sheep; ג'ימי +1 ore.",
+              "timestamp": 1779038535.6745505,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll actor=ג'מה dice=5(2+3) prod={קלוד:{S:1};ג'ימי:{O:1}}",
+              "timestamp": 1779038535.675444,
+              "data": {
+                "affected_players": [
+                  1,
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "ג'מה ended their turn",
+              "timestamp": 1779038535.6804116,
+              "data": {
+                "affected_players": [
+                  0
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 13: Player 1's turn begins.",
+              "timestamp": 1779038535.6818583,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 4 (2+2). Resources distributed: ג'ימי +1 wood; קלוד +1 sheep.",
+              "timestamp": 1779038535.6859486,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll actor=קלוד dice=4(2+2) prod={ג'ימי:{W:1};קלוד:{S:1}}",
+              "timestamp": 1779038535.686902,
+              "data": {
+                "affected_players": [
+                  2,
+                  1
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "קלוד ended their turn",
+              "timestamp": 1779038535.6913908,
+              "data": {
+                "affected_players": [
+                  1
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 14: Player 2's turn begins.",
+              "timestamp": 1779038535.6926718,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 3 (2+1). Resources distributed: קלוד +1 wood; ג'ימי +1 wood.",
+              "timestamp": 1779038535.6962059,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll actor=ג'ימי dice=3(2+1) prod={קלוד:{W:1};ג'ימי:{W:1}}",
+              "timestamp": 1779038535.697202,
+              "data": {
+                "affected_players": [
+                  1,
+                  2
+                ]
+              }
+            },
+            {
+              "type": "trade_offer",
+              "message": "Trade offer trade_14_10: ג'ימי offers 1 wood to קלוד for 1 sheep.",
+              "timestamp": 1779038535.701741,
+              "data": {
+                "trade_id": "trade_14_10"
+              }
+            },
+            {
+              "type": "trade_response",
+              "message": "Trade trade_14_10 was accepted by קלוד.",
+              "timestamp": 1779038535.7047873,
+              "data": {
+                "trade_id": "trade_14_10",
+                "status": "accepted"
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=trade actor=ג'ימי target=קלוד status=accepted offer={W:1} request={S:1}",
+              "timestamp": 1779038535.7057486,
+              "data": {
+                "affected_players": [
+                  2,
+                  1
+                ]
+              }
+            },
+            {
+              "type": "trade_offer",
+              "message": "Trade offer trade_14_11: ג'ימי offers 1 wood to ג'מה for 1 wheat.",
+              "timestamp": 1779038535.710091,
+              "data": {
+                "trade_id": "trade_14_11"
+              }
+            },
+            {
+              "type": "trade_response",
+              "message": "Trade trade_14_11 was accepted by ג'מה.",
+              "timestamp": 1779038535.7131796,
+              "data": {
+                "trade_id": "trade_14_11",
+                "status": "accepted"
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=trade actor=ג'ימי target=ג'מה status=accepted offer={W:1} request={Wh:1}",
+              "timestamp": 1779038535.7141917,
+              "data": {
+                "affected_players": [
+                  2,
+                  0
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "ג'ימי ended their turn",
+              "timestamp": 1779038535.722638,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 15: Player 0's turn begins.",
+              "timestamp": 1779038535.7241106,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 11 (5+6). Resources distributed: ג'מה +1 wood.",
+              "timestamp": 1779038535.7318006,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll actor=ג'מה dice=11(5+6) prod={ג'מה:{W:1}}",
+              "timestamp": 1779038535.7328734,
+              "data": {
+                "affected_players": [
+                  0
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "ג'מה ended their turn",
+              "timestamp": 1779038539.9384053,
+              "data": {
+                "affected_players": [
+                  0
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 16: Player 1's turn begins.",
+              "timestamp": 1779038539.9397864,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "robber",
+              "message": "🏴‍☠️ קלוד must move the robber!",
+              "timestamp": 1779038544.6095426,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 7 (3+4)! 🏴‍☠️ Robber activated!",
+              "timestamp": 1779038544.6095512,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll7 actor=קלוד dice=7(3+4) prod={} next=discard_or_robber",
+              "timestamp": 1779038544.6106057,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "robber_moved",
+              "message": "🏴‍☠️ קלוד moved the robber to [3, 2].",
+              "timestamp": 1779038544.6150434,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "steal_complete",
+              "message": "🎯 קלוד stole a card from ג'מה (only adjacent player).",
+              "timestamp": 1779038544.6150794,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=robber actor=קלוד hex=15 victim=ג'מה stolen=1",
+              "timestamp": 1779038544.6163,
+              "data": {
+                "affected_players": [
+                  1,
+                  0
+                ]
+              }
+            },
+            {
+              "type": "action_failed",
+              "message": "Your previous action failed: USE_DEV_CARD {'card_type': 'Road', 'road_one_coords': {'start': [2, 9], 'end': [1, 8]}, 'road_two_coords': {'start': [1, 8], 'end': [2, 10]}, '_ai_say_outloud': \"טוב, אם אף אחד לא רוצה להחליף טיט, אני פשוט אמשיך להתקדם לאן שאני צריך. ג'מה, תהני מהשקט בחיטה שלך כל עוד הוא נמשך, כי הגלגל עוד יתהפך.\", '_ai_replay': True}. Error: Error using Road Building card: 'int' object has no attribute 'name'. The say_outloud from that failed attempt was not said publicly; choose a new legal action.",
+              "timestamp": 1779038544.6202328,
+              "data": {
+                "action_type": "USE_DEV_CARD",
+                "parameters": {
+                  "card_type": "Road",
+                  "road_one_coords": {
+                    "start": [
+                      2,
+                      9
+                    ],
+                    "end": [
+                      1,
+                      8
+                    ]
+                  },
+                  "road_two_coords": {
+                    "start": [
+                      1,
+                      8
+                    ],
+                    "end": [
+                      2,
+                      10
+                    ]
+                  },
+                  "_ai_say_outloud": "טוב, אם אף אחד לא רוצה להחליף טיט, אני פשוט אמשיך להתקדם לאן שאני צריך. ג'מה, תהני מהשקט בחיטה שלך כל עוד הוא נמשך, כי הגלגל עוד יתהפך.",
+                  "_ai_replay": true,
+                  "player_name": "קלוד",
+                  "turn_number": 16,
+                  "card": "Road",
+                  "road_edges": [
+                    "26-16",
+                    "16-27"
+                  ],
+                  "roads": [
+                    [
+                      26,
+                      16
+                    ],
+                    [
+                      16,
+                      27
+                    ]
+                  ],
+                  "details": "built roads 26-16, 16-27"
+                },
+                "error": "Error using Road Building card: 'int' object has no attribute 'name'"
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=use_dev actor=קלוד card=RoadBuilding roads=[26-16,16-15] dev_delta={hidden:-1}",
+              "timestamp": 1779038544.6242812,
+              "data": {
+                "affected_players": [
+                  1
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "קלוד ended their turn",
+              "timestamp": 1779038544.6282187,
+              "data": {
+                "affected_players": [
+                  1
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 17: Player 2's turn begins.",
+              "timestamp": 1779038544.629507,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "robber",
+              "message": "🏴‍☠️ ג'ימי must move the robber!",
+              "timestamp": 1779038544.6329713,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 7 (1+6)! 🏴‍☠️ Robber activated!",
+              "timestamp": 1779038544.632977,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll7 actor=ג'ימי dice=7(1+6) prod={} next=discard_or_robber",
+              "timestamp": 1779038544.6339881,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "robber_moved",
+              "message": "🏴‍☠️ ג'ימי moved the robber to [2, 4].",
+              "timestamp": 1779038549.1206434,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "steal_complete",
+              "message": "🎯 ג'ימי stole a card from קלוד (only adjacent player).",
+              "timestamp": 1779038549.1206896,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=robber actor=ג'ימי hex=12 victim=קלוד stolen=1",
+              "timestamp": 1779038549.1213303,
+              "data": {
+                "affected_players": [
+                  2,
+                  1
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=use_dev actor=ג'ימי card=Monopoly resource=W taken={W:5} dev_delta={hidden:-1}",
+              "timestamp": 1779038549.129647,
+              "data": {
+                "affected_players": [
+                  0,
+                  1,
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=bank_trade actor=ג'ימי give={W:4} receive={B:1}",
+              "timestamp": 1779038549.1350543,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=build_settlement actor=ג'ימי node=31 cost={W:1,B:1,S:1,Wh:1}",
+              "timestamp": 1779038549.1417463,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "ג'ימי ended their turn",
+              "timestamp": 1779038549.148143,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 18: Player 0's turn begins.",
+              "timestamp": 1779038549.1496842,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 4 (2+2). Resources distributed: ג'ימי +1 wood.",
+              "timestamp": 1779038549.1561759,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll actor=ג'מה dice=4(2+2) prod={ג'ימי:{W:1}}",
+              "timestamp": 1779038549.1574783,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "ג'מה ended their turn",
+              "timestamp": 1779038549.1681852,
+              "data": {
+                "affected_players": [
+                  0
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 19: Player 1's turn begins.",
+              "timestamp": 1779038549.1698904,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 2 (1+1). Resources distributed: ג'מה +1 ore.",
+              "timestamp": 1779038549.1748807,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll actor=קלוד dice=2(1+1) prod={ג'מה:{O:1}}",
+              "timestamp": 1779038549.1759017,
+              "data": {
+                "affected_players": [
+                  0
+                ]
+              }
+            },
+            {
+              "type": "action_failed",
+              "message": "Your previous action failed: TRADE_PROPOSE {'offer': {'wheat': 1}, 'request': {'brick': 1}, 'target_player': 0, '_ai_say_outloud': \"ג'מה, שמעתי שאת מחפשת טיט, אבל אולי יעזור לך קצת חיטה כדי להתגלגל? אני מוכן לתת לך חיטה תמורת טיט אם יש לך במקרה. ג'ימי פשוט בורח לשנינו, חבל שנשב בחיבוק ידיים.\", '_ai_replay': True, 'trade_id': 'trade_19_16', 'to_player': \"ג'מה\", 'trade_status': 'invalid_target_missing_cards'}. Error: ג'מה doesn't have the required cards. The say_outloud from that failed attempt was not said publicly; choose a new legal action.",
+              "timestamp": 1779038549.17989,
+              "data": {
+                "action_type": "TRADE_PROPOSE",
+                "parameters": {
+                  "offer": {
+                    "wheat": 1
+                  },
+                  "request": {
+                    "brick": 1
+                  },
+                  "target_player": 0,
+                  "_ai_say_outloud": "ג'מה, שמעתי שאת מחפשת טיט, אבל אולי יעזור לך קצת חיטה כדי להתגלגל? אני מוכן לתת לך חיטה תמורת טיט אם יש לך במקרה. ג'ימי פשוט בורח לשנינו, חבל שנשב בחיבוק ידיים.",
+                  "_ai_replay": true,
+                  "trade_id": "trade_19_16",
+                  "to_player": "ג'מה",
+                  "trade_status": "invalid_target_missing_cards",
+                  "player_name": "קלוד",
+                  "turn_number": 19
+                },
+                "error": "ג'מה doesn't have the required cards"
+              }
+            },
+            {
+              "type": "trade_offer",
+              "message": "Trade offer trade_19_17: קלוד offers 1 wheat to ג'ימי for 1 wood.",
+              "timestamp": 1779038549.185084,
+              "data": {
+                "trade_id": "trade_19_17"
+              }
+            },
+            {
+              "type": "trade_response",
+              "message": "Trade trade_19_17 was rejected by ג'ימי.",
+              "timestamp": 1779038549.18853,
+              "data": {
+                "trade_id": "trade_19_17",
+                "status": "rejected"
+              }
+            },
+            {
+              "type": "action_failed",
+              "message": "Your previous action failed: TRADE_PROPOSE {'offer': {'wheat': 1}, 'request': {'wood': 1}, 'target_player': 2, '_ai_say_outloud': \"ג'ימי, אני רואה שיש לך עץ ולי יש חיטה שיכולה לעזור לך לעיר או לעוד מושבה. מה אומר על החלפה הוגנת? חבל שנתקע ככה כשהמשחק רץ.\", '_ai_replay': True, 'trade_id': 'trade_19_17', 'to_player': \"ג'ימי\", 'trade_status': 'rejected'}. Error: ג'ימי rejected your trade offer. The say_outloud from that failed attempt was not said publicly; choose a new legal action.",
+              "timestamp": 1779038549.1885808,
+              "data": {
+                "action_type": "TRADE_PROPOSE",
+                "parameters": {
+                  "offer": {
+                    "wheat": 1
+                  },
+                  "request": {
+                    "wood": 1
+                  },
+                  "target_player": 2,
+                  "_ai_say_outloud": "ג'ימי, אני רואה שיש לך עץ ולי יש חיטה שיכולה לעזור לך לעיר או לעוד מושבה. מה אומר על החלפה הוגנת? חבל שנתקע ככה כשהמשחק רץ.",
+                  "_ai_replay": true,
+                  "trade_id": "trade_19_17",
+                  "to_player": "ג'ימי",
+                  "trade_status": "rejected",
+                  "player_name": "קלוד",
+                  "turn_number": 19
+                },
+                "error": "ג'ימי rejected your trade offer"
+              }
+            },
+            {
+              "type": "trade_offer",
+              "message": "Trade offer trade_19_18: קלוד offers 1 wheat to ג'מה for 1 ore.",
+              "timestamp": 1779038553.5555236,
+              "data": {
+                "trade_id": "trade_19_18"
+              }
+            },
+            {
+              "type": "trade_response",
+              "message": "Trade trade_19_18 was rejected by ג'מה.",
+              "timestamp": 1779038553.5572014,
+              "data": {
+                "trade_id": "trade_19_18",
+                "status": "rejected"
+              }
+            },
+            {
+              "type": "action_failed",
+              "message": "Your previous action failed: TRADE_PROPOSE {'offer': {'wheat': 1}, 'request': {'ore': 1}, 'target_player': 0, '_ai_say_outloud': \"ג'מה, אני רואה שחסר לך קצת גמישות. אני אתן לך חיטה בתמורה לאבן, אולי זה יעזור לך להתקדם לכיוון עיר או פיתוח במקום להיתקע.\", '_ai_replay': True, 'trade_id': 'trade_19_18', 'to_player': \"ג'מה\", 'trade_status': 'rejected'}. Error: ג'מה rejected your trade offer. The say_outloud from that failed attempt was not said publicly; choose a new legal action.",
+              "timestamp": 1779038553.5572648,
+              "data": {
+                "action_type": "TRADE_PROPOSE",
+                "parameters": {
+                  "offer": {
+                    "wheat": 1
+                  },
+                  "request": {
+                    "ore": 1
+                  },
+                  "target_player": 0,
+                  "_ai_say_outloud": "ג'מה, אני רואה שחסר לך קצת גמישות. אני אתן לך חיטה בתמורה לאבן, אולי זה יעזור לך להתקדם לכיוון עיר או פיתוח במקום להיתקע.",
+                  "_ai_replay": true,
+                  "trade_id": "trade_19_18",
+                  "to_player": "ג'מה",
+                  "trade_status": "rejected",
+                  "player_name": "קלוד",
+                  "turn_number": 19
+                },
+                "error": "ג'מה rejected your trade offer"
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "קלוד ended their turn",
+              "timestamp": 1779038553.5620897,
+              "data": {
+                "affected_players": [
+                  1
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 20: Player 2's turn begins.",
+              "timestamp": 1779038553.5630548,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 11 (6+5). Resources distributed: ג'מה +1 wood; ג'ימי +1 wood.",
+              "timestamp": 1779038553.5681257,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll actor=ג'ימי dice=11(6+5) prod={ג'מה:{W:1};ג'ימי:{W:1}}",
+              "timestamp": 1779038553.569109,
+              "data": {
+                "affected_players": [
+                  0,
+                  2
+                ]
+              }
+            },
+            {
+              "type": "trade_offer",
+              "message": "Trade offer trade_20_19: ג'ימי offers 1 wood to ג'מה for 1 ore.",
+              "timestamp": 1779038558.0305002,
+              "data": {
+                "trade_id": "trade_20_19"
+              }
+            },
+            {
+              "type": "trade_response",
+              "message": "Trade trade_20_19 was rejected by ג'מה.",
+              "timestamp": 1779038558.0337055,
+              "data": {
+                "trade_id": "trade_20_19",
+                "status": "rejected"
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "ג'ימי ended their turn",
+              "timestamp": 1779038558.0407977,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 21: Player 0's turn begins.",
+              "timestamp": 1779038558.0425086,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 10 (6+4). Resources distributed: ג'ימי +1 brick.",
+              "timestamp": 1779038558.0479004,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll actor=ג'מה dice=10(6+4) prod={ג'ימי:{B:1}}",
+              "timestamp": 1779038558.0492907,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "trade_offer",
+              "message": "Trade offer trade_21_20: ג'מה offers 1 sheep to ג'ימי for 1 brick.",
+              "timestamp": 1779038562.6964114,
+              "data": {
+                "trade_id": "trade_21_20"
+              }
+            },
+            {
+              "type": "trade_response",
+              "message": "Trade trade_21_20 was accepted by ג'ימי.",
+              "timestamp": 1779038562.6993473,
+              "data": {
+                "trade_id": "trade_21_20",
+                "status": "accepted"
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=trade actor=ג'מה target=ג'ימי status=accepted offer={S:1} request={B:1}",
+              "timestamp": 1779038562.700776,
+              "data": {
+                "affected_players": [
+                  0,
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=build_road actor=ג'מה edge=52-51 cost={W:1,B:1}",
+              "timestamp": 1779038562.7081149,
+              "data": {
+                "affected_players": [
+                  0
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "ג'מה ended their turn",
+              "timestamp": 1779038562.7152307,
+              "data": {
+                "affected_players": [
+                  0
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 22: Player 1's turn begins.",
+              "timestamp": 1779038562.7169197,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 11 (6+5). Resources distributed: ג'מה +1 wood; ג'ימי +1 wood.",
+              "timestamp": 1779038562.7241735,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll actor=קלוד dice=11(6+5) prod={ג'מה:{W:1};ג'ימי:{W:1}}",
+              "timestamp": 1779038562.7258637,
+              "data": {
+                "affected_players": [
+                  0,
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_failed",
+              "message": "Your previous action failed: TRADE_PROPOSE {'offer': {'wheat': 1}, 'request': {'brick': 1}, 'target_player': 0, '_ai_say_outloud': \"ג'מה, אני רואה שחסר לך קצת חיטה לפי הלוח, ולי יש עודף. אולי נחליף על טיט? זה יעזור לשנינו להתקדם מול ג'ימי, הוא כבר ממש קרוב לעיר נוספת.\", '_ai_replay': True, 'trade_id': 'trade_22_21', 'to_player': \"ג'מה\", 'trade_status': 'invalid_target_missing_cards'}. Error: ג'מה doesn't have the required cards. The say_outloud from that failed attempt was not said publicly; choose a new legal action.",
+              "timestamp": 1779038562.7364867,
+              "data": {
+                "action_type": "TRADE_PROPOSE",
+                "parameters": {
+                  "offer": {
+                    "wheat": 1
+                  },
+                  "request": {
+                    "brick": 1
+                  },
+                  "target_player": 0,
+                  "_ai_say_outloud": "ג'מה, אני רואה שחסר לך קצת חיטה לפי הלוח, ולי יש עודף. אולי נחליף על טיט? זה יעזור לשנינו להתקדם מול ג'ימי, הוא כבר ממש קרוב לעיר נוספת.",
+                  "_ai_replay": true,
+                  "trade_id": "trade_22_21",
+                  "to_player": "ג'מה",
+                  "trade_status": "invalid_target_missing_cards",
+                  "player_name": "קלוד",
+                  "turn_number": 22
+                },
+                "error": "ג'מה doesn't have the required cards"
+              }
+            },
+            {
+              "type": "trade_offer",
+              "message": "Trade offer trade_22_22: קלוד offers 1 wheat to ג'ימי for 1 wood.",
+              "timestamp": 1779038562.7516546,
+              "data": {
+                "trade_id": "trade_22_22"
+              }
+            },
+            {
+              "type": "trade_response",
+              "message": "Trade trade_22_22 was accepted by ג'ימי.",
+              "timestamp": 1779038562.7854733,
+              "data": {
+                "trade_id": "trade_22_22",
+                "status": "accepted"
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=trade actor=קלוד target=ג'ימי status=accepted offer={Wh:1} request={W:1}",
+              "timestamp": 1779038562.786952,
+              "data": {
+                "affected_players": [
+                  1,
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "קלוד ended their turn",
+              "timestamp": 1779038562.7967231,
+              "data": {
+                "affected_players": [
+                  1
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 23: Player 2's turn begins.",
+              "timestamp": 1779038562.7988489,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 8 (3+5). Resources distributed: ג'ימי +1 wheat; ג'מה +1 sheep; קלוד +1 wheat.",
+              "timestamp": 1779038562.8177316,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll actor=ג'ימי dice=8(3+5) prod={ג'ימי:{Wh:1};ג'מה:{S:1};קלוד:{Wh:1}}",
+              "timestamp": 1779038562.8194597,
+              "data": {
+                "affected_players": [
+                  2,
+                  0,
+                  1
+                ]
+              }
+            },
+            {
+              "type": "trade_offer",
+              "message": "Trade offer trade_23_23: ג'ימי offers 1 wood to ג'מה for 1 ore.",
+              "timestamp": 1779038562.825675,
+              "data": {
+                "trade_id": "trade_23_23"
+              }
+            },
+            {
+              "type": "trade_response",
+              "message": "Trade trade_23_23 was rejected by ג'מה.",
+              "timestamp": 1779038562.829605,
+              "data": {
+                "trade_id": "trade_23_23",
+                "status": "rejected"
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=buy_dev actor=ג'ימי cost={S:1,Wh:1,O:1} dev_delta={hidden:+1}",
+              "timestamp": 1779038562.838055,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            }
+          ],
+          "last_prompt_number": 0,
+          "stats": {
+            "player_name": "קלוד",
+            "player_id": 1,
+            "total_requests": 0,
+            "successful_requests": 0,
+            "failed_requests": 0,
+            "total_tokens_used": 10552,
+            "success_rate": "N/A"
+          }
+        },
+        "ג'ימי": {
+          "player_name": "ג'ימי",
+          "player_id": 2,
+          "player_color": "White",
+          "memory": "Gemma has no brick. Claude has 1 sheep. I need brick for the road to node 40 or sheep/ore for dev cards/cities.",
+          "memory_updated_at": 1779038562.8484554,
+          "compacted_memory": "Previous long-term memory: Previous long-term memory: Previous long-term memory: Strategic notes: I placed my first settlement on node 42 (Ore 5, Wheat 9, Wheat 9). This gives me 12 pips and a strong foundation for Ore and Wheat. Gemma and Claude have the Brick/Wood lead, so I should focus on building up to Cities or Dev cards quickly. | Placed road towards node 41. Aiming for node 31 for Brick (10) or node 40 for the Wood port. My Ore (5) and Wheat (9) production is strong, so I'll need to trade or use ports to get Brick and Wood. | Placed second settlement at node 14 (Wood 3, Wood 4, Wheat 8). I now have Wood, Ore, and Wheat production. I still lack Brick and Sheep. My strategy should be to prioritize getting a port or trading my excess Wheat/Ore for Brick and Sheep to build roads and... | Placed road 14-24. Planning to expand towards node 23 for Brick (10) or node 25 for more production. My Ore/Wheat engine is strong, so ports or Brick are the priority. | Accepted a sheep for wood trade with Gemma. I now have 1 sheep, 1 wood, and 2 wheat. I need ore and brick/wood to expand or ore/wheat/sheep for dev cards. My next goal is to reach node 41 for brick or save for a city/dev card. | The 9-Wheat is still blocked by Claude. I need Brick (Hex 13/8) or a Knight to clear the robber. Gemma is also suffering from the block, which I can use as diplomatic leverage. | Moved robber to Hex 7 (Wheat 8) to block Claude's strongest solo production and potentially steal a resource. Kept Gemma's tiles open to maintain diplomatic leverage against Claude. | Moved robber to Hex 11 (Ore 3) to block Claude's Node 25. Avoided blocking my own Wheat 8 at Hex 7. Strategic notes: Node 41 is illegal due to proximity to Node 42. Road at 24 is the current expansion lead. Need Brick/Ore.......",
+          "compacted_memory_updated_at": 1779038558.0222917,
+          "compaction_count": 4,
+          "memory_history": [
+            {
+              "note": "I hold the only active Brick (טיט) production on the board (Node 31, Hex 8). Claude is actively lobbying Gemma against me. Need 3 Ore and 2 Wheat to upgrade Node 42 to a city for my 4th VP.",
+              "timestamp": 1779038553.5654047
+            },
+            {
+              "note": "Holding the only Brick (טיט) production. Node 42 needs 2 more Ore and 1 more Wheat for a city. Gemma has Ore and needs Wood/Brick. Claude is sabotaging my reputation.",
+              "timestamp": 1779038553.5708065
+            },
+            {
+              "note": "Gemma is wary of my lead (3 VP). Claude's 'runaway leader' narrative is working slightly. I have wood for roads but need Ore/Wheat for a city. Node 40 (Wood port) is a viable expansion target from Node 41/42.",
+              "timestamp": 1779038558.0371165
+            },
+            {
+              "note": "Accepted Gemma's sheep for my brick. This improves our relationship and counters Claude's 'runaway leader' rhetoric, though I've given up my only brick for now.",
+              "timestamp": 1779038562.6977546
+            },
+            {
+              "note": "Accepted Claude's Wheat for Wood. Now have 2 Wheat, 1 Ore, 1 Sheep, and 2 Wood. Still need 2 Ore for a city. Claude is getting desperate, so I should watch for him trying to move the robber to my Ore (5) or Brick (10).",
+              "timestamp": 1779038562.7806745
+            },
+            {
+              "note": "Need 2 more Ore for a city on Node 42. Gemma is suspicious of my lead, so I should prioritize trading with her if possible to keep her on my side. Claude is the main threat to my diplomatic standing.",
+              "timestamp": 1779038562.8035612
+            },
+            {
+              "note": "Attempting to get Ore from Gemma to reach the 3 Ore needed for a city at Node 42. Maintaining diplomatic ties with her is crucial to offset Claude's manipulation.",
+              "timestamp": 1779038562.822606
+            },
+            {
+              "note": "Bought a development card to stay flexible. Still need 2 Ore for a city. Gemma is hoarding Ore, and Claude is trying to frame me as the threat.",
+              "timestamp": 1779038562.8339803
+            },
+            {
+              "note": "Node 40 is open and provides a Wood port plus Ore 5/Brick 10. I need 1 Brick to build the road from 41 to 40. Gemma has been hesitant, but I'll keep pushing the 'help each other' angle.",
+              "timestamp": 1779038562.8421462
+            },
+            {
+              "note": "Gemma has no brick. Claude has 1 sheep. I need brick for the road to node 40 or sheep/ore for dev cards/cities.",
+              "timestamp": 1779038562.8484554
+            }
+          ],
+          "relationship_context_updates": [],
+          "relationship_context_updated_at": null,
+          "chat_summaries": [],
+          "recent_events": [
+            {
+              "type": "game_start",
+              "message": "Game 2853327e-f831-4d17-bb14-7b02046611c2 has started with 3 players!",
+              "timestamp": 1779038512.4484923,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 0: Player 0's turn begins.",
+              "timestamp": 1779038512.4485266,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=setup_settlement actor=ג'מה node=20",
+              "timestamp": 1779038512.4562764,
+              "data": {
+                "affected_players": [
+                  0
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=setup_road actor=ג'מה edge=20-10",
+              "timestamp": 1779038512.4637825,
+              "data": {
+                "affected_players": [
+                  0
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 1: Player 1's turn begins.",
+              "timestamp": 1779038512.4657528,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=setup_settlement actor=קלוד node=12",
+              "timestamp": 1779038512.4718213,
+              "data": {
+                "affected_players": [
+                  1
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=setup_road actor=קלוד edge=12-11",
+              "timestamp": 1779038512.4776103,
+              "data": {
+                "affected_players": [
+                  1
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 2: Player 2's turn begins.",
+              "timestamp": 1779038512.4794893,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=setup_settlement actor=ג'ימי node=42",
+              "timestamp": 1779038512.4857275,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=setup_road actor=ג'ימי edge=42-41",
+              "timestamp": 1779038512.4957607,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "phase_change",
+              "message": "First round of setup complete! Starting second round (reverse order).",
+              "timestamp": 1779038512.4990842,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 3: Player 2's turn begins.",
+              "timestamp": 1779038512.4991968,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=setup_settlement actor=ג'ימי node=14 gain={W:2,Wh:1}",
+              "timestamp": 1779038512.5138264,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=setup_road actor=ג'ימי edge=14-24",
+              "timestamp": 1779038512.52402,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 4: Player 1's turn begins.",
+              "timestamp": 1779038512.5264046,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=setup_settlement actor=קלוד node=25 gain={S:1,Wh:1,O:1}",
+              "timestamp": 1779038512.5365171,
+              "data": {
+                "affected_players": [
+                  1
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=setup_road actor=קלוד edge=25-26",
+              "timestamp": 1779038512.5431197,
+              "data": {
+                "affected_players": [
+                  1
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 5: Player 0's turn begins.",
+              "timestamp": 1779038512.5464282,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=setup_settlement actor=ג'מה node=44 gain={Wh:2,O:1}",
+              "timestamp": 1779038512.553212,
+              "data": {
+                "affected_players": [
+                  0
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=setup_road actor=ג'מה edge=44-52",
+              "timestamp": 1779038512.5628374,
+              "data": {
+                "affected_players": [
+                  0
+                ]
+              }
+            },
+            {
+              "type": "phase_change",
+              "message": "Setup complete! Entering Normal Play phase.",
+              "timestamp": 1779038512.5649226,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 6: Player 0's turn begins.",
+              "timestamp": 1779038512.5649383,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 8 (5+3). Resources distributed: ג'ימי +1 wheat; ג'מה +1 sheep; קלוד +1 wheat.",
+              "timestamp": 1779038512.5774636,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll actor=ג'מה dice=8(5+3) prod={ג'ימי:{Wh:1};ג'מה:{S:1};קלוד:{Wh:1}}",
+              "timestamp": 1779038512.5792494,
+              "data": {
+                "affected_players": [
+                  2,
+                  0,
+                  1
+                ]
+              }
+            },
+            {
+              "type": "trade_offer",
+              "message": "Trade offer trade_6_1: ג'מה offers 1 sheep to ג'ימי for 1 wood.",
+              "timestamp": 1779038512.599108,
+              "data": {
+                "trade_id": "trade_6_1"
+              }
+            },
+            {
+              "type": "trade_response",
+              "message": "Trade trade_6_1 was accepted by ג'ימי.",
+              "timestamp": 1779038512.6086469,
+              "data": {
+                "trade_id": "trade_6_1",
+                "status": "accepted"
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=trade actor=ג'מה target=ג'ימי status=accepted offer={S:1} request={W:1}",
+              "timestamp": 1779038512.612756,
+              "data": {
+                "affected_players": [
+                  0,
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "ג'מה ended their turn",
+              "timestamp": 1779038512.6242228,
+              "data": {
+                "affected_players": [
+                  0
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 7: Player 1's turn begins.",
+              "timestamp": 1779038512.626186,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "robber",
+              "message": "🏴‍☠️ קלוד must move the robber!",
+              "timestamp": 1779038512.6346698,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 7 (6+1)! 🏴‍☠️ Robber activated!",
+              "timestamp": 1779038512.6346798,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll7 actor=קלוד dice=7(6+1) prod={} next=discard_or_robber",
+              "timestamp": 1779038512.6360257,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "robber_moved",
+              "message": "🏴‍☠️ קלוד moved the robber to [4, 1].",
+              "timestamp": 1779038512.652148,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "steal_available",
+              "message": "🎯 קלוד can steal from: ג'ימי, ג'מה",
+              "timestamp": 1779038512.6521647,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=robber actor=קלוד hex=18",
+              "timestamp": 1779038512.653323,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "steal_complete",
+              "message": "🎯 קלוד stole a card from ג'ימי!",
+              "timestamp": 1779038512.6591227,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=steal actor=קלוד victim=ג'ימי stolen=1",
+              "timestamp": 1779038512.6605492,
+              "data": {
+                "affected_players": [
+                  1,
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=buy_dev actor=קלוד cost={S:1,Wh:1,O:1} dev_delta={hidden:+1}",
+              "timestamp": 1779038512.6684704,
+              "data": {
+                "affected_players": [
+                  1
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "קלוד ended their turn",
+              "timestamp": 1779038521.5032341,
+              "data": {
+                "affected_players": [
+                  1
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 8: Player 2's turn begins.",
+              "timestamp": 1779038521.5047958,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "robber",
+              "message": "🏴‍☠️ ג'ימי must move the robber!",
+              "timestamp": 1779038521.5139186,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 7 (5+2)! 🏴‍☠️ Robber activated!",
+              "timestamp": 1779038521.513928,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll7 actor=ג'ימי dice=7(5+2) prod={} next=discard_or_robber",
+              "timestamp": 1779038521.5150108,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_failed",
+              "message": "ARE YOU SURE?\nYou chose robber_move {\"hex\": 7}.\n\nThis hex is Wheat 8 and it is adjacent to your own settlement at Node 14.\nIf the robber stays here, your own Wheat 8 production will also be blocked.\n\nAdjacent buildings:\n- You: settlement at Node 14\n- קלוד: settlement at Node 25\n\nYour original say_outloud has NOT been sent yet.\n\nChoose exactly one:\n\n1. Confirm the same move:\n   Return robber_move {\"hex\": 7, \"confirm_self_block\": true}.\n   If this confirmed move succeeds, your say_outloud WILL be sent publicly.\n\n2. Change the robber target:\n   Return robber_move {\"hex\": NEW_HEX}.\n   Your previous say_outloud will be discarded and will NOT be sent.\n   Write a new say_outloud only if it still fits the new target.\n\n3. Stay silent:\n   You may leave say_outloud empty in either option.",
+              "timestamp": 1779038521.5204616,
+              "data": {
+                "action_type": "ROBBER_MOVE",
+                "parameters": {
+                  "tile_coords": [
+                    1,
+                    3
+                  ],
+                  "_ai_say_outloud": "קלוד, אמרתי לך שהגלגל מסתובב. ה-8 חיטה שלך נראה לי כמו מקום מצוין לשודד, לפחות ככה ג'מה ואני נוכל לנשום קצת בזמן שאתה 'מתכנן' עם הקלפים הסודיים שלך. ג'מה, הנה, פיניתי לנו את ה-9.",
+                  "_ai_replay": true,
+                  "player_name": "ג'ימי",
+                  "turn_number": 8,
+                  "tile": 7
+                },
+                "confirmation_required": true
+              }
+            },
+            {
+              "type": "robber_moved",
+              "message": "🏴‍☠️ ג'ימי moved the robber to [2, 3].",
+              "timestamp": 1779038521.525503,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "steal_complete",
+              "message": "🎯 ג'ימי stole a card from קלוד (only adjacent player).",
+              "timestamp": 1779038521.5255501,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=robber actor=ג'ימי hex=11 victim=קלוד stolen=1",
+              "timestamp": 1779038521.5265381,
+              "data": {
+                "affected_players": [
+                  2,
+                  1
+                ]
+              }
+            },
+            {
+              "type": "action_failed",
+              "message": "Your previous action failed: TRADE_PROPOSE {'offer': {'wheat': 1}, 'request': {'brick': 1}, 'target_player': 0, '_ai_say_outloud': \"ג'מה, ראית? השודד כבר לא על ה-9 שלך. יש לך אולי טיט פנוי? אני מוכן לתת חיטה בתמורה, זה יעזור לשנינו להתקדם בזמן שקלוד תקוע.\", '_ai_replay': True, 'trade_id': 'trade_8_3', 'to_player': \"ג'מה\", 'trade_status': 'invalid_target_missing_cards'}. Error: ג'מה doesn't have the required cards. The say_outloud from that failed attempt was not said publicly; choose a new legal action.",
+              "timestamp": 1779038521.531566,
+              "data": {
+                "action_type": "TRADE_PROPOSE",
+                "parameters": {
+                  "offer": {
+                    "wheat": 1
+                  },
+                  "request": {
+                    "brick": 1
+                  },
+                  "target_player": 0,
+                  "_ai_say_outloud": "ג'מה, ראית? השודד כבר לא על ה-9 שלך. יש לך אולי טיט פנוי? אני מוכן לתת חיטה בתמורה, זה יעזור לשנינו להתקדם בזמן שקלוד תקוע.",
+                  "_ai_replay": true,
+                  "trade_id": "trade_8_3",
+                  "to_player": "ג'מה",
+                  "trade_status": "invalid_target_missing_cards",
+                  "player_name": "ג'ימי",
+                  "turn_number": 8
+                },
+                "error": "ג'מה doesn't have the required cards"
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "ג'ימי ended their turn",
+              "timestamp": 1779038526.4670563,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 9: Player 0's turn begins.",
+              "timestamp": 1779038526.4681616,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 5 (4+1). Resources distributed: קלוד +1 sheep; ג'ימי +1 ore.",
+              "timestamp": 1779038526.472616,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll actor=ג'מה dice=5(4+1) prod={קלוד:{S:1};ג'ימי:{O:1}}",
+              "timestamp": 1779038526.4736793,
+              "data": {
+                "affected_players": [
+                  1,
+                  2
+                ]
+              }
+            },
+            {
+              "type": "trade_offer",
+              "message": "Trade offer trade_9_4: ג'מה offers 1 wheat to ג'ימי for 1 sheep.",
+              "timestamp": 1779038526.4772322,
+              "data": {
+                "trade_id": "trade_9_4"
+              }
+            },
+            {
+              "type": "trade_response",
+              "message": "Trade trade_9_4 was rejected by ג'ימי.",
+              "timestamp": 1779038526.4801288,
+              "data": {
+                "trade_id": "trade_9_4",
+                "status": "rejected"
+              }
+            },
+            {
+              "type": "trade_offer",
+              "message": "Trade offer trade_9_5: ג'מה offers 1 wood to ג'ימי for 1 sheep.",
+              "timestamp": 1779038530.837371,
+              "data": {
+                "trade_id": "trade_9_5"
+              }
+            },
+            {
+              "type": "trade_response",
+              "message": "Trade trade_9_5 was accepted by ג'ימי.",
+              "timestamp": 1779038530.838931,
+              "data": {
+                "trade_id": "trade_9_5",
+                "status": "accepted"
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=trade actor=ג'מה target=ג'ימי status=accepted offer={W:1} request={S:1}",
+              "timestamp": 1779038530.839454,
+              "data": {
+                "affected_players": [
+                  0,
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=buy_dev actor=ג'מה cost={S:1,Wh:1,O:1} dev_delta={hidden:+1}",
+              "timestamp": 1779038530.841836,
+              "data": {
+                "affected_players": [
+                  0
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "ג'מה ended their turn",
+              "timestamp": 1779038530.845722,
+              "data": {
+                "affected_players": [
+                  0
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 10: Player 1's turn begins.",
+              "timestamp": 1779038530.8468444,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 9 (5+4). Resources distributed: ג'ימי +2 wheat; ג'מה +1 wheat.",
+              "timestamp": 1779038530.8508615,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll actor=קלוד dice=9(5+4) prod={ג'ימי:{Wh:2};ג'מה:{Wh:1}}",
+              "timestamp": 1779038530.8516364,
+              "data": {
+                "affected_players": [
+                  2,
+                  0
+                ]
+              }
+            },
+            {
+              "type": "trade_offer",
+              "message": "Trade offer trade_10_7: קלוד offers 1 sheep to ג'ימי for 1 wood.",
+              "timestamp": 1779038530.8585985,
+              "data": {
+                "trade_id": "trade_10_7"
+              }
+            },
+            {
+              "type": "trade_response",
+              "message": "Trade trade_10_7 was accepted by ג'ימי.",
+              "timestamp": 1779038530.860592,
+              "data": {
+                "trade_id": "trade_10_7",
+                "status": "accepted"
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=trade actor=קלוד target=ג'ימי status=accepted offer={S:1} request={W:1}",
+              "timestamp": 1779038530.8613877,
+              "data": {
+                "affected_players": [
+                  1,
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "קלוד ended their turn",
+              "timestamp": 1779038530.866129,
+              "data": {
+                "affected_players": [
+                  1
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 11: Player 2's turn begins.",
+              "timestamp": 1779038530.8672614,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 8 (3+5). Resources distributed: ג'ימי +1 wheat; ג'מה +1 sheep; קלוד +1 wheat.",
+              "timestamp": 1779038530.8715463,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll actor=ג'ימי dice=8(3+5) prod={ג'ימי:{Wh:1};ג'מה:{S:1};קלוד:{Wh:1}}",
+              "timestamp": 1779038530.872355,
+              "data": {
+                "affected_players": [
+                  2,
+                  0,
+                  1
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=buy_dev actor=ג'ימי cost={S:1,Wh:1,O:1} dev_delta={hidden:+1}",
+              "timestamp": 1779038530.8771124,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_failed",
+              "message": "Your previous action failed: TRADE_PROPOSE {'offer': {'wheat': 2}, 'request': {'brick': 1}, 'target_player': 0, '_ai_say_outloud': \"ג'מה, יש לי המון חיטה וחסר לי טיט כדי להתקדם קצת. מעוניינת ב-2 חיטה תמורת טיט אחד? זה יעזור לשנינו לזוז קצת.\", '_ai_replay': True, 'trade_id': 'trade_11_8', 'to_player': \"ג'מה\", 'trade_status': 'invalid_target_missing_cards'}. Error: ג'מה doesn't have the required cards. The say_outloud from that failed attempt was not said publicly; choose a new legal action.",
+              "timestamp": 1779038530.8818955,
+              "data": {
+                "action_type": "TRADE_PROPOSE",
+                "parameters": {
+                  "offer": {
+                    "wheat": 2
+                  },
+                  "request": {
+                    "brick": 1
+                  },
+                  "target_player": 0,
+                  "_ai_say_outloud": "ג'מה, יש לי המון חיטה וחסר לי טיט כדי להתקדם קצת. מעוניינת ב-2 חיטה תמורת טיט אחד? זה יעזור לשנינו לזוז קצת.",
+                  "_ai_replay": true,
+                  "trade_id": "trade_11_8",
+                  "to_player": "ג'מה",
+                  "trade_status": "invalid_target_missing_cards",
+                  "player_name": "ג'ימי",
+                  "turn_number": 11
+                },
+                "error": "ג'מה doesn't have the required cards"
+              }
+            },
+            {
+              "type": "action_failed",
+              "message": "Your previous action failed: TRADE_PROPOSE {'offer': {'wheat': 2}, 'request': {'brick': 1}, 'target_player': 1, '_ai_say_outloud': 'קלוד, ראיתי שקיבלת כבשה מה-8, אבל אני מניח שטיט יש לך בשפע מהחשיבות שלך שם. רוצה 2 חיטה תמורת טיט אחד? זה יסגור לך פינה לעיר או קלף.', '_ai_replay': True, 'trade_id': 'trade_11_9', 'to_player': 'קלוד', 'trade_status': 'invalid_target_missing_cards'}. Error: קלוד doesn't have the required cards. The say_outloud from that failed attempt was not said publicly; choose a new legal action.",
+              "timestamp": 1779038530.885814,
+              "data": {
+                "action_type": "TRADE_PROPOSE",
+                "parameters": {
+                  "offer": {
+                    "wheat": 2
+                  },
+                  "request": {
+                    "brick": 1
+                  },
+                  "target_player": 1,
+                  "_ai_say_outloud": "קלוד, ראיתי שקיבלת כבשה מה-8, אבל אני מניח שטיט יש לך בשפע מהחשיבות שלך שם. רוצה 2 חיטה תמורת טיט אחד? זה יסגור לך פינה לעיר או קלף.",
+                  "_ai_replay": true,
+                  "trade_id": "trade_11_9",
+                  "to_player": "קלוד",
+                  "trade_status": "invalid_target_missing_cards",
+                  "player_name": "ג'ימי",
+                  "turn_number": 11
+                },
+                "error": "קלוד doesn't have the required cards"
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=bank_trade actor=ג'ימי give={Wh:4} receive={B:1}",
+              "timestamp": 1779038535.6580195,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=build_road actor=ג'ימי edge=41-31 cost={W:1,B:1}",
+              "timestamp": 1779038535.6630828,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "ג'ימי ended their turn",
+              "timestamp": 1779038535.6683369,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 12: Player 0's turn begins.",
+              "timestamp": 1779038535.669685,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 5 (2+3). Resources distributed: קלוד +1 sheep; ג'ימי +1 ore.",
+              "timestamp": 1779038535.6745517,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll actor=ג'מה dice=5(2+3) prod={קלוד:{S:1};ג'ימי:{O:1}}",
+              "timestamp": 1779038535.6754444,
+              "data": {
+                "affected_players": [
+                  1,
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "ג'מה ended their turn",
+              "timestamp": 1779038535.680419,
+              "data": {
+                "affected_players": [
+                  0
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 13: Player 1's turn begins.",
+              "timestamp": 1779038535.6818593,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 4 (2+2). Resources distributed: ג'ימי +1 wood; קלוד +1 sheep.",
+              "timestamp": 1779038535.6859503,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll actor=קלוד dice=4(2+2) prod={ג'ימי:{W:1};קלוד:{S:1}}",
+              "timestamp": 1779038535.686903,
+              "data": {
+                "affected_players": [
+                  2,
+                  1
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "קלוד ended their turn",
+              "timestamp": 1779038535.6913931,
+              "data": {
+                "affected_players": [
+                  1
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 14: Player 2's turn begins.",
+              "timestamp": 1779038535.6926727,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 3 (2+1). Resources distributed: קלוד +1 wood; ג'ימי +1 wood.",
+              "timestamp": 1779038535.6962068,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll actor=ג'ימי dice=3(2+1) prod={קלוד:{W:1};ג'ימי:{W:1}}",
+              "timestamp": 1779038535.6972032,
+              "data": {
+                "affected_players": [
+                  1,
+                  2
+                ]
+              }
+            },
+            {
+              "type": "trade_offer",
+              "message": "Trade offer trade_14_10: ג'ימי offers 1 wood to קלוד for 1 sheep.",
+              "timestamp": 1779038535.7017426,
+              "data": {
+                "trade_id": "trade_14_10"
+              }
+            },
+            {
+              "type": "trade_response",
+              "message": "Trade trade_14_10 was accepted by קלוד.",
+              "timestamp": 1779038535.7047884,
+              "data": {
+                "trade_id": "trade_14_10",
+                "status": "accepted"
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=trade actor=ג'ימי target=קלוד status=accepted offer={W:1} request={S:1}",
+              "timestamp": 1779038535.7057495,
+              "data": {
+                "affected_players": [
+                  2,
+                  1
+                ]
+              }
+            },
+            {
+              "type": "trade_offer",
+              "message": "Trade offer trade_14_11: ג'ימי offers 1 wood to ג'מה for 1 wheat.",
+              "timestamp": 1779038535.7100923,
+              "data": {
+                "trade_id": "trade_14_11"
+              }
+            },
+            {
+              "type": "trade_response",
+              "message": "Trade trade_14_11 was accepted by ג'מה.",
+              "timestamp": 1779038535.7131815,
+              "data": {
+                "trade_id": "trade_14_11",
+                "status": "accepted"
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=trade actor=ג'ימי target=ג'מה status=accepted offer={W:1} request={Wh:1}",
+              "timestamp": 1779038535.7141933,
+              "data": {
+                "affected_players": [
+                  2,
+                  0
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "ג'ימי ended their turn",
+              "timestamp": 1779038535.7226396,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 15: Player 0's turn begins.",
+              "timestamp": 1779038535.7241118,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 11 (5+6). Resources distributed: ג'מה +1 wood.",
+              "timestamp": 1779038535.7318037,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll actor=ג'מה dice=11(5+6) prod={ג'מה:{W:1}}",
+              "timestamp": 1779038535.732875,
+              "data": {
+                "affected_players": [
+                  0
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "ג'מה ended their turn",
+              "timestamp": 1779038539.9384074,
+              "data": {
+                "affected_players": [
+                  0
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 16: Player 1's turn begins.",
+              "timestamp": 1779038539.9397879,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "robber",
+              "message": "🏴‍☠️ קלוד must move the robber!",
+              "timestamp": 1779038544.6095443,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 7 (3+4)! 🏴‍☠️ Robber activated!",
+              "timestamp": 1779038544.609552,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll7 actor=קלוד dice=7(3+4) prod={} next=discard_or_robber",
+              "timestamp": 1779038544.6106071,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "robber_moved",
+              "message": "🏴‍☠️ קלוד moved the robber to [3, 2].",
+              "timestamp": 1779038544.615045,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "steal_complete",
+              "message": "🎯 קלוד stole a card from ג'מה (only adjacent player).",
+              "timestamp": 1779038544.6150804,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=robber actor=קלוד hex=15 victim=ג'מה stolen=1",
+              "timestamp": 1779038544.6163013,
+              "data": {
+                "affected_players": [
+                  1,
+                  0
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=use_dev actor=קלוד card=RoadBuilding roads=[26-16,16-15] dev_delta={hidden:-1}",
+              "timestamp": 1779038544.6242821,
+              "data": {
+                "affected_players": [
+                  1
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "קלוד ended their turn",
+              "timestamp": 1779038544.6282203,
+              "data": {
+                "affected_players": [
+                  1
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 17: Player 2's turn begins.",
+              "timestamp": 1779038544.629508,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "robber",
+              "message": "🏴‍☠️ ג'ימי must move the robber!",
+              "timestamp": 1779038544.632972,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 7 (1+6)! 🏴‍☠️ Robber activated!",
+              "timestamp": 1779038544.6329775,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll7 actor=ג'ימי dice=7(1+6) prod={} next=discard_or_robber",
+              "timestamp": 1779038544.6339903,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "robber_moved",
+              "message": "🏴‍☠️ ג'ימי moved the robber to [2, 4].",
+              "timestamp": 1779038549.1206446,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "steal_complete",
+              "message": "🎯 ג'ימי stole a card from קלוד (only adjacent player).",
+              "timestamp": 1779038549.1206903,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=robber actor=ג'ימי hex=12 victim=קלוד stolen=1",
+              "timestamp": 1779038549.1213307,
+              "data": {
+                "affected_players": [
+                  2,
+                  1
+                ]
+              }
+            },
+            {
+              "type": "action_failed",
+              "message": "Your previous action failed: TRADE_PROPOSE {'offer': {'wheat': 1}, 'request': {'brick': 1}, 'target_player': 0, '_ai_say_outloud': \"ג'מה, יש לך אולי טיט במקרה? אני מוכן לתת חיטה בתמורה, נראה לי שזה יעזור לך יותר כרגע.\", '_ai_replay': True, 'trade_id': 'trade_17_14', 'to_player': \"ג'מה\", 'trade_status': 'invalid_target_missing_cards'}. Error: ג'מה doesn't have the required cards. The say_outloud from that failed attempt was not said publicly; choose a new legal action.",
+              "timestamp": 1779038549.1248484,
+              "data": {
+                "action_type": "TRADE_PROPOSE",
+                "parameters": {
+                  "offer": {
+                    "wheat": 1
+                  },
+                  "request": {
+                    "brick": 1
+                  },
+                  "target_player": 0,
+                  "_ai_say_outloud": "ג'מה, יש לך אולי טיט במקרה? אני מוכן לתת חיטה בתמורה, נראה לי שזה יעזור לך יותר כרגע.",
+                  "_ai_replay": true,
+                  "trade_id": "trade_17_14",
+                  "to_player": "ג'מה",
+                  "trade_status": "invalid_target_missing_cards",
+                  "player_name": "ג'ימי",
+                  "turn_number": 17
+                },
+                "error": "ג'מה doesn't have the required cards"
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=use_dev actor=ג'ימי card=Monopoly resource=W taken={W:5} dev_delta={hidden:-1}",
+              "timestamp": 1779038549.1296494,
+              "data": {
+                "affected_players": [
+                  0,
+                  1,
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=bank_trade actor=ג'ימי give={W:4} receive={B:1}",
+              "timestamp": 1779038549.135056,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=build_settlement actor=ג'ימי node=31 cost={W:1,B:1,S:1,Wh:1}",
+              "timestamp": 1779038549.1417484,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "ג'ימי ended their turn",
+              "timestamp": 1779038549.148145,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 18: Player 0's turn begins.",
+              "timestamp": 1779038549.1496856,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 4 (2+2). Resources distributed: ג'ימי +1 wood.",
+              "timestamp": 1779038549.1561778,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll actor=ג'מה dice=4(2+2) prod={ג'ימי:{W:1}}",
+              "timestamp": 1779038549.1574798,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "ג'מה ended their turn",
+              "timestamp": 1779038549.1681871,
+              "data": {
+                "affected_players": [
+                  0
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 19: Player 1's turn begins.",
+              "timestamp": 1779038549.1698916,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 2 (1+1). Resources distributed: ג'מה +1 ore.",
+              "timestamp": 1779038549.174882,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll actor=קלוד dice=2(1+1) prod={ג'מה:{O:1}}",
+              "timestamp": 1779038549.175903,
+              "data": {
+                "affected_players": [
+                  0
+                ]
+              }
+            },
+            {
+              "type": "trade_offer",
+              "message": "Trade offer trade_19_17: קלוד offers 1 wheat to ג'ימי for 1 wood.",
+              "timestamp": 1779038549.1850855,
+              "data": {
+                "trade_id": "trade_19_17"
+              }
+            },
+            {
+              "type": "trade_response",
+              "message": "Trade trade_19_17 was rejected by ג'ימי.",
+              "timestamp": 1779038549.1885307,
+              "data": {
+                "trade_id": "trade_19_17",
+                "status": "rejected"
+              }
+            },
+            {
+              "type": "trade_offer",
+              "message": "Trade offer trade_19_18: קלוד offers 1 wheat to ג'מה for 1 ore.",
+              "timestamp": 1779038553.5555246,
+              "data": {
+                "trade_id": "trade_19_18"
+              }
+            },
+            {
+              "type": "trade_response",
+              "message": "Trade trade_19_18 was rejected by ג'מה.",
+              "timestamp": 1779038553.557204,
+              "data": {
+                "trade_id": "trade_19_18",
+                "status": "rejected"
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "קלוד ended their turn",
+              "timestamp": 1779038553.5620914,
+              "data": {
+                "affected_players": [
+                  1
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 20: Player 2's turn begins.",
+              "timestamp": 1779038553.5630553,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 11 (6+5). Resources distributed: ג'מה +1 wood; ג'ימי +1 wood.",
+              "timestamp": 1779038553.5681276,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll actor=ג'ימי dice=11(6+5) prod={ג'מה:{W:1};ג'ימי:{W:1}}",
+              "timestamp": 1779038553.56911,
+              "data": {
+                "affected_players": [
+                  0,
+                  2
+                ]
+              }
+            },
+            {
+              "type": "trade_offer",
+              "message": "Trade offer trade_20_19: ג'ימי offers 1 wood to ג'מה for 1 ore.",
+              "timestamp": 1779038558.0305014,
+              "data": {
+                "trade_id": "trade_20_19"
+              }
+            },
+            {
+              "type": "trade_response",
+              "message": "Trade trade_20_19 was rejected by ג'מה.",
+              "timestamp": 1779038558.033707,
+              "data": {
+                "trade_id": "trade_20_19",
+                "status": "rejected"
+              }
+            },
+            {
+              "type": "action_failed",
+              "message": "Your previous action failed: TRADE_PROPOSE {'offer': {'wood': 1}, 'request': {'ore': 1}, 'target_player': 0, '_ai_say_outloud': \"ג'מה, ראיתי שקלוד מנסה לסבך אותך בעסקאות לא משתלמות. יש לי עץ שאת בטח צריכה לדרכים, ואני אשמח לקבל אבן בתמורה אם יש לך אקסטרה. לפחות בינינו העסקאות הוגנות.\", '_ai_replay': True, 'trade_id': 'trade_20_19', 'to_player': \"ג'מה\", 'trade_status': 'rejected'}. Error: ג'מה rejected your trade offer. The say_outloud from that failed attempt was not said publicly; choose a new legal action.",
+              "timestamp": 1779038558.0337741,
+              "data": {
+                "action_type": "TRADE_PROPOSE",
+                "parameters": {
+                  "offer": {
+                    "wood": 1
+                  },
+                  "request": {
+                    "ore": 1
+                  },
+                  "target_player": 0,
+                  "_ai_say_outloud": "ג'מה, ראיתי שקלוד מנסה לסבך אותך בעסקאות לא משתלמות. יש לי עץ שאת בטח צריכה לדרכים, ואני אשמח לקבל אבן בתמורה אם יש לך אקסטרה. לפחות בינינו העסקאות הוגנות.",
+                  "_ai_replay": true,
+                  "trade_id": "trade_20_19",
+                  "to_player": "ג'מה",
+                  "trade_status": "rejected",
+                  "player_name": "ג'ימי",
+                  "turn_number": 20
+                },
+                "error": "ג'מה rejected your trade offer"
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "ג'ימי ended their turn",
+              "timestamp": 1779038558.0408,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 21: Player 0's turn begins.",
+              "timestamp": 1779038558.0425105,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 10 (6+4). Resources distributed: ג'ימי +1 brick.",
+              "timestamp": 1779038558.0479019,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll actor=ג'מה dice=10(6+4) prod={ג'ימי:{B:1}}",
+              "timestamp": 1779038558.0492923,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "trade_offer",
+              "message": "Trade offer trade_21_20: ג'מה offers 1 sheep to ג'ימי for 1 brick.",
+              "timestamp": 1779038562.6964133,
+              "data": {
+                "trade_id": "trade_21_20"
+              }
+            },
+            {
+              "type": "trade_response",
+              "message": "Trade trade_21_20 was accepted by ג'ימי.",
+              "timestamp": 1779038562.6993487,
+              "data": {
+                "trade_id": "trade_21_20",
+                "status": "accepted"
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=trade actor=ג'מה target=ג'ימי status=accepted offer={S:1} request={B:1}",
+              "timestamp": 1779038562.7007785,
+              "data": {
+                "affected_players": [
+                  0,
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=build_road actor=ג'מה edge=52-51 cost={W:1,B:1}",
+              "timestamp": 1779038562.7081172,
+              "data": {
+                "affected_players": [
+                  0
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "ג'מה ended their turn",
+              "timestamp": 1779038562.7152328,
+              "data": {
+                "affected_players": [
+                  0
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 22: Player 1's turn begins.",
+              "timestamp": 1779038562.716921,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 11 (6+5). Resources distributed: ג'מה +1 wood; ג'ימי +1 wood.",
+              "timestamp": 1779038562.7241752,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll actor=קלוד dice=11(6+5) prod={ג'מה:{W:1};ג'ימי:{W:1}}",
+              "timestamp": 1779038562.7258668,
+              "data": {
+                "affected_players": [
+                  0,
+                  2
+                ]
+              }
+            },
+            {
+              "type": "trade_offer",
+              "message": "Trade offer trade_22_22: קלוד offers 1 wheat to ג'ימי for 1 wood.",
+              "timestamp": 1779038562.7516577,
+              "data": {
+                "trade_id": "trade_22_22"
+              }
+            },
+            {
+              "type": "trade_response",
+              "message": "Trade trade_22_22 was accepted by ג'ימי.",
+              "timestamp": 1779038562.785475,
+              "data": {
+                "trade_id": "trade_22_22",
+                "status": "accepted"
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=trade actor=קלוד target=ג'ימי status=accepted offer={Wh:1} request={W:1}",
+              "timestamp": 1779038562.7869542,
+              "data": {
+                "affected_players": [
+                  1,
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "קלוד ended their turn",
+              "timestamp": 1779038562.7967253,
+              "data": {
+                "affected_players": [
+                  1
+                ]
+              }
+            },
+            {
+              "type": "turn_change",
+              "message": "Turn 23: Player 2's turn begins.",
+              "timestamp": 1779038562.7988503,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "dice_roll",
+              "message": "Rolled 8 (3+5). Resources distributed: ג'ימי +1 wheat; ג'מה +1 sheep; קלוד +1 wheat.",
+              "timestamp": 1779038562.8177333,
+              "data": {
+                "affected_players": []
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=roll actor=ג'ימי dice=8(3+5) prod={ג'ימי:{Wh:1};ג'מה:{S:1};קלוד:{Wh:1}}",
+              "timestamp": 1779038562.8194642,
+              "data": {
+                "affected_players": [
+                  2,
+                  0,
+                  1
+                ]
+              }
+            },
+            {
+              "type": "trade_offer",
+              "message": "Trade offer trade_23_23: ג'ימי offers 1 wood to ג'מה for 1 ore.",
+              "timestamp": 1779038562.8256764,
+              "data": {
+                "trade_id": "trade_23_23"
+              }
+            },
+            {
+              "type": "trade_response",
+              "message": "Trade trade_23_23 was rejected by ג'מה.",
+              "timestamp": 1779038562.8296068,
+              "data": {
+                "trade_id": "trade_23_23",
+                "status": "rejected"
+              }
+            },
+            {
+              "type": "action_failed",
+              "message": "Your previous action failed: TRADE_PROPOSE {'offer': {'wood': 1}, 'request': {'ore': 1}, 'target_player': 0, '_ai_say_outloud': \"ג'מה, יש לי קצת עודף עץ מהסיבובים האחרונים ואני רואה שאת תקועה בלי. אולי תרצי להחליף על אבן אחת? זה יעזור לשנינו להתקדם קצת בזמן שקלוד עסוק בדיבורים.\", '_ai_replay': True, 'trade_id': 'trade_23_23', 'to_player': \"ג'מה\", 'trade_status': 'rejected'}. Error: ג'מה rejected your trade offer. The say_outloud from that failed attempt was not said publicly; choose a new legal action.",
+              "timestamp": 1779038562.829796,
+              "data": {
+                "action_type": "TRADE_PROPOSE",
+                "parameters": {
+                  "offer": {
+                    "wood": 1
+                  },
+                  "request": {
+                    "ore": 1
+                  },
+                  "target_player": 0,
+                  "_ai_say_outloud": "ג'מה, יש לי קצת עודף עץ מהסיבובים האחרונים ואני רואה שאת תקועה בלי. אולי תרצי להחליף על אבן אחת? זה יעזור לשנינו להתקדם קצת בזמן שקלוד עסוק בדיבורים.",
+                  "_ai_replay": true,
+                  "trade_id": "trade_23_23",
+                  "to_player": "ג'מה",
+                  "trade_status": "rejected",
+                  "player_name": "ג'ימי",
+                  "turn_number": 23
+                },
+                "error": "ג'מה rejected your trade offer"
+              }
+            },
+            {
+              "type": "action_performed",
+              "message": "FACTS evt=buy_dev actor=ג'ימי cost={S:1,Wh:1,O:1} dev_delta={hidden:+1}",
+              "timestamp": 1779038562.8380575,
+              "data": {
+                "affected_players": [
+                  2
+                ]
+              }
+            },
+            {
+              "type": "action_failed",
+              "message": "Your previous action failed: TRADE_PROPOSE {'offer': {'wood': 1}, 'request': {'brick': 1}, 'target_player': 0, '_ai_say_outloud': \"ג'מה, אני באמת מנסה לעזור לשנינו לסגור פערים מקלוד. יש לי עץ שאת צריכה, ואני ממש צריך טיט אחד כדי לזוז קצת. מה את אומרת? החלפה הוגנת שתעזור לשנינו.\", '_ai_replay': True, 'trade_id': 'trade_23_24', 'to_player': \"ג'מה\", 'trade_status': 'invalid_target_missing_cards'}. Error: ג'מה doesn't have the required cards. The say_outloud from that failed attempt was not said publicly; choose a new legal action.",
+              "timestamp": 1779038562.8452497,
+              "data": {
+                "action_type": "TRADE_PROPOSE",
+                "parameters": {
+                  "offer": {
+                    "wood": 1
+                  },
+                  "request": {
+                    "brick": 1
+                  },
+                  "target_player": 0,
+                  "_ai_say_outloud": "ג'מה, אני באמת מנסה לעזור לשנינו לסגור פערים מקלוד. יש לי עץ שאת צריכה, ואני ממש צריך טיט אחד כדי לזוז קצת. מה את אומרת? החלפה הוגנת שתעזור לשנינו.",
+                  "_ai_replay": true,
+                  "trade_id": "trade_23_24",
+                  "to_player": "ג'מה",
+                  "trade_status": "invalid_target_missing_cards",
+                  "player_name": "ג'ימי",
+                  "turn_number": 23
+                },
+                "error": "ג'מה doesn't have the required cards"
+              }
+            }
+          ],
+          "last_prompt_number": 0,
+          "stats": {
+            "player_name": "ג'ימי",
+            "player_id": 2,
+            "total_requests": 0,
+            "successful_requests": 0,
+            "failed_requests": 0,
+            "total_tokens_used": 14363,
+            "success_rate": "N/A"
+          }
+        }
+      }
+    }
+  },
+  "players": [
+    {
+      "slot": 1,
+      "name": "ג'ימי"
+    },
+    {
+      "slot": 2,
+      "name": "ג'מה"
+    },
+    {
+      "slot": 3,
+      "name": "קלוד"
+    }
+  ],
+  "settings": {
+    "max_gap_seconds": 2.5,
+    "tts": {
+      "provider": "gemini",
+      "gemini_model": "gemini-3.1-flash-tts-preview",
+      "gemini_voice": "Kore",
+      "gemini_prompt_template": "[casual, conversational, Israeli Hebrew pronunciation] {text}"
+    }
+  },
+  "stats": {
+    "events": 0,
+    "actions": 0,
+    "speech": 0,
+    "audio": 0
+  },
+  "events": []
+}

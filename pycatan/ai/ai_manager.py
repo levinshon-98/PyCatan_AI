@@ -14,8 +14,10 @@ The AIManager bridges between GameManager (through AIUser) and the LLM.
 import json
 import os
 import re
+import shutil
 import threading
 import time
+import wave
 from pathlib import Path
 from typing import Dict, Any, Optional, List, Callable
 
@@ -359,6 +361,103 @@ class AIManager:
         for slot_key, legacy_key in env_pairs:
             if not os.environ.get(slot_key) and os.environ.get(legacy_key):
                 os.environ[slot_key] = os.environ[legacy_key]
+
+    def _safe_audio_name_component(self, value: str) -> str:
+        cleaned = []
+        for char in str(value or ""):
+            if char.isalnum() or char in {"_", "-", "."}:
+                cleaned.append(char)
+            else:
+                cleaned.append("_")
+        value = re.sub(r"_+", "_", "".join(cleaned)).strip("_")
+        return value or "response"
+
+    def _wav_duration_seconds_from_path(self, path: Path) -> float:
+        try:
+            with wave.open(str(path), "rb") as wav_file:
+                frame_rate = wav_file.getframerate() or 1
+                return wav_file.getnframes() / float(frame_rate)
+        except Exception:
+            return 0.0
+
+    def _record_replay_audio_link(
+        self,
+        from_player: str,
+        speaker_key: str,
+        message: str,
+        response_id: Optional[str],
+        request_number: Optional[int],
+    ) -> Optional[Path]:
+        if not response_id:
+            return None
+
+        tts = getattr(self, "tts", None)
+        cache_path_fn = getattr(tts, "_cache_path", None)
+        if not callable(cache_path_fn):
+            return None
+
+        try:
+            source_path = Path(cache_path_fn(speaker_key, message))
+        except Exception:
+            return None
+        if not source_path.exists():
+            return None
+
+        session_dir = self.logger.get_session_path()
+        audio_dir = session_dir / "replay_audio"
+        audio_dir.mkdir(parents=True, exist_ok=True)
+        suffix = source_path.suffix or ".wav"
+        safe_player = self._safe_audio_name_component(from_player)
+        safe_speaker = self._safe_audio_name_component(speaker_key)
+        if request_number is not None:
+            filename = f"response_{int(request_number):04d}_{safe_speaker}_{safe_player}{suffix}"
+        else:
+            safe_response = self._safe_audio_name_component(response_id.replace(":", "_"))
+            filename = f"{safe_speaker}_{safe_response}_{safe_player}{suffix}"
+        target_path = audio_dir / filename
+
+        if not target_path.exists():
+            shutil.copyfile(source_path, target_path)
+
+        relative_path = target_path.relative_to(session_dir).as_posix()
+        manifest_path = session_dir / "replay_audio_manifest.json"
+        manifest = {}
+        if manifest_path.exists():
+            try:
+                manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            except Exception:
+                manifest = {}
+        if not isinstance(manifest, dict):
+            manifest = {}
+
+        items = manifest.get("items")
+        if not isinstance(items, list):
+            items = []
+        items = [item for item in items if not (isinstance(item, dict) and item.get("response_id") == response_id)]
+        provider = "unknown"
+        describe = getattr(tts, "describe", None)
+        try:
+            provider = str(describe() if callable(describe) else type(tts).__name__)
+        except Exception:
+            provider = type(tts).__name__
+        items.append({
+            "response_id": response_id,
+            "player_name": from_player,
+            "speaker_key": speaker_key,
+            "request_number": request_number,
+            "audio_path": relative_path,
+            "source_cache_path": str(source_path),
+            "duration_seconds": self._wav_duration_seconds_from_path(target_path),
+            "provider": provider,
+            "message": message,
+            "created_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        })
+        manifest = {
+            "schema_version": 1,
+            "items": sorted(items, key=lambda item: str(item.get("response_id") or "")),
+        }
+        manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
+        return target_path
     
     # === Core Processing ===
     
@@ -534,6 +633,10 @@ class AIManager:
                 parsed["say_outloud"] = llm_suggestion["say_outloud"]
         
         if parsed:
+            parsed["_ai_response_id"] = f"{player_name}:{log_info['number']}"
+            parsed["_ai_request_number"] = log_info["number"]
+            parsed["_ai_response_type"] = "active_turn"
+
             # Update memory
             note_to_self = parsed.get("note_to_self")
             agent.update_memory(note_to_self)
@@ -844,7 +947,13 @@ class AIManager:
 
         say_outloud = (parsed.get("say_outloud") or "").strip()
         if say_outloud:
-            self._broadcast_chat(player_name, say_outloud)
+            self._broadcast_chat(
+                player_name,
+                say_outloud,
+                response_id=f"{player_name}:{log_info['number']}",
+                request_number=log_info["number"],
+                response_type="reaction",
+            )
 
         return parsed
 
@@ -2586,7 +2695,15 @@ class AIManager:
 
         return True
     
-    def _broadcast_chat(self, from_player: str, message: str, speak: bool = True) -> None:
+    def _broadcast_chat(
+        self,
+        from_player: str,
+        message: str,
+        speak: bool = True,
+        response_id: Optional[str] = None,
+        request_number: Optional[int] = None,
+        response_type: Optional[str] = None,
+    ) -> None:
         """
         Broadcast a chat message from an agent.
         
@@ -2603,11 +2720,32 @@ class AIManager:
             if self._should_wait_for_tts_before_chat(speak):
                 self.tts.prepare_blocking(speaker_key, message)
 
+            replay_audio_path = None
+            if speak and response_id:
+                replay_audio_path = self._record_replay_audio_link(
+                    from_player=from_player,
+                    speaker_key=speaker_key,
+                    message=message,
+                    response_id=response_id,
+                    request_number=request_number,
+                )
+
             # Add to chat history (no timestamp - cleaner for LLM)
             chat_entry = {
                 "from": from_player,
                 "message": message
             }
+            if response_id:
+                chat_entry["response_id"] = response_id
+            if request_number is not None:
+                chat_entry["request_number"] = request_number
+            if response_type:
+                chat_entry["response_type"] = response_type
+            if replay_audio_path:
+                try:
+                    chat_entry["audio_path"] = str(replay_audio_path.relative_to(self.logger.get_session_path()).as_posix())
+                except Exception:
+                    chat_entry["audio_path"] = str(replay_audio_path)
             self.chat_history.append(chat_entry)
 
             # Trim history if needed
@@ -2615,7 +2753,13 @@ class AIManager:
                 self.chat_history = self.chat_history[-self.max_chat_history:]
 
             # Log the chat
-            self.logger.log_chat(from_player, message)
+            self.logger.log_chat(
+                from_player,
+                message,
+                response_id=response_id,
+                request_number=request_number,
+                audio_path=chat_entry.get("audio_path"),
+            )
 
             # Call chat callback if registered (for web visualization)
             if hasattr(self, '_chat_callback') and self._chat_callback:
