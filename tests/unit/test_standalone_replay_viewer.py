@@ -181,7 +181,13 @@ class StandaloneReplayViewerTests(unittest.TestCase):
                 session / "Dana" / "prompts" / "prompt_1.json",
                 {
                     "prompt": {
-                        "game_state": 'Board facts\\nJSON:\\n{"meta":{"robber":10},"H":["","W12","S5","D"]}'
+                        "game_state": (
+                            'Board facts\\nJSON:\\n'
+                            '{"meta":{"robber":10,"dice":[3,4],"dice_total":7},'
+                            '"H":["","W12","S5","D"],'
+                            '"state":{"bld":[[20,"Dana","S"]],"rds":[[[1,2],"Dana"]]},'
+                            '"players":{"Dana":{"vp":1,"res":{"W":2,"B":1,"Wh":3},"dev":{"hidden_count":1}}}}'
+                        )
                     }
                 },
             )
@@ -203,6 +209,89 @@ class StandaloneReplayViewerTests(unittest.TestCase):
             self.assertEqual(manifest["board"]["initial_robber"], 10)
             self.assertEqual(manifest["board"]["hexes"][0]["type"], "wood")
             self.assertEqual(manifest["board"]["hexes"][0]["number"], 12)
+            self.assertEqual(manifest["events"][0]["state_before"]["players"]["Dana"]["resources"]["wood"], 2)
+            self.assertEqual(manifest["events"][0]["state_before"]["players"]["Dana"]["resources"]["brick"], 1)
+            self.assertEqual(manifest["events"][0]["state_before"]["players"]["Dana"]["resources"]["wheat"], 3)
+            self.assertEqual(manifest["events"][0]["state_before"]["meta"]["dice_total"], 7)
+            self.assertEqual(manifest["events"][0]["state_before"]["state"]["buildings"][0]["node"], 20)
+
+    def test_build_manifest_chains_continued_session(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            parent = Path(tmp) / "session_parent"
+            child = Path(tmp) / "session_child"
+            _write_json(
+                parent / "Dana" / "responses" / "response_1.json",
+                {
+                    "request_number": 1,
+                    "timestamp": "2026-05-17T12:00:00",
+                    "player_name": "Dana",
+                    "type": "final",
+                    "parsed": {"action_type": "roll_dice", "parameters": {}},
+                },
+            )
+            _write_json(
+                parent / "Dana" / "responses" / "response_2.json",
+                {
+                    "request_number": 2,
+                    "timestamp": "2026-05-17T12:01:00",
+                    "player_name": "Dana",
+                    "type": "final",
+                    "parsed": {"action_type": "end_turn", "parameters": {}},
+                },
+            )
+            _write_json(
+                child / "session_metadata.json",
+                {
+                    "run_settings": {"run_mode": "resume_session", "replay": {"session": str(parent), "through": "Dana:1"}},
+                    "replay": {"source_session": str(parent), "replay_through": "Dana:1"},
+                },
+            )
+            _write_json(
+                child / "chat_history.json",
+                {
+                    "messages": [
+                        {
+                            "timestamp": "2026-05-17T12:01:30",
+                            "from": "Dana",
+                            "to": "all",
+                            "message": "Replayed source chat should not appear.",
+                        }
+                    ]
+                },
+            )
+            _write_json(
+                parent / "Dana" / "responses" / "response_1.json",
+                {
+                    "request_number": 1,
+                    "timestamp": "2026-05-17T12:00:00",
+                    "player_name": "Dana",
+                    "type": "final",
+                    "parsed": {
+                        "action_type": "roll_dice",
+                        "parameters": {},
+                        "say_outloud": "Replayed source chat should not appear.",
+                    },
+                },
+            )
+            _write_json(
+                child / "Shon" / "responses" / "response_1.json",
+                {
+                    "request_number": 1,
+                    "timestamp": "2026-05-17T12:02:00",
+                    "player_name": "Shon",
+                    "type": "final",
+                    "parsed": {"action_type": "roll_dice", "parameters": {}},
+                },
+            )
+
+            manifest = build_manifest(child)
+
+            self.assertTrue(manifest["session"]["continuation"]["is_continuation"])
+            self.assertEqual(manifest["stats"]["events"], 2)
+            self.assertEqual([event["response_id"] for event in manifest["events"]], ["Dana:1", "Shon:1"])
+            self.assertEqual(manifest["events"][0]["timeline_role"], "source")
+            self.assertEqual(manifest["events"][1]["timeline_role"], "current")
+            self.assertNotIn("chat:0", [event["response_id"] for event in manifest["events"]])
 
 
 if __name__ == "__main__":

@@ -16,6 +16,13 @@ window.catanBoard = null;
 window.gameState = null;
 
 const $ = (id) => document.getElementById(id);
+const RESOURCE_ORDER = [
+    ["wood", "🌲", "wood"],
+    ["brick", "🧱", "brick"],
+    ["sheep", "🐑", "sheep"],
+    ["wheat", "🌾", "wheat"],
+    ["ore", "⛰️", "ore"],
+];
 
 document.addEventListener("DOMContentLoaded", () => {
     bindReplayControls();
@@ -218,6 +225,27 @@ function playerInitial(playerName) {
 }
 
 function deriveBoardState(untilIndex) {
+    const snapshot = stateSnapshotForIndex(untilIndex);
+    if (snapshot) {
+        const fromSnapshot = {
+            robber: snapshot.meta?.robber || null,
+            settlements: new Map(),
+            cities: new Map(),
+            roads: new Map(),
+            lastDice: snapshot.meta?.dice || null,
+            diceTotal: snapshot.meta?.dice_total || null,
+            lastAction: currentEvent(),
+        };
+        (snapshot.state?.buildings || []).forEach((building) => {
+            const node = Number(building.node);
+            if (!node) return;
+            if (String(building.type || "").toUpperCase() === "C") fromSnapshot.cities.set(node, building.owner);
+            else fromSnapshot.settlements.set(node, building.owner);
+        });
+        (snapshot.state?.roads || []).forEach((road) => addRoadToState(fromSnapshot, road.from, road.to, road.owner));
+        return fromSnapshot;
+    }
+
     const board = replayState.manifest?.board || {};
     const derived = {
         robber: board.initial_robber || null,
@@ -261,6 +289,21 @@ function deriveBoardState(untilIndex) {
     return derived;
 }
 
+function stateSnapshotForIndex(index) {
+    if (!replayState.manifest || index < 0) return null;
+    const event = events()[index];
+    if (event?.state_after) return event.state_after;
+    if (event?.state_before) return event.state_before;
+    for (let cursor = index - 1; cursor >= 0; cursor -= 1) {
+        if (events()[cursor]?.state_after) return events()[cursor].state_after;
+        if (events()[cursor]?.state_before) return events()[cursor].state_before;
+    }
+    for (let cursor = index + 1; cursor < events().length; cursor += 1) {
+        if (events()[cursor]?.state_before) return events()[cursor].state_before;
+    }
+    return null;
+}
+
 function collectRoadsFromParams(params) {
     const roads = [];
     ["road_1", "road_2"].forEach((key) => {
@@ -288,17 +331,20 @@ function addRoadToState(boardState, from, to, player) {
 
 function buildGameState(boardState) {
     const board = replayState.manifest?.board || {};
+    const snapshot = stateSnapshotForIndex(replayState.index);
+    const snapshotPlayers = snapshot?.players || {};
     const players = playerNames().map((name) => {
         const settlements = [...boardState.settlements.values()].filter((value) => value === name).length;
         const cities = [...boardState.cities.values()].filter((value) => value === name).length;
         const roads = [...boardState.roads.values()].filter((road) => road.player === name).length;
+        const recorded = snapshotPlayers[name] || {};
         return {
             id: playerIndex(name) - 1,
             name,
-            victory_points: settlements + cities * 2,
-            total_cards: 0,
-            resources: { wood: 0, brick: 0, sheep: 0, wheat: 0, ore: 0 },
-            dev_cards: [],
+            victory_points: Number.isFinite(Number(recorded.vp)) ? Number(recorded.vp) : settlements + cities * 2,
+            total_cards: resourceTotal(recorded.resources),
+            resources: normalizeRecordedResources(recorded.resources),
+            dev_cards: recorded.dev || {},
             roads_count: roads,
             settlements_count: settlements,
             cities_count: cities,
@@ -331,11 +377,26 @@ function buildGameState(boardState) {
         harbors: [],
         players,
         robber_position: boardState.robber,
-        current_player: Math.max(0, playerIndex(currentEvent()?.player_name) - 1),
-        current_phase: currentEvent()?.action_type || currentEvent()?.kind || "REPLAY",
-        dice_result: boardState.lastDice,
+        current_player: Math.max(0, playerIndex(snapshot?.meta?.current_player || currentEvent()?.player_name) - 1),
+        current_phase: snapshot?.meta?.turn_phase || snapshot?.meta?.phase || currentEvent()?.action_type || currentEvent()?.kind || "REPLAY",
+        dice_result: snapshot?.meta?.dice || boardState.lastDice,
+        dice_total: snapshot?.meta?.dice_total || boardState.diceTotal,
         replay_index: replayState.index,
     };
+}
+
+function normalizeRecordedResources(resources) {
+    const normalized = { wood: 0, brick: 0, sheep: 0, wheat: 0, ore: 0 };
+    if (!resources || typeof resources !== "object") return normalized;
+    Object.keys(normalized).forEach((key) => {
+        normalized[key] = Number(resources[key] || 0);
+    });
+    return normalized;
+}
+
+function resourceTotal(resources) {
+    const normalized = normalizeRecordedResources(resources);
+    return Object.values(normalized).reduce((sum, value) => sum + Number(value || 0), 0);
 }
 
 function renderPlayerHub(gameState) {
@@ -344,13 +405,6 @@ function renderPlayerHub(gameState) {
         $("player-hub").innerHTML = "<div class=\"loading-state\">Choose a session...</div>";
         return;
     }
-    const resources = [
-        ["wood", "🌲"],
-        ["brick", "🧱"],
-        ["sheep", "🐑"],
-        ["wheat", "🌾"],
-        ["ore", "⛰️"],
-    ];
     $("player-hub").innerHTML = gameState.players.map((player) => {
         const cssIndex = player.id + 1;
         const isSpeaking = current?.player_name === player.name && current?.say_outloud;
@@ -368,7 +422,7 @@ function renderPlayerHub(gameState) {
                     </div>
                 </div>
                 <div class="player-resources-grid">
-                    ${resources.map(([key, icon]) => `
+                    ${RESOURCE_ORDER.map(([key, icon]) => `
                         <div class="resource-item">
                             <span class="resource-icon">${icon}</span>
                             <span class="resource-count">${player.resources[key] || 0}</span>
@@ -376,7 +430,7 @@ function renderPlayerHub(gameState) {
                     `).join("")}
                 </div>
                 <div class="player-dev-cards detailed empty">
-                    <span class="dev-card-empty">${player.settlements_count} settlements, ${player.cities_count} cities</span>
+                    <span class="dev-card-empty">${player.total_cards} resource cards · ${devSummary(player.dev_cards)}</span>
                 </div>
                 ${latestSpeech ? `<div class="player-chat-bubble"><strong>${escapeHtml(latestSpeech.kindLabel)}</strong><br>${escapeHtml(latestSpeech.text)}</div>` : ""}
             </div>`;
@@ -395,6 +449,15 @@ function latestSpeechForPlayer(playerName) {
     };
 }
 
+function devSummary(devCards) {
+    if (!devCards || typeof devCards !== "object") return "no dev cards";
+    const revealed = Array.isArray(devCards.r) ? devCards.r.length : 0;
+    const hidden = Number(devCards.hidden_count || 0);
+    const mine = Array.isArray(devCards.h) ? devCards.h.length : 0;
+    const total = revealed + hidden + mine;
+    return total ? `${total} dev cards` : "no dev cards";
+}
+
 function renderLogs() {
     const visible = replayState.index < 0 ? [] : events().filter((event) => event.index <= replayState.index);
     const actions = visible.filter((event) => event.has_action).slice(-40).reverse();
@@ -410,6 +473,8 @@ function renderLogs() {
             <div class="event-log-details">
                 ${event.request_number ? `<span>#${escapeHtml(String(event.request_number))}</span>` : ""}
                 ${event.has_audio ? "<span>audio</span>" : ""}
+                ${diceSummary(event) ? `<span>${escapeHtml(diceSummary(event))}</span>` : ""}
+                ${resourceDelta(event).map((delta) => `<span class="${delta.amount > 0 ? "resource-plus" : "resource-minus"}">${escapeHtml(deltaLabel(delta))}</span>`).join("")}
             </div>
         </div>
     `).join("") : "<div class=\"info\">Waiting for updates...</div>";
@@ -439,6 +504,35 @@ function actionLogClass(event) {
     return "success";
 }
 
+function diceSummary(event) {
+    const meta = event.state_after?.meta || event.state_before?.meta || {};
+    const total = meta.dice_total;
+    const dice = Array.isArray(meta.dice) ? meta.dice : null;
+    if (!total && !dice) return "";
+    return dice && dice.length >= 2 ? `dice ${total || dice.reduce((sum, value) => sum + Number(value || 0), 0)} (${dice.join("+")})` : `dice ${total}`;
+}
+
+function resourceDelta(event) {
+    const before = event.state_before?.players || {};
+    const after = event.state_after?.players || {};
+    const names = [...new Set([...Object.keys(before), ...Object.keys(after)])];
+    const deltas = [];
+    names.forEach((name) => {
+        const beforeResources = normalizeRecordedResources(before[name]?.resources);
+        const afterResources = normalizeRecordedResources(after[name]?.resources);
+        RESOURCE_ORDER.forEach(([key, icon, label]) => {
+            const amount = Number(afterResources[key] || 0) - Number(beforeResources[key] || 0);
+            if (amount) deltas.push({ player: name, key, icon, label, amount });
+        });
+    });
+    return deltas;
+}
+
+function deltaLabel(delta) {
+    const sign = delta.amount > 0 ? "+" : "";
+    return `${delta.player} ${sign}${delta.amount} ${delta.icon}`;
+}
+
 function renderDetails(gameState) {
     const event = currentEvent();
     const stats = replayState.manifest?.stats || {};
@@ -448,6 +542,7 @@ function renderDetails(gameState) {
         <div class="detail-row"><strong>Actions</strong><span>${stats.actions || 0}</span></div>
         <div class="detail-row"><strong>Speech</strong><span>${stats.speech || 0}</span></div>
         <div class="detail-row"><strong>Audio</strong><span>${stats.audio || 0}</span></div>
+        <div class="detail-row"><strong>Dice</strong><span>${escapeHtml(gameState.dice_total ? `${gameState.dice_total} (${(gameState.dice_result || []).join("+")})` : "-")}</span></div>
         <div class="detail-row"><strong>Current</strong><span>${event ? `${escapeHtml(event.player_name)} #${escapeHtml(String(event.request_number || ""))}` : "-"}</span></div>
         <div class="detail-row"><strong>Phase</strong><span>${escapeHtml(gameState.current_phase || "-")}</span></div>
     `;

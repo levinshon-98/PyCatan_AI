@@ -42,6 +42,15 @@ RESOURCE_CODE_MAP = {
     "O": "ore",
     "D": "desert",
 }
+RESOURCE_NAME_MAP = {
+    **RESOURCE_CODE_MAP,
+    "Wood": "wood",
+    "Brick": "brick",
+    "Sheep": "sheep",
+    "Wheat": "wheat",
+    "Ore": "ore",
+}
+RESOURCE_KEYS = ("wood", "brick", "sheep", "wheat", "ore")
 
 
 def _read_json(path: Path, fallback: Any = None) -> Any:
@@ -284,6 +293,100 @@ def _parse_resource_code(value: Any) -> Dict[str, Any]:
     return {"type": RESOURCE_CODE_MAP.get(resource_code, "unknown"), "number": number}
 
 
+def _normalize_resource_key(value: Any) -> Optional[str]:
+    text = str(value or "").strip()
+    if not text:
+        return None
+    return RESOURCE_NAME_MAP.get(text) or RESOURCE_NAME_MAP.get(text[:1])
+
+
+def _normalize_resource_counts(raw: Any) -> Dict[str, int]:
+    counts = {key: 0 for key in RESOURCE_KEYS}
+    if not isinstance(raw, dict):
+        return counts
+    for key, value in raw.items():
+        normalized = _normalize_resource_key(key)
+        if not normalized:
+            continue
+        try:
+            counts[normalized] += int(value or 0)
+        except (TypeError, ValueError):
+            continue
+    return counts
+
+
+def _normalize_compact_game_state(payload: Dict[str, Any]) -> Dict[str, Any]:
+    meta = payload.get("meta") if isinstance(payload.get("meta"), dict) else {}
+    raw_state = payload.get("state") if isinstance(payload.get("state"), dict) else {}
+    raw_players = payload.get("players") if isinstance(payload.get("players"), dict) else {}
+
+    players = {}
+    for player_name, player_state in raw_players.items():
+        if not isinstance(player_state, dict):
+            continue
+        players[str(player_name)] = {
+            "vp": player_state.get("vp"),
+            "resources": _normalize_resource_counts(player_state.get("res")),
+            "dev": player_state.get("dev") if isinstance(player_state.get("dev"), dict) else {},
+        }
+
+    buildings = []
+    for item in raw_state.get("bld") or []:
+        if not isinstance(item, list) or len(item) < 3:
+            continue
+        buildings.append({
+            "node": item[0],
+            "owner": str(item[1]),
+            "type": str(item[2]),
+        })
+
+    roads = []
+    for item in raw_state.get("rds") or []:
+        if not isinstance(item, list) or len(item) < 2 or not isinstance(item[0], list) or len(item[0]) < 2:
+            continue
+        roads.append({
+            "from": item[0][0],
+            "to": item[0][1],
+            "owner": str(item[1]),
+        })
+
+    return {
+        "meta": {
+            "current_player": meta.get("curr"),
+            "phase": meta.get("phase"),
+            "turn_phase": meta.get("turn_phase"),
+            "robber": meta.get("robber"),
+            "dice": meta.get("dice"),
+            "dice_total": meta.get("dice_total"),
+            "vp_to_win": meta.get("vp_to_win"),
+        },
+        "players": players,
+        "state": {
+            "buildings": buildings,
+            "roads": roads,
+        },
+    }
+
+
+def _load_prompt_states(session_dir: Path) -> Dict[str, Dict[str, Any]]:
+    states: Dict[str, Dict[str, Any]] = {}
+    for prompt_path in sorted(session_dir.glob("*/prompts/prompt_*.json")):
+        match = re.search(r"prompt_(\d+)\.json$", prompt_path.name)
+        if not match:
+            continue
+        prompt_doc = _read_json(prompt_path, {}) or {}
+        prompt = prompt_doc.get("prompt") if isinstance(prompt_doc.get("prompt"), dict) else {}
+        game_state = prompt.get("game_state")
+        if not isinstance(game_state, str):
+            continue
+        extracted = _extract_json_object_from_text(game_state)
+        if not extracted:
+            continue
+        response_id = f"{prompt_path.parent.parent.name}:{int(match.group(1))}"
+        states[response_id] = _normalize_compact_game_state(extracted)
+    return states
+
+
 def _load_board_context(session_dir: Path) -> Dict[str, Any]:
     board_definition_path = REPO_ROOT / "pycatan" / "config" / "data" / "board_definition.json"
     board_definition = _read_json(board_definition_path, {}) or {}
@@ -441,11 +544,12 @@ def _audio_paths_from_manifest(session_dir: Path) -> Dict[str, Path]:
     return mapping
 
 
-def build_manifest(session_dir: Path, max_gap_seconds: float = 2.5) -> Dict[str, Any]:
+def _build_manifest_single(session_dir: Path, max_gap_seconds: float = 2.5) -> Dict[str, Any]:
     players = _players_from_metadata(session_dir)
     tts = _tts_settings(session_dir)
     responses = _load_responses(session_dir)
     chat_messages = _load_chat_messages(session_dir)
+    prompt_states = _load_prompt_states(session_dir)
     explicit_audio_paths = _audio_paths_from_manifest(session_dir)
     logged_audio_paths = _audio_paths_from_existing_replay_logs(session_dir)
     events: List[Dict[str, Any]] = []
@@ -473,6 +577,7 @@ def build_manifest(session_dir: Path, max_gap_seconds: float = 2.5) -> Dict[str,
             "index": index,
             "id": safe_event_id,
             "response_id": response_id,
+            "state_before": prompt_states.get(response_id),
             "player_name": player_name,
             "request_number": request_number,
             "timestamp": response.get("timestamp"),
@@ -509,6 +614,7 @@ def build_manifest(session_dir: Path, max_gap_seconds: float = 2.5) -> Dict[str,
             "index": len(events),
             "id": safe_event_id,
             "response_id": f"chat:{chat_index}",
+            "state_before": None,
             "player_name": player_name,
             "request_number": None,
             "timestamp": chat.get("timestamp"),
@@ -539,6 +645,10 @@ def build_manifest(session_dir: Path, max_gap_seconds: float = 2.5) -> Dict[str,
     for index, event in enumerate(events):
         event["index"] = index
         event.pop("_sort_time", None)
+
+    for index, event in enumerate(events):
+        next_state = next((future.get("state_before") for future in events[index + 1:] if future.get("state_before")), None)
+        event["state_after"] = next_state or event.get("state_before")
 
     for index, event in enumerate(events):
         if index < len(events) - 1:
@@ -578,6 +688,191 @@ def build_manifest(session_dir: Path, max_gap_seconds: float = 2.5) -> Dict[str,
     }
     manifest["_audio_by_id"] = audio_by_id
     return manifest
+
+
+def _continuation_parent(session_dir: Path) -> Optional[Dict[str, Any]]:
+    metadata = _read_json(session_dir / "session_metadata.json", {}) or {}
+    replay = metadata.get("replay") if isinstance(metadata.get("replay"), dict) else {}
+    run_settings = metadata.get("run_settings") if isinstance(metadata.get("run_settings"), dict) else {}
+    run_replay = run_settings.get("replay") if isinstance(run_settings.get("replay"), dict) else {}
+    source = (
+        replay.get("source_session")
+        or run_replay.get("session")
+        or metadata.get("derived_from")
+    )
+    if not source:
+        return None
+    try:
+        source_path = resolve_session_path(str(source))
+    except FileNotFoundError:
+        return None
+    if source_path.resolve() == session_dir.resolve():
+        return None
+    return {
+        "path": source_path,
+        "through": replay.get("replay_through") or run_replay.get("through"),
+        "stop_before": replay.get("replay_stop_before") or run_replay.get("stop_before"),
+    }
+
+
+def _event_matches_marker(event: Dict[str, Any], marker: str) -> bool:
+    if not marker:
+        return False
+    marker = str(marker).strip()
+    if not marker:
+        return False
+    if str(event.get("response_id") or "") == marker:
+        return True
+    if ":" not in marker:
+        return False
+    player_name, request_text = marker.rsplit(":", 1)
+    try:
+        request_number = int(request_text)
+    except ValueError:
+        return False
+    return str(event.get("player_name") or "") == player_name and event.get("request_number") == request_number
+
+
+def _trim_events_for_continuation(events: List[Dict[str, Any]], through: Any = None, stop_before: Any = None) -> List[Dict[str, Any]]:
+    if stop_before:
+        marker = str(stop_before)
+        for index, event in enumerate(events):
+            if _event_matches_marker(event, marker):
+                return events[:index]
+    if through:
+        marker = str(through)
+        for index, event in enumerate(events):
+            if _event_matches_marker(event, marker):
+                return events[:index + 1]
+    return list(events)
+
+
+def _drop_replayed_bootstrap_chat(parent_events: List[Dict[str, Any]], current_events: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Remove chat copied into a resumed session while the source session was fast-replayed."""
+    parent_speech = {
+        _normalize_chat_text(event.get("say_outloud"))
+        for event in parent_events
+        if event.get("say_outloud")
+    }
+    first_current_response_time = next(
+        (
+            _parse_time(event.get("timestamp"))
+            for event in current_events
+            if event.get("kind") != "chat"
+        ),
+        datetime.min,
+    )
+
+    filtered = []
+    for event in current_events:
+        if event.get("kind") == "chat":
+            text = _normalize_chat_text(event.get("say_outloud"))
+            event_time = _parse_time(event.get("timestamp"))
+            if text in parent_speech:
+                continue
+            if first_current_response_time != datetime.min and event_time != datetime.min and event_time < first_current_response_time:
+                continue
+        filtered.append(event)
+    return filtered
+
+
+def _recompute_event_timing(events: List[Dict[str, Any]], max_gap_seconds: float) -> None:
+    for index, event in enumerate(events):
+        event["index"] = index
+        if index < len(events) - 1:
+            current_dt = _parse_time(event.get("timestamp"))
+            next_dt = _parse_time(events[index + 1].get("timestamp"))
+            real_gap = max(0.0, (next_dt - current_dt).total_seconds()) if current_dt != datetime.min and next_dt != datetime.min else max_gap_seconds
+            timeline_gap = min(real_gap, max_gap_seconds) if max_gap_seconds >= 0 else real_gap
+        else:
+            real_gap = 0.0
+            timeline_gap = 0.0
+        event["real_gap_seconds"] = real_gap
+        event["timeline_gap_seconds"] = timeline_gap
+        event["planned_delay_to_next_seconds"] = timeline_gap + float(event.get("audio_duration_seconds") or 0.0)
+
+
+def build_manifest(
+    session_dir: Path,
+    max_gap_seconds: float = 2.5,
+    include_parent: bool = True,
+    _seen: Optional[set[str]] = None,
+) -> Dict[str, Any]:
+    session_dir = session_dir.resolve()
+    seen = set(_seen or set())
+    if str(session_dir) in seen:
+        return _build_manifest_single(session_dir, max_gap_seconds=max_gap_seconds)
+    seen.add(str(session_dir))
+
+    current_manifest = _build_manifest_single(session_dir, max_gap_seconds=max_gap_seconds)
+    parent_info = _continuation_parent(session_dir) if include_parent else None
+    if not parent_info:
+        return current_manifest
+
+    parent_manifest = build_manifest(
+        parent_info["path"],
+        max_gap_seconds=max_gap_seconds,
+        include_parent=True,
+        _seen=seen,
+    )
+    parent_events = _trim_events_for_continuation(
+        parent_manifest.get("events") or [],
+        through=parent_info.get("through"),
+        stop_before=parent_info.get("stop_before"),
+    )
+    current_events = _drop_replayed_bootstrap_chat(parent_events, current_manifest.get("events") or [])
+
+    merged_events: List[Dict[str, Any]] = []
+    merged_audio_by_id: Dict[str, Path] = {}
+    chain_sessions = []
+
+    for source_manifest, source_events, role in [
+        (parent_manifest, parent_events, "source"),
+        (current_manifest, current_events, "current"),
+    ]:
+        session_name = ((source_manifest.get("session") or {}).get("name") or role)
+        chain_sessions.append({
+            "name": session_name,
+            "path": (source_manifest.get("session") or {}).get("path"),
+            "role": role,
+            "events": len(source_events),
+        })
+        source_audio = source_manifest.get("_audio_by_id") or {}
+        for event in source_events:
+            cloned = dict(event)
+            old_id = str(cloned.get("id") or "")
+            new_id = _safe_id(f"{session_name}_{old_id}_{len(merged_events)}")
+            cloned["id"] = new_id
+            cloned["timeline_session"] = session_name
+            cloned["timeline_role"] = role
+            if cloned.get("has_audio") and old_id in source_audio:
+                merged_audio_by_id[new_id] = source_audio[old_id]
+                cloned["audio_url"] = f"/api/audio/{new_id}"
+            elif cloned.get("has_audio"):
+                cloned["has_audio"] = False
+                cloned["audio_url"] = ""
+                cloned["audio_duration_seconds"] = 0.0
+            merged_events.append(cloned)
+
+    _recompute_event_timing(merged_events, max_gap_seconds)
+    current_manifest["events"] = merged_events
+    current_manifest["_audio_by_id"] = merged_audio_by_id
+    current_manifest["stats"] = {
+        "events": len(merged_events),
+        "actions": sum(1 for event in merged_events if event.get("has_action")),
+        "speech": sum(1 for event in merged_events if event.get("has_speech")),
+        "chat": sum(1 for event in merged_events if event.get("kind") == "chat"),
+        "audio": sum(1 for event in merged_events if event.get("has_audio")),
+    }
+    current_manifest["session"]["continuation"] = {
+        "is_continuation": True,
+        "source_session": parent_info["path"].name,
+        "source_path": str(parent_info["path"]),
+        "through": parent_info.get("through"),
+        "stop_before": parent_info.get("stop_before"),
+        "chain": chain_sessions,
+    }
+    return current_manifest
 
 
 def public_manifest(manifest: Dict[str, Any]) -> Dict[str, Any]:

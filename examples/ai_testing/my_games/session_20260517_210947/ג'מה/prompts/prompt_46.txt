@@ -1,0 +1,206 @@
+=== Prompt #46 for ג'מה ===
+Timestamp: 2026-05-17T21:33:33.221431
+Active Turn: True
+
+--- What Happened ---
+trade offer trade 25 25: קלוד offers 1 wheat to ג'מה for 1 brick.
+Current required action: Trade offer trade_25_25: קלוד offers 1 wheat to ג'מה for 1 brick. Choose trade_accept to accept or trade_reject to reject.
+
+--- Tools Available ---
+  - inspect_node: Get detailed information about a specific node on the board. USE THIS to verify ...
+  - inspect_hex: Get detailed information about a specific hex/tile on the board, including resou...
+  - find_best_nodes: Search for the best available nodes matching specific criteria. USE THIS instead...
+  - analyze_path_potential: Analyze where a road path leads and what opportunities exist ahead. USE THIS to ...
+
+--- Response Schema ---
+{
+  "type": "object",
+  "required": [
+    "internal_thinking",
+    "action"
+  ],
+  "properties": {
+    "internal_thinking": {
+      "type": "string",
+      "description": "Private strategy. Plan your move logically here. Analyze the board, probabilities, and opponents. NOTE: Keep your logic HERE. Do not leak technical explanations into 'say_outloud'.",
+      "minLength": 120
+    },
+    "note_to_self": {
+      "type": "string",
+      "description": "Save only useful observations for future turns. Prefer facts verified by tools or explicit game_state; omit uncertain board facts.",
+      "maxLength": 100
+    },
+    "say_outloud": {
+      "type": "string",
+      "description": "Table talk in natural Hebrew only. You have emotions and may express them when it matters. דבר כמו בן אדם, לא כמו קריין. בלי פילרים, נרטיב מיותר ובלי להסביר את המובן מאליו. If nothing interesting happened, leave empty. Catan manners are loose: be blunt, annoyed, smug, suspicious, or emotional when it matters. Keep it human and non-technical. Use exact Hebrew resource names: brick=טיט, ore=אבן, sheep=כבשה, wheat=חיטה. Avoid confident factual board claims unless verified by tools or explicit game_state.",
+      "maxLength": 120
+    },
+    "action": {
+      "type": "object",
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "The final game action type. Must be exactly one of: trade_accept, trade_reject. Tool names are not valid actions.",
+          "enum": [
+            "trade_accept",
+            "trade_reject"
+          ]
+        },
+        "parameters": {
+          "type": "string",
+          "description": "Action parameters as JSON string. Example: {\"node\": 14} or {}"
+        }
+      },
+      "propertyOrdering": [
+        "type",
+        "parameters"
+      ]
+    }
+  },
+  "propertyOrdering": [
+    "internal_thinking",
+    "note_to_self",
+    "say_outloud",
+    "action"
+  ]
+}
+
+--- Prompt Content ---
+{
+  "meta_data": {
+    "agent_name": "ג'מה",
+    "game_context": "CONTEXT: You are playing Catan to 5 victory points. The first player to reach 5 VP wins.",
+    "relationship_context": "Relationship context: This table has shared history. ג'מה usually tries to keep the table fair and remembers loyalty. קלוד is a charming dealmaker who betrayed ג'מה late in the last game. ג'ימי warned ג'מה about קלוד, but also took a useful side trade from קלוד. Your angle: קלוד hurt your trust; ג'ימי warned you, but their side trade means they are not completely neutral. Recent relationship shifts: Jimmy: Defensive and manipulative; tried to discourage my trade with Claude by framing it as Claude 'draining' my resour Jimmy: Feeling 'even' after ג'מה moved the robber off his Wheat 9 but stole a card in the process. Claude: Becoming more guarded; refused a Wheat trade despite previous cooperation, citing his own building needs. Use this only for table talk, trust, trades, and tie-breakers; your board decisions should still prioritize strong legal Catan play."
+  },
+  "task_context": {
+    "what_just_happened": "trade offer trade 25 25: קלוד offers 1 wheat to ג'מה for 1 brick.\nCurrent required action: Trade offer trade_25_25: קלוד offers 1 wheat to ג'מה for 1 brick. Choose trade_accept to accept or trade_reject to reject.\nCurrent dice result: 8 (4+4). Resource production uses this total.",
+    "instructions": "Analyze the game state and select the optimal move from 'allowed_actions'. Any say_outloud chat message must be written in natural Hebrew only. דבר כמו בן אדם, לא כמו קריין. בלי פילרים, נרטיב מיותר ובלי להסביר את המובן מאליו. Use exact Hebrew resource names: brick=טיט, ore=אבן, sheep=כבשה, wheat=חיטה. You have 2 possible actions. Never put a tool name in action.type; action.type must be one of the allowed_actions entries. Use tools as a fact-checking habit, not only for choosing moves. Before saving or saying factual board claims, prefer verifying them with the relevant tool or explicit game_state. If a board fact was not verified, omit it or phrase it as uncertain."
+  },
+  "game_state": "\n  1. LOOKUP TABLES:\n   • \"H\" (Hexes): Array where Index = HexID. Value = Resource+Num.\n     Example: H[1]=\"W12\" -> Hex 1 is Wood 12.\n   • \"N\" (Nodes): Array where Index = NodeID.\n     Format: [ [Neighbors], [HexIDs], Port? ]\n     Logic: To find yield of Node 10, check N[10]. Get HexIDs (e.g. [1,5]). Look up H[1] and H[5].\n\n2. CODES: W=Wood, B=Brick, S=Sheep, Wh=Wheat, O=Ore, D=Desert.\n          ?3=Any 3:1 port, X2=Specific Resource 2:1 port.\n\n3. STATE: \"bld\"=[NodeID, Owner, Type], \"rds\"=[[From,To], Owner].\n\n4. PLAYERS: \"res\"={Resource:Count}, \"dev\"={\"h\":[Your Hidden Cards], \"hidden_count\":OpponentHiddenCount, \"r\":[Revealed] (K=Knight)}, \n            \"stat\"=[\"LR\" (Longest Road), \"LA\" (Largest Army)].\n\n5. ROBBER: Located at HexID specified in \"meta.robber\". H[id] is blocked.\n\nJSON:\n{\"meta\":{\"curr\":\"קלוד\",\"phase\":\"NORMAL_PLAY\",\"turn_phase\":\"PLAYER_ACTIONS\",\"robber\":13,\"dice\":[4,4],\"vp_to_win\":5,\"dice_total\":8},\"H\":[\"\",\"W12\",\"S5\",\"W4\",\"S8\",\"B6\",\"W3\",\"Wh8\",\"B10\",\"W11\",\"D\",\"O3\",\"S4\",\"B10\",\"Wh9\",\"Wh6\",\"S11\",\"O5\",\"Wh9\",\"O2\"],\"N\":[null,[[2,9],[1]],[[1,3],[1],\"Wh2\"],[[2,4,11],[2,1],\"Wh2\"],[[3,5],[2]],[[4,6,13],[3,2]],[[5,7],[3],\"B2\"],[[6,15],[3],\"B2\"],[[9,18],[4],\"?3\"],[[8,10,1],[4,1],\"?3\"],[[9,11,20],[5,4,1]],[[10,12,3],[5,2,1]],[[11,13,22],[6,5,2]],[[12,14,5],[6,3,2]],[[13,15,24],[7,6,3]],[[14,16,7],[7,3]],[[15,26],[7],\"O2\"],[[18,28],[8],\"S2\"],[[17,19,8],[8,4]],[[18,20,30],[9,8,4]],[[19,21,10],[9,5,4]],[[20,22,32],[10,9,5]],[[21,23,12],[10,6,5]],[[22,24,34],[11,10,6]],[[23,25,14],[11,7,6]],[[24,26,36],[12,11,7]],[[25,27,16],[12,7],\"O2\"],[[26,38],[12]],[[29,17],[8],\"S2\"],[[28,30,39],[13,8]],[[29,31,19],[13,9,8]],[[30,32,41],[14,13,9]],[[31,33,21],[14,10,9]],[[32,34,43],[15,14,10]],[[33,35,23],[15,11,10]],[[34,36,45],[16,15,11]],[[35,37,25],[16,12,11]],[[36,38,47],[16,12],\"?3\"],[[37,27],[12],\"?3\"],[[40,29],[13]],[[39,41,48],[17,13],\"W2\"],[[40,42,31],[17,14,13]],[[41,43,50],[18,17,14]],[[42,44,33],[18,15,14]],[[43,45,52],[19,18,15]],[[44,46,35],[19,16,15]],[[45,47,54],[19,16]],[[46,37],[16]],[[49,40],[17],\"W2\"],[[48,50],[17]],[[49,51,42],[18,17],\"?3\"],[[50,52],[18],\"?3\"],[[51,53,44],[19,18]],[[52,54],[19],\"?3\"],[[53,46],[19],\"?3\"]],\"state\":{\"bld\":[[12,\"קלוד\",\"S\"],[14,\"ג'ימי\",\"S\"],[20,\"ג'מה\",\"S\"],[25,\"קלוד\",\"S\"],[41,\"ג'ימי\",\"S\"],[44,\"ג'מה\",\"S\"]],\"rds\":[[[20,10],\"ג'מה\"],[[12,11],\"קלוד\"],[[41,42],\"ג'ימי\"],[[14,24],\"ג'ימי\"],[[25,36],\"קלוד\"],[[44,43],\"ג'מה\"],[[43,33],\"ג'מה\"],[[33,34],\"ג'מה\"],[[36,37],\"קלוד\"],[[24,23],\"ג'ימי\"]]},\"players\":{\"ג'מה\":{\"vp\":2,\"res\":{\"S\":2,\"Wh\":1,\"B\":1},\"dev\":{\"r\":[\"K\"]}},\"קלוד\":{\"vp\":2,\"res\":{\"W\":1,\"Wh\":2,\"S\":1},\"dev\":{\"r\":[\"K\",\"K\"]}},\"ג'ימי\":{\"vp\":2,\"res\":{\"W\":2,\"Wh\":3,\"S\":1},\"dev\":{\"hidden_count\":1}}}}",
+  "social_context": {
+    "recent_chat": [
+      {
+        "from": "ג'מה",
+        "message": "קלוד, ג'ימי פה עסוק בלחסוך את המשאבים שלו לעצמו. אולי אתה תרצה להחליף טיט אחד בעץ? זה יעזור לשנינו להתקדם קצת.",
+        "response_id": "ג'מה:40",
+        "request_number": 40,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0040_player_1_ג_מה.wav"
+      },
+      {
+        "from": "קלוד",
+        "message": "הלוואי שהיה לי טיט לתת לך, ג'מה, אבל אני באותה סירה כמו כולם כאן. אין לי.",
+        "response_id": "קלוד:43",
+        "request_number": 43,
+        "response_type": "reaction",
+        "audio_path": "replay_audio/response_0043_player_2_קלוד.wav"
+      },
+      {
+        "from": "ג'מה",
+        "message": "ג'ימי, אני רואה שאתה תקוע בלי עץ לבנייה למרות הטיט שיש לך מה-10. רוצה להחליף טיט אחד בעץ? זה יקדם את שנינו.",
+        "response_id": "ג'מה:41",
+        "request_number": 41,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0041_player_1_ג_מה.wav"
+      },
+      {
+        "from": "ג'ימי",
+        "message": "הלוואי שהיה לי טיט לתת לך, ג'מה. ה-10 לא מחייך אליי לאחרונה, אני ריק לגמרי.",
+        "response_id": "ג'ימי:42",
+        "request_number": 42,
+        "response_type": "reaction",
+        "audio_path": "replay_audio/response_0042_player_3_ג_ימי.wav"
+      },
+      {
+        "from": "ג'מה",
+        "message": "קלוד, אם אין לך טיט, אולי לפחות נחליף עץ בחיטה? זה עדיף מלתת למשאבים פשוט לשבת ביד.",
+        "response_id": "ג'מה:42",
+        "request_number": 42,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0042_player_1_ג_מה.wav"
+      },
+      {
+        "from": "קלוד",
+        "message": "ג'מה, אני באמת רוצה לעזור, אבל החיטה הזאת היא היחידה שיש לי ואני חייב אותה לבנייה הבאה שלי. אם היה לי עודף הייתי זורם בכיף.",
+        "response_id": "קלוד:44",
+        "request_number": 44,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0044_player_2_קלוד.wav"
+      },
+      {
+        "from": "ג'מה",
+        "message": "אם אף אחד לא מוכן לעזור לי להתקדם, אני פשוט אסתדר עם הבנק. המחיר כואב, אבל לפחות ככה אני לא תלויה בטובות שלכם.",
+        "response_id": "ג'מה:43",
+        "request_number": 43,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0043_player_1_ג_מה.wav"
+      },
+      {
+        "from": "ג'מה",
+        "message": "טוב, אם אף אחד לא רוצה להתקדם וכולם שומרים את המשאבים קרוב לחזה, אני אסיים את התור שלי. נראה מי יתחנן למי כשהקוביות יפסיקו לחייך אליכם.",
+        "response_id": "ג'מה:44",
+        "request_number": 44,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0044_player_1_ג_מה.wav"
+      },
+      {
+        "from": "קלוד",
+        "message": "טוב, בואו נראה אם הקוביות יביאו קצת טיט לשולחן הזה סוף סוף. ג'ימי, נראה שהשודד ממש אוהב את הלבנים שלך.",
+        "response_id": "קלוד:47",
+        "request_number": 47,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0047_player_2_קלוד.wav"
+      },
+      {
+        "from": "קלוד",
+        "message": "ג'מה, אולי בכל זאת התגלגל אלייך איזה טיט במקרה? אני מוכן לתת את החיטה שביקשת קודם בתמורה.",
+        "response_id": "קלוד:48",
+        "request_number": 48,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0048_player_2_קלוד.wav"
+      }
+    ],
+    "trade_context": "Recent trade history: קלוד offered you 1 ore for 1 sheep; you accepted. קלוד offered you 1 sheep for 1 wheat; you rejected. You offered ג'ימי 1 wood for 1 wheat; ג'ימי rejected. You offered קלוד 1 wood for 1 wheat; קלוד rejected.",
+    "pending_trades": [
+      {
+        "trade_id": "trade_25_25",
+        "from": "קלוד",
+        "to": "ג'מה",
+        "offer": {
+          "wheat": 1
+        },
+        "request": {
+          "brick": 1
+        },
+        "status": "pending"
+      }
+    ]
+  },
+  "memory": {
+    "note_from_last_turn": "Roll was 8. I received 1 Sheep. Current hand: 1 Brick, 1 Wheat, 2 Sheep. Need 1 Wheat and 1 Wood for a settlement at node 34. Claude and Jimmy both got Wheat from this roll.",
+    "recent_notes": [
+      "Jimmy is blocked on Hex 13 (Brick). Claude says he has no Brick. I have 4 Wood and need Brick/Wheat. Settlement target is node 34.",
+      "Traded 4 Wood for 1 Brick via bank. Current resources: 1 Brick, 1 Wheat, 1 Sheep. Still need 1 Wheat to build a settlement at node 34. Jimmy remains blocked on Hex 13 (Brick 10).",
+      "Need 1 Wood to build settlement at node 34. Current resources: 1 Brick, 1 Wheat, 1 Sheep. Node 34 is open and connected."
+    ],
+    "long_term_summary": "Strategy: Dominating Wheat/Ore from N20/N44. Target: Settlement at Node 34 (Wh9, Wh6, O2). Current Obstacle: Severe Brick shortage across the board. Action Taken: Used Knight to move robber from Hex 14 (Jimmy's Wheat) to Hex 13 (Jimmy's Brick) to hunt for Brick; then traded 4 Wood to the bank for 1 Brick. Jimmy has surplus Wood/Wheat but is resource-poor due to Hex 13/14 blocks. Claude is low on resources and refusing Wheat trades. Next Goal: Secure 1 Wheat for Node 34 settlement. Hand: 1 Brick, 1 Wheat, 1 Sheep."
+  },
+  "constraints": {
+    "usage_instructions": "Choose one action type from the list below. Populate the 'parameters' field in your response strictly according to the 'example_parameters' structure provided.",
+    "allowed_actions": [
+      {
+        "type": "trade_accept",
+        "description": "Trade Accept",
+        "example_parameters": {}
+      },
+      {
+        "type": "trade_reject",
+        "description": "Trade Reject",
+        "example_parameters": {}
+      }
+    ]
+  }
+}

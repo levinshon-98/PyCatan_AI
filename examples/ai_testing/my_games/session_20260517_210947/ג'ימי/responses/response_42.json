@@ -1,0 +1,23 @@
+{
+  "request_number": 42,
+  "timestamp": "2026-05-17T21:31:34.108138",
+  "player_name": "ג'ימי",
+  "type": "final",
+  "success": true,
+  "raw_content": "{\"internal_thinking\":\"Gemma is offering Wood for Brick. I have 0 Brick in my inventory (res: W:2, Wh:2, S:1) so I cannot accept. She thinks I have Brick because of my settlement on the 10, but the last 10 roll was blocked or hasn't produced enough for me to keep any. I need to inform her I don't have the resource.\",\"note_to_self\":\"Gemma is hunting for Brick. I have 0 Brick despite being on the 10. I am still holding the Monopoly card. Need Brick for my next settlement at N23.\",\"say_outloud\":\"הלוואי שהיה לי טיט לתת לך, ג'מה. ה-10 לא מחייך אליי לאחרונה, אני ריק לגמרי.\"}",
+  "parsed": {
+    "internal_thinking": "Gemma is offering Wood for Brick. I have 0 Brick in my inventory (res: W:2, Wh:2, S:1) so I cannot accept. She thinks I have Brick because of my settlement on the 10, but the last 10 roll was blocked or hasn't produced enough for me to keep any. I need to inform her I don't have the resource.",
+    "note_to_self": "Gemma is hunting for Brick. I have 0 Brick despite being on the 10. I am still holding the Monopoly card. Need Brick for my next settlement at N23.",
+    "say_outloud": "הלוואי שהיה לי טיט לתת לך, ג'מה. ה-10 לא מחייך אליי לאחרונה, אני ריק לגמרי."
+  },
+  "model": "google/gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 2589,
+    "completion": 143,
+    "thinking": 0,
+    "total": 2732
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}
