@@ -1,0 +1,76 @@
+Memory Compaction #2 for Alice
+Time: 2026-05-18T09:14:27.092075
+
+=== BEFORE: Existing Long-Term Summary ===
+Alice settled Node 20 (B6, S8, W11) and roaded toward Node 10. Goals: Secure Node 21 or 33/34 to obtain Wheat/Ore, balancing the current Wood/Brick/Sheep heavy start. Bob (Nodes 12, 43) has high-yield O/W/S and is competing for Node 11/21; expect early Dev Cards/Cities from him. Charlie (Nodes 41, 14) has balanced resources and is targeting coastal ports (Node 7/15/42). Alice is last to place second settlement.
+
+=== BEFORE: Old Notes Compacted ===
+- Bob has heavy Wheat production now (Node 43: Wh9, Wh6). He's likely aiming for a City or Dev card strategy early. I must secure Node 33 or 34 to compete on Ore/Wheat.
+- Bob has a strong O/W/S setup (Nodes 12 and 43). He will likely dominate Dev Cards. I must prioritize my second settlement at a high-yield Ore/Wheat spot like 21 or 33 to stay competitive.
+- Settled node 25 for O/W/S balance. Bob is heavy on wheat. I should watch for his early development card plays.
+- Road placed toward node 26 to secure the Ore port. This will be essential for trading my high Ore yield from node 25.
+- Settled Node 20 and 25. Strong balance of resources. Robber is on the Desert (10).
+- Bought a dev card. Node 9 is open and provides a 3:1 port, which is a good target for the road extending from node 20. Bob is still the primary threat with his wheat production.
+- Used Road Building to reach node 9 (3:1 port) and node 21. Priority is to settle node 9 once I have the resources. Node 11 is blocked by Bob's settlement at 12.
+- Nodes 9 (3:1 port) and 32 (Wheat) are my next expansion targets. I need Wood, Brick, and Wheat to settle node 9. Node 21 is blocked by my own settlement at 20, so I must go to 32 if I expand that way.
+
+=== BEFORE: Recent Notes Kept Verbatim ===
+- Bob rolled a 7. He has 3 wheat and might be looking to build or buy a dev card after the rob. My node 20 (Sheep 8, Brick 6) is a high-value target.
+- Bob moved the robber to Hex 4 (Sheep 8) and stole from me. He currently has 4 wheat and whatever he stole from me. My priority is clearing Hex 4 to restore my sheep income.
+
+=== BEFORE: Relevant Chat Considered ===
+- Alice: Smart move, Charlie. Probably wise to stay out of the splash zone while Bob tries to convince me he's being neighborly.
+- Alice: I think I'll take this spot by the mountains. I'm going to need a bit more than just wood and brick if I'm going to keep up with Bob's 'scenic' wheat empire.
+- Alice: A little port access should help balance things out later. It's good to have options when the dice don't go your way.
+- Bob: A 'wheat empire' has a nice ring to it, Alice! But with all that ore you're gathering, I think I'm the one who should be worried about keeping up.
+- Alice: Alright, let's see what the dice have to say. Good luck, everyone—though maybe a little less for you, Bob.
+- Bob: Ouch, Alice! I thought we left the past in the past. But hey, if the dice are listening to you, I might be in for a long afternoon.
+- Alice: A little investment in the future shouldn't hurt. Let's see if the deck is feeling generous today.
+- Alice: Just putting down some infrastructure. Having a few more paths open never hurt, and that coastal view at 9 looks much better than being stuck in the middle of Bob's wheat fields.
+- Alice: Well, the roads are down, but I'm still a bit short on the supplies to actually get those outposts running. Charlie, you seem to have a surplus of wood over there—if you're looking for some wool to keep warm on that coast, let me know. Bob, I'm watching those wheat fields of yours.
+- Bob: Watching them? Alice, I'd say they're more like community gardens. Plenty of room for everyone... eventually!
+- Charlie: I might be able to spare some timber for the right price, Alice. Let's see how the next roll treats us.
+- Bob: Sorry, Alice. You've been watching my wheat so closely, I figured I'd give you something else to keep an eye on. Those sheep were looking a bit too comfortable anyway.
+- Bob: Can't blame you, Charlie. It's much more peaceful down there!
+- Charlie: Gotta make sure I have a clear path to expand. That 42 direction looks like it'll open up some good options later on.
+- Charlie: I'll take the 8-3-4 up here. I definitely need some wood if I'm going to keep up with you two, and it keeps me from getting totally boxed in down south.
+- Charlie: Heading toward the coast. A little sea breeze and some port access should keep things interesting.
+- Bob: I'll take the scenic route down by the fields at 43. All that wheat should keep me busy while you two keep an eye on each other.
+- Bob: Just going to tuck this road in toward the coast. A little fresh air and a view of the sea never hurt anyone, right?
+- Bob: Hey, I can't blame you for wanting a sea view! It's much quieter out there than in the hustle and bustle of the wheat fields anyway.
+- Bob: Community gardens, exactly! I'm just here to make sure nobody goes hungry. Let's see if the land is ready to provide.
+
+=== AFTER: New Long-Term Summary ===
+Alice settled Node 20 (B6, S8, W11) and Node 25 (O2, O5, S11). Roads extend to Node 9 (3:1 Port) and Node 21. Current goals: Settle Node 9 (requires W/B/Wh) and secure Node 32 for Wheat. Node 11 is blocked by Bob. Bob (Nodes 12, 43) has massive Wheat/Ore/Sheep production; he is the primary threat for early Dev Cards/Cities. Charlie (Nodes 41, 14) is expanding toward coastal ports (Nodes 7/15/42) and offers potential Wood trades. Alice holds 1 Dev Card. Robber is on Hex 4 (S8), blocking Alice's sheep income.
+
+=== AFTER: Fallback Status ===
+used=False
+reason=(none)
+
+=== AFTER: Relationship Updates ===
+["Bob targeted Alice with the robber on Hex 4 and stole from her, intensifying the existing grudge.", "Charlie expressed willingness to trade Wood to Alice."]
+
+=== AFTER: Discarded As Irrelevant ===
+["Repeated resource yield descriptions", "Completed settlement actions", "Vague dice comments", "Initial placement turn order"]
+
+=== RAW LLM RESPONSE PREVIEW ===
+{
+  "compacted_memory": "Alice settled Node 20 (B6, S8, W11) and Node 25 (O2, O5, S11). Roads extend to Node 9 (3:1 Port) and Node 21. Current goals: Settle Node 9 (requires W/B/Wh) and secure Node 32 for Wheat. Node 11 is blocked by Bob. Bob (Nodes 12, 43) has massive Wheat/Ore/Sheep production; he is the primary threat for early Dev Cards/Cities. Charlie (Nodes 41, 14) is expanding toward coastal ports (Nodes 7/15/42) and offers potential Wood trades. Alice holds 1 Dev Card. Robber is on Hex 4 (S8), blocking Alice's sheep income.",
+  "recent_notes_to_keep": [
+    "Bob rolled a 7. He has 3 wheat and might be looking to build or buy a dev card after the rob. My node 20 (Sheep 8, Brick 6) is a high-value target.",
+    "Bob moved the robber to Hex 4 (Sheep 8) and stole from me. He currently has 4 wheat and whatever he stole from me. My priority is clearing Hex 4 to restore my sheep income."
+  ],
+  "discarded_as_irrelevant": [
+    "Repeated resource yield descriptions",
+    "Completed settlement actions",
+    "Vague dice comments",
+    "Initial placement turn order"
+  ],
+  "relationship_updates": [
+    "Bob targeted Alice with the robber on Hex 4 and stole from her, intensifying the existing grudge.",
+    "Charlie expressed willingness to trade Wood to Alice."
+  ]
+}
+
+JSON artifact:
+examples\ai_testing\my_games\session_20260518_080519\Alice\memory_compactions\compaction_2.json

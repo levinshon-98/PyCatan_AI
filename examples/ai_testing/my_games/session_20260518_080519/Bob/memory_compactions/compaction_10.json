@@ -1,0 +1,521 @@
+{
+  "player_name": "Bob",
+  "compaction_number": 10,
+  "timestamp": "2026-05-18T09:52:53.836044",
+  "before": {
+    "existing_compacted_memory": "Bob's expansion toward the N3 Wheat Port is stalled by Charlie's robber on H5 (B6). Alice recently used Monopoly on Wheat and holds 3W, 1B, 3S. Charlie has 3W, 1Wh, 1B, and 1 hidden dev card (revealed Knight), likely targeting the N7 Brick Port. Alice and Charlie are colluding, refusing to trade Brick to Bob. Bob has 2W, 1S and is desperate for Brick/Wheat to settle N11. Wheat is currently scarce for all players. Priority: Move robber off H5 via 7 or Knight to restore Brick production.",
+    "existing_relationship_updates": [
+      {
+        "note": "Alice: Strengthening ties with Charlie by validating his grievances against Bob and refusing to trade with Bob.",
+        "timestamp": 1779086283.6454835
+      },
+      {
+        "note": "Alice: Hostility confirmed through Monopoly play against Bob and refusal to trade Brick despite his offer.",
+        "timestamp": 1779086537.557561
+      },
+      {
+        "note": "Charlie: Collusion with Alice continues; maintaining blockade on Bob while pursuing independent expansion.",
+        "timestamp": 1779086537.5575624
+      },
+      {
+        "note": "Charlie: Refused to trade Brick to Bob, confirming a hard blockade despite friendly table talk with Alice.",
+        "timestamp": 1779086884.1697433
+      },
+      {
+        "note": "Alice: Reaffirmed trade blockade by refusing Bob's offer for Brick despite having a surplus of Wood.",
+        "timestamp": 1779086884.1697454
+      },
+      {
+        "note": "Charlie: Slight softening of blockade by trading Wheat to Bob, though still refusing to trade Brick.",
+        "timestamp": 1779087173.8343852
+      }
+    ],
+    "old_notes_to_compact": [
+      {
+        "note": "Brick 6 is still blocked. I need a 7 or a Knight to move the robber. Alice and Charlie are still refusing to trade fairly.",
+        "timestamp": 1779086837.107997
+      },
+      {
+        "note": "Still stuck without Brick or Wheat. Need to prioritize moving the robber off Hex 5 (Brick 6) or reaching Node 3 (Wheat Port) to bypass the trade blockade. Current resources: 2 Wood, 1 Sheep.",
+        "timestamp": 1779086880.9898007
+      },
+      {
+        "note": "Roll was 4. Charlie now has 4 Wood, Alice has 4 Sheep. My 6-Brick is still blocked by the robber. Trade blockade remains absolute.",
+        "timestamp": 1779086929.1256533
+      },
+      {
+        "note": "Alice confirmed she has Wood surplus. Charlie's attempt to trade Wood for Sheep failed. The blockade on my Brick remains the primary obstacle.",
+        "timestamp": 1779086971.6046977
+      },
+      {
+        "note": "Accepted Charlie's Wheat for Sheep. I now have 2 Wood and 1 Wheat. Still need Brick to settle Node 11. Robber remains on my Brick 6.",
+        "timestamp": 1779087024.2876954
+      },
+      {
+        "note": "Charlie has 1 hidden dev card and 1 brick. Alice has 3 wood and 4 sheep. I have 2 wood and 1 wheat. The blockade on my 6-Brick is the primary bottleneck.",
+        "timestamp": 1779087084.2555327
+      },
+      {
+        "note": "Alice rolled 11, she now has 5 wood and 4 sheep. I still have 2 wood and 1 wheat. The table is still starving me of brick.",
+        "timestamp": 1779087106.5924754
+      },
+      {
+        "note": "Alice built at Node 9 (?3 port). She now has 3 VP. My 6-Brick is still blocked and the table is still freezing me out of trades.",
+        "timestamp": 1779087124.9467442
+      }
+    ],
+    "recent_notes_kept_verbatim": [
+      {
+        "note": "Alice reached 3 VP and secured the 3:1 port at Node 9. She is currently holding a large hand of Wood and Sheep. My B6 remains blocked.",
+        "timestamp": 1779087155.6871967
+      },
+      {
+        "note": "Still blocked on the 6-Brick. Need Brick or a 7 to break the stall.",
+        "timestamp": 1779087170.2345533
+      }
+    ],
+    "relevant_chat": [
+      {
+        "from": "Alice",
+        "message": "Tough luck on the wheat then. I'll just have to wait for the dice to be a bit more generous. Your turn, Bob.",
+        "response_id": "Alice:75",
+        "request_number": 75,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0075_player_1_Alice.wav"
+      },
+      {
+        "from": "Bob",
+        "message": "Let's see if the dice have a sense of humor then. My turn.",
+        "response_id": "Bob:71",
+        "request_number": 71,
+        "response_type": "reaction",
+        "audio_path": "replay_audio/response_0071_player_2_Bob.wav"
+      },
+      {
+        "from": "Bob",
+        "message": "Alright, let's see if we can get some better numbers rolling. We really need to get this economy moving.",
+        "response_id": "Bob:72",
+        "request_number": 72,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0072_player_2_Bob.wav"
+      },
+      {
+        "from": "Bob",
+        "message": "Tough luck on the wheat, Alice. I'm in the same boat. Charlie, you've got plenty of wood already, but if you want to swap a brick for some of mine to help your road, I'm open to it.",
+        "response_id": "Bob:73",
+        "request_number": 73,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0073_player_2_Bob.wav"
+      },
+      {
+        "from": "Charlie",
+        "message": "Sorry Bob, I'm actually in the same boat—if I give up my brick, I'm just as stuck as you are. I'll have to pass.",
+        "response_id": "Charlie:78",
+        "request_number": 78,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0078_player_3_Charlie.wav"
+      },
+      {
+        "from": "Bob",
+        "message": "It seems the dice and the table are equally quiet for me this round. Good luck with the wheat search, Alice—I'm still looking for a way out of the woods myself.",
+        "response_id": "Bob:74",
+        "request_number": 74,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0074_player_2_Bob.wav"
+      },
+      {
+        "from": "Charlie",
+        "message": "Bob, I know you're looking for a way out of the woods. I've got some wheat here if you're willing to part with that sheep.",
+        "response_id": "Charlie:82",
+        "request_number": 82,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0082_player_3_Charlie.wav"
+      },
+      {
+        "from": "Bob",
+        "message": "You know what, Charlie? That's a fair deal. I'll take the wheat. It’s better than staring at these trees all day.",
+        "response_id": "Bob:77",
+        "request_number": 77,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0077_player_2_Bob.wav"
+      },
+      {
+        "from": "Charlie",
+        "message": "Tough crowd. It seems everyone's hording their livestock today. I'll just hold onto what I've got and see how the next round treats us.",
+        "response_id": "Charlie:73",
+        "request_number": 73,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0073_player_3_Charlie.wav"
+      },
+      {
+        "from": "Alice",
+        "message": "Alright, let's see if we can get some better numbers rolling. We really need to get this economy moving.",
+        "response_id": "Alice:72",
+        "request_number": 72,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0072_player_1_Alice.wav"
+      },
+      {
+        "from": "Alice",
+        "message": "Charlie, any chance you've come across some wheat since we last spoke? I'm still looking for a bit to get my next house up.",
+        "response_id": "Alice:74",
+        "request_number": 74,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0074_player_1_Alice.wav"
+      },
+      {
+        "from": "Charlie",
+        "message": "I'm in the same boat as you, Alice. Still haven't seen any wheat come my way yet.",
+        "response_id": "Charlie:75",
+        "request_number": 75,
+        "response_type": "reaction",
+        "audio_path": "replay_audio/response_0075_player_3_Charlie.wav"
+      },
+      {
+        "from": "Charlie",
+        "message": "Finally, a good number! That wheat was definitely overdue.",
+        "response_id": "Charlie:77",
+        "request_number": 77,
+        "response_type": "reaction",
+        "audio_path": "replay_audio/response_0077_player_3_Charlie.wav"
+      },
+      {
+        "from": "Charlie",
+        "message": "Alright, let's see if we can keep the momentum going. Big numbers, please!",
+        "response_id": "Charlie:80",
+        "request_number": 80,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0080_player_3_Charlie.wav"
+      },
+      {
+        "from": "Charlie",
+        "message": "Alice, I know you've got a few sheep over there. I've got plenty of wood if you're looking to extend a road or something.",
+        "response_id": "Charlie:81",
+        "request_number": 81,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0081_player_3_Charlie.wav"
+      },
+      {
+        "from": "Alice",
+        "message": "I'm swimming in wood already, Charlie, but thanks for the offer. I think I'll hang onto my sheep for now.",
+        "response_id": "Alice:80",
+        "request_number": 80,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0080_player_1_Alice.wav"
+      },
+      {
+        "from": "Charlie",
+        "message": "I'm just one piece short of where I want to be. Your turn, Alice.",
+        "response_id": "Charlie:84",
+        "request_number": 84,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0084_player_3_Charlie.wav"
+      },
+      {
+        "from": "Alice",
+        "message": "Let's see what the dice have to say. Hopefully something better than more wood.",
+        "response_id": "Alice:83",
+        "request_number": 83,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0083_player_1_Alice.wav"
+      },
+      {
+        "from": "Alice",
+        "message": "Finally, a little bit of progress. That 3:1 port should make things a bit smoother for me.",
+        "response_id": "Alice:84",
+        "request_number": 84,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0084_player_1_Alice.wav"
+      },
+      {
+        "from": "Alice",
+        "message": "I'm glad that 3:1 port is finally mine. I'll pass the dice for now and see what the next round brings.",
+        "response_id": "Alice:85",
+        "request_number": 85,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0085_player_1_Alice.wav"
+      }
+    ]
+  },
+  "after": {
+    "long_term_summary": "Bob is stalled by Charlie's robber on H5 (B6). Alice (3 VP) built on Node 9 (?3 port) and has a surplus of Wood and Sheep. Charlie (2 VP) has a revealed Knight and one hidden dev card, likely targeting the N7 Brick port. Alice and Charlie have maintained a trade blockade against Bob regarding Brick, though Charlie traded Wheat to Bob for Sheep. Bob currently holds 2W and 1Wh, needing Brick to settle N11 or reaching the N3 Wheat port to bypass the blockade. Priority: Move the robber off H5 via 7 or Knight to restore Brick production.",
+    "recent_notes": [
+      {
+        "note": "Alice reached 3 VP and secured the 3:1 port at Node 9. She is currently holding a large hand of Wood and Sheep. My B6 remains blocked.",
+        "timestamp": 1779087155.6871967
+      },
+      {
+        "note": "Still blocked on the 6-Brick. Need Brick or a 7 to break the stall.",
+        "timestamp": 1779087170.2345533
+      }
+    ],
+    "relationship_updates": [
+      "Charlie: Slight softening of blockade by trading Wheat to Bob, though still refusing to trade Brick."
+    ],
+    "discarded_as_irrelevant": [
+      "Specific dice roll results (4, 11)",
+      "Vague chat regarding sense of humor and dice",
+      "Completed trade of Wheat for Sheep",
+      "Repeated mentions of being stuck"
+    ],
+    "fallback_used": false,
+    "fallback_reason": null
+  },
+  "llm": {
+    "success": true,
+    "content": "{\"compacted_memory\":\"Bob is stalled by Charlie's robber on H5 (B6). Alice (3 VP) built on Node 9 (?3 port) and has a surplus of Wood and Sheep. Charlie (2 VP) has a revealed Knight and one hidden dev ...",
+    "error": null,
+    "model": "google/gemini-3-flash-preview-20251217",
+    "tokens": {
+      "prompt": 5224,
+      "completion": 272,
+      "total": 5496
+    },
+    "latency_seconds": 3.6,
+    "finish_reason": "stop",
+    "timestamp": "2026-05-18T09:52:53.833421"
+  },
+  "llm_raw": {
+    "success": true,
+    "content": "{\"compacted_memory\":\"Bob is stalled by Charlie's robber on H5 (B6). Alice (3 VP) built on Node 9 (?3 port) and has a surplus of Wood and Sheep. Charlie (2 VP) has a revealed Knight and one hidden dev card, likely targeting the N7 Brick port. Alice and Charlie have maintained a trade blockade against Bob regarding Brick, though Charlie traded Wheat to Bob for Sheep. Bob currently holds 2W and 1Wh, needing Brick to settle N11 or reaching the N3 Wheat port to bypass the blockade. Priority: Move the robber off H5 via 7 or Knight to restore Brick production.\",\"recent_notes_to_keep\":[\"Alice reached 3 VP and secured the 3:1 port at Node 9. She is currently holding a large hand of Wood and Sheep. My B6 remains blocked.\",\"Still blocked on the 6-Brick. Need Brick or a 7 to break the stall.\"],\"discarded_as_irrelevant\":[\"Specific dice roll results (4, 11)\",\"Vague chat regarding sense of humor and dice\",\"Completed trade of Wheat for Sheep\",\"Repeated mentions of being stuck\"],\"relationship_updates\":[\"Charlie: Slight softening of blockade by trading Wheat to Bob, though still refusing to trade Brick.\"]}",
+    "error": null,
+    "model": "google/gemini-3-flash-preview-20251217",
+    "finish_reason": "stop",
+    "prompt_tokens": 5224,
+    "completion_tokens": 272,
+    "thinking_tokens": 0,
+    "total_tokens": 5496,
+    "latency_seconds": 3.59759521484375
+  },
+  "prompt": {
+    "meta_data": {
+      "agent_name": "Bob",
+      "task": "compact_agent_memory",
+      "model_instruction": "You are compacting memory for one Catan AI agent. Use the board only through the same compact H/N/state/players/meta format used in normal decision prompts."
+    },
+    "task_context": {
+      "instructions": "Compress old memories and relevant chat into one concise strategic memory. Preserve future-useful facts: current goals, next planned actions, confirmed board facts, known or likely opponent plans/resources/dev cards/trade tendencies, active negotiations, social commitments, and mistakes to avoid. Discard repeated, completed, impossible, vague, or superseded details. Do not invent facts; mark uncertainty clearly. Also extract only new meaningful relationship shifts from the old notes and relevant chat: trust changes, grudges, favors, threats, betrayals, promises, or emotional tension. Do not repeat existing relationship updates; leave relationship_updates empty if nothing changed. Target about 50% or less of the combined old memory length. Keep recent_notes_to_keep copied verbatim from the provided recent notes."
+    },
+    "game_state": "\n  1. LOOKUP TABLES:\n   • \"H\" (Hexes): Array where Index = HexID. Value = Resource+Num.\n     Example: H[1]=\"W12\" -> Hex 1 is Wood 12.\n   • \"N\" (Nodes): Array where Index = NodeID.\n     Format: [ [Neighbors], [HexIDs], Port? ]\n     Logic: To find yield of Node 10, check N[10]. Get HexIDs (e.g. [1,5]). Look up H[1] and H[5].\n\n2. CODES: W=Wood, B=Brick, S=Sheep, Wh=Wheat, O=Ore, D=Desert.\n          ?3=Any 3:1 port, X2=Specific Resource 2:1 port.\n\n3. STATE: \"bld\"=[NodeID, Owner, Type], \"rds\"=[[From,To], Owner].\n\n4. PLAYERS: \"res\"={Resource:Count}, \"dev\"={\"h\":[Your Hidden Cards], \"hidden_count\":OpponentHiddenCount, \"r\":[Revealed] (K=Knight)}, \n            \"stat\"=[\"LR\" (Longest Road), \"LA\" (Largest Army)].\n\n5. ROBBER: Located at HexID specified in \"meta.robber\". H[id] is blocked.\n\nJSON:\n{\"meta\":{\"curr\":\"Bob\",\"phase\":\"NORMAL_PLAY\",\"turn_phase\":\"ROLL_DICE\",\"robber\":5,\"dice\":null,\"vp_to_win\":5},\"H\":[\"\",\"W12\",\"S5\",\"W4\",\"S8\",\"B6\",\"W3\",\"Wh8\",\"B10\",\"W11\",\"D\",\"O3\",\"S4\",\"B10\",\"Wh9\",\"Wh6\",\"S11\",\"O5\",\"Wh9\",\"O2\"],\"N\":[null,[[2,9],[1]],[[1,3],[1],\"Wh2\"],[[2,4,11],[2,1],\"Wh2\"],[[3,5],[2]],[[4,6,13],[3,2]],[[5,7],[3],\"B2\"],[[6,15],[3],\"B2\"],[[9,18],[4],\"?3\"],[[8,10,1],[4,1],\"?3\"],[[9,11,20],[5,4,1]],[[10,12,3],[5,2,1]],[[11,13,22],[6,5,2]],[[12,14,5],[6,3,2]],[[13,15,24],[7,6,3]],[[14,16,7],[7,3]],[[15,26],[7],\"O2\"],[[18,28],[8],\"S2\"],[[17,19,8],[8,4]],[[18,20,30],[9,8,4]],[[19,21,10],[9,5,4]],[[20,22,32],[10,9,5]],[[21,23,12],[10,6,5]],[[22,24,34],[11,10,6]],[[23,25,14],[11,7,6]],[[24,26,36],[12,11,7]],[[25,27,16],[12,7],\"O2\"],[[26,38],[12]],[[29,17],[8],\"S2\"],[[28,30,39],[13,8]],[[29,31,19],[13,9,8]],[[30,32,41],[14,13,9]],[[31,33,21],[14,10,9]],[[32,34,43],[15,14,10]],[[33,35,23],[15,11,10]],[[34,36,45],[16,15,11]],[[35,37,25],[16,12,11]],[[36,38,47],[16,12],\"?3\"],[[37,27],[12],\"?3\"],[[40,29],[13]],[[39,41,48],[17,13],\"W2\"],[[40,42,31],[17,14,13]],[[41,43,50],[18,17,14]],[[42,44,33],[18,15,14]],[[43,45,52],[19,18,15]],[[44,46,35],[19,16,15]],[[45,47,54],[19,16]],[[46,37],[16]],[[49,40],[17],\"W2\"],[[48,50],[17]],[[49,51,42],[18,17],\"?3\"],[[50,52],[18],\"?3\"],[[51,53,44],[19,18]],[[52,54],[19],\"?3\"],[[53,46],[19],\"?3\"]],\"state\":{\"bld\":[[9,\"Alice\",\"S\"],[12,\"Bob\",\"S\"],[14,\"Charlie\",\"S\"],[20,\"Alice\",\"S\"],[25,\"Alice\",\"S\"],[41,\"Charlie\",\"S\"],[43,\"Bob\",\"S\"]],\"rds\":[[[20,10],\"Alice\"],[[12,11],\"Bob\"],[[41,42],\"Charlie\"],[[14,15],\"Charlie\"],[[43,44],\"Bob\"],[[25,26],\"Alice\"],[[10,9],\"Alice\"],[[20,21],\"Alice\"],[[15,7],\"Charlie\"]]},\"players\":{\"Alice\":{\"vp\":3,\"res\":{\"W\":3,\"S\":3}},\"Bob\":{\"vp\":2,\"res\":{\"W\":2,\"Wh\":1}},\"Charlie\":{\"vp\":2,\"res\":{\"Wh\":1,\"B\":1,\"S\":1},\"dev\":{\"hidden_count\":1,\"r\":[\"K\"]}}}}",
+    "memory_input": {
+      "existing_compacted_memory": "Bob's expansion toward the N3 Wheat Port is stalled by Charlie's robber on H5 (B6). Alice recently used Monopoly on Wheat and holds 3W, 1B, 3S. Charlie has 3W, 1Wh, 1B, and 1 hidden dev card (revealed Knight), likely targeting the N7 Brick Port. Alice and Charlie are colluding, refusing to trade Brick to Bob. Bob has 2W, 1S and is desperate for Brick/Wheat to settle N11. Wheat is currently scarce for all players. Priority: Move robber off H5 via 7 or Knight to restore Brick production.",
+      "existing_relationship_updates": [
+        {
+          "note": "Alice: Strengthening ties with Charlie by validating his grievances against Bob and refusing to trade with Bob.",
+          "timestamp": 1779086283.6454835
+        },
+        {
+          "note": "Alice: Hostility confirmed through Monopoly play against Bob and refusal to trade Brick despite his offer.",
+          "timestamp": 1779086537.557561
+        },
+        {
+          "note": "Charlie: Collusion with Alice continues; maintaining blockade on Bob while pursuing independent expansion.",
+          "timestamp": 1779086537.5575624
+        },
+        {
+          "note": "Charlie: Refused to trade Brick to Bob, confirming a hard blockade despite friendly table talk with Alice.",
+          "timestamp": 1779086884.1697433
+        },
+        {
+          "note": "Alice: Reaffirmed trade blockade by refusing Bob's offer for Brick despite having a surplus of Wood.",
+          "timestamp": 1779086884.1697454
+        },
+        {
+          "note": "Charlie: Slight softening of blockade by trading Wheat to Bob, though still refusing to trade Brick.",
+          "timestamp": 1779087173.8343852
+        }
+      ],
+      "old_notes_to_compact": [
+        "Brick 6 is still blocked. I need a 7 or a Knight to move the robber. Alice and Charlie are still refusing to trade fairly.",
+        "Still stuck without Brick or Wheat. Need to prioritize moving the robber off Hex 5 (Brick 6) or reaching Node 3 (Wheat Port) to bypass the trade blockade. Current resources: 2 Wood, 1 Sheep.",
+        "Roll was 4. Charlie now has 4 Wood, Alice has 4 Sheep. My 6-Brick is still blocked by the robber. Trade blockade remains absolute.",
+        "Alice confirmed she has Wood surplus. Charlie's attempt to trade Wood for Sheep failed. The blockade on my Brick remains the primary obstacle.",
+        "Accepted Charlie's Wheat for Sheep. I now have 2 Wood and 1 Wheat. Still need Brick to settle Node 11. Robber remains on my Brick 6.",
+        "Charlie has 1 hidden dev card and 1 brick. Alice has 3 wood and 4 sheep. I have 2 wood and 1 wheat. The blockade on my 6-Brick is the primary bottleneck.",
+        "Alice rolled 11, she now has 5 wood and 4 sheep. I still have 2 wood and 1 wheat. The table is still starving me of brick.",
+        "Alice built at Node 9 (?3 port). She now has 3 VP. My 6-Brick is still blocked and the table is still freezing me out of trades."
+      ],
+      "recent_notes_to_keep": [
+        "Alice reached 3 VP and secured the 3:1 port at Node 9. She is currently holding a large hand of Wood and Sheep. My B6 remains blocked.",
+        "Still blocked on the 6-Brick. Need Brick or a 7 to break the stall."
+      ],
+      "relevant_chat": [
+        {
+          "from": "Alice",
+          "message": "Tough luck on the wheat then. I'll just have to wait for the dice to be a bit more generous. Your turn, Bob.",
+          "response_id": "Alice:75",
+          "request_number": 75,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0075_player_1_Alice.wav"
+        },
+        {
+          "from": "Bob",
+          "message": "Let's see if the dice have a sense of humor then. My turn.",
+          "response_id": "Bob:71",
+          "request_number": 71,
+          "response_type": "reaction",
+          "audio_path": "replay_audio/response_0071_player_2_Bob.wav"
+        },
+        {
+          "from": "Bob",
+          "message": "Alright, let's see if we can get some better numbers rolling. We really need to get this economy moving.",
+          "response_id": "Bob:72",
+          "request_number": 72,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0072_player_2_Bob.wav"
+        },
+        {
+          "from": "Bob",
+          "message": "Tough luck on the wheat, Alice. I'm in the same boat. Charlie, you've got plenty of wood already, but if you want to swap a brick for some of mine to help your road, I'm open to it.",
+          "response_id": "Bob:73",
+          "request_number": 73,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0073_player_2_Bob.wav"
+        },
+        {
+          "from": "Charlie",
+          "message": "Sorry Bob, I'm actually in the same boat—if I give up my brick, I'm just as stuck as you are. I'll have to pass.",
+          "response_id": "Charlie:78",
+          "request_number": 78,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0078_player_3_Charlie.wav"
+        },
+        {
+          "from": "Bob",
+          "message": "It seems the dice and the table are equally quiet for me this round. Good luck with the wheat search, Alice—I'm still looking for a way out of the woods myself.",
+          "response_id": "Bob:74",
+          "request_number": 74,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0074_player_2_Bob.wav"
+        },
+        {
+          "from": "Charlie",
+          "message": "Bob, I know you're looking for a way out of the woods. I've got some wheat here if you're willing to part with that sheep.",
+          "response_id": "Charlie:82",
+          "request_number": 82,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0082_player_3_Charlie.wav"
+        },
+        {
+          "from": "Bob",
+          "message": "You know what, Charlie? That's a fair deal. I'll take the wheat. It’s better than staring at these trees all day.",
+          "response_id": "Bob:77",
+          "request_number": 77,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0077_player_2_Bob.wav"
+        },
+        {
+          "from": "Charlie",
+          "message": "Tough crowd. It seems everyone's hording their livestock today. I'll just hold onto what I've got and see how the next round treats us.",
+          "response_id": "Charlie:73",
+          "request_number": 73,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0073_player_3_Charlie.wav"
+        },
+        {
+          "from": "Alice",
+          "message": "Alright, let's see if we can get some better numbers rolling. We really need to get this economy moving.",
+          "response_id": "Alice:72",
+          "request_number": 72,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0072_player_1_Alice.wav"
+        },
+        {
+          "from": "Alice",
+          "message": "Charlie, any chance you've come across some wheat since we last spoke? I'm still looking for a bit to get my next house up.",
+          "response_id": "Alice:74",
+          "request_number": 74,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0074_player_1_Alice.wav"
+        },
+        {
+          "from": "Charlie",
+          "message": "I'm in the same boat as you, Alice. Still haven't seen any wheat come my way yet.",
+          "response_id": "Charlie:75",
+          "request_number": 75,
+          "response_type": "reaction",
+          "audio_path": "replay_audio/response_0075_player_3_Charlie.wav"
+        },
+        {
+          "from": "Charlie",
+          "message": "Finally, a good number! That wheat was definitely overdue.",
+          "response_id": "Charlie:77",
+          "request_number": 77,
+          "response_type": "reaction",
+          "audio_path": "replay_audio/response_0077_player_3_Charlie.wav"
+        },
+        {
+          "from": "Charlie",
+          "message": "Alright, let's see if we can keep the momentum going. Big numbers, please!",
+          "response_id": "Charlie:80",
+          "request_number": 80,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0080_player_3_Charlie.wav"
+        },
+        {
+          "from": "Charlie",
+          "message": "Alice, I know you've got a few sheep over there. I've got plenty of wood if you're looking to extend a road or something.",
+          "response_id": "Charlie:81",
+          "request_number": 81,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0081_player_3_Charlie.wav"
+        },
+        {
+          "from": "Alice",
+          "message": "I'm swimming in wood already, Charlie, but thanks for the offer. I think I'll hang onto my sheep for now.",
+          "response_id": "Alice:80",
+          "request_number": 80,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0080_player_1_Alice.wav"
+        },
+        {
+          "from": "Charlie",
+          "message": "I'm just one piece short of where I want to be. Your turn, Alice.",
+          "response_id": "Charlie:84",
+          "request_number": 84,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0084_player_3_Charlie.wav"
+        },
+        {
+          "from": "Alice",
+          "message": "Let's see what the dice have to say. Hopefully something better than more wood.",
+          "response_id": "Alice:83",
+          "request_number": 83,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0083_player_1_Alice.wav"
+        },
+        {
+          "from": "Alice",
+          "message": "Finally, a little bit of progress. That 3:1 port should make things a bit smoother for me.",
+          "response_id": "Alice:84",
+          "request_number": 84,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0084_player_1_Alice.wav"
+        },
+        {
+          "from": "Alice",
+          "message": "I'm glad that 3:1 port is finally mine. I'll pass the dice for now and see what the next round brings.",
+          "response_id": "Alice:85",
+          "request_number": 85,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0085_player_1_Alice.wav"
+        }
+      ]
+    },
+    "output_requirements": {
+      "format": "valid JSON only",
+      "schema": {
+        "compacted_memory": "string",
+        "recent_notes_to_keep": [
+          "string"
+        ],
+        "relationship_updates": [
+          "string"
+        ],
+        "discarded_as_irrelevant": [
+          "string"
+        ]
+      }
+    }
+  }
+}

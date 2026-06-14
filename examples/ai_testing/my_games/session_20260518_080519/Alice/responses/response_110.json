@@ -1,0 +1,25 @@
+{
+  "request_number": 110,
+  "timestamp": "2026-05-18T10:06:12.589660",
+  "player_name": "Alice",
+  "type": "final",
+  "success": true,
+  "raw_content": "{\n  \"internal_thinking\": \"Bob is offering me 1 Wood for 1 Wheat. My current resources are 2 Wood, 1 Wheat, and 3 Sheep. I need to reach Node 18 (Brick 10, Sheep 8) to solve my brick shortage. To build a road to 19-18 and then a settlement, I need Wood, Brick, Sheep, and Wheat. Accepting this trade would leave me with 3 Wood and 0 Wheat. Since I already have 2 Wood and zero Brick, getting a 3rd Wood at the cost of my only Wheat doesn't help me build anything immediately. Furthermore, Bob is a threat who betrayed me before, and giving him Wheat helps him utilize his potential Wheat port or bank trades. Charlie already rejected this same deal, so I'm not falling behind by saying no. I'll hold onto my Wheat for a potential trade for Brick later.\",\n  \"action\": {\n    \"type\": \"trade_reject\",\n    \"parameters\": \"{}\"\n  },\n  \"note_to_self\": \"Rejected Bob's Wood-for-Wheat trade. I have 2W, 1Wh, 3S. Still need Brick to move toward Node 18. Bob is Wheat-heavy and looking for any way to move.\",\n  \"say_outloud\": \"I'll pass, Bob. I've got enough wood to start a bonfire, but I'm not trading away my last bit of wheat just to help you reach that port faster.\"\n}",
+  "parsed": {
+    "internal_thinking": "Bob is offering me 1 Wood for 1 Wheat. My current resources are 2 Wood, 1 Wheat, and 3 Sheep. I need to reach Node 18 (Brick 10, Sheep 8) to solve my brick shortage. To build a road to 19-18 and then a settlement, I need Wood, Brick, Sheep, and Wheat. Accepting this trade would leave me with 3 Wood and 0 Wheat. Since I already have 2 Wood and zero Brick, getting a 3rd Wood at the cost of my only Wheat doesn't help me build anything immediately. Furthermore, Bob is a threat who betrayed me before, and giving him Wheat helps him utilize his potential Wheat port or bank trades. Charlie already rejected this same deal, so I'm not falling behind by saying no. I'll hold onto my Wheat for a potential trade for Brick later.",
+    "note_to_self": "Rejected Bob's Wood-for-Wheat trade. I have 2W, 1Wh, 3S. Still need Brick to move toward Node 18. Bob is Wheat-heavy and looking for any way to move.",
+    "say_outloud": "I'll pass, Bob. I've got enough wood to start a bonfire, but I'm not trading away my last bit of wheat just to help you reach that port faster.",
+    "action_type": "trade_reject",
+    "parameters": {}
+  },
+  "model": "google/gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 5923,
+    "completion": 289,
+    "thinking": 0,
+    "total": 6362
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}

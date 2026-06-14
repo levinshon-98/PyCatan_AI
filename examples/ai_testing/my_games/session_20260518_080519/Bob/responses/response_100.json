@@ -1,0 +1,23 @@
+{
+  "request_number": 100,
+  "timestamp": "2026-05-18T10:02:20.161827",
+  "player_name": "Bob",
+  "type": "final",
+  "success": true,
+  "raw_content": "{\"internal_thinking\":\"Alice rolled a 6. That's great for me—I get a Brick from H5 and a Wheat from H18. I now have [1W, 3Wh, 2B]. I still need one Sheep to settle that Wheat port at Node 3. Alice is frustrated about the robber on her 8-sheep, but this roll helps me more than her. I should stay quiet and let them bicker while I collect resources.\",\"note_to_self\":\"Alice rolled a 6. I gained 1 Brick and 1 Wheat. Current resources: 1 Wood, 3 Wheat, 2 Brick. Still need 1 Sheep for Node 3 settlement.\",\"say_outloud\":\"\"}",
+  "parsed": {
+    "internal_thinking": "Alice rolled a 6. That's great for me—I get a Brick from H5 and a Wheat from H18. I now have [1W, 3Wh, 2B]. I still need one Sheep to settle that Wheat port at Node 3. Alice is frustrated about the robber on her 8-sheep, but this roll helps me more than her. I should stay quiet and let them bicker while I collect resources.",
+    "note_to_self": "Alice rolled a 6. I gained 1 Brick and 1 Wheat. Current resources: 1 Wood, 3 Wheat, 2 Brick. Still need 1 Sheep for Node 3 settlement.",
+    "say_outloud": ""
+  },
+  "model": "google/gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 2505,
+    "completion": 129,
+    "thinking": 0,
+    "total": 2634
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}

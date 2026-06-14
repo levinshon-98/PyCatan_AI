@@ -1,0 +1,30 @@
+{
+  "request_number": 57,
+  "iteration": 3,
+  "timestamp": "2026-05-18T09:36:19.648256",
+  "player_name": "Charlie",
+  "type": "intermediate",
+  "success": true,
+  "raw_content": "",
+  "has_tool_calls": true,
+  "tool_calls": [
+    {
+      "id": "tool_inspect_node_W6Ig3cQ43ibOpw3V0Teo",
+      "name": "inspect_node",
+      "parameters": {
+        "node_id": 14,
+        "reasoning": "Checking node 14 to see what resources it produces and confirm it's my settlement."
+      }
+    }
+  ],
+  "model": "google/gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 3912,
+    "completion": 0,
+    "thinking": 0,
+    "total": 3912
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}

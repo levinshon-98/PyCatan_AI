@@ -1,0 +1,25 @@
+{
+  "request_number": 52,
+  "timestamp": "2026-05-18T09:34:19.900596",
+  "player_name": "Alice",
+  "type": "final",
+  "success": true,
+  "raw_content": "{\n  \"internal_thinking\": \"Bob is offering 1 Sheep for 1 Wood. I currently have 1 Wood, 1 Wheat, and 1 Sheep. While the trade is a 1:1, Bob just moved the robber to Hex 7, blocking my Wheat 8 production (and Charlie's). He also betrayed me in the last game and is generally untrustworthy. My strategy involves settling Node 9 (3:1 port), which requires Wood and Brick. Giving Bob my only Wood right now helps him more than it helps me, especially since he just tried to disrupt my growth with the robber. I'll stick with Charlie and reject this.\",\n  \"action\": {\n    \"type\": \"trade_reject\",\n    \"parameters\": \"{}\"\n  },\n  \"note_to_self\": \"Rejected Bob's 1:1 Sheep for Wood. I need to keep my Wood for Node 9 and I'm not helping Bob after he blocked my Wheat 8.\",\n  \"say_outloud\": \"You just put a 'guest' in my wheat field, Bob, and now you want my wood? I think I'll pass. I'm sure you can find someone else to 'balance the scales' with.\"\n}",
+  "parsed": {
+    "internal_thinking": "Bob is offering 1 Sheep for 1 Wood. I currently have 1 Wood, 1 Wheat, and 1 Sheep. While the trade is a 1:1, Bob just moved the robber to Hex 7, blocking my Wheat 8 production (and Charlie's). He also betrayed me in the last game and is generally untrustworthy. My strategy involves settling Node 9 (3:1 port), which requires Wood and Brick. Giving Bob my only Wood right now helps him more than it helps me, especially since he just tried to disrupt my growth with the robber. I'll stick with Charlie and reject this.",
+    "note_to_self": "Rejected Bob's 1:1 Sheep for Wood. I need to keep my Wood for Node 9 and I'm not helping Bob after he blocked my Wheat 8.",
+    "say_outloud": "You just put a 'guest' in my wheat field, Bob, and now you want my wood? I think I'll pass. I'm sure you can find someone else to 'balance the scales' with.",
+    "action_type": "trade_reject",
+    "parameters": {}
+  },
+  "model": "google/gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 2750,
+    "completion": 234,
+    "thinking": 0,
+    "total": 2984
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}

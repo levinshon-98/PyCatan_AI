@@ -1,0 +1,25 @@
+{
+  "request_number": 82,
+  "timestamp": "2026-05-18T09:52:50.232094",
+  "player_name": "Bob",
+  "type": "final",
+  "success": true,
+  "raw_content": "{\n  \"internal_thinking\": \"I am currently at 2 VP. My primary production bottleneck is the robber on my 6-Brick (Hex 5), which is being maintained by Alice and Charlie's collusion. I have 2 Wood and 1 Wheat in hand. I don't have any development cards to play before rolling. My settlements are at Node 12 (Wood 3, Brick 6, Sheep 5) and Node 43 (Wheat 9, 6). I need to roll the dice and hope for a 7 to move the robber or for my Wheat/Wood numbers to hit so I can trade or build towards Node 11.\",\n  \"action\": {\n    \"type\": \"roll_dice\",\n    \"parameters\": \"{}\"\n  },\n  \"note_to_self\": \"Still blocked on the 6-Brick. Need Brick or a 7 to break the stall.\",\n  \"say_outloud\": \"Alright, let's see if the dice are feeling more generous than you two today. I could really use a change in the weather.\"\n}",
+  "parsed": {
+    "internal_thinking": "I am currently at 2 VP. My primary production bottleneck is the robber on my 6-Brick (Hex 5), which is being maintained by Alice and Charlie's collusion. I have 2 Wood and 1 Wheat in hand. I don't have any development cards to play before rolling. My settlements are at Node 12 (Wood 3, Brick 6, Sheep 5) and Node 43 (Wheat 9, 6). I need to roll the dice and hope for a 7 to move the robber or for my Wheat/Wood numbers to hit so I can trade or build towards Node 11.",
+    "note_to_self": "Still blocked on the 6-Brick. Need Brick or a 7 to break the stall.",
+    "say_outloud": "Alright, let's see if the dice are feeling more generous than you two today. I could really use a change in the weather.",
+    "action_type": "roll_dice",
+    "parameters": {}
+  },
+  "model": "google/gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 6257,
+    "completion": 198,
+    "thinking": 0,
+    "total": 6877
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}

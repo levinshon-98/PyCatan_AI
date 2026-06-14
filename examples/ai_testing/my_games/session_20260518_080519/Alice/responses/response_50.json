@@ -1,0 +1,23 @@
+{
+  "request_number": 50,
+  "timestamp": "2026-05-18T09:32:56.830321",
+  "player_name": "Alice",
+  "type": "final",
+  "success": true,
+  "raw_content": "{\n  \"internal_thinking\": \"Bob rolled a 7 and moved the robber to Hex 7 (Wheat 8), which hits both Charlie and me. He's being typically smug about it. I have a Monopoly card in hand, so I'm not too worried about losing one resource now, but I need to maintain the alliance with Charlie to keep Bob in check.\",\n  \"note_to_self\": \"Bob moved the robber to Hex 7 (Wheat 8), blocking both Alice and Charlie. Alice holds a Monopoly card.\",\n  \"say_outloud\": \"Spoken like a true 'community' leader, Bob. Always looking for ways to share the burden.\"\n}",
+  "parsed": {
+    "internal_thinking": "Bob rolled a 7 and moved the robber to Hex 7 (Wheat 8), which hits both Charlie and me. He's being typically smug about it. I have a Monopoly card in hand, so I'm not too worried about losing one resource now, but I need to maintain the alliance with Charlie to keep Bob in check.",
+    "note_to_self": "Bob moved the robber to Hex 7 (Wheat 8), blocking both Alice and Charlie. Alice holds a Monopoly card.",
+    "say_outloud": "Spoken like a true 'community' leader, Bob. Always looking for ways to share the burden."
+  },
+  "model": "google/gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 2687,
+    "completion": 135,
+    "thinking": 0,
+    "total": 2822
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}

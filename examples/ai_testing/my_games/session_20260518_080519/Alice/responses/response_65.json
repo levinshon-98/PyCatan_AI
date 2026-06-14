@@ -1,0 +1,25 @@
+{
+  "request_number": 65,
+  "timestamp": "2026-05-18T09:41:16.952362",
+  "player_name": "Alice",
+  "type": "final",
+  "success": true,
+  "raw_content": "{\n  \"internal_thinking\": \"Bob is offering 1 Wood for 1 Brick. My current resources are 2 Wood, 1 Brick, and 2 Sheep. My immediate goal is to build a settlement at Node 9 (the 3:1 port), which requires 1 Wood, 1 Brick, 1 Wheat, and 1 Sheep. Brick is my rarest resource right now, and I already have enough Wood (2) to build the settlement once I get the Wheat. Trading away my only Brick for a resource I already have plenty of makes no strategic sense, especially since Bob is my primary rival and previously betrayed me. I'll reject the trade.\",\n  \"action\": {\n    \"type\": \"trade_reject\",\n    \"parameters\": \"{}\"\n  },\n  \"note_to_self\": \"Rejected Bob's Wood-for-Brick trade. Hand remains 2W, 1B, 2S. Still need Wheat for Node 9. Bob has Wood and Sheep.\",\n  \"say_outloud\": \"Nice try, Bob, but I'm not letting go of my only brick for wood I already have. You'll have to find someone else to bail you out.\"\n}",
+  "parsed": {
+    "internal_thinking": "Bob is offering 1 Wood for 1 Brick. My current resources are 2 Wood, 1 Brick, and 2 Sheep. My immediate goal is to build a settlement at Node 9 (the 3:1 port), which requires 1 Wood, 1 Brick, 1 Wheat, and 1 Sheep. Brick is my rarest resource right now, and I already have enough Wood (2) to build the settlement once I get the Wheat. Trading away my only Brick for a resource I already have plenty of makes no strategic sense, especially since Bob is my primary rival and previously betrayed me. I'll reject the trade.",
+    "note_to_self": "Rejected Bob's Wood-for-Brick trade. Hand remains 2W, 1B, 2S. Still need Wheat for Node 9. Bob has Wood and Sheep.",
+    "say_outloud": "Nice try, Bob, but I'm not letting go of my only brick for wood I already have. You'll have to find someone else to bail you out.",
+    "action_type": "trade_reject",
+    "parameters": {}
+  },
+  "model": "google/gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 2717,
+    "completion": 225,
+    "thinking": 0,
+    "total": 2942
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}

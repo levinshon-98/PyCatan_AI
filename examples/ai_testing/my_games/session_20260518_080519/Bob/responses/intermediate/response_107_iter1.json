@@ -1,0 +1,30 @@
+{
+  "request_number": 107,
+  "iteration": 1,
+  "timestamp": "2026-05-18T10:05:36.534111",
+  "player_name": "Bob",
+  "type": "intermediate",
+  "success": true,
+  "raw_content": "",
+  "has_tool_calls": true,
+  "tool_calls": [
+    {
+      "id": "tool_inspect_node_Vb3E3l59de65uUnVpi0U",
+      "name": "inspect_node",
+      "parameters": {
+        "reasoning": "Verifying my settlement at Node 12 to check adjacent hexes and production. I need to confirm if I received Wheat from the roll of 9.",
+        "node_id": 12
+      }
+    }
+  ],
+  "model": "google/gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 3373,
+    "completion": 0,
+    "thinking": 0,
+    "total": 3373
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}

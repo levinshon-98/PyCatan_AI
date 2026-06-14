@@ -1,0 +1,76 @@
+Memory Compaction #7 for Bob
+Time: 2026-05-18T09:38:03.648458
+
+=== BEFORE: Existing Long-Term Summary ===
+Bob cleared the long-standing block on H5 (Brick 6) by rolling a 7. He moved the robber to H7 (Wheat 8), blocking both Alice and Charlie. Goal: Secure Wood/Brick to expand road N11-N3 for Wheat Port. Alice (N20, N25) and Charlie (N41, N14) maintain a loose alliance against Bob, but Charlie is becoming more self-interested, hoarding Wood to build at N7 (Brick Port). Alice is focused on dev cards and managing Bob's growth. Both opponents have one hidden dev card (likely Knights). Bob currently has 1 Wood, 3 Wheat, 2 Sheep, and just stole a card from Charlie.
+
+=== BEFORE: Old Notes Compacted ===
+- Moved robber to Hex 7 (Wheat 8) to block both Alice and Charlie. Charlie has 5 cards, making him the primary steal target.
+- Stole from Charlie on Hex 7. He was holding significant Wood (3) and Wheat/Ore. Targeting him slows his progress toward the Brick port at Node 7.
+- Attempting to acquire Brick from Charlie to build toward the Wheat port (Node 3). I currently have a surplus of Wheat.
+- Current resources: 2 Wood, 3 Wheat, 2 Sheep. Goal: Acquire Brick for road expansion from N11 to N3 (Wheat Port). Charlie was missing Brick in the last attempt.
+- Attempting a 3:1 wheat-for-brick trade with Charlie to secure a road toward the Wheat Port (Node 3). Alice is currently blocking most of my other expansion routes.
+- Charlie confirmed he has no Brick. I need to wait for a Brick roll (6 or 10) or accumulate more Wheat for a 4:1 bank trade. Road path N11-N3 remains the priority for the Wheat port.
+- Charlie used a Knight to move the robber to Hex 5 (Brick 6), blocking my primary brick source and stealing from me. Charlie and Alice are currently coordinated in their rhetoric against me.
+- Dice roll 4 provided Alice (Sheep) and Charlie (Wheat). My Brick source (Hex 5) is still blocked by Charlie's Knight move. I have 2 Wood, 3 Wheat, 1 Sheep. Still need Brick or more Wheat for the 4:1 bank trade to reach the Wheat port.
+
+=== BEFORE: Recent Notes Kept Verbatim ===
+- Charlie now has 2 hidden development cards and 1 revealed Knight. Brick is currently the scarcest resource on the board with Hex 5 blocked. My priority remains getting to the Wheat port at Node 3, but I need a 7 or a lucky 10/6 roll to bypass the blockade.
+- Charlie has 3 wood and no brick. Alice has sheep and wheat. My brick (Hex 5) is still blocked by Charlie's knight. I have 2 Wood, 3 Wheat, 1 Sheep. Need one more wheat for a 4:1 bank trade if no brick rolls soon.
+
+=== BEFORE: Relevant Chat Considered ===
+- Charlie: I figured you’d be eager to move that, Bob. Just don't get too comfortable with wherever you're putting it.
+- Alice: Spoken like a true 'community' leader, Bob. Always looking for ways to share the burden.
+- Bob: Sorry Charlie, but you've been a bit too successful with those wood rolls lately. I need to balance the scales a little.
+- Alice: Balance the scales? You're just hitting the only person who hasn't tried to backstab me yet, Bob.
+- Charlie: Balance the scales? You're just mad about that blocked brick, Bob. Don't worry, I'll remember the favor.
+- Bob: Look, Charlie, I know the robber is a bit of a nuisance, but I'm looking to move things along. You've got bricks, I've got plenty of wheat for those cities you'll want later. Three wheat for one brick? It's a steal.
+- Charlie: I don't have any brick for you, Bob. Maybe if you hadn't just robbed me, I'd be more inclined to help you find some.
+- Bob: Alice, you're always talking about community. How about a little neighborly swap? I'll give you some prime wool for a bit of that wood you've got lying around.
+- Alice: You just put a 'guest' in my wheat field, Bob, and now you want my wood? I think I'll pass. I'm sure you can find someone else to 'balance the scales' with.
+- Bob: Charlie, I know you said you were out of brick, but surely three bags of wheat is enough to make you check your pockets again? It's a massive overpay, but I'm feeling generous after that seven.
+- Charlie: I'm not hiding anything, Bob. I still have zero brick. Checking my pockets won't change the fact that you're asking for something I don't have.
+- Bob: Well, if the bricks are as scarce as the hospitality around here, I suppose I'll just have to wait. Good luck with the next roll, everyone.
+- Charlie: You know, Bob, you talk a lot about 'balancing scales,' but I think it's time we actually leveled the field. That Wheat 8 was doing just fine without your 'guest.' Let's see how you like it when your bricks go missing for a change.
+- Bob: A bit dramatic for a simple knight, don't you think, Charlie? I'm just a humble merchant trying to keep the wheat flowing.
+- Charlie: Alright, let's see what the dice have to say about this 'balance' you keep talking about, Bob.
+- Alice: I'd love to help out, Charlie, but I don't have any brick either. Bob seems to be the only one sitting on the clay lately.
+- Alice: Much better. That field was getting a bit crowded anyway.
+- Charlie: Alice, I'm looking for a bit of brick to finish my path. Would you be interested in some wood in exchange?
+- Charlie: Well, looks like the bricks are as dry as the desert right now. I'll just have to see what else I can find in the deck.
+- Charlie: Well, at least the woods are providing. Since nobody has any clay to spare, I'll just hold onto these logs for now. Your turn, Alice.
+
+=== AFTER: New Long-Term Summary ===
+Bob is targeting a road expansion from N11 to the N3 Wheat Port. Brick (H5/B6) is currently the scarcest resource and is blocked by Charlie's Knight on H5. Charlie is hoarding Wood (3) and aiming for the Node 7 Brick Port, while Alice supports Charlie to suppress Bob. Alice and Charlie both hold hidden development cards (likely Knights). Bob has 2W, 3Wh, 1S and needs 1 more Wheat for a 4:1 bank trade for Brick if no 6 or 10 rolls. Charlie confirmed he has no Brick.
+
+=== AFTER: Fallback Status ===
+used=False
+reason=(none)
+
+=== AFTER: Relationship Updates ===
+["Charlie: Hostility increased; explicitly retaliated with a Knight to block Bob's Brick source (H5) in response to Bob's", "Alice: Strengthening ties with Charlie by validating his grievances against Bob and refusing to trade with Bob."]
+
+=== AFTER: Discarded As Irrelevant ===
+["Past trade offers (3:1 wheat-for-brick) rejected by Charlie", "Specific dice roll history (roll of 4)", "Old resource counts that have since changed", "Completed robber moves from previous turns"]
+
+=== RAW LLM RESPONSE PREVIEW ===
+{
+  "compacted_memory": "Bob is targeting a road expansion from N11 to the N3 Wheat Port. Brick (H5/B6) is currently the scarcest resource and is blocked by Charlie's Knight on H5. Charlie is hoarding Wood (3) and aiming for the Node 7 Brick Port, while Alice supports Charlie to suppress Bob. Alice and Charlie both hold hidden development cards (likely Knights). Bob has 2W, 3Wh, 1S and needs 1 more Wheat for a 4:1 bank trade for Brick if no 6 or 10 rolls. Charlie confirmed he has no Brick.",
+  "recent_notes_to_keep": [
+    "Charlie now has 2 hidden development cards and 1 revealed Knight. Brick is currently the scarcest resource on the board with Hex 5 blocked. My priority remains getting to the Wheat port at Node 3, but I need a 7 or a lucky 10/6 roll to bypass the blockade.",
+    "Charlie has 3 wood and no brick. Alice has sheep and wheat. My brick (Hex 5) is still blocked by Charlie's knight. I have 2 Wood, 3 Wheat, 1 Sheep. Need one more wheat for a 4:1 bank trade if no brick rolls soon."
+  ],
+  "discarded_as_irrelevant": [
+    "Past trade offers (3:1 wheat-for-brick) rejected by Charlie",
+    "Specific dice roll history (roll of 4)",
+    "Old resource counts that have since changed",
+    "Completed robber moves from previous turns"
+  ],
+  "relationship_updates": [
+    "Charlie: Hostility increased; explicitly retaliated with a Knight to block Bob's Brick source (H5) in response to Bob's earlier steal.",
+    "Alice: Strengthening ties with Charlie by validating his grievances against Bob and refusing to trade with Bob."
+  ]
+}
+
+JSON artifact:
+examples\ai_testing\my_games\session_20260518_080519\Bob\memory_compactions\compaction_7.json

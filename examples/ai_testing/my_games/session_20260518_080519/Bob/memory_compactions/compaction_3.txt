@@ -1,0 +1,60 @@
+Memory Compaction #3 for Bob
+Time: 2026-05-18T09:20:28.920292
+
+=== BEFORE: Existing Long-Term Summary ===
+Bob dominates Wheat (N43: 6,9) but lacks Wood/Brick. Goals: Expand to N45 (coast) or N3 (Wheat port). Avoid N11 (distance rule violation). Alice: N20 (B6,W11,S5) and N25 (O3,S4,B10); holds 1 Dev Card (likely Knight); prioritized Ore and secured road access to N9 (3:1 port) and N26 (Ore port). She is openly hostile, targeting Bob's Wheat (Hex 15/18). Charlie: N41 (W12,S5,Wh9) and N14 (W4,S8,B6); blocking N42, expanding toward N7 (Brick port); willing to trade Wood to Alice. Robber currently on Hex 4 (Alice's Sheep 8).
+
+=== BEFORE: Old Notes Compacted ===
+- Placed robber on Hex 4 (Sheep 8) to block Alice's sheep production. She's already suspicious, so this won't help the relationship, but it's the tactically sound move to slow her dev card pace.
+- Node 11 is invalid due to the distance rule from Node 12. I need to extend the road to Node 3 or 10. I am currently wheat-heavy and need to diversify via trade or ports.
+- Attempting a 3:1 wheat-for-wood trade with Charlie. If rejected, I'm stuck until I get a 4th wheat for a bank trade or someone accepts a deal. Target is Node 3 for the Wheat port.
+- Traded 3 Wheat for 1 Wood with Charlie. Current resources: 1 Wood, 1 Wheat. Goal: Get Brick to build a road from Node 11 to Node 3 (Wheat port). Node 11 is unbuildable due to distance rule.
+- Charlie rolled a 7. He has 6 cards (mostly wheat from our trade). He might target my wheat (Hex 15 or 18) to please Alice or slow me down. Robber is currently on Alice's Sheep 8.
+- Charlie moved the robber to Hex 5 (Brick 6), blocking my main brick source. He did this to appease Alice and slow my roads. I am currently low on resources (1 Wood, 1 Wheat) and my Brick production is blocked.
+- Robber is on Hex 5 (Brick 6), blocking my only brick source. Charlie is actively siding with Alice to slow me down. I am down to 1 Wheat and need Brick/Wood to move toward the port at Node 3.
+- Charlie and Alice have established a Wood-for-Sheep trade pipeline. My Brick 6 remains blocked. I must prioritize getting the robber off Hex 5 to resume road building toward the Wheat port.
+
+=== BEFORE: Recent Notes Kept Verbatim ===
+- Charlie bank-traded 4 Wheat for 1 Brick. He is likely building a settlement or road toward the Brick port (N7). My Brick 6 is still blocked; I need to find a way to get the robber off Hex 5.
+- Charlie built road 15-7, nearing the Brick port (N7). He and Alice are in a solid alliance. My Brick 6 (Hex 5) is still blocked.
+
+=== BEFORE: Relevant Chat Considered ===
+- Alice: And there's the Bob I remember. So much for 'community gardens,' right? I'll be sure to return the favor.
+- Bob: Charlie, you've got plenty of timber and I've got the bread. How about a trade to help us both get moving?
+- Charlie: I appreciate the offer, Bob, but I'm actually doing alright on wheat for now. I really need to find some sheep or brick if I'm going to get anywhere.
+- Alice: Smart move, Charlie. Bob's 'community gardens' usually come with a heavy tax. Don't forget I've actually got those sheep you were looking for.
+- Bob: Charlie, I know you said you're okay on wheat, but three-for-one is a bargain you can't ignore. It'll give you plenty of trade bait for those bricks you're after!
+- Charlie: Three for one? That's a hard bargain to pass up, Bob, even if I am already set on bread. I'll take it—might help me find those bricks later.
+- Bob: Pleasure doing business, Charlie. That wood will be put to good use. Alice, don't look so sour—there's enough land for everyone if we just work together.
+- Alice: Hard not to look sour when you're the one standing on my sheep, Bob. 'Working together' usually doesn't involve theft.
+- Charlie: Alright, let's see if the dice are as generous as Bob's 'community gardens' claim to be.
+- Alice: Hopefully the dice help you clear out the 'weeds' Bob planted on my sheep, Charlie.
+- Bob: Careful, Charlie. Those gardens need a lot of sun, not a shady robber.
+- Charlie: Sorry Bob, but that 6 is just too hot to leave open while you're building roads like they're going out of style. Alice, you're welcome for the sheep back.
+- Bob: Et tu, Charlie? I thought we were building a beautiful friendship with those gardens. Alice, I hope you're happy now that the roads have stopped!
+- Charlie: Sorry Bob, but that 6 is just too hot to leave open while you're building roads like they're going out of style. Alice, you're welcome for the sheep back.
+- Alice: I'm plenty happy, Bob. It's much easier to 'work together' when you aren't the only one sitting on a pile of resources.
+- Charlie: Alice, I cleared that robber off your sheep for a reason—reckon you could spare one of those lambs for some quality wood? It'd help us both keep Bob's 'gardens' from growing any further.
+- Charlie: Infrastructure is key, Bob. Can't have those gardens of yours being the only thing growing around here.
+- Alice: Much appreciated, Charlie. It's nice to actually see some green on that hex again.
+- Alice: That seems more than fair, Charlie. Since you were kind enough to clear the 'weeds' off my pasture, I can certainly spare a lamb for some wood. Let's keep that momentum going.
+- Charlie: Alright, the bank's rates are highway robbery, but I need to get some infrastructure moving.
+
+=== AFTER: New Long-Term Summary ===
+Bob dominates Wheat (N43: 6,9) but Brick (Hex 5: B6) is currently blocked by Charlie. Goal: Reach Wheat port (N3) via road from N12. Road 12-11 is built, but N11 is unbuildable (distance rule); must extend to N3. Current resources: 1 Wood, 1 Wheat. Alice: N20, N25; holds 1 Dev Card; has road access to N9 (3:1) and N26 (Ore port). She is hostile after Bob's initial robber placement on Hex 4. Charlie: N41, N14; expanding to N7 (Brick port) via road 15-7. He is actively cooperating with Alice, having moved the robber to Bob's B6 (Hex 5) to appease her and secure a Wood-for-Sheep trade pipeline. Charlie has high Wheat volume from a 3:1 trade with Bob and a 4:1 bank trade for Brick.
+
+=== AFTER: Fallback Status ===
+used=False
+reason=(none)
+
+=== AFTER: Relationship Updates ===
+["Charlie: Shifted from neutral to 'active collaborator' with Alice; blocked Bob's Brick (Hex 5) specifically to appease A", "Alice: Hostility remains high; successfully influenced Charlie to target Bob."]
+
+=== AFTER: Discarded As Irrelevant ===
+["Completed trades", "Dice roll results", "Specific audio path references", "Repeated mention of distance rule on N11"]
+
+=== RAW LLM RESPONSE PREVIEW ===
+{"compacted_memory":"Bob dominates Wheat (N43: 6,9) but Brick (Hex 5: B6) is currently blocked by Charlie. Goal: Reach Wheat port (N3) via road from N12. Road 12-11 is built, but N11 is unbuildable (distance rule); must extend to N3. Current resources: 1 Wood, 1 Wheat. Alice: N20, N25; holds 1 Dev Card; has road access to N9 (3:1) and N26 (Ore port). She is hostile after Bob's initial robber placement on Hex 4. Charlie: N41, N14; expanding to N7 (Brick port) via road 15-7. He is actively cooperating with Alice, having moved the robber to Bob's B6 (Hex 5) to appease her and secure a Wood-for-Sheep trade pipeline. Charlie has high Wheat volume from a 3:1 trade with Bob and a 4:1 bank trade for Brick.","recent_notes_to_keep":["Charlie bank-traded 4 Wheat for 1 Brick. He is likely building a settlement or road toward the Brick port (N7). My Brick 6 is still blocked; I need to find a way to get the robber off Hex 5.","Charlie built road 15-7, nearing the Brick port (N7). He and Alice are in a solid alliance. My Brick 6 (Hex 5) is still blocked."],"discarded_as_irrelevant":["Completed trades","Dice roll results","Specific audio path references","Repeated mention of distance rule on N11"],"relationship_updates":["Charlie: Shifted from neutral to 'active collaborator' with Alice; blocked Bob's Brick (Hex 5) specifically to appease Alice and secure a trade alliance.","Alice: Hostility remains high; successfully influenced Charlie to target Bob."]}
+
+JSON artifact:
+examples\ai_testing\my_games\session_20260518_080519\Bob\memory_compactions\compaction_3.json

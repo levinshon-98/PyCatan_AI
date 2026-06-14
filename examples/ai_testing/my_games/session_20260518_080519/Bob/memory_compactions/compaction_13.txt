@@ -1,0 +1,76 @@
+Memory Compaction #13 for Bob
+Time: 2026-05-18T10:05:05.419651
+
+=== BEFORE: Existing Long-Term Summary ===
+Bob (2 VP) has completed the road to N3 (Wheat Port Wh2) to leverage high Wheat production (N43). Goal: Settle N3 (needs 1B, 1S). Alice and Charlie (3 VP each) maintain a porous blockade, trading selectively to enable Charlie's N7 (B2 port) build while excluding Bob from Brick trades. Charlie has one hidden Dev card and a revealed Knight. Bob's B6 production (H5) is currently open, but Charlie moved the robber to Alice's H4 (S8) to slow her down. Bob used a 4:1 bank trade to bypass the Brick blockade. Watch for Charlie's new Brick port utility.
+
+=== BEFORE: Old Notes Compacted ===
+- Road to Node 3 (Wheat Port) is complete. Missing 1 Brick and 1 Sheep for the settlement. Node 3 is verified open and provides a 2:1 Wheat port.
+- Roll of 4 gave Charlie 2 Wood and Alice 1 Sheep. Both are at 3 VP. I am still at 2 VP and need Sheep/Brick.
+- Charlie rolled a 4, gaining wood. Robber remains on Alice's H4 (Sheep 8). I still need 1 Brick and 1 Sheep for Node 3.
+- Alice rolled a 6. I gained 1 Brick and 1 Wheat. Current resources: 1 Wood, 3 Wheat, 2 Brick. Still need 1 Sheep for Node 3 settlement.
+- Alice built road 20-19. She is moving toward the 8-4-9 intersection or the coast. I still need 1 Sheep and 1 Brick to settle Node 3.
+- Dice roll 6 gave me 1 Brick and 1 Wheat. Current resources: 1 Wood, 3 Wheat, 2 Brick. I am exactly 1 Sheep away from settling Node 3.
+- I have 1 Wood, 2 Wheat, 1 Brick. Need 1 Sheep and 1 Wheat to settle Node 3 (the Wheat port).
+- Trading 4 Wheat for 1 Sheep to settle Node 3 (Wheat Port). Settlement at N3 will provide Sheep 5 and Wood 12 access plus the Wh2 port ability.
+
+=== BEFORE: Recent Notes Kept Verbatim ===
+- Settled Node 3. I now have the Wheat 2:1 port. My Wheat production at Node 43 (Wh9) and Node 12 (Wh?) will now be much more efficient for future builds. Next goal: upgrade to city or expand towards Ore.
+- I have 1W, 1B, 1S. Need 1 Wheat to settle Node 3. Roll 9 should have produced Wheat from Node 43 (Hexes 14, 18), but state shows 0. Proposing trade to Charlie.
+
+=== BEFORE: Relevant Chat Considered ===
+- Bob: Well, since the 'dry' brick market seems to be the only thing you two can agree on, let's see if the dice have a better sense of humor than this alliance.
+- Bob: Charlie, you've got that fancy new port but looking a bit thin on the wheat to actually use it. How about two stacks of grain for just one of your bricks? Help me, help you.
+- Charlie: Like I told Alice, Bob, the brick market is empty. I don't have any to trade.
+- Bob: If you won't trade, the bank will. It's a steep price, but I've got grain to spare.
+- Bob: The bank's rates are highway robbery, but at least the road is getting built. One step closer to making all this grain actually useful.
+- Bob: The road is down. It's a bit of a trek to the coast, but that wheat is going to start paying for itself soon enough. Your turn, Alice.
+- Bob: Alright, let's see if we can get some actual production going. I'm tired of Alice and Charlie having all the fun at 3 points.
+- Bob: A 9! Finally, some wheat to work with. Since you two are still being stingy with the sheep, I'll just let the bank take a cut. Highway robbery, I know, but that wheat port is calling my name.
+- Charlie: Well, at least the robber is staying away from my hexes for once. Good luck dealing with that, Alice.
+- Alice: Don't get too comfortable, Charlie. That port makes you a much bigger target than I ever was.
+- Alice: Alright, let's see if the dice are any kinder to me than you've been, Charlie. I'd really like that Sheep 8 back.
+- Alice: Charlie, you've got that shiny new brick port and I've still got plenty of wood. How about we keep the wheels of commerce turning? My wood for one of your bricks?
+- Charlie: I'd love to help, Alice, but I actually don't have any brick right now.
+- Alice: Well, looks like the brick market is as dry as the desert. Good luck everyone.
+- Charlie: Let's see if we can get some actual production going. Good luck everyone.
+- Charlie: A 4? I'll take the wood, thank you very much. Alice, it looks like that sheep pasture is still a bit crowded with the robber hanging around.
+- Alice: Enjoy the wood, Charlie. Just a shame your fancy brick port is staying so quiet lately.
+- Alice: Let's see if we can get these dice to cooperate for once. That robber has been making himself way too comfortable on my pastures.
+- Alice: I'm tired of that robber camping on my sheep. Since nobody is trading brick, I'll just have to start paving my own way to it.
+- Alice: I'm making progress, even if it's one brick-less step at a time. Let's see if the next roll actually favors someone without a port for once.
+
+=== AFTER: New Long-Term Summary ===
+Bob (2 VP) settled N3, securing the Wh2:1 port and access to S5/W12. This leverages high Wheat production from N43 (Wh9) and N12. The Alice/Charlie alliance has frayed as Charlie maintains a robber on Alice's H4 (S8) and refuses her Brick trades despite her Wood offers. Alice (3 VP) is expanding toward the coast/inland (rds [20,19]). Charlie (3 VP) has a Knight and one hidden Dev card. Brick remains scarce; Bob bypassed the market via bank trades. Future goals: Upgrade N43/N12 to cities or expand toward Ore nodes to capitalize on the Wheat port efficiency.
+
+=== AFTER: Fallback Status ===
+used=False
+reason=(none)
+
+=== AFTER: Relationship Updates ===
+["Alice/Charlie: Alliance further deteriorated; Charlie continues to block Alice's Sheep (H4) and refused her Wood-for-Bri", "Alice: Expressed direct threat to Charlie, labeling him a target due to his new port."]
+
+=== AFTER: Discarded As Irrelevant ===
+["Repeated resource counts for settlement", "Specific dice roll outcomes (4s, 6s) already reflected in state", "Completed road construction details", "General complaints about bank rates"]
+
+=== RAW LLM RESPONSE PREVIEW ===
+{
+  "compacted_memory": "Bob (2 VP) settled N3, securing the Wh2:1 port and access to S5/W12. This leverages high Wheat production from N43 (Wh9) and N12. The Alice/Charlie alliance has frayed as Charlie maintains a robber on Alice's H4 (S8) and refuses her Brick trades despite her Wood offers. Alice (3 VP) is expanding toward the coast/inland (rds [20,19]). Charlie (3 VP) has a Knight and one hidden Dev card. Brick remains scarce; Bob bypassed the market via bank trades. Future goals: Upgrade N43/N12 to cities or expand toward Ore nodes to capitalize on the Wheat port efficiency.",
+  "recent_notes_to_keep": [
+    "Settled Node 3. I now have the Wheat 2:1 port. My Wheat production at Node 43 (Wh9) and Node 12 (Wh?) will now be much more efficient for future builds. Next goal: upgrade to city or expand towards Ore.",
+    "I have 1W, 1B, 1S. Need 1 Wheat to settle Node 3. Roll 9 should have produced Wheat from Node 43 (Hexes 14, 18), but state shows 0. Proposing trade to Charlie."
+  ],
+  "discarded_as_irrelevant": [
+    "Repeated resource counts for settlement",
+    "Specific dice roll outcomes (4s, 6s) already reflected in state",
+    "Completed road construction details",
+    "General complaints about bank rates"
+  ],
+  "relationship_updates": [
+    "Alice/Charlie: Alliance further deteriorated; Charlie continues to block Alice's Sheep (H4) and refused her Wood-for-Brick trade.",
+    "Alice: Expressed direct threat to Charlie, labeling him a target due to his new port."
+  ]
+}
+
+JSON artifact:
+examples\ai_testing\my_games\session_20260518_080519\Bob\memory_compactions\compaction_13.json

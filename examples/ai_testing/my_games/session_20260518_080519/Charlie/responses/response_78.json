@@ -1,0 +1,25 @@
+{
+  "request_number": 78,
+  "timestamp": "2026-05-18T09:47:38.408296",
+  "player_name": "Charlie",
+  "type": "final",
+  "success": true,
+  "raw_content": "{\n  \"internal_thinking\": \"Bob is offering me 1 Wood for 1 Brick. My current hand is 3 Wood, 1 Brick, and 1 Wheat. I am planning to build a settlement at Node 7 (the Brick Port), which requires 1 Wood, 1 Brick, 1 Wheat, and 1 Sheep. If I give away my only Brick for more Wood, I'll have 4 Wood and 0 Brick, making it harder to build that settlement since I'd then need to find both a Brick and a Sheep. Bob is currently brick-starved because the robber is on his only Brick source (Hex 5, Brick 6). Helping him get a brick now would likely allow him to build a road or settlement, which I want to avoid. I should reject this trade to keep my rare Brick and keep Bob constrained.\",\n  \"action\": {\n    \"type\": \"trade_reject\",\n    \"parameters\": \"{}\"\n  },\n  \"note_to_self\": \"Rejected Bob's Wood for my Brick. I have 3W, 1B, 1Wh. Need 1S for the N7 settlement. Bob is stuck without Brick due to the robber on Hex 5.\",\n  \"say_outloud\": \"Sorry Bob, I'm actually in the same boat—if I give up my brick, I'm just as stuck as you are. I'll have to pass.\"\n}",
+  "parsed": {
+    "internal_thinking": "Bob is offering me 1 Wood for 1 Brick. My current hand is 3 Wood, 1 Brick, and 1 Wheat. I am planning to build a settlement at Node 7 (the Brick Port), which requires 1 Wood, 1 Brick, 1 Wheat, and 1 Sheep. If I give away my only Brick for more Wood, I'll have 4 Wood and 0 Brick, making it harder to build that settlement since I'd then need to find both a Brick and a Sheep. Bob is currently brick-starved because the robber is on his only Brick source (Hex 5, Brick 6). Helping him get a brick now would likely allow him to build a road or settlement, which I want to avoid. I should reject this trade to keep my rare Brick and keep Bob constrained.",
+    "note_to_self": "Rejected Bob's Wood for my Brick. I have 3W, 1B, 1Wh. Need 1S for the N7 settlement. Bob is stuck without Brick due to the robber on Hex 5.",
+    "say_outloud": "Sorry Bob, I'm actually in the same boat—if I give up my brick, I'm just as stuck as you are. I'll have to pass.",
+    "action_type": "trade_reject",
+    "parameters": {}
+  },
+  "model": "google/gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 5991,
+    "completion": 261,
+    "thinking": 0,
+    "total": 6639
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}

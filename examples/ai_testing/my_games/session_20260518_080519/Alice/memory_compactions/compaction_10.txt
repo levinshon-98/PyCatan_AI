@@ -1,0 +1,60 @@
+Memory Compaction #10 for Alice
+Time: 2026-05-18T09:51:27.002730
+
+=== BEFORE: Existing Long-Term Summary ===
+Alice (Nodes 20, 25) is prioritizing Node 9 (3:1 port), currently lacking the 1 Wheat required. Robber on Hex 5 blocks Alice's Brick 6. Alice recently used a Wheat Monopoly against Bob and traded 4 Wheat to the bank for 1 Brick. Bob is a rival with high Wheat/Brick potential (Hexes 14, 18, 5) and has Wood/Sheep. Charlie is a friendly ally but currently lacks Wheat and Brick. Alice rejected Bob's Wood-for-Brick trade and Charlie's Wood-for-Sheep trade.
+
+=== BEFORE: Old Notes Compacted ===
+- Built settlement on Node 9. Now have 3:1 port access. Hand is 2W, 1S. Next goal: build towards another high-yielding spot or upgrade to a city if Ore becomes available.
+- Still need 1 Wheat for Node 9. Node 9 is confirmed open and buildable. Current hand: 3W, 1B, 2S. Charlie has Wood/Brick, Bob has Wood/Sheep.
+- Still need 1 Wheat for Node 9 (3:1 port). Hand: 3W, 1B, 2S. Charlie and Bob are both out of Wheat. Node 9 is open and ready once I get that last resource.
+- Roll 8 gave me 1 Wheat and 1 Sheep. Current hand: 3W, 1B, 4S, 1Wh. I now have the resources (1W, 1B, 1S, 1Wh) to build the settlement on Node 9. Charlie also gained 1 Wheat.
+- The 8 rolled, giving me 1 Wheat. I now have 3W, 1B, 3S, 1Wh. I have the resources for a settlement on Node 9. Charlie also confirmed he got wheat from that roll.
+- I have the 1W, 1B, 1S, 1Wh needed for the Node 9 settlement. Bob thinks I'm still struggling for wheat, but the 8 roll solved that.
+- The 4 roll gave me a Sheep. I now have 3W, 1B, 4S, 1Wh. I have the resources for a settlement on Node 9. Charlie gained Wood.
+- I have 3W, 1B, 4S, 1Wh. Settlement on Node 9 is ready. I rejected Charlie's wood because I already have 3 and don't want to give away resources for nothing.
+
+=== BEFORE: Recent Notes Kept Verbatim ===
+- Charlie and Bob traded 1 Wheat for 1 Sheep. I have 3W, 1B, 4S, 1Wh; I am ready to build a settlement on Node 9 on my next turn. Charlie is becoming more willing to trade with Bob when I decline his offers.
+- I have 3 Wood, 1 Brick, 4 Sheep, and 1 Wheat. I am moving to build a settlement on Node 9 immediately. Charlie and Bob's trade suggests they are coordinating more as I stay defensive.
+
+=== BEFORE: Relevant Chat Considered ===
+- Alice: I appreciate the offer, Charlie, but I've already got plenty of wood for now. I really need to find some wheat if I'm going to make any moves.
+- Charlie: Bob, I know Alice is keeping a tight grip on those resources. I've got some extra wood if you're looking to extend a road—any interest in swapping a sheep for it?
+- Alice: Alright, let's see if we can get some better numbers rolling. We really need to get this economy moving.
+- Alice: Charlie, any chance you've come across some wheat since we last spoke? I'm still looking for a bit to get my next house up.
+- Charlie: I'm in the same boat as you, Alice. Still haven't seen any wheat come my way yet.
+- Alice: Tough luck on the wheat then. I'll just have to wait for the dice to be a bit more generous. Your turn, Bob.
+- Bob: Tough luck on the wheat, Alice. I'm in the same boat. Charlie, you've got plenty of wood already, but if you want to swap a brick for some of mine to help your road, I'm open to it.
+- Bob: It seems the dice and the table are equally quiet for me this round. Good luck with the wheat search, Alice—I'm still looking for a way out of the woods myself.
+- Charlie: Alice, I know you've got a few sheep over there. I've got plenty of wood if you're looking to extend a road or something.
+- Alice: I'm swimming in wood already, Charlie, but thanks for the offer. I think I'll hang onto my sheep for now.
+- Charlie: I'm just one piece short of where I want to be. Your turn, Alice.
+- Bob: I'm going to pass, Charlie. I've got enough wood to start a bonfire already, but my sheep is currently my only friend in this game.
+- Charlie: Tough crowd. It seems everyone's hording their livestock today. I'll just hold onto what I've got and see how the next round treats us.
+- Bob: Let's see if the dice have a sense of humor then. My turn.
+- Bob: Alright, let's see if we can get some better numbers rolling. We really need to get this economy moving.
+- Charlie: Finally, a good number! That wheat was definitely overdue.
+- Charlie: Sorry Bob, I'm actually in the same boat—if I give up my brick, I'm just as stuck as you are. I'll have to pass.
+- Charlie: Alright, let's see if we can keep the momentum going. Big numbers, please!
+- Charlie: Bob, I know you're looking for a way out of the woods. I've got some wheat here if you're willing to part with that sheep.
+- Bob: You know what, Charlie? That's a fair deal. I'll take the wheat. It’s better than staring at these trees all day.
+
+=== AFTER: New Long-Term Summary ===
+Alice (Nodes 20, 25) successfully acquired the resources (1W, 1B, 1S, 1Wh) for her next settlement on Node 9 (3:1 port) after recent rolls of 8 and 4. Bob remains a rival (Nodes 12, 43); he is resource-rich in Wood but potentially low on Wheat following a trade with Charlie. Charlie (Nodes 14, 41) has shifted from a stable ally to a more neutral party, recently trading Wheat to Bob for a Sheep after Alice declined his Wood-for-Sheep offers. Alice is currently feigning a Wheat shortage to the table to protect her lead on Node 9. Next goal: Build on Node 9 and then target Ore for potential city upgrades.
+
+=== AFTER: Fallback Status ===
+used=False
+reason=(none)
+
+=== AFTER: Relationship Updates ===
+["Charlie's alliance with Alice is weakening as he begins coordinating trades with Bob instead.", "Bob and Charlie are developing a functional trading relationship to bypass Alice's defensive play."]
+
+=== AFTER: Discarded As Irrelevant ===
+["Specific dice roll numbers like 4 and 8", "Repeated status of needing 1 wheat", "Completed trade rejections from previous turns"]
+
+=== RAW LLM RESPONSE PREVIEW ===
+{"compacted_memory":"Alice (Nodes 20, 25) successfully acquired the resources (1W, 1B, 1S, 1Wh) for her next settlement on Node 9 (3:1 port) after recent rolls of 8 and 4. Bob remains a rival (Nodes 12, 43); he is resource-rich in Wood but potentially low on Wheat following a trade with Charlie. Charlie (Nodes 14, 41) has shifted from a stable ally to a more neutral party, recently trading Wheat to Bob for a Sheep after Alice declined his Wood-for-Sheep offers. Alice is currently feigning a Wheat shortage to the table to protect her lead on Node 9. Next goal: Build on Node 9 and then target Ore for potential city upgrades.","recent_notes_to_keep":["Charlie and Bob traded 1 Wheat for 1 Sheep. I have 3W, 1B, 4S, 1Wh; I am ready to build a settlement on Node 9 on my next turn. Charlie is becoming more willing to trade with Bob when I decline his offers.","I have 3 Wood, 1 Brick, 4 Sheep, and 1 Wheat. I am moving to build a settlement on Node 9 immediately. Charlie and Bob's trade suggests they are coordinating more as I stay defensive."],"discarded_as_irrelevant":["Specific dice roll numbers like 4 and 8","Repeated status of needing 1 wheat","Completed trade rejections from previous turns"],"relationship_updates":["Charlie's alliance with Alice is weakening as he begins coordinating trades with Bob instead.","Bob and Charlie are developing a functional trading relationship to bypass Alice's defensive play."]}
+
+JSON artifact:
+examples\ai_testing\my_games\session_20260518_080519\Alice\memory_compactions\compaction_10.json

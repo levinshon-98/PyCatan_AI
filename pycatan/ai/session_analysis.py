@@ -183,6 +183,12 @@ def _load_tool_trace(session_dir: Path, player_name: str, request_number: int) -
 
 
 def _resolve_session_for_decision(source_session: Path, decision: Dict[str, Any]) -> Path:
+    absolute_source_file = decision.get("absolute_source_file")
+    if absolute_source_file:
+        response_path = Path(absolute_source_file)
+        if response_path.exists():
+            return response_path.parent.parent.parent
+
     source_file = decision.get("source_file")
     if source_file:
         response_path = Path(source_file)

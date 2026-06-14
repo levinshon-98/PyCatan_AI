@@ -1,0 +1,23 @@
+{
+  "request_number": 88,
+  "timestamp": "2026-05-18T09:54:18.540008",
+  "player_name": "Alice",
+  "type": "final",
+  "success": true,
+  "raw_content": "{\"internal_thinking\":\"Bob is asking for brick, but I don't have any. I have 3 wood and 3 sheep. He's trying to get moving but I'm the one who actually needs brick to reach the 8/10 spot. I'll just let him know I'm out.\",\"note_to_self\":\"Bob is actively searching for brick. Charlie confirmed he has one but won't trade it. I have 0 brick and need it for my road to Node 18.\",\"say_outloud\":\"I'd help you out if I could, Bob, but I don't have any brick right now.\"}",
+  "parsed": {
+    "internal_thinking": "Bob is asking for brick, but I don't have any. I have 3 wood and 3 sheep. He's trying to get moving but I'm the one who actually needs brick to reach the 8/10 spot. I'll just let him know I'm out.",
+    "note_to_self": "Bob is actively searching for brick. Charlie confirmed he has one but won't trade it. I have 0 brick and need it for my road to Node 18.",
+    "say_outloud": "I'd help you out if I could, Bob, but I don't have any brick right now."
+  },
+  "model": "google/gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 2655,
+    "completion": 115,
+    "thinking": 0,
+    "total": 2770
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}

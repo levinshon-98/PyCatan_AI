@@ -1,0 +1,186 @@
+{
+  "original_request_number": 93,
+  "iteration": 2,
+  "timestamp": "2026-05-18T09:55:45.375195",
+  "player_name": "Charlie",
+  "type": "tool_followup",
+  "tool_results": "=== Tool Results ===\n\nTool: inspect_node\nParameters: {\n  \"reasoning\": \"Checking if node 7 is still available for my intended settlement. I have a road leading there (15-7).\",\n  \"node_id\": 7\n}\nResult:\n{\n  \"node_id\": 7,\n  \"exists\": true,\n  \"resources\": {\n    \"Wood\": [\n      4\n    ]\n  },\n  \"resources_detailed\": [\n    {\n      \"type\": \"Wood\",\n      \"number\": 4,\n      \"pips\": 3\n    }\n  ],\n  \"total_pips\": 3,\n  \"port\": \"B2\",\n  \"neighbors\": [\n    6,\n    15\n  ],\n  \"occupied\": false,\n  \"occupied_by\": null,\n  \"building_type\": null,\n  \"can_build_here\": true,\n  \"blocked_reason\": null,\n  \"llm_reasoning\": \"Checking if node 7 is still available for my intended settlement. I have a road leading there (15-7).\"\n}\n---\n",
+  "full_context_sent": "{\n  \"meta_data\": {\n    \"agent_name\": \"Charlie\",\n    \"game_context\": \"CONTEXT: You are playing Catan to 5 victory points. The first player to reach 5 VP wins.\",\n    \"relationship_context\": \"Relationship context: This table has shared history. Alice usually tries to keep the table fair and remembers loyalty. Bob is a charming dealmaker who betrayed Alice late in the last game. Charlie warned Alice about Bob, but also took a useful side trade from Bob. Your angle: you warned Alice about Bob, then still made a profitable side trade with Bob; both may see you as useful but slippery. Recent relationship shifts: Alice: Solidarity strained as she repeatedly refused Wood-for-Sheep trades despite having a surplus (4 Sheep) and Charli Bob: Tension remains high as Charlie refused to trade Brick to help Bob's road, maintaining the resource chokehold. Bob: Trust slightly improved after a successful Wheat-for-Sheep trade, though tension remains over my refusal to trade h Use this only for table talk, trust, trades, and tie-breakers; your board decisions should still prioritize strong legal Catan play.\"\n  },\n  \"task_context\": {\n    \"what_just_happened\": \"FACTS evt=robber actor=Charlie hex=4 victim=Alice stolen=1 hand_you=res{B:1,S:2,Wh:2},dev{h:1,r:['K']}\\nCurrent required action: Your turn - build, trade, or end turn. Type 'help' for commands.\\nCurrent dice result: 7 (3+4). No resource production happened. The discard/robber step is already resolved; continue with normal build, trade, or end-turn actions.\",\n    \"instructions\": \"Analyze the game state and select the optimal move from 'allowed_actions'. Any say_outloud chat message must be written in natural English only. Talk like a person, not a narrator. No filler, unnecessary narrative, or explaining the obvious. You have 8 possible actions. For road placement, call the analyze_path_potential tool to compare where candidate roads lead before choosing. For settlement placement, call the find_best_nodes and inspect_node tools instead of manually decoding the board arrays. Treat nodes in state.bld and all adjacent nodes as unavailable. Allowed actions are type-level possibilities, not a guarantee you can currently afford them. Before choosing build_settlement, build_city, build_road, buy_dev_card, use_dev_card, or trade_bank, verify your current resources and hidden development cards in game_state.players[agent_name]. Never put a tool name in action.type; action.type must be one of the allowed_actions entries. Use tools as a fact-checking habit, not only for choosing moves. Before saving or saying factual board claims, prefer verifying them with the relevant tool or explicit game_state. If a board fact was not verified, omit it or phrase it as uncertain.\"\n  },\n  \"game_state\": \"\\n  1. LOOKUP TABLES:\\n   • \\\"H\\\" (Hexes): Array where Index = HexID. Value = Resource+Num.\\n     Example: H[1]=\\\"W12\\\" -> Hex 1 is Wood 12.\\n   • \\\"N\\\" (Nodes): Array where Index = NodeID.\\n     Format: [ [Neighbors], [HexIDs], Port? ]\\n     Logic: To find yield of Node 10, check N[10]. Get HexIDs (e.g. [1,5]). Look up H[1] and H[5].\\n\\n2. CODES: W=Wood, B=Brick, S=Sheep, Wh=Wheat, O=Ore, D=Desert.\\n          ?3=Any 3:1 port, X2=Specific Resource 2:1 port.\\n\\n3. STATE: \\\"bld\\\"=[NodeID, Owner, Type], \\\"rds\\\"=[[From,To], Owner].\\n\\n4. PLAYERS: \\\"res\\\"={Resource:Count}, \\\"dev\\\"={\\\"h\\\":[Your Hidden Cards], \\\"hidden_count\\\":OpponentHiddenCount, \\\"r\\\":[Revealed] (K=Knight)}, \\n            \\\"stat\\\"=[\\\"LR\\\" (Longest Road), \\\"LA\\\" (Largest Army)].\\n\\n5. ROBBER: Located at HexID specified in \\\"meta.robber\\\". H[id] is blocked.\\n\\nJSON:\\n{\\\"meta\\\":{\\\"curr\\\":\\\"Charlie\\\",\\\"phase\\\":\\\"NORMAL_PLAY\\\",\\\"turn_phase\\\":\\\"PLAYER_ACTIONS\\\",\\\"robber\\\":4,\\\"dice\\\":[3,4],\\\"vp_to_win\\\":5,\\\"dice_total\\\":7},\\\"H\\\":[\\\"\\\",\\\"W12\\\",\\\"S5\\\",\\\"W4\\\",\\\"S8\\\",\\\"B6\\\",\\\"W3\\\",\\\"Wh8\\\",\\\"B10\\\",\\\"W11\\\",\\\"D\\\",\\\"O3\\\",\\\"S4\\\",\\\"B10\\\",\\\"Wh9\\\",\\\"Wh6\\\",\\\"S11\\\",\\\"O5\\\",\\\"Wh9\\\",\\\"O2\\\"],\\\"N\\\":[null,[[2,9],[1]],[[1,3],[1],\\\"Wh2\\\"],[[2,4,11],[2,1],\\\"Wh2\\\"],[[3,5],[2]],[[4,6,13],[3,2]],[[5,7],[3],\\\"B2\\\"],[[6,15],[3],\\\"B2\\\"],[[9,18],[4],\\\"?3\\\"],[[8,10,1],[4,1],\\\"?3\\\"],[[9,11,20],[5,4,1]],[[10,12,3],[5,2,1]],[[11,13,22],[6,5,2]],[[12,14,5],[6,3,2]],[[13,15,24],[7,6,3]],[[14,16,7],[7,3]],[[15,26],[7],\\\"O2\\\"],[[18,28],[8],\\\"S2\\\"],[[17,19,8],[8,4]],[[18,20,30],[9,8,4]],[[19,21,10],[9,5,4]],[[20,22,32],[10,9,5]],[[21,23,12],[10,6,5]],[[22,24,34],[11,10,6]],[[23,25,14],[11,7,6]],[[24,26,36],[12,11,7]],[[25,27,16],[12,7],\\\"O2\\\"],[[26,38],[12]],[[29,17],[8],\\\"S2\\\"],[[28,30,39],[13,8]],[[29,31,19],[13,9,8]],[[30,32,41],[14,13,9]],[[31,33,21],[14,10,9]],[[32,34,43],[15,14,10]],[[33,35,23],[15,11,10]],[[34,36,45],[16,15,11]],[[35,37,25],[16,12,11]],[[36,38,47],[16,12],\\\"?3\\\"],[[37,27],[12],\\\"?3\\\"],[[40,29],[13]],[[39,41,48],[17,13],\\\"W2\\\"],[[40,42,31],[17,14,13]],[[41,43,50],[18,17,14]],[[42,44,33],[18,15,14]],[[43,45,52],[19,18,15]],[[44,46,35],[19,16,15]],[[45,47,54],[19,16]],[[46,37],[16]],[[49,40],[17],\\\"W2\\\"],[[48,50],[17]],[[49,51,42],[18,17],\\\"?3\\\"],[[50,52],[18],\\\"?3\\\"],[[51,53,44],[19,18]],[[52,54],[19],\\\"?3\\\"],[[53,46],[19],\\\"?3\\\"]],\\\"state\\\":{\\\"bld\\\":[[9,\\\"Alice\\\",\\\"S\\\"],[12,\\\"Bob\\\",\\\"S\\\"],[14,\\\"Charlie\\\",\\\"S\\\"],[20,\\\"Alice\\\",\\\"S\\\"],[25,\\\"Alice\\\",\\\"S\\\"],[41,\\\"Charlie\\\",\\\"S\\\"],[43,\\\"Bob\\\",\\\"S\\\"]],\\\"rds\\\":[[[20,10],\\\"Alice\\\"],[[12,11],\\\"Bob\\\"],[[41,42],\\\"Charlie\\\"],[[14,15],\\\"Charlie\\\"],[[43,44],\\\"Bob\\\"],[[25,26],\\\"Alice\\\"],[[10,9],\\\"Alice\\\"],[[20,21],\\\"Alice\\\"],[[15,7],\\\"Charlie\\\"]]},\\\"players\\\":{\\\"Alice\\\":{\\\"vp\\\":3,\\\"res\\\":{\\\"W\\\":3,\\\"S\\\":2}},\\\"Bob\\\":{\\\"vp\\\":2,\\\"res\\\":{\\\"W\\\":2,\\\"Wh\\\":3}},\\\"Charlie\\\":{\\\"vp\\\":2,\\\"res\\\":{\\\"Wh\\\":2,\\\"B\\\":1,\\\"S\\\":2},\\\"dev\\\":{\\\"h\\\":[\\\"knight\\\"],\\\"r\\\":[\\\"K\\\"]}}}}\",\n  \"social_context\": {\n    \"recent_chat\": [\n      {\n        \"from\": \"Alice\",\n        \"message\": \"Finally, a little bit of progress. That 3:1 port should make things a bit smoother for me.\",\n        \"response_id\": \"Alice:84\",\n        \"request_number\": 84,\n        \"response_type\": \"active_turn\",\n        \"audio_path\": \"replay_audio/response_0084_player_1_Alice.wav\"\n      },\n      {\n        \"from\": \"Alice\",\n        \"message\": \"I'm glad that 3:1 port is finally mine. I'll pass the dice for now and see what the next round brings.\",\n        \"response_id\": \"Alice:85\",\n        \"request_number\": 85,\n        \"response_type\": \"active_turn\",\n        \"audio_path\": \"replay_audio/response_0085_player_1_Alice.wav\"\n      },\n      {\n        \"from\": \"Bob\",\n        \"message\": \"Alright, let's see if the dice are feeling more generous than you two today. I could really use a change in the weather.\",\n        \"response_id\": \"Bob:82\",\n        \"request_number\": 82,\n        \"response_type\": \"active_turn\",\n        \"audio_path\": \"replay_audio/response_0082_player_2_Bob.wav\"\n      },\n      {\n        \"from\": \"Bob\",\n        \"message\": \"Charlie, you've been reasonable before. I'm stuck behind these trees and could use a single brick to get moving. Wheat for brick?\",\n        \"response_id\": \"Bob:83\",\n        \"request_number\": 83,\n        \"response_type\": \"active_turn\",\n        \"audio_path\": \"replay_audio/response_0083_player_2_Bob.wav\"\n      },\n      {\n        \"from\": \"Charlie\",\n        \"message\": \"I'd love to help you out, Bob, but that's my only brick and I'm planning to use it very soon. If you had some wood or maybe another sheep, we might be able to talk.\",\n        \"response_id\": \"Charlie:89\",\n        \"request_number\": 89,\n        \"response_type\": \"active_turn\",\n        \"audio_path\": \"replay_audio/response_0089_player_3_Charlie.wav\"\n      },\n      {\n        \"from\": \"Bob\",\n        \"message\": \"Alice, I see you're building up quite the collection of wood and sheep, but a little wheat goes a long way for those settlements. How about a fair swap for one of your bricks?\",\n        \"response_id\": \"Bob:84\",\n        \"request_number\": 84,\n        \"response_type\": \"active_turn\",\n        \"audio_path\": \"replay_audio/response_0084_player_2_Bob.wav\"\n      },\n      {\n        \"from\": \"Alice\",\n        \"message\": \"I'd help you out if I could, Bob, but I don't have any brick right now.\",\n        \"response_id\": \"Alice:88\",\n        \"request_number\": 88,\n        \"response_type\": \"reaction\",\n        \"audio_path\": \"replay_audio/response_0088_player_1_Alice.wav\"\n      },\n      {\n        \"from\": \"Bob\",\n        \"message\": \"Tough crowd. Alice, you're losing just as much brick as I am with that robber sitting on the 6, but I guess you'd rather we both stall than help me out. I'll pass for now.\",\n        \"response_id\": \"Bob:85\",\n        \"request_number\": 85,\n        \"response_type\": \"active_turn\",\n        \"audio_path\": \"replay_audio/response_0085_player_2_Bob.wav\"\n      },\n      {\n        \"from\": \"Charlie\",\n        \"message\": \"Let's see if the dice can bring some wood my way.\",\n        \"response_id\": \"Charlie:91\",\n        \"request_number\": 91,\n        \"response_type\": \"active_turn\",\n        \"audio_path\": \"replay_audio/response_0091_player_3_Charlie.wav\"\n      },\n      {\n        \"from\": \"Charlie\",\n        \"message\": \"Sorry Alice, you're just getting a bit too far ahead with that new port. I need to slow that sheep production down a little.\",\n        \"response_id\": \"Charlie:92\",\n        \"request_number\": 92,\n        \"response_type\": \"active_turn\",\n        \"audio_path\": \"replay_audio/response_0092_player_3_Charlie.wav\"\n      }\n    ],\n    \"trade_context\": \"Recent trade history: You offered Bob 1 wood for 1 sheep; Bob rejected. Bob offered you 1 wood for 1 brick; you rejected. You offered Alice 1 wood for 1 sheep; Alice rejected. You offered Bob 1 wheat for 1 sheep; Bob accepted. Bob offered you 1 wheat for 1 brick; you rejected.\"\n  },\n  \"memory\": {\n    \"note_from_last_turn\": \"Moved robber to Hex 4 (S8) to block Alice's double settlement and stole from her. Bob is still blocked on B6 (Hex 5) from the previous turn, which keeps him brick-starved.\",\n    \"recent_notes\": [\n      \"Rejected Bob's Wheat-for-Brick trade. I need to keep my 1 Brick for the Node 7 settlement. I have plenty of Wheat production (Nodes 14 and 41). Still need 1 Wood to settle Node 7.\",\n      \"Bob is desperate for brick because of the robber on 6. I have a hidden knight to move the robber if I need to, but for now, it's better that Bob stays blocked. I still need 1 Wood and 1 Sheep for my settlement at Node 7.\",\n      \"Robber is on B6, blocking Alice and Bob. I have a Knight available if a 7 isn't rolled and I need to clear production or steal. I still need 1 Wood for the N7 settlement.\"\n    ],\n    \"long_term_summary\": \"Current goals: Settle N7 (Brick Port) to leverage brick production. Road 14-15-7 is complete. Hand: 2Wh, 1B, 1S. Needs: 1W to build. Settlements at N41 (O5,Wh9,B10) and N14 (Wh8,W3,W4). Hidden Dev: 1 Knight. Bob (2VP) is brick-starved and blocked by robber on B6; he is desperate to trade but I am withholding Brick to stall him. Alice (3VP) settled N9 (3:1 port) and has a surplus of Wood/Sheep, making her less likely to trade. Strategy: Use Knight to move robber if beneficial, but keeping Bob blocked is currently preferred. Avoid wood trades as market is saturated. Wait for 3, 4, or 12 roll for Wood.\"\n  },\n  \"constraints\": {\n    \"usage_instructions\": \"Choose one action type from the list below. Populate the 'parameters' field in your response strictly according to the 'example_parameters' structure provided.\",\n    \"allowed_actions\": [\n      {\n        \"type\": \"build_settlement\",\n        \"description\": \"Build a settlement at a node. Cost: wood 1, brick 1, sheep 1, wheat 1.\",\n        \"example_parameters\": \"{\\\"node\\\": X}\"\n      },\n      {\n        \"type\": \"build_city\",\n        \"description\": \"Upgrade one of your settlements to a city. Cost: ore 3, wheat 2.\",\n        \"example_parameters\": \"{\\\"node\\\": X}\"\n      },\n      {\n        \"type\": \"build_road\",\n        \"description\": \"Build a road between two nodes. Cost: wood 1, brick 1.\",\n        \"example_parameters\": \"{\\\"from\\\": X, \\\"to\\\": Y}\"\n      },\n      {\n        \"type\": \"trade_propose\",\n        \"description\": \"Propose a trade to other players\",\n        \"example_parameters\": \"{\\\"target_player\\\": \\\"Charlie\\\", \\\"offer\\\": {\\\"wood\\\": X}, \\\"request\\\": {\\\"brick\\\": Y}}\"\n      },\n      {\n        \"type\": \"trade_bank\",\n        \"description\": \"Trade resources with the bank. Default bank trade is 4:1 unless you have a matching 2:1 port or a 3:1 port. Only choose this when you have enough of the resource you give.\",\n        \"example_parameters\": \"{\\\"give\\\": \\\"wheat\\\", \\\"give_amount\\\": 4, \\\"receive\\\": \\\"brick\\\"}\"\n      },\n      {\n        \"type\": \"buy_dev_card\",\n        \"description\": \"Buy a development card. Cost: sheep 1, wheat 1, ore 1.\",\n        \"example_parameters\": \"{}\"\n      },\n      {\n        \"type\": \"use_dev_card\",\n        \"description\": \"Play a development card. Use exact card_type values: knight, road_building, monopoly, year_of_plenty. Only choose this if game_state.players[your_name].dev.h contains a matching hidden card. Victory points are counted automatically.\",\n        \"example_parameters\": \"{\\\"card_type\\\": \\\"knight\\\", \\\"hex\\\": X, \\\"target_player\\\": \\\"Bob\\\"} OR {\\\"card_type\\\": \\\"road_building\\\", \\\"road_1\\\": [A, B], \\\"road_2\\\": [C, D]} OR {\\\"card_type\\\": \\\"monopoly\\\", \\\"resource\\\": \\\"wheat\\\"} OR {\\\"card_type\\\": \\\"year_of_plenty\\\", \\\"resources\\\": [\\\"wood\\\", \\\"brick\\\"]}\"\n      },\n      {\n        \"type\": \"end_turn\",\n        \"description\": \"End your turn\",\n        \"example_parameters\": \"{}\"\n      }\n    ]\n  }\n}\n\n=== Tool Results ===\n\nTool: inspect_node\nParameters: {\n  \"reasoning\": \"Checking if node 7 is still available for my intended settlement. I have a road leading there (15-7).\",\n  \"node_id\": 7\n}\nResult:\n{\n  \"node_id\": 7,\n  \"exists\": true,\n  \"resources\": {\n    \"Wood\": [\n      4\n    ]\n  },\n  \"resources_detailed\": [\n    {\n      \"type\": \"Wood\",\n      \"number\": 4,\n      \"pips\": 3\n    }\n  ],\n  \"total_pips\": 3,\n  \"port\": \"B2\",\n  \"neighbors\": [\n    6,\n    15\n  ],\n  \"occupied\": false,\n  \"occupied_by\": null,\n  \"building_type\": null,\n  \"can_build_here\": true,\n  \"blocked_reason\": null,\n  \"llm_reasoning\": \"Checking if node 7 is still available for my intended settlement. I have a road leading there (15-7).\"\n}\n---\n\n\nNow provide your final answer based on the tool results:",
+  "tools_schema": [
+    {
+      "name": "inspect_node",
+      "description": "Get detailed information about a specific node on the board. USE THIS to verify node data instead of trying to interpret Arrays N and H yourself - this prevents hallucinations!",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "reasoning": {
+            "type": "string",
+            "description": "Explain WHY you're inspecting this specific node. What are you trying to verify or learn?"
+          },
+          "node_id": {
+            "type": "integer",
+            "description": "The node ID to inspect (e.g., 10, 18, 40)"
+          }
+        },
+        "required": [
+          "reasoning",
+          "node_id"
+        ]
+      }
+    },
+    {
+      "name": "inspect_hex",
+      "description": "Get detailed information about a specific hex/tile on the board, including resource, number, pips, robber status, adjacent nodes, and adjacent buildings. USE THIS before robber moves instead of manually reverse-mapping Arrays N and H.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "reasoning": {
+            "type": "string",
+            "description": "Explain WHY you're inspecting this specific hex. What robber target or production claim are you verifying?"
+          },
+          "hex_id": {
+            "type": "integer",
+            "description": "The hex/tile ID to inspect (e.g., 5, 17, 19)"
+          }
+        },
+        "required": [
+          "reasoning",
+          "hex_id"
+        ]
+      }
+    },
+    {
+      "name": "find_best_nodes",
+      "description": "Search for the best available nodes matching specific criteria. USE THIS instead of manually scanning the board - prevents missing opportunities!",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "reasoning": {
+            "type": "string",
+            "description": "Explain your search strategy. What kind of position are you looking for and why?"
+          },
+          "min_pips": {
+            "type": "integer",
+            "description": "Minimum total pip value (probability). Good nodes have 10+, excellent have 12+",
+            "default": 0
+          },
+          "must_have_resource": {
+            "type": "string",
+            "description": "Required resource type (e.g., 'Wheat', 'Ore', 'Brick', 'Wood', 'Sheep')",
+            "nullable": true
+          },
+          "exclude_blocked": {
+            "type": "boolean",
+            "description": "Skip nodes that cannot be built on (occupied or too close to other buildings)",
+            "default": true
+          },
+          "prefer_port": {
+            "type": "boolean",
+            "description": "Prioritize nodes with port access",
+            "default": false
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Maximum number of results to return",
+            "default": 10
+          }
+        },
+        "required": [
+          "reasoning"
+        ]
+      }
+    },
+    {
+      "name": "analyze_path_potential",
+      "description": "Analyze where a road path leads and what opportunities exist ahead. USE THIS to plan road building - shows ports and valuable nodes 1-2 steps away!",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "reasoning": {
+            "type": "string",
+            "description": "Explain your road-building strategy. Why analyze this path? What are you hoping to reach?"
+          },
+          "from_node": {
+            "type": "integer",
+            "description": "Starting node ID (where you currently have a settlement/road)"
+          },
+          "direction_node": {
+            "type": "integer",
+            "description": "Specific neighbor to analyze, or omit to see all directions",
+            "nullable": true
+          },
+          "max_depth": {
+            "type": "integer",
+            "description": "How many steps ahead to look (1 or 2)",
+            "default": 2
+          }
+        },
+        "required": [
+          "reasoning",
+          "from_node"
+        ]
+      }
+    }
+  ],
+  "tools_enabled": true,
+  "response_schema": {
+    "type": "object",
+    "required": [
+      "internal_thinking",
+      "action"
+    ],
+    "properties": {
+      "internal_thinking": {
+        "type": "string",
+        "description": "Private strategy. Plan your move logically here. Analyze the board, probabilities, and opponents. NOTE: Keep your logic HERE. Do not leak technical explanations into 'say_outloud'.",
+        "minLength": 120
+      },
+      "note_to_self": {
+        "type": "string",
+        "description": "Save only useful observations for future turns. Prefer facts verified by tools or explicit game_state; omit uncertain board facts.",
+        "maxLength": 100
+      },
+      "say_outloud": {
+        "type": "string",
+        "description": "Table talk in natural English only. You have emotions and may express them when it matters. Talk like a person, not a narrator. No filler, unnecessary narrative, or explaining the obvious. If nothing interesting happened, leave empty. Catan manners are loose: be blunt, annoyed, smug, suspicious, or emotional when it matters. Keep it human and non-technical. Avoid confident factual board claims unless verified by tools or explicit game_state.",
+        "maxLength": 120
+      },
+      "action": {
+        "type": "object",
+        "required": [
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "The final game action type. Must be exactly one of: build_settlement, build_city, build_road, trade_propose, trade_bank, buy_dev_card, use_dev_card, end_turn. Tool names are not valid actions.",
+            "enum": [
+              "build_settlement",
+              "build_city",
+              "build_road",
+              "trade_propose",
+              "trade_bank",
+              "buy_dev_card",
+              "use_dev_card",
+              "end_turn"
+            ]
+          },
+          "parameters": {
+            "type": "string",
+            "description": "Action parameters as JSON string. Example: {\"node\": 14} or {}"
+          }
+        },
+        "propertyOrdering": [
+          "type",
+          "parameters"
+        ]
+      }
+    },
+    "propertyOrdering": [
+      "internal_thinking",
+      "note_to_self",
+      "say_outloud",
+      "action"
+    ]
+  }
+}

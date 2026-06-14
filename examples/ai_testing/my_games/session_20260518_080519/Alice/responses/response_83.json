@@ -1,0 +1,25 @@
+{
+  "request_number": 83,
+  "timestamp": "2026-05-18T09:51:37.736431",
+  "player_name": "Alice",
+  "type": "final",
+  "success": true,
+  "raw_content": "{\n  \"internal_thinking\": \"I have the resources for a settlement (1W, 1B, 1S, 1Wh) and I've verified Node 9 is still open. It's my turn, and the first thing I need to do is roll the dice. I'll maintain my slightly cautious stance toward Bob and Charlie, especially since they've started trading with each other more frequently.\",\n  \"action\": {\n    \"type\": \"roll_dice\",\n    \"parameters\": \"{}\"\n  },\n  \"note_to_self\": \"I have the resources for a settlement on Node 9. Rolling now to see if I can get extra resources before building.\",\n  \"say_outloud\": \"Let's see what the dice have to say. Hopefully something better than more wood.\"\n} ",
+  "parsed": {
+    "internal_thinking": "I have the resources for a settlement (1W, 1B, 1S, 1Wh) and I've verified Node 9 is still open. It's my turn, and the first thing I need to do is roll the dice. I'll maintain my slightly cautious stance toward Bob and Charlie, especially since they've started trading with each other more frequently.",
+    "note_to_self": "I have the resources for a settlement on Node 9. Rolling now to see if I can get extra resources before building.",
+    "say_outloud": "Let's see what the dice have to say. Hopefully something better than more wood.",
+    "action_type": "roll_dice",
+    "parameters": {}
+  },
+  "model": "google/gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 5817,
+    "completion": 158,
+    "thinking": 0,
+    "total": 6124
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}

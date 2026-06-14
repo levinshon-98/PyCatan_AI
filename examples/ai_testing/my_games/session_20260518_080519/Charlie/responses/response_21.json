@@ -1,0 +1,25 @@
+{
+  "request_number": 21,
+  "timestamp": "2026-05-18T09:17:24.246078",
+  "player_name": "Charlie",
+  "type": "final",
+  "success": true,
+  "raw_content": "{\n  \"internal_thinking\": \"I have 5 wheat and 1 wood. My current objective is to secure sheep and brick to expand toward the brick port at Node 7. Alice and Bob are feuding, which I can use to my advantage. I'll roll the dice to start my turn and then look for trade opportunities, specifically pitching wheat to Alice in exchange for the sheep she mentioned having.\",\n  \"action\": {\n    \"type\": \"roll_dice\",\n    \"parameters\": \"{}\"\n  },\n  \"note_to_self\": \"I have a surplus of wheat (5) and 1 wood. Goal: trade wheat for sheep/brick to build toward Node 7 (Brick Port). Alice has sheep and is hostile toward Bob.\",\n  \"say_outloud\": \"Alright, let's see if the dice are as generous as Bob's 'community gardens' claim to be.\"\n}",
+  "parsed": {
+    "internal_thinking": "I have 5 wheat and 1 wood. My current objective is to secure sheep and brick to expand toward the brick port at Node 7. Alice and Bob are feuding, which I can use to my advantage. I'll roll the dice to start my turn and then look for trade opportunities, specifically pitching wheat to Alice in exchange for the sheep she mentioned having.",
+    "note_to_self": "I have a surplus of wheat (5) and 1 wood. Goal: trade wheat for sheep/brick to build toward Node 7 (Brick Port). Alice has sheep and is hostile toward Bob.",
+    "say_outloud": "Alright, let's see if the dice are as generous as Bob's 'community gardens' claim to be.",
+    "action_type": "roll_dice",
+    "parameters": {}
+  },
+  "model": "google/gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 6158,
+    "completion": 180,
+    "thinking": 0,
+    "total": 6627
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}

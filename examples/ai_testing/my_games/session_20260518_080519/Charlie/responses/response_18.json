@@ -1,0 +1,25 @@
+{
+  "request_number": 18,
+  "timestamp": "2026-05-18T09:15:07.565674",
+  "player_name": "Charlie",
+  "type": "final",
+  "success": true,
+  "raw_content": "{\n  \"internal_thinking\": \"Bob is offering 2 Wheat for 1 Wood. I currently have 2 Wood and 2 Wheat. My goal is to reach the Brick port at node 7 via node 15. To build a settlement there, I need 1 Wood, 1 Brick, 1 Wheat, and 1 Sheep. I have plenty of Wood production (W4, W3) and Wheat production (Wh8, Wh9). Bob has a massive surplus of Wheat (4 in hand, plus heavy production). While 2-for-1 is a good ratio, I don't actually need more Wheat right now; I need Sheep and Brick. Additionally, Alice is already suspicious of my trades with Bob. Accepting this trade would give Bob the Wood he might need for roads/settlements while cluttering my hand with resources I already produce. I'll reject and try to keep my Wood for my own expansion or a better trade for Sheep with Alice.\",\n  \"action\": {\n    \"type\": \"trade_reject\",\n    \"parameters\": \"{}\"\n  },\n  \"note_to_self\": \"Rejected Bob's 2 Wheat for 1 Wood. I have enough Wheat production and need to prioritize Sheep/Brick for my next settlement at the Brick port (Node 7).\",\n  \"say_outloud\": \"I appreciate the offer, Bob, but I'm actually doing alright on wheat for now. I really need to find some sheep or brick if I'm going to get anywhere.\"\n} ",
+  "parsed": {
+    "internal_thinking": "Bob is offering 2 Wheat for 1 Wood. I currently have 2 Wood and 2 Wheat. My goal is to reach the Brick port at node 7 via node 15. To build a settlement there, I need 1 Wood, 1 Brick, 1 Wheat, and 1 Sheep. I have plenty of Wood production (W4, W3) and Wheat production (Wh8, Wh9). Bob has a massive surplus of Wheat (4 in hand, plus heavy production). While 2-for-1 is a good ratio, I don't actually need more Wheat right now; I need Sheep and Brick. Additionally, Alice is already suspicious of my trades with Bob. Accepting this trade would give Bob the Wood he might need for roads/settlements while cluttering my hand with resources I already produce. I'll reject and try to keep my Wood for my own expansion or a better trade for Sheep with Alice.",
+    "note_to_self": "Rejected Bob's 2 Wheat for 1 Wood. I have enough Wheat production and need to prioritize Sheep/Brick for my next settlement at the Brick port (Node 7).",
+    "say_outloud": "I appreciate the offer, Bob, but I'm actually doing alright on wheat for now. I really need to find some sheep or brick if I'm going to get anywhere.",
+    "action_type": "trade_reject",
+    "parameters": {}
+  },
+  "model": "google/gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 5826,
+    "completion": 298,
+    "thinking": 0,
+    "total": 6372
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}

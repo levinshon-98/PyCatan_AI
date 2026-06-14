@@ -39,6 +39,8 @@ try:
 except Exception:  # pragma: no cover - system certificates are still fine on most hosts.
     certifi = None
 
+from pycatan.ai.session_analysis import build_decision_analysis, build_turn_flow
+
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 LOGS_DIR = REPO_ROOT / "examples" / "ai_testing" / "my_games"
@@ -2206,6 +2208,44 @@ class ReplayViewerHandler(BaseHTTPRequestHandler):
                 self._send_json({"error": "No session selected"}, status=400)
                 return
             self._send_json(public_manifest(manifest))
+            return
+        if path.startswith("/api/replay/analysis/"):
+            try:
+                index = int(path.rsplit("/", 1)[-1])
+            except ValueError:
+                self._send_json({"error": "Invalid replay index"}, status=400)
+                return
+            query = parse_qs(parsed.query)
+            session_ref = (query.get("session") or [""])[0].strip() or None
+            if session_ref:
+                session_name = resolve_session_path(session_ref).name
+                if not session_is_public(session_name, read_public_config()):
+                    self._send_json({"error": "Session is not published"}, status=403)
+                    return
+            manifest = self.server.get_manifest(session_ref)
+            events = (manifest or {}).get("events") or []
+            if not manifest or index < 0 or index >= len(events):
+                self._send_json({"available": False, "message": "No AI decision at this replay point."}, status=404)
+                return
+            event = events[index]
+            if event.get("kind") == "chat" or not event.get("request_number"):
+                self._send_json({
+                    "available": False,
+                    "message": "This replay point is chat-only, so there is no model decision trace.",
+                })
+                return
+            session_dir = Path((manifest.get("session") or {}).get("path") or "")
+            analysis = build_decision_analysis(session_dir, event, None)
+            analysis["index"] = index
+            analysis["total"] = len(events)
+            analysis["replay_label"] = event.get("response_id") or event.get("id") or ""
+            analysis["turn_flow"] = build_turn_flow(session_dir, [{
+                "snapshot_index": index,
+                "label": event.get("response_id") or "",
+                "decision": event,
+                "action_result": {},
+            }])
+            self._send_json(analysis)
             return
         if path == "/api/board_mapping":
             manifest = self.server.get_manifest()

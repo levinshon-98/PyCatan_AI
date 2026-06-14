@@ -1213,15 +1213,29 @@ function scheduleNext(seconds) {
     );
 }
 
-function openReplayAnalysis() {
+async function openReplayAnalysis() {
     const event = currentEvent();
     const modal = $("analysis-modal");
     $("analysis-title").textContent = event
         ? `${event.player_name}${event.request_number ? ` #${event.request_number}` : ""}`
         : "AI Decision Analysis";
     $("analysis-subtitle").textContent = event?.source_file || "No response selected";
-    $("analysis-body").innerHTML = event ? analysisHtml(event) : "<div class=\"analysis-empty\">Select a response first.</div>";
+    $("analysis-body").innerHTML = event ? "<div class=\"analysis-loading\">Loading analysis...</div>" : "<div class=\"analysis-empty\">Select a response first.</div>";
     modal.classList.remove("hidden");
+    if (!event) return;
+
+    try {
+        const sessionName = encodeURIComponent(replayState.manifest?.session?.name || $("session-select")?.value || "");
+        const response = await fetch(`/api/replay/analysis/${event.index}?session=${sessionName}`);
+        if (!response.ok) throw new Error(`Analysis unavailable (${response.status})`);
+        const analysis = await response.json();
+        renderReplayAnalysis(analysis, event);
+    } catch (error) {
+        $("analysis-body").innerHTML = `
+            <div class="analysis-empty">${escapeHtml(error.message || String(error))}</div>
+            ${analysisHtml(event)}
+        `;
+    }
 }
 
 function closeReplayAnalysis() {
@@ -1269,6 +1283,214 @@ function analysisHtml(event) {
             }, null, 2))}</pre>
         </div>
         ${event.raw_content ? `<div class="analysis-field"><div class="analysis-field-label">Raw</div><pre class="analysis-text">${escapeHtml(event.raw_content)}</pre></div>` : ""}
+    `;
+}
+
+function renderReplayAnalysis(analysis, fallbackEvent) {
+    if (!analysis || analysis.available === false) {
+        $("analysis-body").innerHTML = `<div class="analysis-empty">${escapeHtml(analysis?.message || "No AI decision trace for this replay point.")}</div>`;
+        return;
+    }
+
+    const worldview = analysis.worldview || {};
+    const action = analysis.action || {};
+    const result = analysis.engine_result || {};
+    $("analysis-title").textContent = analysis.label || $("analysis-title").textContent;
+    $("analysis-subtitle").textContent = `${analysis.session || ""} | replay ${Number(analysis.index || 0) + 1} / ${analysis.total || events().length}`;
+    $("analysis-body").innerHTML = `
+        ${renderAnalysisTurnFlow(analysis.turn_flow || [], fallbackEvent)}
+        <div class="analysis-flow">
+            ${renderAnalysisNode("Worldview", "What the agent could see before answering", `
+                ${renderKeyText("What just happened", worldview.task_context?.what_just_happened)}
+                ${renderKeyText("Instructions", worldview.task_context?.instructions)}
+                ${renderObservedFacts(worldview.observed_facts || {})}
+                ${renderMemory(worldview.memory_before || {})}
+                ${renderAllowedActions(worldview.allowed_actions || [])}
+                ${renderCompactGameState(worldview)}
+            `)}
+            ${renderToolTrace(analysis.tool_trace || [])}
+            ${renderAnalysisNode("Thinking", "Private reasoning from the final response", `
+                <div class="analysis-text">${escapeHtml(analysis.thinking || "No internal thinking recorded.")}</div>
+            `)}
+            ${renderAnalysisNode("Memory Update", "What was saved for future turns", `
+                <div class="analysis-text">${escapeHtml(analysis.memory_write || "No memory update recorded.")}</div>
+            `)}
+            ${renderAnalysisNode("Communication", "What other players heard", `
+                <div class="analysis-quote">${escapeHtml(analysis.say_outloud || "No public message recorded.")}</div>
+            `)}
+            ${renderAnalysisNode("Action", "Final selected move", `
+                <div class="analysis-action-type">${escapeHtml(action.type || "No action")}</div>
+                ${renderJsonBlock(action.parameters || {}, "Parameters")}
+            `)}
+            ${renderAnalysisNode("Engine Result", "What the game engine reported", `
+                <div class="analysis-result ${result.success === false ? "fail" : "success"}">
+                    ${result.success === false ? "Failed" : "Recorded"}
+                </div>
+                ${renderKeyText("Message", result.message || result.structured || "")}
+                ${renderJsonBlock(result.data || {}, "Result Data")}
+            `)}
+        </div>
+        <details class="analysis-raw">
+            <summary>Raw prompt and response</summary>
+            ${renderJsonBlock(analysis.raw || {}, "Raw")}
+        </details>
+    `;
+}
+
+function renderAnalysisNode(title, subtitle, innerHtml) {
+    return `
+        <section class="analysis-node">
+            <div class="analysis-node-marker"></div>
+            <div class="analysis-node-content">
+                <div class="analysis-node-title">${escapeHtml(title)}</div>
+                <div class="analysis-node-subtitle">${escapeHtml(subtitle || "")}</div>
+                <div class="analysis-node-body">${innerHtml}</div>
+            </div>
+        </section>
+    `;
+}
+
+function renderAnalysisTurnFlow(items, fallbackEvent) {
+    const flow = items.length ? items : [{
+        snapshot_index: fallbackEvent?.index,
+        player_name: fallbackEvent?.player_name,
+        request_number: fallbackEvent?.request_number,
+        action_type: fallbackEvent?.action_type || fallbackEvent?.kind,
+    }];
+    return `
+        <div class="analysis-turn-flow">
+            <div class="analysis-section-title">Decision Flow</div>
+            <div class="analysis-turn-steps">
+                ${flow.map((item) => `
+                    <button class="analysis-turn-step ${Number(item.snapshot_index) === replayState.index ? "active" : ""}" type="button"
+                            onclick="pausePlayback(); goToEvent(${Number(item.snapshot_index || 0)}, false); openReplayAnalysis()">
+                        <span>${escapeHtml(item.player_name || "Player")} #${escapeHtml(String(item.request_number || "?"))}</span>
+                        <strong>${escapeHtml(item.action_type || "decision")}</strong>
+                    </button>
+                `).join("")}
+            </div>
+        </div>
+    `;
+}
+
+function renderToolTrace(toolTrace) {
+    if (!toolTrace.length) {
+        return renderAnalysisNode("Tools", "Tool calls before the final answer", `
+            <div class="analysis-text">No tool calls were recorded for this decision.</div>
+        `);
+    }
+    return renderAnalysisNode("Tools", "Tool calls before the final answer", `
+        <div class="analysis-tools">
+            ${toolTrace.map((iteration) => `
+                <div class="analysis-tool-iteration">
+                    <div class="analysis-tool-heading">Iteration ${escapeHtml(String(iteration.iteration || "?"))}</div>
+                    ${(iteration.tool_calls || []).map((call) => `
+                        <div class="analysis-tool-call">
+                            <strong>${escapeHtml(call.name || "tool")}</strong>
+                            ${call.parameters?.reasoning ? `<div class="analysis-tool-reason">${escapeHtml(call.parameters.reasoning)}</div>` : ""}
+                            ${renderJsonBlock(call.parameters || {}, "Input")}
+                        </div>
+                    `).join("") || "<div class=\"analysis-muted\">Tool input was not logged.</div>"}
+                    ${iteration.tool_results_text ? `
+                        <details class="analysis-details">
+                            <summary>Tool output</summary>
+                            <pre class="analysis-pre">${escapeHtml(iteration.tool_results_text)}</pre>
+                        </details>
+                    ` : "<div class=\"analysis-muted\">No tool output was logged.</div>"}
+                </div>
+            `).join("")}
+        </div>
+    `);
+}
+
+function renderObservedFacts(facts) {
+    if (!facts || Object.keys(facts).length === 0) return "";
+    const dice = facts.dice;
+    const diceText = Array.isArray(dice) && dice.length
+        ? `${dice.join(" + ")} = ${facts.dice_total ?? dice.reduce((sum, value) => sum + Number(value || 0), 0)}`
+        : "Not visible";
+    return `
+        <div class="analysis-observed">
+            <div class="analysis-field-label">Observed game facts from prompt</div>
+            <div class="analysis-fact-grid">
+                <div><span>Current</span><strong>${escapeHtml(facts.current_player || "Unknown")}</strong></div>
+                <div><span>Phase</span><strong>${escapeHtml(facts.phase || "Unknown")}</strong></div>
+                <div><span>Dice</span><strong>${escapeHtml(diceText)}</strong></div>
+                <div><span>Robber hex</span><strong>${escapeHtml(String(facts.robber_hex ?? "Unknown"))}</strong></div>
+            </div>
+            ${facts.expected_action ? renderKeyText("Expected action", facts.expected_action) : ""}
+            ${renderJsonBlock(facts.current_player_state || {}, `${facts.current_player || "Current player"} visible state`)}
+        </div>
+    `;
+}
+
+function renderMemory(memory) {
+    if (!memory || Object.keys(memory).length === 0) {
+        return renderKeyText("Memory before decision", "No memory was included in this prompt.");
+    }
+    return `
+        <div class="analysis-memory">
+            ${renderKeyText("Last note", memory.note_from_last_turn || memory.previous_note_to_self || "")}
+            ${renderKeyText("Compacted long-term memory", memory.long_term_summary || "")}
+            ${Array.isArray(memory.recent_notes) ? `
+                <div class="analysis-field-label">Recent notes</div>
+                <ol class="analysis-list">
+                    ${memory.recent_notes.map((note) => `<li>${escapeHtml(typeof note === "string" ? note : (note.note || JSON.stringify(note)))}</li>`).join("")}
+                </ol>
+            ` : ""}
+        </div>
+    `;
+}
+
+function renderAllowedActions(actions) {
+    if (!actions.length) return "";
+    return `
+        <div class="analysis-field-label">Allowed actions</div>
+        <div class="analysis-pills">
+            ${actions.map((item) => `<span>${escapeHtml(item.type || String(item))}</span>`).join("")}
+        </div>
+    `;
+}
+
+function renderCompactGameState(worldview) {
+    const compactJson = worldview.compact_game_state_json;
+    const compactText = worldview.compact_game_state;
+    if (!compactText && !compactJson) return "";
+    return `
+        <details class="analysis-details">
+            <summary>Compact game state seen by the agent</summary>
+            ${compactJson ? renderJsonBlock(compactJson, "Parsed compact state") : ""}
+            ${compactText ? `<pre class="analysis-pre">${escapeHtml(compactText)}</pre>` : ""}
+        </details>
+    `;
+}
+
+function renderKeyText(label, text) {
+    if (!text) return "";
+    return `
+        <div class="analysis-field">
+            <div class="analysis-field-label">${escapeHtml(label)}</div>
+            <div class="analysis-text">${escapeHtml(text)}</div>
+        </div>
+    `;
+}
+
+function renderJsonBlock(value, label) {
+    if (value === null || value === undefined || value === "") return "";
+    let normalized = value;
+    if (typeof value === "string") {
+        try {
+            normalized = JSON.parse(value);
+        } catch {
+            return renderKeyText(label, value);
+        }
+    }
+    if (typeof normalized === "object" && !Array.isArray(normalized) && Object.keys(normalized).length === 0) return "";
+    return `
+        <details class="analysis-details">
+            <summary>${escapeHtml(label)}</summary>
+            <pre class="analysis-pre">${escapeHtml(JSON.stringify(normalized, null, 2))}</pre>
+        </details>
     `;
 }
 

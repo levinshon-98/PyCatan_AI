@@ -1,0 +1,30 @@
+{
+  "request_number": 31,
+  "iteration": 2,
+  "timestamp": "2026-05-18T09:23:04.477166",
+  "player_name": "Bob",
+  "type": "intermediate",
+  "success": true,
+  "raw_content": "",
+  "has_tool_calls": true,
+  "tool_calls": [
+    {
+      "id": "tool_inspect_node_gcQHhQVKZYkeGxGpbm6w",
+      "name": "inspect_node",
+      "parameters": {
+        "reasoning": "Checking my current position and neighbors to verify expansion options before rolling.",
+        "node_id": 12
+      }
+    }
+  ],
+  "model": "google/gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 3092,
+    "completion": 0,
+    "thinking": 0,
+    "total": 3092
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}

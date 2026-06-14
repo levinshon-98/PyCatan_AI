@@ -1,0 +1,23 @@
+{
+  "request_number": 111,
+  "timestamp": "2026-05-18T10:10:10.697968",
+  "player_name": "Bob",
+  "type": "final",
+  "success": true,
+  "raw_content": "{\"internal_thinking\":\"Charlie thought he won but he doesn't have the third knight yet. He's asking for Ore, but I only have 1 Wood and 1 Sheep. I need to let him know I'm out of Ore.\",\"note_to_self\":\"Charlie does not have Largest Army yet; he only has 2 knights revealed. I have 1 Wood and 1 Sheep.\",\"say_outloud\":\"I'd take that in a heartbeat, Charlie, but I don't have any ore for you.\"}",
+  "parsed": {
+    "internal_thinking": "Charlie thought he won but he doesn't have the third knight yet. He's asking for Ore, but I only have 1 Wood and 1 Sheep. I need to let him know I'm out of Ore.",
+    "note_to_self": "Charlie does not have Largest Army yet; he only has 2 knights revealed. I have 1 Wood and 1 Sheep.",
+    "say_outloud": "I'd take that in a heartbeat, Charlie, but I don't have any ore for you."
+  },
+  "model": "google/gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 2810,
+    "completion": 97,
+    "thinking": 0,
+    "total": 2907
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}

@@ -1,0 +1,522 @@
+{
+  "player_name": "Alice",
+  "compaction_number": 7,
+  "timestamp": "2026-05-18T09:38:04.074987",
+  "before": {
+    "existing_compacted_memory": "Alice (Nodes 20, 25) aims to settle Node 9 (3:1 port) then Node 32. Hand: 1 Wood, 1 Wheat, 1 Sheep + Monopoly card. Target resources: Brick and Wood. Robber moved from Hex 5 (Brick 6) to Hex 7 (Wheat 8), now blocking Alice and Charlie. Bob (Nodes 12, 43) is the primary antagonist and just rolled a 7 to move the robber. Charlie (Nodes 41, 14) remains a loyal ally; he recently bought a dev card and is hoarding Wood for his own settlement near Node 7. Charlie and Alice have a mutual pact against Bob and have prioritized 1:1 trading, though Charlie currently refuses to trade Wood. Alice holds a Monopoly card for a potential strategic strike.",
+    "existing_relationship_updates": [
+      {
+        "note": "Alice and Charlie formed a temporary alliance against Bob; Alice feels indebted for the robber removal.",
+        "timestamp": 1779085191.7928233
+      },
+      {
+        "note": "Bob's mocking 'community gardens' talk and theft have solidified Alice's role as his primary antagonist.",
+        "timestamp": 1779085191.7928257
+      },
+      {
+        "note": "Alice and Charlie's alliance strengthened through reciprocal 1:1 trading and mutual blocking of Bob.",
+        "timestamp": 1779085531.3232722
+      },
+      {
+        "note": "Charlie demonstrated high loyalty to the anti-Bob alliance by rejecting Bob's 3-for-1 wheat offer.",
+        "timestamp": 1779085531.3232734
+      },
+      {
+        "note": "Bob's move to block Alice/Charlie's Wheat (Hex 7) and his 'guest' comment have further solidified the Alice-Charlie alli",
+        "timestamp": 1779085980.3485324
+      },
+      {
+        "note": "Alice's trust in Charlie increased following his Knight play to protect their shared Wheat 8 production.",
+        "timestamp": 1779086284.0720534
+      }
+    ],
+    "old_notes_to_compact": [
+      {
+        "note": "Bob rolled a 7. He is currently in the ROBBER_MOVE phase. He will likely target me or Charlie to break our momentum and free his Brick 6.",
+        "timestamp": 1779085948.789611
+      },
+      {
+        "note": "Bob moved the robber to Hex 7 (Wheat 8), blocking both Alice and Charlie. Alice holds a Monopoly card.",
+        "timestamp": 1779085976.8325622
+      },
+      {
+        "note": "Bob stole from Charlie after moving the robber to Hex 7 (Wheat 8). Charlie likely has wood since Bob mentioned wood rolls. I still have my Monopoly card; I should wait for a high-yield roll to use it.",
+        "timestamp": 1779085999.8142605
+      },
+      {
+        "note": "Rejected Bob's 1:1 Sheep for Wood. I need to keep my Wood for Node 9 and I'm not helping Bob after he blocked my Wheat 8.",
+        "timestamp": 1779086059.9033203
+      },
+      {
+        "note": "Bob ended his turn without getting any brick. He remains the primary threat. Charlie has zero brick as confirmed by his repeated rejections. My goal remains Node 9.",
+        "timestamp": 1779086111.5535774
+      },
+      {
+        "note": "Charlie used a Knight to move the robber from Hex 7 (Wheat 8) to Hex 5 (Brick 6), targeting Bob. This confirms Charlie's commitment to our alliance and frees up my wheat production.",
+        "timestamp": 1779086148.1767848
+      },
+      {
+        "note": "Charlie rolled a 4. I received 1 Sheep. Charlie received 1 Wood. Bob received nothing. Hand now: 1W, 1Wh, 3S.",
+        "timestamp": 1779086166.2097688
+      },
+      {
+        "note": "Charlie needs brick. I have none. I have 1W, 1Wh, 2S. Charlie just rolled a 4, giving me a sheep and him a wood. Bob is still the target of our alliance.",
+        "timestamp": 1779086221.2584348
+      }
+    ],
+    "recent_notes_kept_verbatim": [
+      {
+        "note": "Charlie bought a development card after failing to find brick. He has 3 wood left. Bob is still the main target. Hand: 1W, 1Wh, 2S.",
+        "timestamp": 1779086252.7066536
+      },
+      {
+        "note": "Charlie has 3 Wood. I have 1W, 1Wh, 2S and a Monopoly card. Bob is still the target of the alliance. Need to find Brick to reach Node 9.",
+        "timestamp": 1779086280.3993933
+      }
+    ],
+    "relevant_chat": [
+      {
+        "from": "Alice",
+        "message": "Spoken like a true 'community' leader, Bob. Always looking for ways to share the burden.",
+        "response_id": "Alice:50",
+        "request_number": 50,
+        "response_type": "reaction",
+        "audio_path": "replay_audio/response_0050_player_1_Alice.wav"
+      },
+      {
+        "from": "Alice",
+        "message": "Balance the scales? You're just hitting the only person who hasn't tried to backstab me yet, Bob.",
+        "response_id": "Alice:51",
+        "request_number": 51,
+        "response_type": "reaction",
+        "audio_path": "replay_audio/response_0051_player_1_Alice.wav"
+      },
+      {
+        "from": "Bob",
+        "message": "Alice, you're always talking about community. How about a little neighborly swap? I'll give you some prime wool for a bit of that wood you've got lying around.",
+        "response_id": "Bob:52",
+        "request_number": 52,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0052_player_2_Bob.wav"
+      },
+      {
+        "from": "Alice",
+        "message": "You just put a 'guest' in my wheat field, Bob, and now you want my wood? I think I'll pass. I'm sure you can find someone else to 'balance the scales' with.",
+        "response_id": "Alice:52",
+        "request_number": 52,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0052_player_1_Alice.wav"
+      },
+      {
+        "from": "Alice",
+        "message": "Much better. That field was getting a bit crowded anyway.",
+        "response_id": "Alice:54",
+        "request_number": 54,
+        "response_type": "reaction",
+        "audio_path": "replay_audio/response_0054_player_1_Alice.wav"
+      },
+      {
+        "from": "Charlie",
+        "message": "Alice, I'm looking for a bit of brick to finish my path. Would you be interested in some wood in exchange?",
+        "response_id": "Charlie:58",
+        "request_number": 58,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0058_player_3_Charlie.wav"
+      },
+      {
+        "from": "Alice",
+        "message": "I'd love to help out, Charlie, but I don't have any brick either. Bob seems to be the only one sitting on the clay lately.",
+        "response_id": "Alice:56",
+        "request_number": 56,
+        "response_type": "reaction",
+        "audio_path": "replay_audio/response_0056_player_1_Alice.wav"
+      },
+      {
+        "from": "Charlie",
+        "message": "Well, at least the woods are providing. Since nobody has any clay to spare, I'll just hold onto these logs for now. Your turn, Alice.",
+        "response_id": "Charlie:60",
+        "request_number": 60,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0060_player_3_Charlie.wav"
+      },
+      {
+        "from": "Charlie",
+        "message": "I figured you’d be eager to move that, Bob. Just don't get too comfortable with wherever you're putting it.",
+        "response_id": "Charlie:49",
+        "request_number": 49,
+        "response_type": "reaction",
+        "audio_path": "replay_audio/response_0049_player_3_Charlie.wav"
+      },
+      {
+        "from": "Bob",
+        "message": "Sorry Charlie, but you've been a bit too successful with those wood rolls lately. I need to balance the scales a little.",
+        "response_id": "Bob:50",
+        "request_number": 50,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0050_player_2_Bob.wav"
+      },
+      {
+        "from": "Charlie",
+        "message": "Balance the scales? You're just mad about that blocked brick, Bob. Don't worry, I'll remember the favor.",
+        "response_id": "Charlie:50",
+        "request_number": 50,
+        "response_type": "reaction",
+        "audio_path": "replay_audio/response_0050_player_3_Charlie.wav"
+      },
+      {
+        "from": "Bob",
+        "message": "Look, Charlie, I know the robber is a bit of a nuisance, but I'm looking to move things along. You've got bricks, I've got plenty of wheat for those cities you'll want later. Three wheat for one brick? It's a steal.",
+        "response_id": "Bob:51",
+        "request_number": 51,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0051_player_2_Bob.wav"
+      },
+      {
+        "from": "Charlie",
+        "message": "I don't have any brick for you, Bob. Maybe if you hadn't just robbed me, I'd be more inclined to help you find some.",
+        "response_id": "Charlie:51",
+        "request_number": 51,
+        "response_type": "reaction",
+        "audio_path": "replay_audio/response_0051_player_3_Charlie.wav"
+      },
+      {
+        "from": "Bob",
+        "message": "Charlie, I know you said you were out of brick, but surely three bags of wheat is enough to make you check your pockets again? It's a massive overpay, but I'm feeling generous after that seven.",
+        "response_id": "Bob:53",
+        "request_number": 53,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0053_player_2_Bob.wav"
+      },
+      {
+        "from": "Charlie",
+        "message": "I'm not hiding anything, Bob. I still have zero brick. Checking my pockets won't change the fact that you're asking for something I don't have.",
+        "response_id": "Charlie:53",
+        "request_number": 53,
+        "response_type": "reaction",
+        "audio_path": "replay_audio/response_0053_player_3_Charlie.wav"
+      },
+      {
+        "from": "Bob",
+        "message": "Well, if the bricks are as scarce as the hospitality around here, I suppose I'll just have to wait. Good luck with the next roll, everyone.",
+        "response_id": "Bob:54",
+        "request_number": 54,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0054_player_2_Bob.wav"
+      },
+      {
+        "from": "Charlie",
+        "message": "You know, Bob, you talk a lot about 'balancing scales,' but I think it's time we actually leveled the field. That Wheat 8 was doing just fine without your 'guest.' Let's see how you like it when your bricks go missing for a change.",
+        "response_id": "Charlie:55",
+        "request_number": 55,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0055_player_3_Charlie.wav"
+      },
+      {
+        "from": "Bob",
+        "message": "A bit dramatic for a simple knight, don't you think, Charlie? I'm just a humble merchant trying to keep the wheat flowing.",
+        "response_id": "Bob:55",
+        "request_number": 55,
+        "response_type": "reaction",
+        "audio_path": "replay_audio/response_0055_player_2_Bob.wav"
+      },
+      {
+        "from": "Charlie",
+        "message": "Alright, let's see what the dice have to say about this 'balance' you keep talking about, Bob.",
+        "response_id": "Charlie:56",
+        "request_number": 56,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0056_player_3_Charlie.wav"
+      },
+      {
+        "from": "Charlie",
+        "message": "Well, looks like the bricks are as dry as the desert right now. I'll just have to see what else I can find in the deck.",
+        "response_id": "Charlie:59",
+        "request_number": 59,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0059_player_3_Charlie.wav"
+      }
+    ]
+  },
+  "after": {
+    "long_term_summary": "Alice (Nodes 20, 25) is targeting Node 9 (3:1 port). Current hand: 1W, 1Wh, 2S plus a Monopoly card. Charlie (Nodes 41, 14) is a confirmed ally who used a Knight to move the robber from Hex 7 (Wheat 8) back to Bob's Hex 5 (Brick 6). Charlie has 3 Wood and no Brick, while Bob is the primary antagonist and likely has Wheat. Alice and Charlie have a firm 1:1 trading pact and mutual defense against Bob. Strategic goal: Obtain Brick for Node 9 expansion while holding Monopoly for a high-value resource roll.",
+    "recent_notes": [
+      {
+        "note": "Charlie bought a development card after failing to find brick. He has 3 wood left. Bob is still the main target. Hand: 1W, 1Wh, 2S.",
+        "timestamp": 1779086252.7066536
+      },
+      {
+        "note": "Charlie has 3 Wood. I have 1W, 1Wh, 2S and a Monopoly card. Bob is still the target of the alliance. Need to find Brick to reach Node 9.",
+        "timestamp": 1779086280.3993933
+      }
+    ],
+    "relationship_updates": [
+      "Alice's trust in Charlie increased following his Knight play to protect their shared Wheat 8 production.",
+      "Tension with Bob escalated after his 'guest' comment and attempt to trade for Alice's Wood immediately after robbing the"
+    ],
+    "discarded_as_irrelevant": [
+      "Specific dice roll results (2,2 and 4)",
+      "Expired robber positions",
+      "Completed turn phases",
+      "Redundant mentions of Bob being the target"
+    ],
+    "fallback_used": false,
+    "fallback_reason": null
+  },
+  "llm": {
+    "success": true,
+    "content": "{\n  \"compacted_memory\": \"Alice (Nodes 20, 25) is targeting Node 9 (3:1 port). Current hand: 1W, 1Wh, 2S plus a Monopoly card. Charlie (Nodes 41, 14) is a confirmed ally who used a Knight to move the r...",
+    "error": null,
+    "model": "google/gemini-3-flash-preview-20251217",
+    "tokens": {
+      "prompt": 5430,
+      "completion": 379,
+      "total": 5809
+    },
+    "latency_seconds": 3.67,
+    "finish_reason": "stop",
+    "timestamp": "2026-05-18T09:38:04.070439"
+  },
+  "llm_raw": {
+    "success": true,
+    "content": "{\n  \"compacted_memory\": \"Alice (Nodes 20, 25) is targeting Node 9 (3:1 port). Current hand: 1W, 1Wh, 2S plus a Monopoly card. Charlie (Nodes 41, 14) is a confirmed ally who used a Knight to move the robber from Hex 7 (Wheat 8) back to Bob's Hex 5 (Brick 6). Charlie has 3 Wood and no Brick, while Bob is the primary antagonist and likely has Wheat. Alice and Charlie have a firm 1:1 trading pact and mutual defense against Bob. Strategic goal: Obtain Brick for Node 9 expansion while holding Monopoly for a high-value resource roll.\",\n  \"recent_notes_to_keep\": [\n    \"Charlie bought a development card after failing to find brick. He has 3 wood left. Bob is still the main target. Hand: 1W, 1Wh, 2S.\",\n    \"Charlie has 3 Wood. I have 1W, 1Wh, 2S and a Monopoly card. Bob is still the target of the alliance. Need to find Brick to reach Node 9.\"\n  ],\n  \"discarded_as_irrelevant\": [\n    \"Specific dice roll results (2,2 and 4)\",\n    \"Expired robber positions\",\n    \"Completed turn phases\",\n    \"Redundant mentions of Bob being the target\"\n  ],\n  \"relationship_updates\": [\n    \"Alice's trust in Charlie increased following his Knight play to protect their shared Wheat 8 production.\",\n    \"Tension with Bob escalated after his 'guest' comment and attempt to trade for Alice's Wood immediately after robbing the alliance.\"\n  ]\n}",
+    "error": null,
+    "model": "google/gemini-3-flash-preview-20251217",
+    "finish_reason": "stop",
+    "prompt_tokens": 5430,
+    "completion_tokens": 379,
+    "thinking_tokens": 0,
+    "total_tokens": 5809,
+    "latency_seconds": 3.6699624061584473
+  },
+  "prompt": {
+    "meta_data": {
+      "agent_name": "Alice",
+      "task": "compact_agent_memory",
+      "model_instruction": "You are compacting memory for one Catan AI agent. Use the board only through the same compact H/N/state/players/meta format used in normal decision prompts."
+    },
+    "task_context": {
+      "instructions": "Compress old memories and relevant chat into one concise strategic memory. Preserve future-useful facts: current goals, next planned actions, confirmed board facts, known or likely opponent plans/resources/dev cards/trade tendencies, active negotiations, social commitments, and mistakes to avoid. Discard repeated, completed, impossible, vague, or superseded details. Do not invent facts; mark uncertainty clearly. Also extract only new meaningful relationship shifts from the old notes and relevant chat: trust changes, grudges, favors, threats, betrayals, promises, or emotional tension. Do not repeat existing relationship updates; leave relationship_updates empty if nothing changed. Target about 50% or less of the combined old memory length. Keep recent_notes_to_keep copied verbatim from the provided recent notes."
+    },
+    "game_state": "\n  1. LOOKUP TABLES:\n   • \"H\" (Hexes): Array where Index = HexID. Value = Resource+Num.\n     Example: H[1]=\"W12\" -> Hex 1 is Wood 12.\n   • \"N\" (Nodes): Array where Index = NodeID.\n     Format: [ [Neighbors], [HexIDs], Port? ]\n     Logic: To find yield of Node 10, check N[10]. Get HexIDs (e.g. [1,5]). Look up H[1] and H[5].\n\n2. CODES: W=Wood, B=Brick, S=Sheep, Wh=Wheat, O=Ore, D=Desert.\n          ?3=Any 3:1 port, X2=Specific Resource 2:1 port.\n\n3. STATE: \"bld\"=[NodeID, Owner, Type], \"rds\"=[[From,To], Owner].\n\n4. PLAYERS: \"res\"={Resource:Count}, \"dev\"={\"h\":[Your Hidden Cards], \"hidden_count\":OpponentHiddenCount, \"r\":[Revealed] (K=Knight)}, \n            \"stat\"=[\"LR\" (Longest Road), \"LA\" (Largest Army)].\n\n5. ROBBER: Located at HexID specified in \"meta.robber\". H[id] is blocked.\n\nJSON:\n{\"meta\":{\"curr\":\"Charlie\",\"phase\":\"NORMAL_PLAY\",\"turn_phase\":\"PLAYER_ACTIONS\",\"robber\":5,\"dice\":[2,2],\"vp_to_win\":5,\"dice_total\":4},\"H\":[\"\",\"W12\",\"S5\",\"W4\",\"S8\",\"B6\",\"W3\",\"Wh8\",\"B10\",\"W11\",\"D\",\"O3\",\"S4\",\"B10\",\"Wh9\",\"Wh6\",\"S11\",\"O5\",\"Wh9\",\"O2\"],\"N\":[null,[[2,9],[1]],[[1,3],[1],\"Wh2\"],[[2,4,11],[2,1],\"Wh2\"],[[3,5],[2]],[[4,6,13],[3,2]],[[5,7],[3],\"B2\"],[[6,15],[3],\"B2\"],[[9,18],[4],\"?3\"],[[8,10,1],[4,1],\"?3\"],[[9,11,20],[5,4,1]],[[10,12,3],[5,2,1]],[[11,13,22],[6,5,2]],[[12,14,5],[6,3,2]],[[13,15,24],[7,6,3]],[[14,16,7],[7,3]],[[15,26],[7],\"O2\"],[[18,28],[8],\"S2\"],[[17,19,8],[8,4]],[[18,20,30],[9,8,4]],[[19,21,10],[9,5,4]],[[20,22,32],[10,9,5]],[[21,23,12],[10,6,5]],[[22,24,34],[11,10,6]],[[23,25,14],[11,7,6]],[[24,26,36],[12,11,7]],[[25,27,16],[12,7],\"O2\"],[[26,38],[12]],[[29,17],[8],\"S2\"],[[28,30,39],[13,8]],[[29,31,19],[13,9,8]],[[30,32,41],[14,13,9]],[[31,33,21],[14,10,9]],[[32,34,43],[15,14,10]],[[33,35,23],[15,11,10]],[[34,36,45],[16,15,11]],[[35,37,25],[16,12,11]],[[36,38,47],[16,12],\"?3\"],[[37,27],[12],\"?3\"],[[40,29],[13]],[[39,41,48],[17,13],\"W2\"],[[40,42,31],[17,14,13]],[[41,43,50],[18,17,14]],[[42,44,33],[18,15,14]],[[43,45,52],[19,18,15]],[[44,46,35],[19,16,15]],[[45,47,54],[19,16]],[[46,37],[16]],[[49,40],[17],\"W2\"],[[48,50],[17]],[[49,51,42],[18,17],\"?3\"],[[50,52],[18],\"?3\"],[[51,53,44],[19,18]],[[52,54],[19],\"?3\"],[[53,46],[19],\"?3\"]],\"state\":{\"bld\":[[12,\"Bob\",\"S\"],[14,\"Charlie\",\"S\"],[20,\"Alice\",\"S\"],[25,\"Alice\",\"S\"],[41,\"Charlie\",\"S\"],[43,\"Bob\",\"S\"]],\"rds\":[[[20,10],\"Alice\"],[[12,11],\"Bob\"],[[41,42],\"Charlie\"],[[14,15],\"Charlie\"],[[43,44],\"Bob\"],[[25,26],\"Alice\"],[[10,9],\"Alice\"],[[20,21],\"Alice\"],[[15,7],\"Charlie\"]]},\"players\":{\"Alice\":{\"vp\":2,\"res\":{\"W\":1,\"Wh\":1,\"S\":2},\"dev\":{\"h\":[\"monopoly\"]}},\"Bob\":{\"vp\":2,\"res\":{\"W\":2,\"Wh\":3,\"S\":1}},\"Charlie\":{\"vp\":2,\"res\":{\"W\":3},\"dev\":{\"hidden_count\":1,\"r\":[\"K\"]}}}}",
+    "memory_input": {
+      "existing_compacted_memory": "Alice (Nodes 20, 25) aims to settle Node 9 (3:1 port) then Node 32. Hand: 1 Wood, 1 Wheat, 1 Sheep + Monopoly card. Target resources: Brick and Wood. Robber moved from Hex 5 (Brick 6) to Hex 7 (Wheat 8), now blocking Alice and Charlie. Bob (Nodes 12, 43) is the primary antagonist and just rolled a 7 to move the robber. Charlie (Nodes 41, 14) remains a loyal ally; he recently bought a dev card and is hoarding Wood for his own settlement near Node 7. Charlie and Alice have a mutual pact against Bob and have prioritized 1:1 trading, though Charlie currently refuses to trade Wood. Alice holds a Monopoly card for a potential strategic strike.",
+      "existing_relationship_updates": [
+        {
+          "note": "Alice and Charlie formed a temporary alliance against Bob; Alice feels indebted for the robber removal.",
+          "timestamp": 1779085191.7928233
+        },
+        {
+          "note": "Bob's mocking 'community gardens' talk and theft have solidified Alice's role as his primary antagonist.",
+          "timestamp": 1779085191.7928257
+        },
+        {
+          "note": "Alice and Charlie's alliance strengthened through reciprocal 1:1 trading and mutual blocking of Bob.",
+          "timestamp": 1779085531.3232722
+        },
+        {
+          "note": "Charlie demonstrated high loyalty to the anti-Bob alliance by rejecting Bob's 3-for-1 wheat offer.",
+          "timestamp": 1779085531.3232734
+        },
+        {
+          "note": "Bob's move to block Alice/Charlie's Wheat (Hex 7) and his 'guest' comment have further solidified the Alice-Charlie alli",
+          "timestamp": 1779085980.3485324
+        },
+        {
+          "note": "Alice's trust in Charlie increased following his Knight play to protect their shared Wheat 8 production.",
+          "timestamp": 1779086284.0720534
+        }
+      ],
+      "old_notes_to_compact": [
+        "Bob rolled a 7. He is currently in the ROBBER_MOVE phase. He will likely target me or Charlie to break our momentum and free his Brick 6.",
+        "Bob moved the robber to Hex 7 (Wheat 8), blocking both Alice and Charlie. Alice holds a Monopoly card.",
+        "Bob stole from Charlie after moving the robber to Hex 7 (Wheat 8). Charlie likely has wood since Bob mentioned wood rolls. I still have my Monopoly card; I should wait for a high-yield roll to use it.",
+        "Rejected Bob's 1:1 Sheep for Wood. I need to keep my Wood for Node 9 and I'm not helping Bob after he blocked my Wheat 8.",
+        "Bob ended his turn without getting any brick. He remains the primary threat. Charlie has zero brick as confirmed by his repeated rejections. My goal remains Node 9.",
+        "Charlie used a Knight to move the robber from Hex 7 (Wheat 8) to Hex 5 (Brick 6), targeting Bob. This confirms Charlie's commitment to our alliance and frees up my wheat production.",
+        "Charlie rolled a 4. I received 1 Sheep. Charlie received 1 Wood. Bob received nothing. Hand now: 1W, 1Wh, 3S.",
+        "Charlie needs brick. I have none. I have 1W, 1Wh, 2S. Charlie just rolled a 4, giving me a sheep and him a wood. Bob is still the target of our alliance."
+      ],
+      "recent_notes_to_keep": [
+        "Charlie bought a development card after failing to find brick. He has 3 wood left. Bob is still the main target. Hand: 1W, 1Wh, 2S.",
+        "Charlie has 3 Wood. I have 1W, 1Wh, 2S and a Monopoly card. Bob is still the target of the alliance. Need to find Brick to reach Node 9."
+      ],
+      "relevant_chat": [
+        {
+          "from": "Alice",
+          "message": "Spoken like a true 'community' leader, Bob. Always looking for ways to share the burden.",
+          "response_id": "Alice:50",
+          "request_number": 50,
+          "response_type": "reaction",
+          "audio_path": "replay_audio/response_0050_player_1_Alice.wav"
+        },
+        {
+          "from": "Alice",
+          "message": "Balance the scales? You're just hitting the only person who hasn't tried to backstab me yet, Bob.",
+          "response_id": "Alice:51",
+          "request_number": 51,
+          "response_type": "reaction",
+          "audio_path": "replay_audio/response_0051_player_1_Alice.wav"
+        },
+        {
+          "from": "Bob",
+          "message": "Alice, you're always talking about community. How about a little neighborly swap? I'll give you some prime wool for a bit of that wood you've got lying around.",
+          "response_id": "Bob:52",
+          "request_number": 52,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0052_player_2_Bob.wav"
+        },
+        {
+          "from": "Alice",
+          "message": "You just put a 'guest' in my wheat field, Bob, and now you want my wood? I think I'll pass. I'm sure you can find someone else to 'balance the scales' with.",
+          "response_id": "Alice:52",
+          "request_number": 52,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0052_player_1_Alice.wav"
+        },
+        {
+          "from": "Alice",
+          "message": "Much better. That field was getting a bit crowded anyway.",
+          "response_id": "Alice:54",
+          "request_number": 54,
+          "response_type": "reaction",
+          "audio_path": "replay_audio/response_0054_player_1_Alice.wav"
+        },
+        {
+          "from": "Charlie",
+          "message": "Alice, I'm looking for a bit of brick to finish my path. Would you be interested in some wood in exchange?",
+          "response_id": "Charlie:58",
+          "request_number": 58,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0058_player_3_Charlie.wav"
+        },
+        {
+          "from": "Alice",
+          "message": "I'd love to help out, Charlie, but I don't have any brick either. Bob seems to be the only one sitting on the clay lately.",
+          "response_id": "Alice:56",
+          "request_number": 56,
+          "response_type": "reaction",
+          "audio_path": "replay_audio/response_0056_player_1_Alice.wav"
+        },
+        {
+          "from": "Charlie",
+          "message": "Well, at least the woods are providing. Since nobody has any clay to spare, I'll just hold onto these logs for now. Your turn, Alice.",
+          "response_id": "Charlie:60",
+          "request_number": 60,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0060_player_3_Charlie.wav"
+        },
+        {
+          "from": "Charlie",
+          "message": "I figured you’d be eager to move that, Bob. Just don't get too comfortable with wherever you're putting it.",
+          "response_id": "Charlie:49",
+          "request_number": 49,
+          "response_type": "reaction",
+          "audio_path": "replay_audio/response_0049_player_3_Charlie.wav"
+        },
+        {
+          "from": "Bob",
+          "message": "Sorry Charlie, but you've been a bit too successful with those wood rolls lately. I need to balance the scales a little.",
+          "response_id": "Bob:50",
+          "request_number": 50,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0050_player_2_Bob.wav"
+        },
+        {
+          "from": "Charlie",
+          "message": "Balance the scales? You're just mad about that blocked brick, Bob. Don't worry, I'll remember the favor.",
+          "response_id": "Charlie:50",
+          "request_number": 50,
+          "response_type": "reaction",
+          "audio_path": "replay_audio/response_0050_player_3_Charlie.wav"
+        },
+        {
+          "from": "Bob",
+          "message": "Look, Charlie, I know the robber is a bit of a nuisance, but I'm looking to move things along. You've got bricks, I've got plenty of wheat for those cities you'll want later. Three wheat for one brick? It's a steal.",
+          "response_id": "Bob:51",
+          "request_number": 51,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0051_player_2_Bob.wav"
+        },
+        {
+          "from": "Charlie",
+          "message": "I don't have any brick for you, Bob. Maybe if you hadn't just robbed me, I'd be more inclined to help you find some.",
+          "response_id": "Charlie:51",
+          "request_number": 51,
+          "response_type": "reaction",
+          "audio_path": "replay_audio/response_0051_player_3_Charlie.wav"
+        },
+        {
+          "from": "Bob",
+          "message": "Charlie, I know you said you were out of brick, but surely three bags of wheat is enough to make you check your pockets again? It's a massive overpay, but I'm feeling generous after that seven.",
+          "response_id": "Bob:53",
+          "request_number": 53,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0053_player_2_Bob.wav"
+        },
+        {
+          "from": "Charlie",
+          "message": "I'm not hiding anything, Bob. I still have zero brick. Checking my pockets won't change the fact that you're asking for something I don't have.",
+          "response_id": "Charlie:53",
+          "request_number": 53,
+          "response_type": "reaction",
+          "audio_path": "replay_audio/response_0053_player_3_Charlie.wav"
+        },
+        {
+          "from": "Bob",
+          "message": "Well, if the bricks are as scarce as the hospitality around here, I suppose I'll just have to wait. Good luck with the next roll, everyone.",
+          "response_id": "Bob:54",
+          "request_number": 54,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0054_player_2_Bob.wav"
+        },
+        {
+          "from": "Charlie",
+          "message": "You know, Bob, you talk a lot about 'balancing scales,' but I think it's time we actually leveled the field. That Wheat 8 was doing just fine without your 'guest.' Let's see how you like it when your bricks go missing for a change.",
+          "response_id": "Charlie:55",
+          "request_number": 55,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0055_player_3_Charlie.wav"
+        },
+        {
+          "from": "Bob",
+          "message": "A bit dramatic for a simple knight, don't you think, Charlie? I'm just a humble merchant trying to keep the wheat flowing.",
+          "response_id": "Bob:55",
+          "request_number": 55,
+          "response_type": "reaction",
+          "audio_path": "replay_audio/response_0055_player_2_Bob.wav"
+        },
+        {
+          "from": "Charlie",
+          "message": "Alright, let's see what the dice have to say about this 'balance' you keep talking about, Bob.",
+          "response_id": "Charlie:56",
+          "request_number": 56,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0056_player_3_Charlie.wav"
+        },
+        {
+          "from": "Charlie",
+          "message": "Well, looks like the bricks are as dry as the desert right now. I'll just have to see what else I can find in the deck.",
+          "response_id": "Charlie:59",
+          "request_number": 59,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0059_player_3_Charlie.wav"
+        }
+      ]
+    },
+    "output_requirements": {
+      "format": "valid JSON only",
+      "schema": {
+        "compacted_memory": "string",
+        "recent_notes_to_keep": [
+          "string"
+        ],
+        "relationship_updates": [
+          "string"
+        ],
+        "discarded_as_irrelevant": [
+          "string"
+        ]
+      }
+    }
+  }
+}

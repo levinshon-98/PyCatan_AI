@@ -1,0 +1,25 @@
+{
+  "request_number": 89,
+  "timestamp": "2026-05-18T09:53:45.789529",
+  "player_name": "Charlie",
+  "type": "final",
+  "success": true,
+  "raw_content": "{\n  \"internal_thinking\": \"Bob is offering 1 Wheat for 1 Brick. Looking at my resources, I have 2 Wheat, 1 Brick, and 1 Sheep. My primary goal is to settle Node 7 (Brick Port), which requires 1 Wood, 1 Brick, 1 Wheat, and 1 Sheep. If I give away my only Brick, I lose the ability to settle even if I get the Wood I need. Furthermore, I already have Wheat production on 8 and 9 (Nodes 14 and 41), so I don't desperately need more Wheat. Bob is brick-starved and needs it to build roads and expand. Giving him the Brick helps him more than the Wheat helps me, especially since I'm holding the only Brick I have for my own settlement. I should reject this.\",\n  \"action\": {\n    \"type\": \"trade_reject\",\n    \"parameters\": \"{}\"\n  },\n  \"note_to_self\": \"Rejected Bob's Wheat-for-Brick trade. I need to keep my 1 Brick for the Node 7 settlement. I have plenty of Wheat production (Nodes 14 and 41). Still need 1 Wood to settle Node 7.\",\n  \"say_outloud\": \"I'd love to help you out, Bob, but that's my only brick and I'm planning to use it very soon. If you had some wood or maybe another sheep, we might be able to talk.\"\n} ",
+  "parsed": {
+    "internal_thinking": "Bob is offering 1 Wheat for 1 Brick. Looking at my resources, I have 2 Wheat, 1 Brick, and 1 Sheep. My primary goal is to settle Node 7 (Brick Port), which requires 1 Wood, 1 Brick, 1 Wheat, and 1 Sheep. If I give away my only Brick, I lose the ability to settle even if I get the Wood I need. Furthermore, I already have Wheat production on 8 and 9 (Nodes 14 and 41), so I don't desperately need more Wheat. Bob is brick-starved and needs it to build roads and expand. Giving him the Brick helps him more than the Wheat helps me, especially since I'm holding the only Brick I have for my own settlement. I should reject this.",
+    "note_to_self": "Rejected Bob's Wheat-for-Brick trade. I need to keep my 1 Brick for the Node 7 settlement. I have plenty of Wheat production (Nodes 14 and 41). Still need 1 Wood to settle Node 7.",
+    "say_outloud": "I'd love to help you out, Bob, but that's my only brick and I'm planning to use it very soon. If you had some wood or maybe another sheep, we might be able to talk.",
+    "action_type": "trade_reject",
+    "parameters": {}
+  },
+  "model": "google/gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 5932,
+    "completion": 278,
+    "thinking": 0,
+    "total": 6543
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}

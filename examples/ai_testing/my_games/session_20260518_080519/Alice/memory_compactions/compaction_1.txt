@@ -1,0 +1,54 @@
+Memory Compaction #1 for Alice
+Time: 2026-05-18T08:10:23.861844
+
+=== BEFORE: Existing Long-Term Summary ===
+(none)
+
+=== BEFORE: Old Notes Compacted ===
+- Placed first settlement on node 20 (Brick 6, Sheep 8, Wood 11). Looking for Ore/Wheat on the second turn. Keeping an eye on Bob's deals.
+- Road placed toward node 10. Target expansion is node 11 for Brick/Sheep/Wood or node 9 for the 3:1 port. Must prioritize Ore/Wheat for the second settlement.
+- Bob took node 12 (3-5-6). He has access to Ore, Sheep, and Brick. I still need to secure a Wheat/Ore source for my second settlement.
+- Bob's road 12-11 puts him in direct competition for the 5-4-1 hex intersection (node 11) or node 21. He is definitely not 'staying out of the way'.
+- Charlie took Node 41 (O5, Wh9, B10). He has solid wheat/ore/brick production. I need to ensure my second settlement secures a strong wheat or ore source to maintain pace.
+- Charlie's road 41-42 signals intent for the 3:1 port or the Wheat 9/Ore 2 area. This keeps him away from my current territory for now.
+- Charlie has a very balanced resource spread now with Node 14 (Wood/Wheat). I am the last to place my second settlement and need to prioritize Ore and Wheat since my first spot is Wood/Sheep/Brick heavy.
+- Charlie is aiming for the Brick port at Node 7 or 15. He has balanced resources (W4, S8, B6, O5, Wh9). My next placement must secure Ore/Wheat (Node 21/22 or 33/34 area) to balance my W11, B10, S5 start.
+
+=== BEFORE: Recent Notes Kept Verbatim ===
+- Bob has heavy Wheat production now (Node 43: Wh9, Wh6). He's likely aiming for a City or Dev card strategy early. I must secure Node 33 or 34 to compete on Ore/Wheat.
+- Bob has a strong O/W/S setup (Nodes 12 and 43). He will likely dominate Dev Cards. I must prioritize my second settlement at a high-yield Ore/Wheat spot like 21 or 33 to stay competitive.
+
+=== BEFORE: Relevant Chat Considered ===
+- Alice: Alright, let's get this started. I'll take the spot on the 6-8-11. Bob, I'm still keeping an eye on you after that stunt you pulled last time. Charlie, I haven't forgotten the warning, even if you did take that trade.
+- Bob: Fresh game, Alice! Let's just see where the dice take us this time. No hard feelings, right?
+- Charlie: Fair enough, Alice. Just looking out for everyone's interests—including my own. That 6-11 is a solid start.
+- Bob: I'll take the spot on the 3-5-6. It looks like a nice, quiet neighborhood for a charming guy like me, wouldn't you say, Alice?
+- Alice: We'll see how quiet it stays once the robber starts moving, Bob.
+- Bob: Just setting up a little path here. No need to worry, Alice, I'm staying well out of your way for now!
+- Alice: Smart move, Charlie. Probably wise to stay out of the splash zone while Bob tries to convince me he's being neighborly.
+- Charlie: I'll take the 5-9-10 down here. A bit of distance from you two might be for the best, given how things ended last time.
+- Bob: Can't blame you, Charlie. It's much more peaceful down there!
+- Charlie: Gotta make sure I have a clear path to expand. That 42 direction looks like it'll open up some good options later on.
+- Charlie: I'll take the 8-3-4 up here. I definitely need some wood if I'm going to keep up with you two, and it keeps me from getting totally boxed in down south.
+- Charlie: Heading toward the coast. A little sea breeze and some port access should keep things interesting.
+- Bob: I'll take the scenic route down by the fields at 43. All that wheat should keep me busy while you two keep an eye on each other.
+- Bob: Just going to tuck this road in toward the coast. A little fresh air and a view of the sea never hurt anyone, right?
+
+=== AFTER: New Long-Term Summary ===
+Alice settled Node 20 (B6, S8, W11) and roaded toward Node 10. Goals: Secure Node 21 or 33/34 to obtain Wheat/Ore, balancing the current Wood/Brick/Sheep heavy start. Bob (Nodes 12, 43) has high-yield O/W/S and is competing for Node 11/21; expect early Dev Cards/Cities from him. Charlie (Nodes 41, 14) has balanced resources and is targeting coastal ports (Node 7/15/42). Alice is last to place second settlement.
+
+=== AFTER: Fallback Status ===
+used=False
+reason=(none)
+
+=== AFTER: Relationship Updates ===
+["Alice holds a grudge against Bob for a 'stunt' in a previous game and distrusts his 'neighborly' claims.", "Alice holds a grudge/warning against Charlie from a previous game trade.", "Charlie is acting cautiously to avoid conflict between Alice and Bob."]
+
+=== AFTER: Discarded As Irrelevant ===
+["Specific hex descriptions of Charlie's first settlement", "Bob's 'scenic route' flavor text", "Repeated mentions of needing Ore/Wheat", "Initial placement reactions"]
+
+=== RAW LLM RESPONSE PREVIEW ===
+{"compacted_memory":"Alice settled Node 20 (B6, S8, W11) and roaded toward Node 10. Goals: Secure Node 21 or 33/34 to obtain Wheat/Ore, balancing the current Wood/Brick/Sheep heavy start. Bob (Nodes 12, 43) has high-yield O/W/S and is competing for Node 11/21; expect early Dev Cards/Cities from him. Charlie (Nodes 41, 14) has balanced resources and is targeting coastal ports (Node 7/15/42). Alice is last to place second settlement.","recent_notes_to_keep":["Bob has heavy Wheat production now (Node 43: Wh9, Wh6). He's likely aiming for a City or Dev card strategy early. I must secure Node 33 or 34 to compete on Ore/Wheat.","Bob has a strong O/W/S setup (Nodes 12 and 43). He will likely dominate Dev Cards. I must prioritize my second settlement at a high-yield Ore/Wheat spot like 21 or 33 to stay competitive."],"discarded_as_irrelevant":["Specific hex descriptions of Charlie's first settlement","Bob's 'scenic route' flavor text","Repeated mentions of needing Ore/Wheat","Initial placement reactions"],"relationship_updates":["Alice holds a grudge against Bob for a 'stunt' in a previous game and distrusts his 'neighborly' claims.","Alice holds a grudge/warning against Charlie from a previous game trade.","Charlie is acting cautiously to avoid conflict between Alice and Bob."]}
+
+JSON artifact:
+examples\ai_testing\my_games\session_20260518_080519\Alice\memory_compactions\compaction_1.json

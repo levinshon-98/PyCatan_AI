@@ -1,0 +1,25 @@
+{
+  "request_number": 33,
+  "timestamp": "2026-05-18T09:25:15.101857",
+  "player_name": "Charlie",
+  "type": "final",
+  "success": true,
+  "raw_content": "{\n  \"internal_thinking\": \"Bob is offering 3 Wheat for 1 Wood. Currently, I have 1 Wood, 1 Brick, 1 Sheep, 1 Wheat, and 1 Ore. My immediate goal is to build a settlement at Node 7 (the Brick Port) on my next turn. I already have the necessary resources (1W, 1B, 1S, 1Wh) to do this. Accepting this trade would give me a massive surplus of Wheat (totaling 4) but would cost me the 1 Wood I need for my settlement. While 3:1 is a generous ratio, the Wood is more valuable to me right now for expansion. Bob is also a known schemer; giving him the Wood might help him build toward the port he's eyeing. I'll stick to my plan and keep the Wood for my settlement at Node 7.\",\n  \"action\": {\n    \"type\": \"trade_reject\",\n    \"parameters\": \"{}\"\n  },\n  \"note_to_self\": \"Rejected Bob's 3 Wheat for 1 Wood. I still have 1W, 1B, 1S, 1Wh, 1O. Node 7 is open and I have a road connecting to it. I will build my settlement there on my next turn to secure the Brick port.\",\n  \"say_outloud\": \"That's a tempting offer, Bob, really. But I've got my heart set on a project that needs that wood more than I need a stockpile of wheat. I'll pass.\"\n}",
+  "parsed": {
+    "internal_thinking": "Bob is offering 3 Wheat for 1 Wood. Currently, I have 1 Wood, 1 Brick, 1 Sheep, 1 Wheat, and 1 Ore. My immediate goal is to build a settlement at Node 7 (the Brick Port) on my next turn. I already have the necessary resources (1W, 1B, 1S, 1Wh) to do this. Accepting this trade would give me a massive surplus of Wheat (totaling 4) but would cost me the 1 Wood I need for my settlement. While 3:1 is a generous ratio, the Wood is more valuable to me right now for expansion. Bob is also a known schemer; giving him the Wood might help him build toward the port he's eyeing. I'll stick to my plan and keep the Wood for my settlement at Node 7.",
+    "note_to_self": "Rejected Bob's 3 Wheat for 1 Wood. I still have 1W, 1B, 1S, 1Wh, 1O. Node 7 is open and I have a road connecting to it. I will build my settlement there on my next turn to secure the Brick port.",
+    "say_outloud": "That's a tempting offer, Bob, really. But I've got my heart set on a project that needs that wood more than I need a stockpile of wheat. I'll pass.",
+    "action_type": "trade_reject",
+    "parameters": {}
+  },
+  "model": "google/gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 8832,
+    "completion": 281,
+    "thinking": 0,
+    "total": 9392
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}

@@ -1,0 +1,60 @@
+Memory Compaction #10 for Bob
+Time: 2026-05-18T09:52:53.837334
+
+=== BEFORE: Existing Long-Term Summary ===
+Bob's expansion toward the N3 Wheat Port is stalled by Charlie's robber on H5 (B6). Alice recently used Monopoly on Wheat and holds 3W, 1B, 3S. Charlie has 3W, 1Wh, 1B, and 1 hidden dev card (revealed Knight), likely targeting the N7 Brick Port. Alice and Charlie are colluding, refusing to trade Brick to Bob. Bob has 2W, 1S and is desperate for Brick/Wheat to settle N11. Wheat is currently scarce for all players. Priority: Move robber off H5 via 7 or Knight to restore Brick production.
+
+=== BEFORE: Old Notes Compacted ===
+- Brick 6 is still blocked. I need a 7 or a Knight to move the robber. Alice and Charlie are still refusing to trade fairly.
+- Still stuck without Brick or Wheat. Need to prioritize moving the robber off Hex 5 (Brick 6) or reaching Node 3 (Wheat Port) to bypass the trade blockade. Current resources: 2 Wood, 1 Sheep.
+- Roll was 4. Charlie now has 4 Wood, Alice has 4 Sheep. My 6-Brick is still blocked by the robber. Trade blockade remains absolute.
+- Alice confirmed she has Wood surplus. Charlie's attempt to trade Wood for Sheep failed. The blockade on my Brick remains the primary obstacle.
+- Accepted Charlie's Wheat for Sheep. I now have 2 Wood and 1 Wheat. Still need Brick to settle Node 11. Robber remains on my Brick 6.
+- Charlie has 1 hidden dev card and 1 brick. Alice has 3 wood and 4 sheep. I have 2 wood and 1 wheat. The blockade on my 6-Brick is the primary bottleneck.
+- Alice rolled 11, she now has 5 wood and 4 sheep. I still have 2 wood and 1 wheat. The table is still starving me of brick.
+- Alice built at Node 9 (?3 port). She now has 3 VP. My 6-Brick is still blocked and the table is still freezing me out of trades.
+
+=== BEFORE: Recent Notes Kept Verbatim ===
+- Alice reached 3 VP and secured the 3:1 port at Node 9. She is currently holding a large hand of Wood and Sheep. My B6 remains blocked.
+- Still blocked on the 6-Brick. Need Brick or a 7 to break the stall.
+
+=== BEFORE: Relevant Chat Considered ===
+- Alice: Tough luck on the wheat then. I'll just have to wait for the dice to be a bit more generous. Your turn, Bob.
+- Bob: Let's see if the dice have a sense of humor then. My turn.
+- Bob: Alright, let's see if we can get some better numbers rolling. We really need to get this economy moving.
+- Bob: Tough luck on the wheat, Alice. I'm in the same boat. Charlie, you've got plenty of wood already, but if you want to swap a brick for some of mine to help your road, I'm open to it.
+- Charlie: Sorry Bob, I'm actually in the same boat—if I give up my brick, I'm just as stuck as you are. I'll have to pass.
+- Bob: It seems the dice and the table are equally quiet for me this round. Good luck with the wheat search, Alice—I'm still looking for a way out of the woods myself.
+- Charlie: Bob, I know you're looking for a way out of the woods. I've got some wheat here if you're willing to part with that sheep.
+- Bob: You know what, Charlie? That's a fair deal. I'll take the wheat. It’s better than staring at these trees all day.
+- Charlie: Tough crowd. It seems everyone's hording their livestock today. I'll just hold onto what I've got and see how the next round treats us.
+- Alice: Alright, let's see if we can get some better numbers rolling. We really need to get this economy moving.
+- Alice: Charlie, any chance you've come across some wheat since we last spoke? I'm still looking for a bit to get my next house up.
+- Charlie: I'm in the same boat as you, Alice. Still haven't seen any wheat come my way yet.
+- Charlie: Finally, a good number! That wheat was definitely overdue.
+- Charlie: Alright, let's see if we can keep the momentum going. Big numbers, please!
+- Charlie: Alice, I know you've got a few sheep over there. I've got plenty of wood if you're looking to extend a road or something.
+- Alice: I'm swimming in wood already, Charlie, but thanks for the offer. I think I'll hang onto my sheep for now.
+- Charlie: I'm just one piece short of where I want to be. Your turn, Alice.
+- Alice: Let's see what the dice have to say. Hopefully something better than more wood.
+- Alice: Finally, a little bit of progress. That 3:1 port should make things a bit smoother for me.
+- Alice: I'm glad that 3:1 port is finally mine. I'll pass the dice for now and see what the next round brings.
+
+=== AFTER: New Long-Term Summary ===
+Bob is stalled by Charlie's robber on H5 (B6). Alice (3 VP) built on Node 9 (?3 port) and has a surplus of Wood and Sheep. Charlie (2 VP) has a revealed Knight and one hidden dev card, likely targeting the N7 Brick port. Alice and Charlie have maintained a trade blockade against Bob regarding Brick, though Charlie traded Wheat to Bob for Sheep. Bob currently holds 2W and 1Wh, needing Brick to settle N11 or reaching the N3 Wheat port to bypass the blockade. Priority: Move the robber off H5 via 7 or Knight to restore Brick production.
+
+=== AFTER: Fallback Status ===
+used=False
+reason=(none)
+
+=== AFTER: Relationship Updates ===
+["Charlie: Slight softening of blockade by trading Wheat to Bob, though still refusing to trade Brick."]
+
+=== AFTER: Discarded As Irrelevant ===
+["Specific dice roll results (4, 11)", "Vague chat regarding sense of humor and dice", "Completed trade of Wheat for Sheep", "Repeated mentions of being stuck"]
+
+=== RAW LLM RESPONSE PREVIEW ===
+{"compacted_memory":"Bob is stalled by Charlie's robber on H5 (B6). Alice (3 VP) built on Node 9 (?3 port) and has a surplus of Wood and Sheep. Charlie (2 VP) has a revealed Knight and one hidden dev card, likely targeting the N7 Brick port. Alice and Charlie have maintained a trade blockade against Bob regarding Brick, though Charlie traded Wheat to Bob for Sheep. Bob currently holds 2W and 1Wh, needing Brick to settle N11 or reaching the N3 Wheat port to bypass the blockade. Priority: Move the robber off H5 via 7 or Knight to restore Brick production.","recent_notes_to_keep":["Alice reached 3 VP and secured the 3:1 port at Node 9. She is currently holding a large hand of Wood and Sheep. My B6 remains blocked.","Still blocked on the 6-Brick. Need Brick or a 7 to break the stall."],"discarded_as_irrelevant":["Specific dice roll results (4, 11)","Vague chat regarding sense of humor and dice","Completed trade of Wheat for Sheep","Repeated mentions of being stuck"],"relationship_updates":["Charlie: Slight softening of blockade by trading Wheat to Bob, though still refusing to trade Brick."]}
+
+JSON artifact:
+examples\ai_testing\my_games\session_20260518_080519\Bob\memory_compactions\compaction_10.json

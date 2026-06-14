@@ -1,0 +1,23 @@
+{
+  "request_number": 56,
+  "timestamp": "2026-05-18T09:37:01.256689",
+  "player_name": "Alice",
+  "type": "final",
+  "success": true,
+  "raw_content": "{\n  \"internal_thinking\": \"Charlie is asking for brick, but I don't have any. We've been trading well, but my current hand is 1 Wood, 1 Wheat, and 2 Sheep. I need to maintain the alliance against Bob while being honest about my resources.\",\n  \"note_to_self\": \"Charlie needs brick. I have none. I have 1W, 1Wh, 2S. Charlie just rolled a 4, giving me a sheep and him a wood. Bob is still the target of our alliance.\",\n  \"say_outloud\": \"I'd love to help out, Charlie, but I don't have any brick either. Bob seems to be the only one sitting on the clay lately.\"\n}",
+  "parsed": {
+    "internal_thinking": "Charlie is asking for brick, but I don't have any. We've been trading well, but my current hand is 1 Wood, 1 Wheat, and 2 Sheep. I need to maintain the alliance against Bob while being honest about my resources.",
+    "note_to_self": "Charlie needs brick. I have none. I have 1W, 1Wh, 2S. Charlie just rolled a 4, giving me a sheep and him a wood. Bob is still the target of our alliance.",
+    "say_outloud": "I'd love to help out, Charlie, but I don't have any brick either. Bob seems to be the only one sitting on the clay lately."
+  },
+  "model": "google/gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 2712,
+    "completion": 139,
+    "thinking": 0,
+    "total": 2851
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}

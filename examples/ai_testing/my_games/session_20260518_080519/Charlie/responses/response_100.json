@@ -1,0 +1,23 @@
+{
+  "request_number": 100,
+  "timestamp": "2026-05-18T09:59:35.326707",
+  "player_name": "Charlie",
+  "type": "final",
+  "success": true,
+  "raw_content": "{\"internal_thinking\":\"Bob is offering 2 wheat for 1 brick. I literally just told Alice I don't have any brick. Bob is either not listening or trying to see if I was lying to Alice. I have 1 wheat and 1 sheep, plus a hidden knight. I need to stay consistent.\",\"note_to_self\":\"Bob is fishing for brick despite my public statement that I have none. I currently have 1 Wheat, 1 Sheep, and 1 hidden Knight.\",\"say_outloud\":\"Like I told Alice, Bob, the brick market is empty. I don't have any to trade.\"}",
+  "parsed": {
+    "internal_thinking": "Bob is offering 2 wheat for 1 brick. I literally just told Alice I don't have any brick. Bob is either not listening or trying to see if I was lying to Alice. I have 1 wheat and 1 sheep, plus a hidden knight. I need to stay consistent.",
+    "note_to_self": "Bob is fishing for brick despite my public statement that I have none. I currently have 1 Wheat, 1 Sheep, and 1 hidden Knight.",
+    "say_outloud": "Like I told Alice, Bob, the brick market is empty. I don't have any to trade."
+  },
+  "model": "google/gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 2558,
+    "completion": 124,
+    "thinking": 0,
+    "total": 2682
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}

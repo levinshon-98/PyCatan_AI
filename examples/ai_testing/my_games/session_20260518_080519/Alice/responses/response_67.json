@@ -1,0 +1,23 @@
+{
+  "request_number": 67,
+  "timestamp": "2026-05-18T09:42:16.768874",
+  "player_name": "Alice",
+  "type": "final",
+  "success": true,
+  "raw_content": "{\"internal_thinking\":\"Charlie rolled a 10, giving him one Brick. I don't produce on 10s. My hand is still 2 Wood, 1 Brick, and 2 Sheep. I still desperately need 1 Wheat to build my settlement on the 3:1 port at Node 9. Charlie just mentioned he's dry on wheat, so I'll stay quiet and see if he tries to trade that new brick.\",\"note_to_self\":\"Charlie rolled a 10, gaining 1 Brick. My hand: 2W, 1B, 2S. Goal: Settlement on Node 9 (needs 1 Wheat). Bob has 2W, 1S. Charlie has 3W, 1B.\",\"say_outloud\":\"\"}",
+  "parsed": {
+    "internal_thinking": "Charlie rolled a 10, giving him one Brick. I don't produce on 10s. My hand is still 2 Wood, 1 Brick, and 2 Sheep. I still desperately need 1 Wheat to build my settlement on the 3:1 port at Node 9. Charlie just mentioned he's dry on wheat, so I'll stay quiet and see if he tries to trade that new brick.",
+    "note_to_self": "Charlie rolled a 10, gaining 1 Brick. My hand: 2W, 1B, 2S. Goal: Settlement on Node 9 (needs 1 Wheat). Bob has 2W, 1S. Charlie has 3W, 1B.",
+    "say_outloud": ""
+  },
+  "model": "google/gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 2451,
+    "completion": 124,
+    "thinking": 0,
+    "total": 2575
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}

@@ -1,0 +1,1164 @@
+{
+  "session_id": "session_20260518_080519",
+  "start_time": "2026-05-18T08:05:19.530482",
+  "end_time": "2026-05-18T10:14:29.515149",
+  "duration_seconds": 7749.984671,
+  "agents": {
+    "Alice": {
+      "player_name": "Alice",
+      "player_id": 0,
+      "player_color": "Red",
+      "memory": "I won this one by focusing on the road while Charlie was hunting for knights. Keeping that ore blocked really made the difference in slowing him down.",
+      "memory_updated_at": 1779088429.3197594,
+      "compacted_memory": "Game ended with Charlie winning at 5 VP via Largest Army (3 knights). Alice (3 VP) remained brick-starved throughout, failing to reach Node 18 (B10, S8) as the robber on Hex 4 (S8) suppressed her sheep production for too long. Bob (2 VP) stalled while attempting to reach the Wheat Port (Node 2) via bank trades. Key takeaway: Charlie successfully pivoted from wood/brick to an ore-heavy dev card strategy while Alice and Bob were distracted by land expansion and port goals. Alice refused to trade wheat to Bob, fearing his port access, while Charlie successfully fished for the final knight through bank trades.",
+      "compacted_memory_updated_at": 1779088260.7181964,
+      "compaction_count": 14,
+      "memory_history": [
+        {
+          "note": "Charlie won by reaching 5 VP via Largest Army. He had 3 settlements and 3 knights. Bob was stalled out at 2 VP. My sheep production was blocked for too long to compete.",
+          "timestamp": 1779088148.3457613
+        },
+        {
+          "note": "Charlie bank-traded 4 Wood for 1 Ore. He is fishing for a 3rd Knight to hit 5 VP and win. He currently has 2 Knights revealed.",
+          "timestamp": 1779088242.8365757
+        },
+        {
+          "note": "Charlie just bought a development card. He likely has the winning Knight or a VP point hidden now. He is at 3 VP plus 2 revealed Knights.",
+          "timestamp": 1779088274.9584
+        },
+        {
+          "note": "Charlie has 1 hidden dev card and 2 revealed knights. He is at 3 VP. If he plays a knight next turn, he takes Largest Army and wins.",
+          "timestamp": 1779088324.392812
+        },
+        {
+          "note": "Charlie is at 3 VP and needs one more knight for Largest Army to win. I have a surplus of sheep (4).",
+          "timestamp": 1779088340.3943121
+        },
+        {
+          "note": "Blocked Charlie's Ore 5 to prevent him from pulling the winning knight. He only needs one more for Largest Army.",
+          "timestamp": 1779088387.8292332
+        },
+        {
+          "note": "Built road to node 18. Next goal: settlement at 18 to secure Brick 10 and Sheep 8, then push for the Sheep port at node 17 to convert my surplus.",
+          "timestamp": 1779088414.9100714
+        },
+        {
+          "note": "I won this one by focusing on the road while Charlie was hunting for knights. Keeping that ore blocked really made the difference in slowing him down.",
+          "timestamp": 1779088429.3197594
+        }
+      ],
+      "relationship_context_updates": [
+        {
+          "note": "Bob's resentment toward Alice has intensified; he views her as a 'personal supplier' to Charlie and the primary cause of",
+          "timestamp": 1779087548.6265185
+        },
+        {
+          "note": "Charlie continues to mock Alice's blocked sheep production despite their previous trade agreement.",
+          "timestamp": 1779087797.5869753
+        },
+        {
+          "note": "Bob remains hostile, viewing Alice and Charlie as a 'blockade' or alliance despite their actual friction.",
+          "timestamp": 1779087797.586979
+        },
+        {
+          "note": "Bob's resentment shifted toward Charlie at the end for 'stealing' a win from the losing player, though he acknowledged C",
+          "timestamp": 1779088260.7181997
+        },
+        {
+          "note": "Alice acknowledged she over-focused on blocking Bob's port potential, allowing Charlie to win through army size.",
+          "timestamp": 1779088260.7182014
+        }
+      ],
+      "relationship_context_updated_at": 1779088260.7182014,
+      "chat_summaries": [],
+      "recent_events": [
+        {
+          "type": "end_game",
+          "message": "Alice chose END_GAME.",
+          "timestamp": 1779088429.3205001,
+          "data": {
+            "affected_players": []
+          }
+        },
+        {
+          "type": "action_performed",
+          "message": "Alice chose END_GAME",
+          "timestamp": 1779088438.0627377,
+          "data": {
+            "affected_players": [
+              0
+            ]
+          }
+        },
+        {
+          "type": "end_game",
+          "message": "Bob chose END_GAME.",
+          "timestamp": 1779088444.86526,
+          "data": {
+            "affected_players": []
+          }
+        },
+        {
+          "type": "action_performed",
+          "message": "Bob chose END_GAME",
+          "timestamp": 1779088456.3678262,
+          "data": {
+            "affected_players": [
+              1
+            ]
+          }
+        },
+        {
+          "type": "end_game",
+          "message": "Charlie chose END_GAME.",
+          "timestamp": 1779088462.0770843,
+          "data": {
+            "affected_players": []
+          }
+        },
+        {
+          "type": "action_performed",
+          "message": "Charlie chose END_GAME",
+          "timestamp": 1779088469.5138795,
+          "data": {
+            "affected_players": [
+              2
+            ]
+          }
+        },
+        {
+          "type": "game_end",
+          "message": "Game has ended.",
+          "timestamp": 1779088469.5149574,
+          "data": {
+            "affected_players": []
+          }
+        }
+      ],
+      "last_prompt_number": 120,
+      "stats": {
+        "player_name": "Alice",
+        "player_id": 0,
+        "total_requests": 120,
+        "successful_requests": 120,
+        "failed_requests": 0,
+        "total_tokens_used": 723687,
+        "success_rate": "100.0%"
+      }
+    },
+    "Bob": {
+      "player_name": "Bob",
+      "player_id": 1,
+      "player_color": "Blue",
+      "memory": "Alice won with 5 VP. Her strategy was heavily influenced by my past betrayal, leading her to prioritize blocking me over her own optimal growth, yet she still secured the win through Longest Road.",
+      "memory_updated_at": 1779088444.8644571,
+      "compacted_memory": "Bob (2 VP) secured N3 (Wh2:1 port), connecting to his high Wheat production at N43 (Wh9/Wh6) and N12. Future goal: Upgrade N43/N12 to cities or reach Ore nodes. Charlie (3 VP) has 2 revealed Knights, 1 hidden Dev card, and is actively fishing for a 3rd Knight to take Largest Army and reach 5 VP. Alice (3 VP) is expanding inland/coastal but lacks Brick and Wheat. Both Alice and Charlie refuse to trade with Bob (rejected W for Wh and Wh for B). Charlie recently tried to claim a win with a third Knight but retracted, indicating he likely holds a non-Knight Dev card or is bluffing.",
+      "compacted_memory_updated_at": 1779088330.559345,
+      "compaction_count": 14,
+      "memory_history": [
+        {
+          "note": "Charlie just bought another development card. He is at 3 VP and needs one more Knight for Largest Army to reach 5 VP. Alice is at 3 VP. I am at 2 VP.",
+          "timestamp": 1779088275.559666
+        },
+        {
+          "note": "Charlie has 2 revealed knights and 1 hidden dev card. He failed to win this turn. I have 1 Wood and 1 Sheep.",
+          "timestamp": 1779088326.2956853
+        },
+        {
+          "note": "Alice rolled a 7. Charlie has 1 hidden dev card and 2 revealed knights. Alice is currently the robber-mover.",
+          "timestamp": 1779088350.9189308
+        },
+        {
+          "note": "Alice blocked Charlie's Ore 5 and stole from him. Charlie has 2 knights revealed and 1 hidden dev card. Alice is at 3 VP, Charlie at 3 VP, I am at 2 VP.",
+          "timestamp": 1779088400.4351933
+        },
+        {
+          "note": "Alice reached 5 VP (Longest Road + 3 settlements). The game context says 5 VP wins. If the game continues, Alice is the primary threat. Charlie is still hunting for Largest Army.",
+          "timestamp": 1779088427.752209
+        },
+        {
+          "note": "Alice won with 5 VP. Her strategy was heavily influenced by my past betrayal, leading her to prioritize blocking me over her own optimal growth, yet she still secured the win through Longest Road.",
+          "timestamp": 1779088444.8644571
+        }
+      ],
+      "relationship_context_updates": [
+        {
+          "note": "Charlie: Formally rejected Bob's 2-for-1 Wheat for Brick offer, maintaining the resource squeeze.",
+          "timestamp": 1779087680.8058336
+        },
+        {
+          "note": "Alice/Charlie: Alliance further deteriorated; Charlie continues to block Alice's Sheep (H4) and refused her Wood-for-Bri",
+          "timestamp": 1779087905.4099767
+        },
+        {
+          "note": "Alice: Expressed direct threat to Charlie, labeling him a target due to his new port.",
+          "timestamp": 1779087905.409979
+        },
+        {
+          "note": "Charlie: Trust decreased after he stole from Bob (last place) and attempted to prematurely claim victory.",
+          "timestamp": 1779088330.5593476
+        },
+        {
+          "note": "Alice: Antagonism persists; she admitted to prioritizing blocking Bob's port over her own growth.",
+          "timestamp": 1779088330.559349
+        }
+      ],
+      "relationship_context_updated_at": 1779088330.559349,
+      "chat_summaries": [],
+      "recent_events": [
+        {
+          "type": "end_game",
+          "message": "Bob chose END_GAME.",
+          "timestamp": 1779088444.8652606,
+          "data": {
+            "affected_players": []
+          }
+        },
+        {
+          "type": "action_performed",
+          "message": "Bob chose END_GAME",
+          "timestamp": 1779088456.367828,
+          "data": {
+            "affected_players": [
+              1
+            ]
+          }
+        },
+        {
+          "type": "end_game",
+          "message": "Charlie chose END_GAME.",
+          "timestamp": 1779088462.0770876,
+          "data": {
+            "affected_players": []
+          }
+        },
+        {
+          "type": "action_performed",
+          "message": "Charlie chose END_GAME",
+          "timestamp": 1779088469.513882,
+          "data": {
+            "affected_players": [
+              2
+            ]
+          }
+        },
+        {
+          "type": "game_end",
+          "message": "Game has ended.",
+          "timestamp": 1779088469.5149586,
+          "data": {
+            "affected_players": []
+          }
+        }
+      ],
+      "last_prompt_number": 118,
+      "stats": {
+        "player_name": "Bob",
+        "player_id": 1,
+        "total_requests": 118,
+        "successful_requests": 118,
+        "failed_requests": 0,
+        "total_tokens_used": 813582,
+        "success_rate": "100.0%"
+      }
+    },
+    "Charlie": {
+      "player_name": "Charlie",
+      "player_id": 2,
+      "player_color": "White",
+      "memory": "Alice won with 5 VP. I finished with 3 VP and a hidden knight that would have given me the win on my next turn. Bob's diplomacy successfully diverted enough attention to allow Alice to sneak the win.",
+      "memory_updated_at": 1779088462.0755548,
+      "compacted_memory": "Strategic goal: Win by securing Largest Army (2 VP) to reach 5 VP total. Charlie has 2 revealed Knights and 1 hidden Knight (purchased recently, must wait until next turn to play). Current resources: 1 Wh, 1 B. Alice and Bob are alerted to Charlie's win condition after Charlie prematurely announced victory. Bob is aggressively pursuing the Wheat Port (N2) using 4:1 bank trades and road building at N11-3. Alice is frustrated by the robber on Hex 4 (S8) and Charlie's potential N7 Brick Port. Alice and Bob have no Ore in hand. Charlie recently traded 4 Wood for 1 Ore to buy the crucial Dev Card. Bob's attempt to frame an Alice-Charlie alliance was partially successful in making Alice wary of Charlie's lead.",
+      "compacted_memory_updated_at": 1779088312.8208358,
+      "compaction_count": 15,
+      "memory_history": [
+        {
+          "note": "Playing my hidden Knight to claim Largest Army and reach 5 VP for the win.",
+          "timestamp": 1779088283.3290346
+        },
+        {
+          "note": "I have 1 hidden knight which I likely bought this turn. I need to wait until next turn to play it and claim Largest Army for the win. Current resources: 1 Wheat, 1 Brick.",
+          "timestamp": 1779088308.4815826
+        },
+        {
+          "note": "Alice rolled a 7 and is likely to rob me at Hex 17 (Ore 5) or Hex 5 (Brick 6) to slow my progress toward another Dev card or settlement. I must hold onto my hidden knight until my next turn to claim Largest Army.",
+          "timestamp": 1779088353.8215346
+        },
+        {
+          "note": "Alice robbed Hex 17 and stole one card from me. I have 1 Wheat left and a hidden Knight card. I need to play that Knight on my next turn to reach 5 VP.",
+          "timestamp": 1779088400.1282
+        },
+        {
+          "note": "Alice reached 5 VP with Longest Road. If the game hasn't ended, it might be exactly 5 to win and she needs to end her turn. She blocked my path to the Ore port at N26. I still have a hidden knight to play next turn for Largest Army (3 VP + 2 VP = 5 VP).",
+          "timestamp": 1779088429.7536745
+        },
+        {
+          "note": "Alice won with 5 VP. I finished with 3 VP and a hidden knight that would have given me the win on my next turn. Bob's diplomacy successfully diverted enough attention to allow Alice to sneak the win.",
+          "timestamp": 1779088462.0755548
+        }
+      ],
+      "relationship_context_updates": [
+        {
+          "note": "Bob: Hostility is high; he is vocally framing an Alice-Charlie alliance to isolate Charlie and justify his own aggressiv",
+          "timestamp": 1779087758.4712913
+        },
+        {
+          "note": "Bob: Hostility high; feels isolated by the 'dry' brick market and is actively trying to turn Alice against Charlie.",
+          "timestamp": 1779088058.490385
+        },
+        {
+          "note": "Alice: Trust remains fragile; she is suspicious of Charlie's lead and port potential, though she appreciates Charlie's r",
+          "timestamp": 1779088058.4903874
+        },
+        {
+          "note": "Alice: Increased suspicion and wariness after Charlie's premature win announcement; she now views Charlie as the primary",
+          "timestamp": 1779088312.8208396
+        },
+        {
+          "note": "Bob: Sustained hostility; continues to frame Charlie as the leader to divert attention from his own port expansion.",
+          "timestamp": 1779088312.820842
+        }
+      ],
+      "relationship_context_updated_at": 1779088312.820842,
+      "chat_summaries": [],
+      "recent_events": [
+        {
+          "type": "end_game",
+          "message": "Charlie chose END_GAME.",
+          "timestamp": 1779088462.077089,
+          "data": {
+            "affected_players": []
+          }
+        },
+        {
+          "type": "action_performed",
+          "message": "Charlie chose END_GAME",
+          "timestamp": 1779088469.513883,
+          "data": {
+            "affected_players": [
+              2
+            ]
+          }
+        },
+        {
+          "type": "game_end",
+          "message": "Game has ended.",
+          "timestamp": 1779088469.5149598,
+          "data": {
+            "affected_players": []
+          }
+        }
+      ],
+      "last_prompt_number": 126,
+      "stats": {
+        "player_name": "Charlie",
+        "player_id": 2,
+        "total_requests": 126,
+        "successful_requests": 126,
+        "failed_requests": 0,
+        "total_tokens_used": 847343,
+        "success_rate": "100.0%"
+      }
+    }
+  },
+  "final_game_state": {
+    "meta": {
+      "curr": "Charlie",
+      "phase": "ENDED",
+      "turn_phase": "END_TURN",
+      "robber": 17,
+      "dice": null,
+      "vp_to_win": 5
+    },
+    "H": [
+      "",
+      "W12",
+      "S5",
+      "W4",
+      "S8",
+      "B6",
+      "W3",
+      "Wh8",
+      "B10",
+      "W11",
+      "D",
+      "O3",
+      "S4",
+      "B10",
+      "Wh9",
+      "Wh6",
+      "S11",
+      "O5",
+      "Wh9",
+      "O2"
+    ],
+    "N": [
+      null,
+      [
+        [
+          2,
+          9
+        ],
+        [
+          1
+        ]
+      ],
+      [
+        [
+          1,
+          3
+        ],
+        [
+          1
+        ],
+        "Wh2"
+      ],
+      [
+        [
+          2,
+          4,
+          11
+        ],
+        [
+          2,
+          1
+        ],
+        "Wh2"
+      ],
+      [
+        [
+          3,
+          5
+        ],
+        [
+          2
+        ]
+      ],
+      [
+        [
+          4,
+          6,
+          13
+        ],
+        [
+          3,
+          2
+        ]
+      ],
+      [
+        [
+          5,
+          7
+        ],
+        [
+          3
+        ],
+        "B2"
+      ],
+      [
+        [
+          6,
+          15
+        ],
+        [
+          3
+        ],
+        "B2"
+      ],
+      [
+        [
+          9,
+          18
+        ],
+        [
+          4
+        ],
+        "?3"
+      ],
+      [
+        [
+          8,
+          10,
+          1
+        ],
+        [
+          4,
+          1
+        ],
+        "?3"
+      ],
+      [
+        [
+          9,
+          11,
+          20
+        ],
+        [
+          5,
+          4,
+          1
+        ]
+      ],
+      [
+        [
+          10,
+          12,
+          3
+        ],
+        [
+          5,
+          2,
+          1
+        ]
+      ],
+      [
+        [
+          11,
+          13,
+          22
+        ],
+        [
+          6,
+          5,
+          2
+        ]
+      ],
+      [
+        [
+          12,
+          14,
+          5
+        ],
+        [
+          6,
+          3,
+          2
+        ]
+      ],
+      [
+        [
+          13,
+          15,
+          24
+        ],
+        [
+          7,
+          6,
+          3
+        ]
+      ],
+      [
+        [
+          14,
+          16,
+          7
+        ],
+        [
+          7,
+          3
+        ]
+      ],
+      [
+        [
+          15,
+          26
+        ],
+        [
+          7
+        ],
+        "O2"
+      ],
+      [
+        [
+          18,
+          28
+        ],
+        [
+          8
+        ],
+        "S2"
+      ],
+      [
+        [
+          17,
+          19,
+          8
+        ],
+        [
+          8,
+          4
+        ]
+      ],
+      [
+        [
+          18,
+          20,
+          30
+        ],
+        [
+          9,
+          8,
+          4
+        ]
+      ],
+      [
+        [
+          19,
+          21,
+          10
+        ],
+        [
+          9,
+          5,
+          4
+        ]
+      ],
+      [
+        [
+          20,
+          22,
+          32
+        ],
+        [
+          10,
+          9,
+          5
+        ]
+      ],
+      [
+        [
+          21,
+          23,
+          12
+        ],
+        [
+          10,
+          6,
+          5
+        ]
+      ],
+      [
+        [
+          22,
+          24,
+          34
+        ],
+        [
+          11,
+          10,
+          6
+        ]
+      ],
+      [
+        [
+          23,
+          25,
+          14
+        ],
+        [
+          11,
+          7,
+          6
+        ]
+      ],
+      [
+        [
+          24,
+          26,
+          36
+        ],
+        [
+          12,
+          11,
+          7
+        ]
+      ],
+      [
+        [
+          25,
+          27,
+          16
+        ],
+        [
+          12,
+          7
+        ],
+        "O2"
+      ],
+      [
+        [
+          26,
+          38
+        ],
+        [
+          12
+        ]
+      ],
+      [
+        [
+          29,
+          17
+        ],
+        [
+          8
+        ],
+        "S2"
+      ],
+      [
+        [
+          28,
+          30,
+          39
+        ],
+        [
+          13,
+          8
+        ]
+      ],
+      [
+        [
+          29,
+          31,
+          19
+        ],
+        [
+          13,
+          9,
+          8
+        ]
+      ],
+      [
+        [
+          30,
+          32,
+          41
+        ],
+        [
+          14,
+          13,
+          9
+        ]
+      ],
+      [
+        [
+          31,
+          33,
+          21
+        ],
+        [
+          14,
+          10,
+          9
+        ]
+      ],
+      [
+        [
+          32,
+          34,
+          43
+        ],
+        [
+          15,
+          14,
+          10
+        ]
+      ],
+      [
+        [
+          33,
+          35,
+          23
+        ],
+        [
+          15,
+          11,
+          10
+        ]
+      ],
+      [
+        [
+          34,
+          36,
+          45
+        ],
+        [
+          16,
+          15,
+          11
+        ]
+      ],
+      [
+        [
+          35,
+          37,
+          25
+        ],
+        [
+          16,
+          12,
+          11
+        ]
+      ],
+      [
+        [
+          36,
+          38,
+          47
+        ],
+        [
+          16,
+          12
+        ],
+        "?3"
+      ],
+      [
+        [
+          37,
+          27
+        ],
+        [
+          12
+        ],
+        "?3"
+      ],
+      [
+        [
+          40,
+          29
+        ],
+        [
+          13
+        ]
+      ],
+      [
+        [
+          39,
+          41,
+          48
+        ],
+        [
+          17,
+          13
+        ],
+        "W2"
+      ],
+      [
+        [
+          40,
+          42,
+          31
+        ],
+        [
+          17,
+          14,
+          13
+        ]
+      ],
+      [
+        [
+          41,
+          43,
+          50
+        ],
+        [
+          18,
+          17,
+          14
+        ]
+      ],
+      [
+        [
+          42,
+          44,
+          33
+        ],
+        [
+          18,
+          15,
+          14
+        ]
+      ],
+      [
+        [
+          43,
+          45,
+          52
+        ],
+        [
+          19,
+          18,
+          15
+        ]
+      ],
+      [
+        [
+          44,
+          46,
+          35
+        ],
+        [
+          19,
+          16,
+          15
+        ]
+      ],
+      [
+        [
+          45,
+          47,
+          54
+        ],
+        [
+          19,
+          16
+        ]
+      ],
+      [
+        [
+          46,
+          37
+        ],
+        [
+          16
+        ]
+      ],
+      [
+        [
+          49,
+          40
+        ],
+        [
+          17
+        ],
+        "W2"
+      ],
+      [
+        [
+          48,
+          50
+        ],
+        [
+          17
+        ]
+      ],
+      [
+        [
+          49,
+          51,
+          42
+        ],
+        [
+          18,
+          17
+        ],
+        "?3"
+      ],
+      [
+        [
+          50,
+          52
+        ],
+        [
+          18
+        ],
+        "?3"
+      ],
+      [
+        [
+          51,
+          53,
+          44
+        ],
+        [
+          19,
+          18
+        ]
+      ],
+      [
+        [
+          52,
+          54
+        ],
+        [
+          19
+        ],
+        "?3"
+      ],
+      [
+        [
+          53,
+          46
+        ],
+        [
+          19
+        ],
+        "?3"
+      ]
+    ],
+    "state": {
+      "bld": [
+        [
+          7,
+          "Charlie",
+          "S"
+        ],
+        [
+          9,
+          "Alice",
+          "S"
+        ],
+        [
+          12,
+          "Bob",
+          "S"
+        ],
+        [
+          14,
+          "Charlie",
+          "S"
+        ],
+        [
+          20,
+          "Alice",
+          "S"
+        ],
+        [
+          25,
+          "Alice",
+          "S"
+        ],
+        [
+          41,
+          "Charlie",
+          "S"
+        ],
+        [
+          43,
+          "Bob",
+          "S"
+        ]
+      ],
+      "rds": [
+        [
+          [
+            20,
+            10
+          ],
+          "Alice"
+        ],
+        [
+          [
+            12,
+            11
+          ],
+          "Bob"
+        ],
+        [
+          [
+            41,
+            42
+          ],
+          "Charlie"
+        ],
+        [
+          [
+            14,
+            15
+          ],
+          "Charlie"
+        ],
+        [
+          [
+            43,
+            44
+          ],
+          "Bob"
+        ],
+        [
+          [
+            25,
+            26
+          ],
+          "Alice"
+        ],
+        [
+          [
+            10,
+            9
+          ],
+          "Alice"
+        ],
+        [
+          [
+            20,
+            21
+          ],
+          "Alice"
+        ],
+        [
+          [
+            15,
+            7
+          ],
+          "Charlie"
+        ],
+        [
+          [
+            11,
+            3
+          ],
+          "Bob"
+        ],
+        [
+          [
+            20,
+            19
+          ],
+          "Alice"
+        ],
+        [
+          [
+            19,
+            18
+          ],
+          "Alice"
+        ]
+      ]
+    },
+    "players": {
+      "Alice": {
+        "vp": 5,
+        "res": {
+          "W": 1,
+          "Wh": 1,
+          "S": 4
+        },
+        "stat": [
+          "LR"
+        ]
+      },
+      "Bob": {
+        "vp": 2,
+        "res": {
+          "W": 1,
+          "S": 1
+        }
+      },
+      "Charlie": {
+        "vp": 3,
+        "res": {
+          "Wh": 1
+        },
+        "dev": {
+          "h": [
+            "knight"
+          ],
+          "r": [
+            "K",
+            "K"
+          ]
+        }
+      }
+    }
+  }
+}

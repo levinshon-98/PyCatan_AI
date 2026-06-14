@@ -1,0 +1,25 @@
+{
+  "request_number": 120,
+  "timestamp": "2026-05-18T10:13:49.318300",
+  "player_name": "Alice",
+  "type": "final",
+  "success": true,
+  "raw_content": "{\n  \"internal_thinking\": \"I have won the game with 5 victory points. I secured Longest Road and reached the point threshold. I should acknowledge the win and the competitive play from Bob and Charlie, especially considering the history with Bob's betrayal and Charlie's warnings.\",\n  \"action\": {\n    \"type\": \"end_game\",\n    \"parameters\": \"{}\"\n  },\n  \"note_to_self\": \"I won this one by focusing on the road while Charlie was hunting for knights. Keeping that ore blocked really made the difference in slowing him down.\",\n  \"say_outloud\": \"That was a close one! Charlie, you had me sweating with those knights, I really thought you were going to pull it off. Bob, sorry about the port blocking, but I couldn't risk you getting that engine running after last time! Good game, both of you.\"\n}",
+  "parsed": {
+    "internal_thinking": "I have won the game with 5 victory points. I secured Longest Road and reached the point threshold. I should acknowledge the win and the competitive play from Bob and Charlie, especially considering the history with Bob's betrayal and Charlie's warnings.",
+    "note_to_self": "I won this one by focusing on the road while Charlie was hunting for knights. Keeping that ore blocked really made the difference in slowing him down.",
+    "say_outloud": "That was a close one! Charlie, you had me sweating with those knights, I really thought you were going to pull it off. Bob, sorry about the port blocking, but I couldn't risk you getting that engine running after last time! Good game, both of you.",
+    "action_type": "end_game",
+    "parameters": {}
+  },
+  "model": "google/gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 2808,
+    "completion": 197,
+    "thinking": 0,
+    "total": 3005
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}

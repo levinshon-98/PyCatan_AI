@@ -1,0 +1,56 @@
+Memory Compaction #1 for Bob
+Time: 2026-05-18T08:11:28.226559
+
+=== BEFORE: Existing Long-Term Summary ===
+(none)
+
+=== BEFORE: Old Notes Compacted ===
+- Alice is holding a grudge from the previous game and is watching my moves closely. She took node 20 (B6, W11, S5).
+- Placed first settlement on node 12 (W3, B6, S5). Good balance of resources. Alice is still salty about the last game.
+- Placed road toward 11. Target is the Wheat port at 3 or potentially contesting the middle, though Alice's 20 settlement blocks the best spot at 10.
+- Charlie went for the 9-10-14, securing good wheat and ore. Alice and Charlie are both referencing my 'betrayal' from the last game; I need to keep my head down and focus on a clean start.
+- Charlie is expanding toward the bottom-right (edge 41-42), likely targeting the 8-10-14 area or the any-3:1 port. Alice remains hostile.
+- Charlie has a strong balance of wood and wheat now. Alice is still tracking my every move. I need to place my second settlement strategically to avoid being boxed in.
+- Charlie has placed his second settlement on node 14 (H3, H6, H7) and is building toward the 2:1 Brick port (node 7). He's currently leading in resource diversity.
+- Placed second settlement on node 43 (Wh9, Wh6, Wh9). Total pips: 13. Combined with node 12, I have high Wheat and decent Brick/Ore/Sheep. Wood is the missing piece.
+
+=== BEFORE: Recent Notes Kept Verbatim ===
+- Placed starting road from 43 to 44. Target expansion is toward node 45 for resource diversity or the coast. Charlie is at 41 and has a road to 42, blocking that settlement spot.
+- Alice settled on node 25 (H11, H7, H6) and is clearly prioritizing ore to compete with my wheat/ore potential. She remains verbally hostile.
+
+=== BEFORE: Relevant Chat Considered ===
+- Alice: Alright, let's get this started. I'll take the spot on the 6-8-11. Bob, I'm still keeping an eye on you after that stunt you pulled last time. Charlie, I haven't forgotten the warning, even if you did take that trade.
+- Bob: Fresh game, Alice! Let's just see where the dice take us this time. No hard feelings, right?
+- Bob: I'll take the spot on the 3-5-6. It looks like a nice, quiet neighborhood for a charming guy like me, wouldn't you say, Alice?
+- Alice: We'll see how quiet it stays once the robber starts moving, Bob.
+- Bob: Just setting up a little path here. No need to worry, Alice, I'm staying well out of your way for now!
+- Alice: Smart move, Charlie. Probably wise to stay out of the splash zone while Bob tries to convince me he's being neighborly.
+- Bob: Can't blame you, Charlie. It's much more peaceful down there!
+- Bob: I'll take the scenic route down by the fields at 43. All that wheat should keep me busy while you two keep an eye on each other.
+- Bob: Just going to tuck this road in toward the coast. A little fresh air and a view of the sea never hurt anyone, right?
+- Alice: I think I'll take this spot by the mountains. I'm going to need a bit more than just wood and brick if I'm going to keep up with Bob's 'scenic' wheat empire.
+- Charlie: Fair enough, Alice. Just looking out for everyone's interests—including my own. That 6-11 is a solid start.
+- Charlie: I'll take the 5-9-10 down here. A bit of distance from you two might be for the best, given how things ended last time.
+- Charlie: Gotta make sure I have a clear path to expand. That 42 direction looks like it'll open up some good options later on.
+- Charlie: I'll take the 8-3-4 up here. I definitely need some wood if I'm going to keep up with you two, and it keeps me from getting totally boxed in down south.
+- Charlie: Heading toward the coast. A little sea breeze and some port access should keep things interesting.
+- Alice: A little port access should help balance things out later. It's good to have options when the dice don't go your way.
+
+=== AFTER: New Long-Term Summary ===
+Alice is holding a grudge from a previous game betrayal and is monitoring Bob closely. Bob's setup: N12 (W3, B6, S5) and N43 (Wh9, Wh6, Wh9); high wheat, lacks wood. Goals: Target Wheat port (N3) or expand coastally via N45. Alice: N20 (B6, W11, S5) and N25 (O3, S4, B10); prioritizing ore to compete. Charlie: N41 (W12, S5, Wh9) and N14 (W4, S8, B6); strong resource diversity, expanding toward N7 (B2 port) and blocking N42.
+
+=== AFTER: Fallback Status ===
+used=False
+reason=(none)
+
+=== AFTER: Relationship Updates ===
+["Alice: High hostility/distrust due to previous game betrayal; targeting Bob with robber likely.", "Charlie: Cautious neutral; willing to block expansion (N42) but avoids direct verbal conflict."]
+
+=== AFTER: Discarded As Irrelevant ===
+["Internal monologue about scenery", "Generic friendly banter", "Confirmed hex lookups", "Completed setup actions"]
+
+=== RAW LLM RESPONSE PREVIEW ===
+{"compacted_memory":"Alice is holding a grudge from a previous game betrayal and is monitoring Bob closely. Bob's setup: N12 (W3, B6, S5) and N43 (Wh9, Wh6, Wh9); high wheat, lacks wood. Goals: Target Wheat port (N3) or expand coastally via N45. Alice: N20 (B6, W11, S5) and N25 (O3, S4, B10); prioritizing ore to compete. Charlie: N41 (W12, S5, Wh9) and N14 (W4, S8, B6); strong resource diversity, expanding toward N7 (B2 port) and blocking N42.","recent_notes_to_keep":["Placed starting road from 43 to 44. Target expansion is toward node 45 for resource diversity or the coast. Charlie is at 41 and has a road to 42, blocking that settlement spot.","Alice settled on node 25 (H11, H7, H6) and is clearly prioritizing ore to compete with my wheat/ore potential. She remains verbally hostile."],"discarded_as_irrelevant":["Internal monologue about scenery","Generic friendly banter","Confirmed hex lookups","Completed setup actions"],"relationship_updates":["Alice: High hostility/distrust due to previous game betrayal; targeting Bob with robber likely.","Charlie: Cautious neutral; willing to block expansion (N42) but avoids direct verbal conflict."]}
+
+JSON artifact:
+examples\ai_testing\my_games\session_20260518_080519\Bob\memory_compactions\compaction_1.json

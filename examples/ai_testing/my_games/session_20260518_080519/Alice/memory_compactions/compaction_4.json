@@ -1,0 +1,522 @@
+{
+  "player_name": "Alice",
+  "compaction_number": 4,
+  "timestamp": "2026-05-18T09:25:31.324976",
+  "before": {
+    "existing_compacted_memory": "Alice settled Node 20 (B6, S8, W11) and Node 25 (O2, O5, S11). Roads extend to Node 9 (3:1 Port) and Node 21. Current goals: Settle Node 9 (needs B/Wh) and secure Node 32 for Wheat. Node 11 is blocked by Bob. Bob (Nodes 12, 43) is the primary threat with high Wheat/Ore/Sheep production. Charlie (Nodes 41, 14) is expanding toward coastal ports and currently acting as an ally against Bob. Charlie moved the robber to Hex 5, unblocking Alice's Sheep 8 (Hex 4). Bob recently traded 3 Wheat for 1 Wood with Charlie. Alice holds 1 Dev Card. Bob has roughly 1 Wood and 1 Wheat remaining. Charlie is currently low on Wheat after a bank trade for Brick.",
+    "existing_relationship_updates": [
+      {
+        "note": "Charlie is acting cautiously to avoid conflict between Alice and Bob.",
+        "timestamp": 1779081023.857269
+      },
+      {
+        "note": "Bob targeted Alice with the robber on Hex 4 and stole from her, intensifying the existing grudge.",
+        "timestamp": 1779084867.0872037
+      },
+      {
+        "note": "Charlie expressed willingness to trade Wood to Alice.",
+        "timestamp": 1779084867.087206
+      },
+      {
+        "note": "Alice and Charlie formed a temporary alliance against Bob; Alice feels indebted for the robber removal.",
+        "timestamp": 1779085191.7928233
+      },
+      {
+        "note": "Bob's mocking 'community gardens' talk and theft have solidified Alice's role as his primary antagonist.",
+        "timestamp": 1779085191.7928257
+      },
+      {
+        "note": "Alice and Charlie's alliance strengthened through reciprocal 1:1 trading and mutual blocking of Bob.",
+        "timestamp": 1779085531.3232722
+      }
+    ],
+    "old_notes_to_compact": [
+      {
+        "note": "Accepted Charlie's trade (1 Wood for 1 Sheep). I now have 1 Wood and 0 Sheep. Hex 4 (Sheep 8) is open again, so I should see sheep income soon. Goal: Get Brick and Wheat for Node 9.",
+        "timestamp": 1779085151.5037148
+      },
+      {
+        "note": "Charlie bank-traded 4 Wheat for 1 Brick. He likely used the Wood I traded him to build something. Charlie is currently out of Wheat.",
+        "timestamp": 1779085187.0784764
+      },
+      {
+        "note": "Charlie built road 15-7 toward the Brick port. He is low on resources now.",
+        "timestamp": 1779085222.6007056
+      },
+      {
+        "note": "Charlie has expanded to Node 7 (Brick port path). I currently have 1 Wood and need Brick/Wheat for my next settlement at Node 9.",
+        "timestamp": 1779085244.9667935
+      },
+      {
+        "note": "The robber is on Brick 6 (Hex 5), blocking my production and Bob's. I need Brick and Wheat for Node 9.",
+        "timestamp": 1779085259.8314974
+      },
+      {
+        "note": "Rolled a 5. Charlie got Ore, Bob got Sheep. I have 1 Wood. Need Brick, Wheat, and Sheep for settlement at Node 9. Robber is still on my Brick 6.",
+        "timestamp": 1779085289.8575149
+      },
+      {
+        "note": "I have 1 Wheat. Need Wood, Brick, and Sheep for my next settlement at Node 9. Charlie has Ore and Sheep; Bob has Sheep and Wheat. Robber is still on my Brick 6.",
+        "timestamp": 1779085352.5466478
+      },
+      {
+        "note": "Bob rolled a 9. Bob gained 2 Wheat (total 3), Charlie gained 1 Wheat. My Brick 6 is still blocked by the robber. I need to find a way to get Brick or move that robber.",
+        "timestamp": 1779085406.1616182
+      }
+    ],
+    "recent_notes_kept_verbatim": [
+      {
+        "note": "Bob has 3 Wheat and 1 Sheep. Charlie has 1 Wood, 1 Wheat, 1 Sheep, and 1 Ore. Charlie declined Bob's 2 Wheat for 1 Wood offer.",
+        "timestamp": 1779085459.2728944
+      },
+      {
+        "note": "Bob offered 3 Wheat for 1 Wood to Charlie. Charlie declined twice. Bob currently has 3 Wheat and 1 Sheep. Charlie has 1 Wood, 1 Wheat, 1 Sheep, and 1 Ore.",
+        "timestamp": 1779085527.0802236
+      }
+    ],
+    "relevant_chat": [
+      {
+        "from": "Bob",
+        "message": "Et tu, Charlie? I thought we were building a beautiful friendship with those gardens. Alice, I hope you're happy now that the roads have stopped!",
+        "response_id": "Bob:22",
+        "request_number": 22,
+        "response_type": "reaction",
+        "audio_path": "replay_audio/response_0022_player_2_Bob.wav"
+      },
+      {
+        "from": "Charlie",
+        "message": "Sorry Bob, but that 6 is just too hot to leave open while you're building roads like they're going out of style. Alice, you're welcome for the sheep back.",
+        "response_id": "Charlie:23",
+        "request_number": 23,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0023_player_3_Charlie.wav"
+      },
+      {
+        "from": "Alice",
+        "message": "I'm plenty happy, Bob. It's much easier to 'work together' when you aren't the only one sitting on a pile of resources.",
+        "response_id": "Alice:24",
+        "request_number": 24,
+        "response_type": "reaction",
+        "audio_path": "replay_audio/response_0024_player_1_Alice.wav"
+      },
+      {
+        "from": "Charlie",
+        "message": "Alice, I cleared that robber off your sheep for a reason—reckon you could spare one of those lambs for some quality wood? It'd help us both keep Bob's 'gardens' from growing any further.",
+        "response_id": "Charlie:24",
+        "request_number": 24,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0024_player_3_Charlie.wav"
+      },
+      {
+        "from": "Alice",
+        "message": "That seems more than fair, Charlie. Since you were kind enough to clear the 'weeds' off my pasture, I can certainly spare a lamb for some wood. Let's keep that momentum going.",
+        "response_id": "Alice:25",
+        "request_number": 25,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0025_player_1_Alice.wav"
+      },
+      {
+        "from": "Charlie",
+        "message": "Road's laid. Now I just need to get the actual foundation down. Your turn, Alice.",
+        "response_id": "Charlie:27",
+        "request_number": 27,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0027_player_3_Charlie.wav"
+      },
+      {
+        "from": "Alice",
+        "message": "Let's see if the dice are any kinder than the robber has been lately.",
+        "response_id": "Alice:29",
+        "request_number": 29,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0029_player_1_Alice.wav"
+      },
+      {
+        "from": "Alice",
+        "message": "Charlie, since that 5 just treated you to some Ore, how about we keep our momentum going? I've got some quality timber if you've got any wheat to spare for it.",
+        "response_id": "Alice:30",
+        "request_number": 30,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0030_player_1_Alice.wav"
+      },
+      {
+        "from": "Charlie",
+        "message": "You drive a hard bargain, Alice, but I'd much rather see that timber helping me build than sitting in Bob's hand. Let's do it.",
+        "response_id": "Charlie:29",
+        "request_number": 29,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0029_player_3_Charlie.wav"
+      },
+      {
+        "from": "Alice",
+        "message": "Well, it looks like that 5 was a bit of a dud for me, but at least Charlie's getting some use out of it. I'm going to hold onto what I've got for now and see what the next roll brings. Your move, Bob.",
+        "response_id": "Alice:31",
+        "request_number": 31,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0031_player_1_Alice.wav"
+      },
+      {
+        "from": "Alice",
+        "message": "Probably for the best, Charlie. Giving Bob that much wheat is just asking for trouble later.",
+        "response_id": "Alice:33",
+        "request_number": 33,
+        "response_type": "reaction",
+        "audio_path": "replay_audio/response_0033_player_1_Alice.wav"
+      },
+      {
+        "from": "Charlie",
+        "message": "Alright, the bank's rates are highway robbery, but I need to get some infrastructure moving.",
+        "response_id": "Charlie:25",
+        "request_number": 25,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0025_player_3_Charlie.wav"
+      },
+      {
+        "from": "Charlie",
+        "message": "Infrastructure is key, Bob. Can't have those gardens of yours being the only thing growing around here.",
+        "response_id": "Charlie:26",
+        "request_number": 26,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0026_player_3_Charlie.wav"
+      },
+      {
+        "from": "Bob",
+        "message": "Infrastructure is one thing, Charlie, but that's starting to look like a wall! Just leave a little room for the rest of us to breathe, alright?",
+        "response_id": "Bob:26",
+        "request_number": 26,
+        "response_type": "reaction",
+        "audio_path": "replay_audio/response_0026_player_2_Bob.wav"
+      },
+      {
+        "from": "Bob",
+        "message": "Let's see if I can find something more productive than a dud then. My turn.",
+        "response_id": "Bob:30",
+        "request_number": 30,
+        "response_type": "reaction",
+        "audio_path": "replay_audio/response_0030_player_2_Bob.wav"
+      },
+      {
+        "from": "Bob",
+        "message": "Alright, let's see if we can get some actual production going. Anything is better than another dud roll.",
+        "response_id": "Bob:31",
+        "request_number": 31,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0031_player_2_Bob.wav"
+      },
+      {
+        "from": "Bob",
+        "message": "Nice roll on the 9, everyone! Charlie, you've got wood and I've got plenty of wheat for those foundations you were talking about. How about a trade to keep things moving?",
+        "response_id": "Bob:32",
+        "request_number": 32,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0032_player_2_Bob.wav"
+      },
+      {
+        "from": "Charlie",
+        "message": "I appreciate the offer, Bob, but I've got plans for that wood that involve a lot more than just some extra wheat. I'm going to have to pass.",
+        "response_id": "Charlie:32",
+        "request_number": 32,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0032_player_3_Charlie.wav"
+      },
+      {
+        "from": "Bob",
+        "message": "Charlie, I know you've got plans, but three-for-one is a massive deal for that bit of timber. That's enough wheat to keep your people fed for a long time.",
+        "response_id": "Bob:33",
+        "request_number": 33,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0033_player_2_Bob.wav"
+      },
+      {
+        "from": "Charlie",
+        "message": "That's a tempting offer, Bob, really. But I've got my heart set on a project that needs that wood more than I need a stockpile of wheat. I'll pass.",
+        "response_id": "Charlie:33",
+        "request_number": 33,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0033_player_3_Charlie.wav"
+      }
+    ]
+  },
+  "after": {
+    "long_term_summary": "Alice is at Node 20 (B6, S8, W11) and Node 25 (O2, O5, S11). Primary goal: Settle Node 9 (3:1 port) then Node 32 (Wheat). Alice currently has 1 Wheat and 1 Dev Card; needs Brick/Wheat/Sheep for settlement. Bob (Nodes 12, 43) is the main threat due to high W/O/S production; he has 3 Wheat and 1 Sheep. Charlie (Nodes 41, 14) is an ally against Bob, currently expanding toward the Node 7 Brick port. Charlie cleared the robber from Alice's Sheep 8 (Hex 4) to Hex 5 (blocking Alice/Bob's Brick 6). Alice and Charlie completed a 1:1 Wood/Sheep trade and a 1:1 Wood/Wheat trade. Charlie is low on Wheat after bank trading 4:1 for Brick. Charlie has repeatedly declined Bob's aggressive 3 Wheat for 1 Wood trade offers to prevent Bob's expansion.",
+    "recent_notes": [
+      {
+        "note": "Bob has 3 Wheat and 1 Sheep. Charlie has 1 Wood, 1 Wheat, 1 Sheep, and 1 Ore. Charlie declined Bob's 2 Wheat for 1 Wood offer.",
+        "timestamp": 1779085459.2728944
+      },
+      {
+        "note": "Bob offered 3 Wheat for 1 Wood to Charlie. Charlie declined twice. Bob currently has 3 Wheat and 1 Sheep. Charlie has 1 Wood, 1 Wheat, 1 Sheep, and 1 Ore.",
+        "timestamp": 1779085527.0802236
+      }
+    ],
+    "relationship_updates": [
+      "Alice and Charlie's alliance strengthened through reciprocal 1:1 trading and mutual blocking of Bob.",
+      "Charlie demonstrated high loyalty to the anti-Bob alliance by rejecting Bob's 3-for-1 wheat offer."
+    ],
+    "discarded_as_irrelevant": [
+      "Completed 1:1 trades already in memory",
+      "Specific dice roll numbers without new resource outcomes",
+      "Vague bank trade comments",
+      "Repeated mentions of needing Brick/Wheat"
+    ],
+    "fallback_used": false,
+    "fallback_reason": null
+  },
+  "llm": {
+    "success": true,
+    "content": "{\"compacted_memory\":\"Alice is at Node 20 (B6, S8, W11) and Node 25 (O2, O5, S11). Primary goal: Settle Node 9 (3:1 port) then Node 32 (Wheat). Alice currently has 1 Wheat and 1 Dev Card; needs Brick/W...",
+    "error": null,
+    "model": "google/gemini-3-flash-preview-20251217",
+    "tokens": {
+      "prompt": 5384,
+      "completion": 431,
+      "total": 5815
+    },
+    "latency_seconds": 4.24,
+    "finish_reason": "stop",
+    "timestamp": "2026-05-18T09:25:31.322343"
+  },
+  "llm_raw": {
+    "success": true,
+    "content": "{\"compacted_memory\":\"Alice is at Node 20 (B6, S8, W11) and Node 25 (O2, O5, S11). Primary goal: Settle Node 9 (3:1 port) then Node 32 (Wheat). Alice currently has 1 Wheat and 1 Dev Card; needs Brick/Wheat/Sheep for settlement. Bob (Nodes 12, 43) is the main threat due to high W/O/S production; he has 3 Wheat and 1 Sheep. Charlie (Nodes 41, 14) is an ally against Bob, currently expanding toward the Node 7 Brick port. Charlie cleared the robber from Alice's Sheep 8 (Hex 4) to Hex 5 (blocking Alice/Bob's Brick 6). Alice and Charlie completed a 1:1 Wood/Sheep trade and a 1:1 Wood/Wheat trade. Charlie is low on Wheat after bank trading 4:1 for Brick. Charlie has repeatedly declined Bob's aggressive 3 Wheat for 1 Wood trade offers to prevent Bob's expansion.\",\"recent_notes_to_keep\":[\"Bob has 3 Wheat and 1 Sheep. Charlie has 1 Wood, 1 Wheat, 1 Sheep, and 1 Ore. Charlie declined Bob's 2 Wheat for 1 Wood offer.\",\"Bob offered 3 Wheat for 1 Wood to Charlie. Charlie declined twice. Bob currently has 3 Wheat and 1 Sheep. Charlie has 1 Wood, 1 Wheat, 1 Sheep, and 1 Ore.\"],\"discarded_as_irrelevant\":[\"Completed 1:1 trades already in memory\",\"Specific dice roll numbers without new resource outcomes\",\"Vague bank trade comments\",\"Repeated mentions of needing Brick/Wheat\"],\"relationship_updates\":[\"Alice and Charlie's alliance strengthened through reciprocal 1:1 trading and mutual blocking of Bob.\",\"Charlie demonstrated high loyalty to the anti-Bob alliance by rejecting Bob's 3-for-1 wheat offer.\"]}",
+    "error": null,
+    "model": "google/gemini-3-flash-preview-20251217",
+    "finish_reason": "stop",
+    "prompt_tokens": 5384,
+    "completion_tokens": 431,
+    "thinking_tokens": 0,
+    "total_tokens": 5815,
+    "latency_seconds": 4.241069078445435
+  },
+  "prompt": {
+    "meta_data": {
+      "agent_name": "Alice",
+      "task": "compact_agent_memory",
+      "model_instruction": "You are compacting memory for one Catan AI agent. Use the board only through the same compact H/N/state/players/meta format used in normal decision prompts."
+    },
+    "task_context": {
+      "instructions": "Compress old memories and relevant chat into one concise strategic memory. Preserve future-useful facts: current goals, next planned actions, confirmed board facts, known or likely opponent plans/resources/dev cards/trade tendencies, active negotiations, social commitments, and mistakes to avoid. Discard repeated, completed, impossible, vague, or superseded details. Do not invent facts; mark uncertainty clearly. Also extract only new meaningful relationship shifts from the old notes and relevant chat: trust changes, grudges, favors, threats, betrayals, promises, or emotional tension. Do not repeat existing relationship updates; leave relationship_updates empty if nothing changed. Target about 50% or less of the combined old memory length. Keep recent_notes_to_keep copied verbatim from the provided recent notes."
+    },
+    "game_state": "\n  1. LOOKUP TABLES:\n   • \"H\" (Hexes): Array where Index = HexID. Value = Resource+Num.\n     Example: H[1]=\"W12\" -> Hex 1 is Wood 12.\n   • \"N\" (Nodes): Array where Index = NodeID.\n     Format: [ [Neighbors], [HexIDs], Port? ]\n     Logic: To find yield of Node 10, check N[10]. Get HexIDs (e.g. [1,5]). Look up H[1] and H[5].\n\n2. CODES: W=Wood, B=Brick, S=Sheep, Wh=Wheat, O=Ore, D=Desert.\n          ?3=Any 3:1 port, X2=Specific Resource 2:1 port.\n\n3. STATE: \"bld\"=[NodeID, Owner, Type], \"rds\"=[[From,To], Owner].\n\n4. PLAYERS: \"res\"={Resource:Count}, \"dev\"={\"h\":[Your Hidden Cards], \"hidden_count\":OpponentHiddenCount, \"r\":[Revealed] (K=Knight)}, \n            \"stat\"=[\"LR\" (Longest Road), \"LA\" (Largest Army)].\n\n5. ROBBER: Located at HexID specified in \"meta.robber\". H[id] is blocked.\n\nJSON:\n{\"meta\":{\"curr\":\"Bob\",\"phase\":\"NORMAL_PLAY\",\"turn_phase\":\"PLAYER_ACTIONS\",\"robber\":5,\"dice\":[5,4],\"vp_to_win\":5,\"dice_total\":9},\"H\":[\"\",\"W12\",\"S5\",\"W4\",\"S8\",\"B6\",\"W3\",\"Wh8\",\"B10\",\"W11\",\"D\",\"O3\",\"S4\",\"B10\",\"Wh9\",\"Wh6\",\"S11\",\"O5\",\"Wh9\",\"O2\"],\"N\":[null,[[2,9],[1]],[[1,3],[1],\"Wh2\"],[[2,4,11],[2,1],\"Wh2\"],[[3,5],[2]],[[4,6,13],[3,2]],[[5,7],[3],\"B2\"],[[6,15],[3],\"B2\"],[[9,18],[4],\"?3\"],[[8,10,1],[4,1],\"?3\"],[[9,11,20],[5,4,1]],[[10,12,3],[5,2,1]],[[11,13,22],[6,5,2]],[[12,14,5],[6,3,2]],[[13,15,24],[7,6,3]],[[14,16,7],[7,3]],[[15,26],[7],\"O2\"],[[18,28],[8],\"S2\"],[[17,19,8],[8,4]],[[18,20,30],[9,8,4]],[[19,21,10],[9,5,4]],[[20,22,32],[10,9,5]],[[21,23,12],[10,6,5]],[[22,24,34],[11,10,6]],[[23,25,14],[11,7,6]],[[24,26,36],[12,11,7]],[[25,27,16],[12,7],\"O2\"],[[26,38],[12]],[[29,17],[8],\"S2\"],[[28,30,39],[13,8]],[[29,31,19],[13,9,8]],[[30,32,41],[14,13,9]],[[31,33,21],[14,10,9]],[[32,34,43],[15,14,10]],[[33,35,23],[15,11,10]],[[34,36,45],[16,15,11]],[[35,37,25],[16,12,11]],[[36,38,47],[16,12],\"?3\"],[[37,27],[12],\"?3\"],[[40,29],[13]],[[39,41,48],[17,13],\"W2\"],[[40,42,31],[17,14,13]],[[41,43,50],[18,17,14]],[[42,44,33],[18,15,14]],[[43,45,52],[19,18,15]],[[44,46,35],[19,16,15]],[[45,47,54],[19,16]],[[46,37],[16]],[[49,40],[17],\"W2\"],[[48,50],[17]],[[49,51,42],[18,17],\"?3\"],[[50,52],[18],\"?3\"],[[51,53,44],[19,18]],[[52,54],[19],\"?3\"],[[53,46],[19],\"?3\"]],\"state\":{\"bld\":[[12,\"Bob\",\"S\"],[14,\"Charlie\",\"S\"],[20,\"Alice\",\"S\"],[25,\"Alice\",\"S\"],[41,\"Charlie\",\"S\"],[43,\"Bob\",\"S\"]],\"rds\":[[[20,10],\"Alice\"],[[12,11],\"Bob\"],[[41,42],\"Charlie\"],[[14,15],\"Charlie\"],[[43,44],\"Bob\"],[[25,26],\"Alice\"],[[10,9],\"Alice\"],[[20,21],\"Alice\"],[[15,7],\"Charlie\"]]},\"players\":{\"Alice\":{\"vp\":2,\"res\":{\"Wh\":1}},\"Bob\":{\"vp\":2,\"res\":{\"Wh\":3,\"S\":1}},\"Charlie\":{\"vp\":2,\"res\":{\"W\":1,\"Wh\":1,\"S\":1,\"O\":1}}}}",
+    "memory_input": {
+      "existing_compacted_memory": "Alice settled Node 20 (B6, S8, W11) and Node 25 (O2, O5, S11). Roads extend to Node 9 (3:1 Port) and Node 21. Current goals: Settle Node 9 (needs B/Wh) and secure Node 32 for Wheat. Node 11 is blocked by Bob. Bob (Nodes 12, 43) is the primary threat with high Wheat/Ore/Sheep production. Charlie (Nodes 41, 14) is expanding toward coastal ports and currently acting as an ally against Bob. Charlie moved the robber to Hex 5, unblocking Alice's Sheep 8 (Hex 4). Bob recently traded 3 Wheat for 1 Wood with Charlie. Alice holds 1 Dev Card. Bob has roughly 1 Wood and 1 Wheat remaining. Charlie is currently low on Wheat after a bank trade for Brick.",
+      "existing_relationship_updates": [
+        {
+          "note": "Charlie is acting cautiously to avoid conflict between Alice and Bob.",
+          "timestamp": 1779081023.857269
+        },
+        {
+          "note": "Bob targeted Alice with the robber on Hex 4 and stole from her, intensifying the existing grudge.",
+          "timestamp": 1779084867.0872037
+        },
+        {
+          "note": "Charlie expressed willingness to trade Wood to Alice.",
+          "timestamp": 1779084867.087206
+        },
+        {
+          "note": "Alice and Charlie formed a temporary alliance against Bob; Alice feels indebted for the robber removal.",
+          "timestamp": 1779085191.7928233
+        },
+        {
+          "note": "Bob's mocking 'community gardens' talk and theft have solidified Alice's role as his primary antagonist.",
+          "timestamp": 1779085191.7928257
+        },
+        {
+          "note": "Alice and Charlie's alliance strengthened through reciprocal 1:1 trading and mutual blocking of Bob.",
+          "timestamp": 1779085531.3232722
+        }
+      ],
+      "old_notes_to_compact": [
+        "Accepted Charlie's trade (1 Wood for 1 Sheep). I now have 1 Wood and 0 Sheep. Hex 4 (Sheep 8) is open again, so I should see sheep income soon. Goal: Get Brick and Wheat for Node 9.",
+        "Charlie bank-traded 4 Wheat for 1 Brick. He likely used the Wood I traded him to build something. Charlie is currently out of Wheat.",
+        "Charlie built road 15-7 toward the Brick port. He is low on resources now.",
+        "Charlie has expanded to Node 7 (Brick port path). I currently have 1 Wood and need Brick/Wheat for my next settlement at Node 9.",
+        "The robber is on Brick 6 (Hex 5), blocking my production and Bob's. I need Brick and Wheat for Node 9.",
+        "Rolled a 5. Charlie got Ore, Bob got Sheep. I have 1 Wood. Need Brick, Wheat, and Sheep for settlement at Node 9. Robber is still on my Brick 6.",
+        "I have 1 Wheat. Need Wood, Brick, and Sheep for my next settlement at Node 9. Charlie has Ore and Sheep; Bob has Sheep and Wheat. Robber is still on my Brick 6.",
+        "Bob rolled a 9. Bob gained 2 Wheat (total 3), Charlie gained 1 Wheat. My Brick 6 is still blocked by the robber. I need to find a way to get Brick or move that robber."
+      ],
+      "recent_notes_to_keep": [
+        "Bob has 3 Wheat and 1 Sheep. Charlie has 1 Wood, 1 Wheat, 1 Sheep, and 1 Ore. Charlie declined Bob's 2 Wheat for 1 Wood offer.",
+        "Bob offered 3 Wheat for 1 Wood to Charlie. Charlie declined twice. Bob currently has 3 Wheat and 1 Sheep. Charlie has 1 Wood, 1 Wheat, 1 Sheep, and 1 Ore."
+      ],
+      "relevant_chat": [
+        {
+          "from": "Bob",
+          "message": "Et tu, Charlie? I thought we were building a beautiful friendship with those gardens. Alice, I hope you're happy now that the roads have stopped!",
+          "response_id": "Bob:22",
+          "request_number": 22,
+          "response_type": "reaction",
+          "audio_path": "replay_audio/response_0022_player_2_Bob.wav"
+        },
+        {
+          "from": "Charlie",
+          "message": "Sorry Bob, but that 6 is just too hot to leave open while you're building roads like they're going out of style. Alice, you're welcome for the sheep back.",
+          "response_id": "Charlie:23",
+          "request_number": 23,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0023_player_3_Charlie.wav"
+        },
+        {
+          "from": "Alice",
+          "message": "I'm plenty happy, Bob. It's much easier to 'work together' when you aren't the only one sitting on a pile of resources.",
+          "response_id": "Alice:24",
+          "request_number": 24,
+          "response_type": "reaction",
+          "audio_path": "replay_audio/response_0024_player_1_Alice.wav"
+        },
+        {
+          "from": "Charlie",
+          "message": "Alice, I cleared that robber off your sheep for a reason—reckon you could spare one of those lambs for some quality wood? It'd help us both keep Bob's 'gardens' from growing any further.",
+          "response_id": "Charlie:24",
+          "request_number": 24,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0024_player_3_Charlie.wav"
+        },
+        {
+          "from": "Alice",
+          "message": "That seems more than fair, Charlie. Since you were kind enough to clear the 'weeds' off my pasture, I can certainly spare a lamb for some wood. Let's keep that momentum going.",
+          "response_id": "Alice:25",
+          "request_number": 25,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0025_player_1_Alice.wav"
+        },
+        {
+          "from": "Charlie",
+          "message": "Road's laid. Now I just need to get the actual foundation down. Your turn, Alice.",
+          "response_id": "Charlie:27",
+          "request_number": 27,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0027_player_3_Charlie.wav"
+        },
+        {
+          "from": "Alice",
+          "message": "Let's see if the dice are any kinder than the robber has been lately.",
+          "response_id": "Alice:29",
+          "request_number": 29,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0029_player_1_Alice.wav"
+        },
+        {
+          "from": "Alice",
+          "message": "Charlie, since that 5 just treated you to some Ore, how about we keep our momentum going? I've got some quality timber if you've got any wheat to spare for it.",
+          "response_id": "Alice:30",
+          "request_number": 30,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0030_player_1_Alice.wav"
+        },
+        {
+          "from": "Charlie",
+          "message": "You drive a hard bargain, Alice, but I'd much rather see that timber helping me build than sitting in Bob's hand. Let's do it.",
+          "response_id": "Charlie:29",
+          "request_number": 29,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0029_player_3_Charlie.wav"
+        },
+        {
+          "from": "Alice",
+          "message": "Well, it looks like that 5 was a bit of a dud for me, but at least Charlie's getting some use out of it. I'm going to hold onto what I've got for now and see what the next roll brings. Your move, Bob.",
+          "response_id": "Alice:31",
+          "request_number": 31,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0031_player_1_Alice.wav"
+        },
+        {
+          "from": "Alice",
+          "message": "Probably for the best, Charlie. Giving Bob that much wheat is just asking for trouble later.",
+          "response_id": "Alice:33",
+          "request_number": 33,
+          "response_type": "reaction",
+          "audio_path": "replay_audio/response_0033_player_1_Alice.wav"
+        },
+        {
+          "from": "Charlie",
+          "message": "Alright, the bank's rates are highway robbery, but I need to get some infrastructure moving.",
+          "response_id": "Charlie:25",
+          "request_number": 25,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0025_player_3_Charlie.wav"
+        },
+        {
+          "from": "Charlie",
+          "message": "Infrastructure is key, Bob. Can't have those gardens of yours being the only thing growing around here.",
+          "response_id": "Charlie:26",
+          "request_number": 26,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0026_player_3_Charlie.wav"
+        },
+        {
+          "from": "Bob",
+          "message": "Infrastructure is one thing, Charlie, but that's starting to look like a wall! Just leave a little room for the rest of us to breathe, alright?",
+          "response_id": "Bob:26",
+          "request_number": 26,
+          "response_type": "reaction",
+          "audio_path": "replay_audio/response_0026_player_2_Bob.wav"
+        },
+        {
+          "from": "Bob",
+          "message": "Let's see if I can find something more productive than a dud then. My turn.",
+          "response_id": "Bob:30",
+          "request_number": 30,
+          "response_type": "reaction",
+          "audio_path": "replay_audio/response_0030_player_2_Bob.wav"
+        },
+        {
+          "from": "Bob",
+          "message": "Alright, let's see if we can get some actual production going. Anything is better than another dud roll.",
+          "response_id": "Bob:31",
+          "request_number": 31,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0031_player_2_Bob.wav"
+        },
+        {
+          "from": "Bob",
+          "message": "Nice roll on the 9, everyone! Charlie, you've got wood and I've got plenty of wheat for those foundations you were talking about. How about a trade to keep things moving?",
+          "response_id": "Bob:32",
+          "request_number": 32,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0032_player_2_Bob.wav"
+        },
+        {
+          "from": "Charlie",
+          "message": "I appreciate the offer, Bob, but I've got plans for that wood that involve a lot more than just some extra wheat. I'm going to have to pass.",
+          "response_id": "Charlie:32",
+          "request_number": 32,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0032_player_3_Charlie.wav"
+        },
+        {
+          "from": "Bob",
+          "message": "Charlie, I know you've got plans, but three-for-one is a massive deal for that bit of timber. That's enough wheat to keep your people fed for a long time.",
+          "response_id": "Bob:33",
+          "request_number": 33,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0033_player_2_Bob.wav"
+        },
+        {
+          "from": "Charlie",
+          "message": "That's a tempting offer, Bob, really. But I've got my heart set on a project that needs that wood more than I need a stockpile of wheat. I'll pass.",
+          "response_id": "Charlie:33",
+          "request_number": 33,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0033_player_3_Charlie.wav"
+        }
+      ]
+    },
+    "output_requirements": {
+      "format": "valid JSON only",
+      "schema": {
+        "compacted_memory": "string",
+        "recent_notes_to_keep": [
+          "string"
+        ],
+        "relationship_updates": [
+          "string"
+        ],
+        "discarded_as_irrelevant": [
+          "string"
+        ]
+      }
+    }
+  }
+}

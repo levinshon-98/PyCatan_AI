@@ -1,0 +1,60 @@
+Memory Compaction #8 for Alice
+Time: 2026-05-18T09:41:56.788029
+
+=== BEFORE: Existing Long-Term Summary ===
+Alice (Nodes 20, 25) is targeting Node 9 (3:1 port). Current hand: 1W, 1Wh, 2S plus a Monopoly card. Charlie (Nodes 41, 14) is a confirmed ally who used a Knight to move the robber from Hex 7 (Wheat 8) back to Bob's Hex 5 (Brick 6). Charlie has 3 Wood and no Brick, while Bob is the primary antagonist and likely has Wheat. Alice and Charlie have a firm 1:1 trading pact and mutual defense against Bob. Strategic goal: Obtain Brick for Node 9 expansion while holding Monopoly for a high-value resource roll.
+
+=== BEFORE: Old Notes Compacted ===
+- Charlie bought a development card after failing to find brick. He has 3 wood left. Bob is still the main target. Hand: 1W, 1Wh, 2S.
+- Charlie has 3 Wood. I have 1W, 1Wh, 2S and a Monopoly card. Bob is still the target of the alliance. Need to find Brick to reach Node 9.
+- Bob has 3 Wheat and is on high-yield Wheat nodes (6, 9, 9). Charlie has 3 Wood. I have Monopoly. Target for expansion is Node 9 for the 3:1 port.
+- Used Monopoly on Wheat. Bob was the primary target due to his 3 Wheat. Need to convert this Wheat into Brick to reach the 3:1 port at Node 9.
+- Traded 4 Wheat for 1 Brick. Current hand: 1 Wood, 1 Brick, 2 Sheep. Need 1 Wheat to build settlement at Node 9 (3:1 port).
+- Attempting to acquire 1 Wheat from Charlie to build a settlement on the 3:1 port at Node 9. Current hand: 1W, 1B, 2S.
+- Need 1 Wheat for settlement at Node 9 (3:1 port). Current hand: 1W, 1B, 2S. Charlie has no wheat. Bob has 2 Wood, 1 Sheep.
+- Dice rolled 11. I gained 1 Wood. Current hand: 2W, 1B, 2S. Still need 1 Wheat for the settlement at Node 9. Bob has 2 Wood and 1 Sheep.
+
+=== BEFORE: Recent Notes Kept Verbatim ===
+- Rejected Bob's Wood-for-Brick trade. Hand remains 2W, 1B, 2S. Still need Wheat for Node 9. Bob has Wood and Sheep.
+- Dice 11 gave me Wood. Hand: 2W, 1B, 2S. Bob has Wood and Sheep. Charlie's turn. Still targeting Node 9 (3:1 port), needs 1 Wheat.
+
+=== BEFORE: Relevant Chat Considered ===
+- Alice: Much better. That field was getting a bit crowded anyway.
+- Charlie: Alice, I'm looking for a bit of brick to finish my path. Would you be interested in some wood in exchange?
+- Alice: I'd love to help out, Charlie, but I don't have any brick either. Bob seems to be the only one sitting on the clay lately.
+- Charlie: Well, at least the woods are providing. Since nobody has any clay to spare, I'll just hold onto these logs for now. Your turn, Alice.
+- Alice: Let's see if we can get something moving. These bricks are definitely playing hard to get.
+- Alice: Well, since the dice aren't giving us much to work with, I think I'll take matters into my own hands. Bob, you've been talking about keeping the wheat flowing... I'll take that quite literally.
+- Bob: Ouch, Alice. I guess 'literally' is one way to put it. I suppose I should be flattered you think I'm that good of a provider.
+- Alice: That's a lot of wheat, but I think I can find a better use for it than just making bread. Let's see if the bank is interested in a bulk deal.
+- Alice: Charlie, you've been a good ally. I'm just one bit of wheat short of getting this port running. Would you take a sheep for some wheat?
+- Charlie: I'd love to help you out, Alice, but I'm completely dry on wheat over here. I haven't seen a single stalk of it since you cleared the table!
+- Alice: Ah, no wheat in the cards then? No worries, Charlie. It's a tough market out here today. I'll just hold steady for now. Over to you, Bob.
+- Bob: Alright, Alice, that monopoly was a clean sweep. Let's see if the dice are feeling any more generous than you are.
+- Bob: Alice, you've got those fresh bricks from the bank. How about swapping one for some wood? It's better than letting it sit while the robber stalks the board.
+- Alice: Nice try, Bob, but I'm not letting go of my only brick for wood I already have. You'll have to find someone else to bail you out.
+- Charlie: You know, Bob, you talk a lot about 'balancing scales,' but I think it's time we actually leveled the field. That Wheat 8 was doing just fine without your 'guest.' Let's see how you like it when your bricks go missing for a change.
+- Bob: A bit dramatic for a simple knight, don't you think, Charlie? I'm just a humble merchant trying to keep the wheat flowing.
+- Charlie: Alright, let's see what the dice have to say about this 'balance' you keep talking about, Bob.
+- Charlie: Well, looks like the bricks are as dry as the desert right now. I'll just have to see what else I can find in the deck.
+- Bob: Tough market indeed, especially when someone corners the wheat supply! Let's see if the dice have a better sense of humor than the players.
+- Bob: Tough crowd today. I'll just hold onto these logs and hope the wind changes. Good luck, Charlie.
+
+=== AFTER: New Long-Term Summary ===
+Alice (Nodes 20, 25) is targeting the 3:1 port at Node 9. Alice successfully used a Wheat Monopoly to strip Bob of 3+ Wheat, then traded 4 Wheat to the bank for 1 Brick. Current hand: 2W, 1B, 2S. Next goal: Acquire 1 Wheat for the Node 9 settlement. Charlie remains a loyal ally but is currently out of Wheat and Brick. Bob is the primary antagonist, holding 2 Wood and 1 Sheep; Alice recently rejected his Wood-for-Brick trade offer. Bob produces high Wheat (Hexes 14, 18) and Brick (Hex 5).
+
+=== AFTER: Fallback Status ===
+used=False
+reason=(none)
+
+=== AFTER: Relationship Updates ===
+["Alice and Bob's rivalry intensified following Alice's targeted Wheat Monopoly and rejection of his trade offer.", "Alice's alliance with Charlie confirmed as stable but limited by Charlie's lack of current resources (Wheat/Brick)."]
+
+=== AFTER: Discarded As Irrelevant ===
+["Specific dice rolls aside from current turn", "Repeated mentions of Charlie's 3 wood", "Completed Monopoly action details", "Vague market comments"]
+
+=== RAW LLM RESPONSE PREVIEW ===
+{"compacted_memory":"Alice (Nodes 20, 25) is targeting the 3:1 port at Node 9. Alice successfully used a Wheat Monopoly to strip Bob of 3+ Wheat, then traded 4 Wheat to the bank for 1 Brick. Current hand: 2W, 1B, 2S. Next goal: Acquire 1 Wheat for the Node 9 settlement. Charlie remains a loyal ally but is currently out of Wheat and Brick. Bob is the primary antagonist, holding 2 Wood and 1 Sheep; Alice recently rejected his Wood-for-Brick trade offer. Bob produces high Wheat (Hexes 14, 18) and Brick (Hex 5).","recent_notes_to_keep":["Rejected Bob's Wood-for-Brick trade. Hand remains 2W, 1B, 2S. Still need Wheat for Node 9. Bob has Wood and Sheep.","Dice 11 gave me Wood. Hand: 2W, 1B, 2S. Bob has Wood and Sheep. Charlie's turn. Still targeting Node 9 (3:1 port), needs 1 Wheat."],"discarded_as_irrelevant":["Specific dice rolls aside from current turn","Repeated mentions of Charlie's 3 wood","Completed Monopoly action details","Vague market comments"],"relationship_updates":["Alice and Bob's rivalry intensified following Alice's targeted Wheat Monopoly and rejection of his trade offer.","Alice's alliance with Charlie confirmed as stable but limited by Charlie's lack of current resources (Wheat/Brick)."]}
+
+JSON artifact:
+examples\ai_testing\my_games\session_20260518_080519\Alice\memory_compactions\compaction_8.json

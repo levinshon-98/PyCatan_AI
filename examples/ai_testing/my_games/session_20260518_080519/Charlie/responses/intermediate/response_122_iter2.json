@@ -1,0 +1,30 @@
+{
+  "request_number": 122,
+  "iteration": 2,
+  "timestamp": "2026-05-18T10:11:34.395745",
+  "player_name": "Charlie",
+  "type": "intermediate",
+  "success": true,
+  "raw_content": "",
+  "has_tool_calls": true,
+  "tool_calls": [
+    {
+      "id": "tool_inspect_node_Kiv56J0MwtxoFbLfz88b",
+      "name": "inspect_node",
+      "parameters": {
+        "node_id": 41,
+        "reasoning": "Checking resource production for my settlement at node 41 to plan my next move."
+      }
+    }
+  ],
+  "model": "google/gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 3724,
+    "completion": 0,
+    "thinking": 0,
+    "total": 3724
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}

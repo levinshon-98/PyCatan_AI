@@ -1,0 +1,60 @@
+Memory Compaction #9 for Bob
+Time: 2026-05-18T09:48:04.173292
+
+=== BEFORE: Existing Long-Term Summary ===
+Bob's expansion from N12/N11 toward the N3 Wheat Port is stalled by Charlie's robber blocking Brick (H5/B6). Alice played a Monopoly card on Wheat, draining Bob's supply and trading for Brick via the bank; she currently has 1W, 2B, 2S. Charlie has 3W, 1B (from a roll of 10 on H8), and 1 hidden dev card, likely targeting the N7 Brick Port. Alice and Charlie are actively colluding, with Alice refusing to trade Brick to Bob. Bob currently holds 2W and 1S. Brick remains high-priority and scarce.
+
+=== BEFORE: Old Notes Compacted ===
+- Blocked on Brick (H5/6) by Charlie's robber. Need 1 Brick for road N12->N11. Alice and Charlie are colluding against me. Node 3 Wheat port is the goal.
+- Charlie rolled a 10 and gained 1 Brick from H8. He now has 3 Wood and 1 Brick. He is likely targeting the Brick port at N7.
+- Alice needs wheat. Charlie has excess wood and a brick. They are still friendly but Alice is picky. My priority remains getting brick to settle N11.
+- Rejected Charlie's Wood for Sheep trade. I have 2 Wood already and need Brick/Wheat/Sheep for progress; Wood is currently my most abundant resource.
+- Charlie has 3 Wood and 1 Brick. Alice has 2 Wood, 1 Brick, and 2 Sheep. Both are shunning me. I need a 6 or 10 to get materials, or a 5 to get my brick production back if the robber moves.
+- Alice rolled an 11, gaining 1 Wood. She now has 4 Wood, 1 Brick, and 2 Sheep. Charlie still holds 3 Wood and 1 Brick. The table is still hostile.
+- Alice and Charlie are both out of wheat. Alice has 3 Wood, 1 Brick, 2 Sheep. Charlie has 3 Wood, 1 Brick. I have 2 Wood and 1 Sheep. The 11 roll gave Alice 1 Wood.
+- My Brick 6 (H5) is blocked by the robber. I need to prioritize getting a Knight or rolling a 7 to free it, as Alice and Charlie are refusing to trade Brick to me.
+
+=== BEFORE: Recent Notes Kept Verbatim ===
+- Brick 6 is still blocked. I need a 7 or a Knight to move the robber. Alice and Charlie are still refusing to trade fairly.
+- Still stuck without Brick or Wheat. Need to prioritize moving the robber off Hex 5 (Brick 6) or reaching Node 3 (Wheat Port) to bypass the trade blockade. Current resources: 2 Wood, 1 Sheep.
+
+=== BEFORE: Relevant Chat Considered ===
+- Bob: Alice, you've got those fresh bricks from the bank. How about swapping one for some wood? It's better than letting it sit while the robber stalks the board.
+- Alice: Nice try, Bob, but I'm not letting go of my only brick for wood I already have. You'll have to find someone else to bail you out.
+- Bob: Tough crowd today. I'll just hold onto these logs and hope the wind changes. Good luck, Charlie.
+- Charlie: Bob, I know Alice is keeping a tight grip on those resources. I've got some extra wood if you're looking to extend a road—any interest in swapping a sheep for it?
+- Bob: I'm going to pass, Charlie. I've got enough wood to start a bonfire already, but my sheep is currently my only friend in this game.
+- Alice: Tough luck on the wheat then. I'll just have to wait for the dice to be a bit more generous. Your turn, Bob.
+- Bob: Let's see if the dice have a sense of humor then. My turn.
+- Bob: Alright, let's see if we can get some better numbers rolling. We really need to get this economy moving.
+- Bob: Tough luck on the wheat, Alice. I'm in the same boat. Charlie, you've got plenty of wood already, but if you want to swap a brick for some of mine to help your road, I'm open to it.
+- Charlie: Sorry Bob, I'm actually in the same boat—if I give up my brick, I'm just as stuck as you are. I'll have to pass.
+- Charlie: Let's see if we can get some actual production going. Those dice have been a bit quiet lately.
+- Charlie: Alice, you've got a bit of everything after that monopoly. I've got plenty of wood if you're looking to expand your roads or reach another port. How about two logs for a sheep and a bit of that wheat you found?
+- Alice: I'd take that deal if I could, Charlie, but I don't have any wheat left to give you.
+- Charlie: Alice, my mistake on the wheat—I must have miscounted what was left after your monopoly! How about a simpler swap? I can give you some wood for one of those sheep if you're interested.
+- Alice: I appreciate the offer, Charlie, but I've already got plenty of wood for now. I really need to find some wheat if I'm going to make any moves.
+- Charlie: Tough crowd. It seems everyone's hording their livestock today. I'll just hold onto what I've got and see how the next round treats us.
+- Alice: Alright, let's see if we can get some better numbers rolling. We really need to get this economy moving.
+- Alice: Charlie, any chance you've come across some wheat since we last spoke? I'm still looking for a bit to get my next house up.
+- Charlie: I'm in the same boat as you, Alice. Still haven't seen any wheat come my way yet.
+- Charlie: Finally, a good number! That wheat was definitely overdue.
+
+=== AFTER: New Long-Term Summary ===
+Bob's expansion toward the N3 Wheat Port is stalled by Charlie's robber on H5 (B6). Alice recently used Monopoly on Wheat and holds 3W, 1B, 3S. Charlie has 3W, 1Wh, 1B, and 1 hidden dev card (revealed Knight), likely targeting the N7 Brick Port. Alice and Charlie are colluding, refusing to trade Brick to Bob. Bob has 2W, 1S and is desperate for Brick/Wheat to settle N11. Wheat is currently scarce for all players. Priority: Move robber off H5 via 7 or Knight to restore Brick production.
+
+=== AFTER: Fallback Status ===
+used=False
+reason=(none)
+
+=== AFTER: Relationship Updates ===
+["Charlie: Refused to trade Brick to Bob, confirming a hard blockade despite friendly table talk with Alice.", "Alice: Reaffirmed trade blockade by refusing Bob's offer for Brick despite having a surplus of Wood."]
+
+=== AFTER: Discarded As Irrelevant ===
+["Specific dice rolls of 10 and 11", "Rejected trade offers for wood", "Vague comments about economy", "Repeated wood counts"]
+
+=== RAW LLM RESPONSE PREVIEW ===
+{"compacted_memory":"Bob's expansion toward the N3 Wheat Port is stalled by Charlie's robber on H5 (B6). Alice recently used Monopoly on Wheat and holds 3W, 1B, 3S. Charlie has 3W, 1Wh, 1B, and 1 hidden dev card (revealed Knight), likely targeting the N7 Brick Port. Alice and Charlie are colluding, refusing to trade Brick to Bob. Bob has 2W, 1S and is desperate for Brick/Wheat to settle N11. Wheat is currently scarce for all players. Priority: Move robber off H5 via 7 or Knight to restore Brick production.","recent_notes_to_keep":["Brick 6 is still blocked. I need a 7 or a Knight to move the robber. Alice and Charlie are still refusing to trade fairly.","Still stuck without Brick or Wheat. Need to prioritize moving the robber off Hex 5 (Brick 6) or reaching Node 3 (Wheat Port) to bypass the trade blockade. Current resources: 2 Wood, 1 Sheep."],"discarded_as_irrelevant":["Specific dice rolls of 10 and 11","Rejected trade offers for wood","Vague comments about economy","Repeated wood counts"],"relationship_updates":["Charlie: Refused to trade Brick to Bob, confirming a hard blockade despite friendly table talk with Alice.","Alice: Reaffirmed trade blockade by refusing Bob's offer for Brick despite having a surplus of Wood."]}
+
+JSON artifact:
+examples\ai_testing\my_games\session_20260518_080519\Bob\memory_compactions\compaction_9.json

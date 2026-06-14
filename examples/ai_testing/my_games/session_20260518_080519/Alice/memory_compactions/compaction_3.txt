@@ -1,0 +1,60 @@
+Memory Compaction #3 for Alice
+Time: 2026-05-18T09:19:51.797942
+
+=== BEFORE: Existing Long-Term Summary ===
+Alice settled Node 20 (B6, S8, W11) and Node 25 (O2, O5, S11). Roads extend to Node 9 (3:1 Port) and Node 21. Current goals: Settle Node 9 (requires W/B/Wh) and secure Node 32 for Wheat. Node 11 is blocked by Bob. Bob (Nodes 12, 43) has massive Wheat/Ore/Sheep production; he is the primary threat for early Dev Cards/Cities. Charlie (Nodes 41, 14) is expanding toward coastal ports (Nodes 7/15/42) and offers potential Wood trades. Alice holds 1 Dev Card. Robber is on Hex 4 (S8), blocking Alice's sheep income.
+
+=== BEFORE: Old Notes Compacted ===
+- Bob rolled a 7. He has 3 wheat and might be looking to build or buy a dev card after the rob. My node 20 (Sheep 8, Brick 6) is a high-value target.
+- Bob moved the robber to Hex 4 (Sheep 8) and stole from me. He currently has 4 wheat and whatever he stole from me. My priority is clearing Hex 4 to restore my sheep income.
+- Charlie needs sheep or brick. I have sheep. Bob is desperate for wood and has excess wheat. Charlie declined Bob's 2:1 wheat offer.
+- Bob traded 3 Wheat for 1 Wood with Charlie. Bob now has 1 Wood and 1 Wheat. Charlie has 5 Wheat and 1 Wood. Charlie still needs Brick/Sheep.
+- Bob traded 3 Wheat to Charlie for 1 Wood. Bob likely has 1 Wood and 1 Wheat left. Charlie has 5 Wheat and 1 Wood. Charlie still needs Brick and Sheep. Robber is still on my Hex 4.
+- Charlie rolled a 7 and must move the robber. Bob currently has 1 Wood and 1 Wheat. Charlie has 5 Wheat and 1 Wood.
+- Charlie moved the robber to Hex 5, blocking Bob's Brick. My Sheep 8 (Hex 4) is now open. Charlie is friendly for now but still holding a lot of Wheat.
+- Charlie moved the robber to Hex 5 (Bob's Brick). My Sheep 8 (Hex 4) is now open. Charlie is currently an ally against Bob's aggressive expansion.
+
+=== BEFORE: Recent Notes Kept Verbatim ===
+- Accepted Charlie's trade (1 Wood for 1 Sheep). I now have 1 Wood and 0 Sheep. Hex 4 (Sheep 8) is open again, so I should see sheep income soon. Goal: Get Brick and Wheat for Node 9.
+- Charlie bank-traded 4 Wheat for 1 Brick. He likely used the Wood I traded him to build something. Charlie is currently out of Wheat.
+
+=== BEFORE: Relevant Chat Considered ===
+- Bob: Sorry, Alice. You've been watching my wheat so closely, I figured I'd give you something else to keep an eye on. Those sheep were looking a bit too comfortable anyway.
+- Alice: And there's the Bob I remember. So much for 'community gardens,' right? I'll be sure to return the favor.
+- Alice: Smart move, Charlie. Bob's 'community gardens' usually come with a heavy tax. Don't forget I've actually got those sheep you were looking for.
+- Bob: Pleasure doing business, Charlie. That wood will be put to good use. Alice, don't look so sour—there's enough land for everyone if we just work together.
+- Alice: Hard not to look sour when you're the one standing on my sheep, Bob. 'Working together' usually doesn't involve theft.
+- Alice: Hopefully the dice help you clear out the 'weeds' Bob planted on my sheep, Charlie.
+- Charlie: Sorry Bob, but that 6 is just too hot to leave open while you're building roads like they're going out of style. Alice, you're welcome for the sheep back.
+- Alice: Much appreciated, Charlie. It's nice to actually see some green on that hex again.
+- Bob: Et tu, Charlie? I thought we were building a beautiful friendship with those gardens. Alice, I hope you're happy now that the roads have stopped!
+- Charlie: Sorry Bob, but that 6 is just too hot to leave open while you're building roads like they're going out of style. Alice, you're welcome for the sheep back.
+- Alice: I'm plenty happy, Bob. It's much easier to 'work together' when you aren't the only one sitting on a pile of resources.
+- Charlie: Alice, I cleared that robber off your sheep for a reason—reckon you could spare one of those lambs for some quality wood? It'd help us both keep Bob's 'gardens' from growing any further.
+- Alice: That seems more than fair, Charlie. Since you were kind enough to clear the 'weeds' off my pasture, I can certainly spare a lamb for some wood. Let's keep that momentum going.
+- Bob: Charlie, you've got plenty of timber and I've got the bread. How about a trade to help us both get moving?
+- Charlie: I appreciate the offer, Bob, but I'm actually doing alright on wheat for now. I really need to find some sheep or brick if I'm going to get anywhere.
+- Bob: Charlie, I know you said you're okay on wheat, but three-for-one is a bargain you can't ignore. It'll give you plenty of trade bait for those bricks you're after!
+- Charlie: Three for one? That's a hard bargain to pass up, Bob, even if I am already set on bread. I'll take it—might help me find those bricks later.
+- Charlie: Alright, let's see if the dice are as generous as Bob's 'community gardens' claim to be.
+- Bob: Careful, Charlie. Those gardens need a lot of sun, not a shady robber.
+- Charlie: Alright, the bank's rates are highway robbery, but I need to get some infrastructure moving.
+
+=== AFTER: New Long-Term Summary ===
+Alice settled Node 20 (B6, S8, W11) and Node 25 (O2, O5, S11). Roads extend to Node 9 (3:1 Port) and Node 21. Current goals: Settle Node 9 (needs B/Wh) and secure Node 32 for Wheat. Node 11 is blocked by Bob. Bob (Nodes 12, 43) is the primary threat with high Wheat/Ore/Sheep production. Charlie (Nodes 41, 14) is expanding toward coastal ports and currently acting as an ally against Bob. Charlie moved the robber to Hex 5, unblocking Alice's Sheep 8 (Hex 4). Bob recently traded 3 Wheat for 1 Wood with Charlie. Alice holds 1 Dev Card. Bob has roughly 1 Wood and 1 Wheat remaining. Charlie is currently low on Wheat after a bank trade for Brick.
+
+=== AFTER: Fallback Status ===
+used=False
+reason=(none)
+
+=== AFTER: Relationship Updates ===
+["Alice and Charlie formed a temporary alliance against Bob; Alice feels indebted for the robber removal.", "Bob's mocking 'community gardens' talk and theft have solidified Alice's role as his primary antagonist."]
+
+=== AFTER: Discarded As Irrelevant ===
+["Completed robber movements", "Redundant resource counts from previous turns", "Vague 'momentum' talk"]
+
+=== RAW LLM RESPONSE PREVIEW ===
+{"compacted_memory":"Alice settled Node 20 (B6, S8, W11) and Node 25 (O2, O5, S11). Roads extend to Node 9 (3:1 Port) and Node 21. Current goals: Settle Node 9 (needs B/Wh) and secure Node 32 for Wheat. Node 11 is blocked by Bob. Bob (Nodes 12, 43) is the primary threat with high Wheat/Ore/Sheep production. Charlie (Nodes 41, 14) is expanding toward coastal ports and currently acting as an ally against Bob. Charlie moved the robber to Hex 5, unblocking Alice's Sheep 8 (Hex 4). Bob recently traded 3 Wheat for 1 Wood with Charlie. Alice holds 1 Dev Card. Bob has roughly 1 Wood and 1 Wheat remaining. Charlie is currently low on Wheat after a bank trade for Brick.","recent_notes_to_keep":["Accepted Charlie's trade (1 Wood for 1 Sheep). I now have 1 Wood and 0 Sheep. Hex 4 (Sheep 8) is open again, so I should see sheep income soon. Goal: Get Brick and Wheat for Node 9.","Charlie bank-traded 4 Wheat for 1 Brick. He likely used the Wood I traded him to build something. Charlie is currently out of Wheat."],"discarded_as_irrelevant":["Completed robber movements","Redundant resource counts from previous turns","Vague 'momentum' talk"],"relationship_updates":["Alice and Charlie formed a temporary alliance against Bob; Alice feels indebted for the robber removal.","Bob's mocking 'community gardens' talk and theft have solidified Alice's role as his primary antagonist."]}
+
+JSON artifact:
+examples\ai_testing\my_games\session_20260518_080519\Alice\memory_compactions\compaction_3.json

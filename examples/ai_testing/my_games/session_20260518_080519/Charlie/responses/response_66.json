@@ -1,0 +1,23 @@
+{
+  "request_number": 66,
+  "timestamp": "2026-05-18T09:40:42.858446",
+  "player_name": "Charlie",
+  "type": "final",
+  "success": true,
+  "raw_content": "{\"internal_thinking\":\"Bob is rolling 11s now, which gives Alice more Wheat. I'm sitting on 3 Wood and need Brick. Bob is still blocked on his 6, which is perfect. I'll stay quiet and let him stew.\",\"note_to_self\":\"Bob rolled 11. Alice gained 1 Wheat. Alice's hand is now 2W, 1B, 2S, 1Wh. I still need 1 Brick for my settlement at N7.\",\"say_outloud\":\"\"}",
+  "parsed": {
+    "internal_thinking": "Bob is rolling 11s now, which gives Alice more Wheat. I'm sitting on 3 Wood and need Brick. Bob is still blocked on his 6, which is perfect. I'll stay quiet and let him stew.",
+    "note_to_self": "Bob rolled 11. Alice gained 1 Wheat. Alice's hand is now 2W, 1B, 2S, 1Wh. I still need 1 Brick for my settlement at N7.",
+    "say_outloud": ""
+  },
+  "model": "google/gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 2565,
+    "completion": 88,
+    "thinking": 0,
+    "total": 2653
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}

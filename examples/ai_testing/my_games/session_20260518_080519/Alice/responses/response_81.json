@@ -1,0 +1,23 @@
+{
+  "request_number": 81,
+  "timestamp": "2026-05-18T09:50:34.567694",
+  "player_name": "Alice",
+  "type": "final",
+  "success": true,
+  "raw_content": "{\n  \"internal_thinking\": \"Charlie just traded Wheat to Bob. Charlie knows I need Wheat (or thinks I do), but he chose to help Bob instead after I turned down his Wood-for-Sheep trade. Bob is my main rival, so seeing them trade is annoying, but it's a 1:1 swap. I have what I need for my settlement on node 9 anyway, so I don't need to beg.\",\n  \"note_to_self\": \"Charlie and Bob traded 1 Wheat for 1 Sheep. I have 3W, 1B, 4S, 1Wh; I am ready to build a settlement on Node 9 on my next turn. Charlie is becoming more willing to trade with Bob when I decline his offers.\",\n  \"say_outloud\": \"\"\n}",
+  "parsed": {
+    "internal_thinking": "Charlie just traded Wheat to Bob. Charlie knows I need Wheat (or thinks I do), but he chose to help Bob instead after I turned down his Wood-for-Sheep trade. Bob is my main rival, so seeing them trade is annoying, but it's a 1:1 swap. I have what I need for my settlement on node 9 anyway, so I don't need to beg.",
+    "note_to_self": "Charlie and Bob traded 1 Wheat for 1 Sheep. I have 3W, 1B, 4S, 1Wh; I am ready to build a settlement on Node 9 on my next turn. Charlie is becoming more willing to trade with Bob when I decline his offers.",
+    "say_outloud": ""
+  },
+  "model": "google/gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 2597,
+    "completion": 147,
+    "thinking": 0,
+    "total": 2744
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}

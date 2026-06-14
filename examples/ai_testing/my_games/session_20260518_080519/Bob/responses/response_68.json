@@ -1,0 +1,25 @@
+{
+  "request_number": 68,
+  "timestamp": "2026-05-18T09:44:19.631717",
+  "player_name": "Bob",
+  "type": "final",
+  "success": true,
+  "raw_content": "{\n  \"internal_thinking\": \"Charlie is offering 1 Wood for 1 Sheep. I currently have 2 Wood and 1 Sheep. Accepting this trade would leave me with 3 Wood and 0 Sheep. My primary goal is to reach Node 11 and eventually the Wheat port at Node 3, but I am desperately short on Brick (the H5/B6 hex is blocked by the robber anyway). While Wood is useful for roads, I already have 2. Giving up my only Sheep for a third Wood doesn't significantly advance my position, especially since I need Brick and Wheat to build anything. Additionally, Charlie is likely trying to offload excess Wood to get resources for his own expansion toward the Brick port. Since Alice and Charlie are clearly working together to freeze me out, I shouldn't help Charlie optimize his hand for a resource I already have plenty of.\",\n  \"action\": {\n    \"type\": \"trade_reject\",\n    \"parameters\": \"{}\"\n  },\n  \"note_to_self\": \"Rejected Charlie's Wood for Sheep trade. I have 2 Wood already and need Brick/Wheat/Sheep for progress; Wood is currently my most abundant resource.\",\n  \"say_outloud\": \"I'm going to pass, Charlie. I've got enough wood to start a bonfire already, but my sheep is currently my only friend in this game.\"\n} ",
+  "parsed": {
+    "internal_thinking": "Charlie is offering 1 Wood for 1 Sheep. I currently have 2 Wood and 1 Sheep. Accepting this trade would leave me with 3 Wood and 0 Sheep. My primary goal is to reach Node 11 and eventually the Wheat port at Node 3, but I am desperately short on Brick (the H5/B6 hex is blocked by the robber anyway). While Wood is useful for roads, I already have 2. Giving up my only Sheep for a third Wood doesn't significantly advance my position, especially since I need Brick and Wheat to build anything. Additionally, Charlie is likely trying to offload excess Wood to get resources for his own expansion toward the Brick port. Since Alice and Charlie are clearly working together to freeze me out, I shouldn't help Charlie optimize his hand for a resource I already have plenty of.",
+    "note_to_self": "Rejected Charlie's Wood for Sheep trade. I have 2 Wood already and need Brick/Wheat/Sheep for progress; Wood is currently my most abundant resource.",
+    "say_outloud": "I'm going to pass, Charlie. I've got enough wood to start a bonfire already, but my sheep is currently my only friend in this game.",
+    "action_type": "trade_reject",
+    "parameters": {}
+  },
+  "model": "google/gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 5652,
+    "completion": 298,
+    "thinking": 0,
+    "total": 6125
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}

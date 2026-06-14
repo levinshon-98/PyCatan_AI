@@ -1,0 +1,23 @@
+{
+  "request_number": 62,
+  "timestamp": "2026-05-18T09:38:51.738368",
+  "player_name": "Charlie",
+  "type": "final",
+  "success": true,
+  "raw_content": "{\"internal_thinking\":\"Alice used Monopoly on Wheat. She specifically targeted Bob's claim of 'keeping the wheat flowing.' I have 0 Wheat now, so I wasn't hurt by this. This keeps Bob down, which is good for me. I should stay quiet and let Alice and Bob bicker.\",\"note_to_self\":\"Alice played Monopoly on Wheat, taking 3 from Bob. I lost 0 Wheat. Bob is now even further behind on resources while his Brick is still blocked.\",\"say_outloud\":\"\"}",
+  "parsed": {
+    "internal_thinking": "Alice used Monopoly on Wheat. She specifically targeted Bob's claim of 'keeping the wheat flowing.' I have 0 Wheat now, so I wasn't hurt by this. This keeps Bob down, which is good for me. I should stay quiet and let Alice and Bob bicker.",
+    "note_to_self": "Alice played Monopoly on Wheat, taking 3 from Bob. I lost 0 Wheat. Bob is now even further behind on resources while his Brick is still blocked.",
+    "say_outloud": ""
+  },
+  "model": "google/gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 2602,
+    "completion": 110,
+    "thinking": 0,
+    "total": 2712
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}

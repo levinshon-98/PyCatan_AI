@@ -1,0 +1,76 @@
+Memory Compaction #7 for Alice
+Time: 2026-05-18T09:38:04.076542
+
+=== BEFORE: Existing Long-Term Summary ===
+Alice (Nodes 20, 25) aims to settle Node 9 (3:1 port) then Node 32. Hand: 1 Wood, 1 Wheat, 1 Sheep + Monopoly card. Target resources: Brick and Wood. Robber moved from Hex 5 (Brick 6) to Hex 7 (Wheat 8), now blocking Alice and Charlie. Bob (Nodes 12, 43) is the primary antagonist and just rolled a 7 to move the robber. Charlie (Nodes 41, 14) remains a loyal ally; he recently bought a dev card and is hoarding Wood for his own settlement near Node 7. Charlie and Alice have a mutual pact against Bob and have prioritized 1:1 trading, though Charlie currently refuses to trade Wood. Alice holds a Monopoly card for a potential strategic strike.
+
+=== BEFORE: Old Notes Compacted ===
+- Bob rolled a 7. He is currently in the ROBBER_MOVE phase. He will likely target me or Charlie to break our momentum and free his Brick 6.
+- Bob moved the robber to Hex 7 (Wheat 8), blocking both Alice and Charlie. Alice holds a Monopoly card.
+- Bob stole from Charlie after moving the robber to Hex 7 (Wheat 8). Charlie likely has wood since Bob mentioned wood rolls. I still have my Monopoly card; I should wait for a high-yield roll to use it.
+- Rejected Bob's 1:1 Sheep for Wood. I need to keep my Wood for Node 9 and I'm not helping Bob after he blocked my Wheat 8.
+- Bob ended his turn without getting any brick. He remains the primary threat. Charlie has zero brick as confirmed by his repeated rejections. My goal remains Node 9.
+- Charlie used a Knight to move the robber from Hex 7 (Wheat 8) to Hex 5 (Brick 6), targeting Bob. This confirms Charlie's commitment to our alliance and frees up my wheat production.
+- Charlie rolled a 4. I received 1 Sheep. Charlie received 1 Wood. Bob received nothing. Hand now: 1W, 1Wh, 3S.
+- Charlie needs brick. I have none. I have 1W, 1Wh, 2S. Charlie just rolled a 4, giving me a sheep and him a wood. Bob is still the target of our alliance.
+
+=== BEFORE: Recent Notes Kept Verbatim ===
+- Charlie bought a development card after failing to find brick. He has 3 wood left. Bob is still the main target. Hand: 1W, 1Wh, 2S.
+- Charlie has 3 Wood. I have 1W, 1Wh, 2S and a Monopoly card. Bob is still the target of the alliance. Need to find Brick to reach Node 9.
+
+=== BEFORE: Relevant Chat Considered ===
+- Alice: Spoken like a true 'community' leader, Bob. Always looking for ways to share the burden.
+- Alice: Balance the scales? You're just hitting the only person who hasn't tried to backstab me yet, Bob.
+- Bob: Alice, you're always talking about community. How about a little neighborly swap? I'll give you some prime wool for a bit of that wood you've got lying around.
+- Alice: You just put a 'guest' in my wheat field, Bob, and now you want my wood? I think I'll pass. I'm sure you can find someone else to 'balance the scales' with.
+- Alice: Much better. That field was getting a bit crowded anyway.
+- Charlie: Alice, I'm looking for a bit of brick to finish my path. Would you be interested in some wood in exchange?
+- Alice: I'd love to help out, Charlie, but I don't have any brick either. Bob seems to be the only one sitting on the clay lately.
+- Charlie: Well, at least the woods are providing. Since nobody has any clay to spare, I'll just hold onto these logs for now. Your turn, Alice.
+- Charlie: I figured you’d be eager to move that, Bob. Just don't get too comfortable with wherever you're putting it.
+- Bob: Sorry Charlie, but you've been a bit too successful with those wood rolls lately. I need to balance the scales a little.
+- Charlie: Balance the scales? You're just mad about that blocked brick, Bob. Don't worry, I'll remember the favor.
+- Bob: Look, Charlie, I know the robber is a bit of a nuisance, but I'm looking to move things along. You've got bricks, I've got plenty of wheat for those cities you'll want later. Three wheat for one brick? It's a steal.
+- Charlie: I don't have any brick for you, Bob. Maybe if you hadn't just robbed me, I'd be more inclined to help you find some.
+- Bob: Charlie, I know you said you were out of brick, but surely three bags of wheat is enough to make you check your pockets again? It's a massive overpay, but I'm feeling generous after that seven.
+- Charlie: I'm not hiding anything, Bob. I still have zero brick. Checking my pockets won't change the fact that you're asking for something I don't have.
+- Bob: Well, if the bricks are as scarce as the hospitality around here, I suppose I'll just have to wait. Good luck with the next roll, everyone.
+- Charlie: You know, Bob, you talk a lot about 'balancing scales,' but I think it's time we actually leveled the field. That Wheat 8 was doing just fine without your 'guest.' Let's see how you like it when your bricks go missing for a change.
+- Bob: A bit dramatic for a simple knight, don't you think, Charlie? I'm just a humble merchant trying to keep the wheat flowing.
+- Charlie: Alright, let's see what the dice have to say about this 'balance' you keep talking about, Bob.
+- Charlie: Well, looks like the bricks are as dry as the desert right now. I'll just have to see what else I can find in the deck.
+
+=== AFTER: New Long-Term Summary ===
+Alice (Nodes 20, 25) is targeting Node 9 (3:1 port). Current hand: 1W, 1Wh, 2S plus a Monopoly card. Charlie (Nodes 41, 14) is a confirmed ally who used a Knight to move the robber from Hex 7 (Wheat 8) back to Bob's Hex 5 (Brick 6). Charlie has 3 Wood and no Brick, while Bob is the primary antagonist and likely has Wheat. Alice and Charlie have a firm 1:1 trading pact and mutual defense against Bob. Strategic goal: Obtain Brick for Node 9 expansion while holding Monopoly for a high-value resource roll.
+
+=== AFTER: Fallback Status ===
+used=False
+reason=(none)
+
+=== AFTER: Relationship Updates ===
+["Alice's trust in Charlie increased following his Knight play to protect their shared Wheat 8 production.", "Tension with Bob escalated after his 'guest' comment and attempt to trade for Alice's Wood immediately after robbing the"]
+
+=== AFTER: Discarded As Irrelevant ===
+["Specific dice roll results (2,2 and 4)", "Expired robber positions", "Completed turn phases", "Redundant mentions of Bob being the target"]
+
+=== RAW LLM RESPONSE PREVIEW ===
+{
+  "compacted_memory": "Alice (Nodes 20, 25) is targeting Node 9 (3:1 port). Current hand: 1W, 1Wh, 2S plus a Monopoly card. Charlie (Nodes 41, 14) is a confirmed ally who used a Knight to move the robber from Hex 7 (Wheat 8) back to Bob's Hex 5 (Brick 6). Charlie has 3 Wood and no Brick, while Bob is the primary antagonist and likely has Wheat. Alice and Charlie have a firm 1:1 trading pact and mutual defense against Bob. Strategic goal: Obtain Brick for Node 9 expansion while holding Monopoly for a high-value resource roll.",
+  "recent_notes_to_keep": [
+    "Charlie bought a development card after failing to find brick. He has 3 wood left. Bob is still the main target. Hand: 1W, 1Wh, 2S.",
+    "Charlie has 3 Wood. I have 1W, 1Wh, 2S and a Monopoly card. Bob is still the target of the alliance. Need to find Brick to reach Node 9."
+  ],
+  "discarded_as_irrelevant": [
+    "Specific dice roll results (2,2 and 4)",
+    "Expired robber positions",
+    "Completed turn phases",
+    "Redundant mentions of Bob being the target"
+  ],
+  "relationship_updates": [
+    "Alice's trust in Charlie increased following his Knight play to protect their shared Wheat 8 production.",
+    "Tension with Bob escalated after his 'guest' comment and attempt to trade for Alice's Wood immediately after robbing the alliance."
+  ]
+}
+
+JSON artifact:
+examples\ai_testing\my_games\session_20260518_080519\Alice\memory_compactions\compaction_7.json

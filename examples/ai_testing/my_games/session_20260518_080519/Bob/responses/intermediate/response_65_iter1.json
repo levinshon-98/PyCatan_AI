@@ -1,0 +1,30 @@
+{
+  "request_number": 65,
+  "iteration": 1,
+  "timestamp": "2026-05-18T09:41:27.684043",
+  "player_name": "Bob",
+  "type": "intermediate",
+  "success": true,
+  "raw_content": "",
+  "has_tool_calls": true,
+  "tool_calls": [
+    {
+      "id": "tool_inspect_node_XhOqup9TylZATmCDWSj9",
+      "name": "inspect_node",
+      "parameters": {
+        "node_id": 11,
+        "reasoning": "Verifying the neighbors of node 11 to check pathing options from my settlement at node 12."
+      }
+    }
+  ],
+  "model": "google/gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 3424,
+    "completion": 0,
+    "thinking": 0,
+    "total": 3424
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}

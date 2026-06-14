@@ -1,0 +1,23 @@
+{
+  "request_number": 28,
+  "timestamp": "2026-05-18T09:21:10.067067",
+  "player_name": "Charlie",
+  "type": "final",
+  "success": true,
+  "raw_content": "{\"internal_thinking\":\"Alice rolled a 5. This gives me 1 Ore from Hex 17 (O5). My resources are now 1W, 1B, 1S, 1Wh, 1O. I have exactly what I need to settle at Node 7 (Brick Port) on my next turn. I'm staying quiet to avoid drawing attention to my hand.\",\"note_to_self\":\"Alice rolled a 5. I gained 1 Ore. Current hand: 1 Wood, 1 Brick, 1 Sheep, 1 Wheat, 1 Ore. This is enough to build a settlement at Node 7 on my turn.\",\"say_outloud\":\"\"}",
+  "parsed": {
+    "internal_thinking": "Alice rolled a 5. This gives me 1 Ore from Hex 17 (O5). My resources are now 1W, 1B, 1S, 1Wh, 1O. I have exactly what I need to settle at Node 7 (Brick Port) on my next turn. I'm staying quiet to avoid drawing attention to my hand.",
+    "note_to_self": "Alice rolled a 5. I gained 1 Ore. Current hand: 1 Wood, 1 Brick, 1 Sheep, 1 Wheat, 1 Ore. This is enough to build a settlement at Node 7 on my turn.",
+    "say_outloud": ""
+  },
+  "model": "google/gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 2459,
+    "completion": 109,
+    "thinking": 0,
+    "total": 2568
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}

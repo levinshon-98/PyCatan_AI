@@ -1,0 +1,522 @@
+{
+  "player_name": "Bob",
+  "compaction_number": 12,
+  "timestamp": "2026-05-18T10:01:20.808255",
+  "before": {
+    "existing_compacted_memory": "Bob's Brick production on H5 (B6) is restored after Charlie moved the robber to H4 (S8) to target Alice. Alice (3 VP) holds a Wood/Sheep surplus and the N9 (?3) port. Charlie (3 VP) secured the N7 Brick port (B2) and has one hidden Dev card. Alice and Charlie maintain a selective trade blockade against Bob, only trading with each other to enable major builds. Bob (2 VP) holds 2W/3Wh and needs Brick to settle N11 or reach the N3 Wheat port to achieve resource independence. Priority: Capitalize on restored Brick production to expand before the robber returns.",
+    "existing_relationship_updates": [
+      {
+        "note": "Alice: Reaffirmed trade blockade by refusing Bob's offer for Brick despite having a surplus of Wood.",
+        "timestamp": 1779086884.1697454
+      },
+      {
+        "note": "Charlie: Slight softening of blockade by trading Wheat to Bob, though still refusing to trade Brick.",
+        "timestamp": 1779087173.8343852
+      },
+      {
+        "note": "Alice/Charlie: Strategic alliance confirmed; they trade to enable each other's settlements (N7) while excluding Bob.",
+        "timestamp": 1779087438.0507364
+      },
+      {
+        "note": "Charlie: Betrayed the hard blockade to trade Wheat to Alice, prioritizing his own expansion over the pact against Bob.",
+        "timestamp": 1779087438.0507376
+      },
+      {
+        "note": "Alice: Remains hostile, prioritizing blocking Bob's growth even when sharing negative effects of the robber.",
+        "timestamp": 1779087438.050738
+      },
+      {
+        "note": "Alice/Charlie: Alliance is strained; Charlie blocked Alice's Sheep (H4) despite their previous trade cooperation.",
+        "timestamp": 1779087680.8058314
+      }
+    ],
+    "old_notes_to_compact": [
+      {
+        "note": "Charlie built on Node 7 (Brick Port). Alice and Charlie's trade directly enabled this. Charlie is now at 3 VP and has a strong resource engine.",
+        "timestamp": 1779087415.5712733
+      },
+      {
+        "note": "Charlie has the Brick port (Node 7) and a hidden dev card. Alice and Charlie's 'blockade' is porous when it benefits them. My Brick production on Hex 5 is open, so I need to capitalize on this before the robber moves back.",
+        "timestamp": 1779087433.9624684
+      },
+      {
+        "note": "Alice rolled a 12, giving her one Wood. She is still bitter about the robber on Hex 4 (Sheep 8).",
+        "timestamp": 1779087465.4637127
+      },
+      {
+        "note": "Alice and Charlie are both at 3 VP. Alice is low on brick. My 6-brick is currently unblocked.",
+        "timestamp": 1779087519.702021
+      },
+      {
+        "note": "I have strong Wheat production (Nodes 43) and decent Brick (Node 12). Need to watch Alice and Charlie's alliance as they both sit at 3 VP.",
+        "timestamp": 1779087534.1139634
+      },
+      {
+        "note": "Targeting Node 3 (Wheat Port) to leverage my 5-wheat hand and future production. Need 1 Brick for the road [11,3] and then a full settlement kit.",
+        "timestamp": 1779087562.1510744
+      },
+      {
+        "note": "Traded 4 Wheat for 1 Brick via bank. Current resources: 2 Wood, 1 Wheat, 1 Brick. Goal: Build road [11, 3] to reach Wheat Port.",
+        "timestamp": 1779087583.944151
+      },
+      {
+        "note": "Building road to Node 3 (Wheat Port). Next turn needs 1 Wood, 1 Brick, 1 Sheep, 1 Wheat for the settlement.",
+        "timestamp": 1779087613.4560397
+      }
+    ],
+    "recent_notes_kept_verbatim": [
+      {
+        "note": "Road to Node 3 (Wheat Port) is complete. Missing 1 Brick and 1 Sheep for the settlement. Node 3 is verified open and provides a 2:1 Wheat port.",
+        "timestamp": 1779087635.9831874
+      },
+      {
+        "note": "Roll of 4 gave Charlie 2 Wood and Alice 1 Sheep. Both are at 3 VP. I am still at 2 VP and need Sheep/Brick.",
+        "timestamp": 1779087676.9100952
+      }
+    ],
+    "relevant_chat": [
+      {
+        "from": "Alice",
+        "message": "Fair enough, Charlie. I figured you and Bob were starting to get a little too comfortable together anyway.",
+        "response_id": "Alice:91",
+        "request_number": 91,
+        "response_type": "reaction",
+        "audio_path": "replay_audio/response_0091_player_1_Alice.wav"
+      },
+      {
+        "from": "Alice",
+        "message": "Alright, Charlie. Since you're being 'reasonable' now, I'll take that wheat. It's better than letting this wood sit around while you and Bob plot.",
+        "response_id": "Alice:92",
+        "request_number": 92,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0092_player_1_Alice.wav"
+      },
+      {
+        "from": "Bob",
+        "message": "Funny how quickly the 'blockade' melts away when you two need something from each other. I see how it is.",
+        "response_id": "Bob:88",
+        "request_number": 88,
+        "response_type": "reaction",
+        "audio_path": "replay_audio/response_0088_player_2_Bob.wav"
+      },
+      {
+        "from": "Bob",
+        "message": "Must be nice having Alice as a personal supplier, Charlie. That port is going to make you very dangerous.",
+        "response_id": "Bob:89",
+        "request_number": 89,
+        "response_type": "reaction",
+        "audio_path": "replay_audio/response_0089_player_2_Bob.wav"
+      },
+      {
+        "from": "Bob",
+        "message": "Well, since the 'dry' brick market seems to be the only thing you two can agree on, let's see if the dice have a better sense of humor than this alliance.",
+        "response_id": "Bob:93",
+        "request_number": 93,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0093_player_2_Bob.wav"
+      },
+      {
+        "from": "Bob",
+        "message": "Charlie, you've got that fancy new port but looking a bit thin on the wheat to actually use it. How about two stacks of grain for just one of your bricks? Help me, help you.",
+        "response_id": "Bob:94",
+        "request_number": 94,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0094_player_2_Bob.wav"
+      },
+      {
+        "from": "Charlie",
+        "message": "Like I told Alice, Bob, the brick market is empty. I don't have any to trade.",
+        "response_id": "Charlie:100",
+        "request_number": 100,
+        "response_type": "reaction",
+        "audio_path": "replay_audio/response_0100_player_3_Charlie.wav"
+      },
+      {
+        "from": "Bob",
+        "message": "If you won't trade, the bank will. It's a steep price, but I've got grain to spare.",
+        "response_id": "Bob:95",
+        "request_number": 95,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0095_player_2_Bob.wav"
+      },
+      {
+        "from": "Bob",
+        "message": "The bank's rates are highway robbery, but at least the road is getting built. One step closer to making all this grain actually useful.",
+        "response_id": "Bob:96",
+        "request_number": 96,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0096_player_2_Bob.wav"
+      },
+      {
+        "from": "Bob",
+        "message": "The road is down. It's a bit of a trek to the coast, but that wheat is going to start paying for itself soon enough. Your turn, Alice.",
+        "response_id": "Bob:97",
+        "request_number": 97,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0097_player_2_Bob.wav"
+      },
+      {
+        "from": "Charlie",
+        "message": "Sorry Alice, you're just getting a bit too far ahead with that new port. I need to slow that sheep production down a little.",
+        "response_id": "Charlie:92",
+        "request_number": 92,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0092_player_3_Charlie.wav"
+      },
+      {
+        "from": "Charlie",
+        "message": "Alice, you've got plenty of wood and I've got some prime wheat if you're looking to build another settlement soon. How about a fair swap?",
+        "response_id": "Charlie:93",
+        "request_number": 93,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0093_player_3_Charlie.wav"
+      },
+      {
+        "from": "Charlie",
+        "message": "Thanks for the wood, Alice. This brick port should make things a bit more interesting for me.",
+        "response_id": "Charlie:94",
+        "request_number": 94,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0094_player_3_Charlie.wav"
+      },
+      {
+        "from": "Charlie",
+        "message": "Well, at least the robber is staying away from my hexes for once. Good luck dealing with that, Alice.",
+        "response_id": "Charlie:95",
+        "request_number": 95,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0095_player_3_Charlie.wav"
+      },
+      {
+        "from": "Alice",
+        "message": "Don't get too comfortable, Charlie. That port makes you a much bigger target than I ever was.",
+        "response_id": "Alice:94",
+        "request_number": 94,
+        "response_type": "reaction",
+        "audio_path": "replay_audio/response_0094_player_1_Alice.wav"
+      },
+      {
+        "from": "Alice",
+        "message": "Alright, let's see if the dice are any kinder to me than you've been, Charlie. I'd really like that Sheep 8 back.",
+        "response_id": "Alice:95",
+        "request_number": 95,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0095_player_1_Alice.wav"
+      },
+      {
+        "from": "Alice",
+        "message": "Charlie, you've got that shiny new brick port and I've still got plenty of wood. How about we keep the wheels of commerce turning? My wood for one of your bricks?",
+        "response_id": "Alice:96",
+        "request_number": 96,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0096_player_1_Alice.wav"
+      },
+      {
+        "from": "Charlie",
+        "message": "I'd love to help, Alice, but I actually don't have any brick right now.",
+        "response_id": "Charlie:97",
+        "request_number": 97,
+        "response_type": "reaction",
+        "audio_path": "replay_audio/response_0097_player_3_Charlie.wav"
+      },
+      {
+        "from": "Alice",
+        "message": "Well, looks like the brick market is as dry as the desert. Good luck everyone.",
+        "response_id": "Alice:97",
+        "request_number": 97,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0097_player_1_Alice.wav"
+      },
+      {
+        "from": "Charlie",
+        "message": "Let's see if we can get some actual production going. Good luck everyone.",
+        "response_id": "Charlie:104",
+        "request_number": 104,
+        "response_type": "active_turn",
+        "audio_path": "replay_audio/response_0104_player_3_Charlie.wav"
+      }
+    ]
+  },
+  "after": {
+    "long_term_summary": "Bob (2 VP) has completed the road to N3 (Wheat Port Wh2) to leverage high Wheat production (N43). Goal: Settle N3 (needs 1B, 1S). Alice and Charlie (3 VP each) maintain a porous blockade, trading selectively to enable Charlie's N7 (B2 port) build while excluding Bob from Brick trades. Charlie has one hidden Dev card and a revealed Knight. Bob's B6 production (H5) is currently open, but Charlie moved the robber to Alice's H4 (S8) to slow her down. Bob used a 4:1 bank trade to bypass the Brick blockade. Watch for Charlie's new Brick port utility.",
+    "recent_notes": [
+      {
+        "note": "Road to Node 3 (Wheat Port) is complete. Missing 1 Brick and 1 Sheep for the settlement. Node 3 is verified open and provides a 2:1 Wheat port.",
+        "timestamp": 1779087635.9831874
+      },
+      {
+        "note": "Roll of 4 gave Charlie 2 Wood and Alice 1 Sheep. Both are at 3 VP. I am still at 2 VP and need Sheep/Brick.",
+        "timestamp": 1779087676.9100952
+      }
+    ],
+    "relationship_updates": [
+      "Alice/Charlie: Alliance is strained; Charlie blocked Alice's Sheep (H4) despite their previous trade cooperation.",
+      "Charlie: Formally rejected Bob's 2-for-1 Wheat for Brick offer, maintaining the resource squeeze."
+    ],
+    "discarded_as_irrelevant": [
+      "Alice's 12 roll",
+      "Specific 4:1 bank trade details",
+      "General well-wishes from chat",
+      "Completed road build steps"
+    ],
+    "fallback_used": false,
+    "fallback_reason": null
+  },
+  "llm": {
+    "success": true,
+    "content": "{\n  \"compacted_memory\": \"Bob (2 VP) has completed the road to N3 (Wheat Port Wh2) to leverage high Wheat production (N43). Goal: Settle N3 (needs 1B, 1S). Alice and Charlie (3 VP each) maintain a poro...",
+    "error": null,
+    "model": "google/gemini-3-flash-preview-20251217",
+    "tokens": {
+      "prompt": 5281,
+      "completion": 379,
+      "total": 5660
+    },
+    "latency_seconds": 3.89,
+    "finish_reason": "stop",
+    "timestamp": "2026-05-18T10:01:20.804766"
+  },
+  "llm_raw": {
+    "success": true,
+    "content": "{\n  \"compacted_memory\": \"Bob (2 VP) has completed the road to N3 (Wheat Port Wh2) to leverage high Wheat production (N43). Goal: Settle N3 (needs 1B, 1S). Alice and Charlie (3 VP each) maintain a porous blockade, trading selectively to enable Charlie's N7 (B2 port) build while excluding Bob from Brick trades. Charlie has one hidden Dev card and a revealed Knight. Bob's B6 production (H5) is currently open, but Charlie moved the robber to Alice's H4 (S8) to slow her down. Bob used a 4:1 bank trade to bypass the Brick blockade. Watch for Charlie's new Brick port utility.\",\n  \"recent_notes_to_keep\": [\n    \"Road to Node 3 (Wheat Port) is complete. Missing 1 Brick and 1 Sheep for the settlement. Node 3 is verified open and provides a 2:1 Wheat port.\",\n    \"Roll of 4 gave Charlie 2 Wood and Alice 1 Sheep. Both are at 3 VP. I am still at 2 VP and need Sheep/Brick.\"\n  ],\n  \"discarded_as_irrelevant\": [\n    \"Alice's 12 roll\",\n    \"Specific 4:1 bank trade details\",\n    \"General well-wishes from chat\",\n    \"Completed road build steps\"\n  ],\n  \"relationship_updates\": [\n    \"Alice/Charlie: Alliance is strained; Charlie blocked Alice's Sheep (H4) despite their previous trade cooperation.\",\n    \"Charlie: Formally rejected Bob's 2-for-1 Wheat for Brick offer, maintaining the resource squeeze.\"\n  ]\n}",
+    "error": null,
+    "model": "google/gemini-3-flash-preview-20251217",
+    "finish_reason": "stop",
+    "prompt_tokens": 5281,
+    "completion_tokens": 379,
+    "thinking_tokens": 0,
+    "total_tokens": 5660,
+    "latency_seconds": 3.893806219100952
+  },
+  "prompt": {
+    "meta_data": {
+      "agent_name": "Bob",
+      "task": "compact_agent_memory",
+      "model_instruction": "You are compacting memory for one Catan AI agent. Use the board only through the same compact H/N/state/players/meta format used in normal decision prompts."
+    },
+    "task_context": {
+      "instructions": "Compress old memories and relevant chat into one concise strategic memory. Preserve future-useful facts: current goals, next planned actions, confirmed board facts, known or likely opponent plans/resources/dev cards/trade tendencies, active negotiations, social commitments, and mistakes to avoid. Discard repeated, completed, impossible, vague, or superseded details. Do not invent facts; mark uncertainty clearly. Also extract only new meaningful relationship shifts from the old notes and relevant chat: trust changes, grudges, favors, threats, betrayals, promises, or emotional tension. Do not repeat existing relationship updates; leave relationship_updates empty if nothing changed. Target about 50% or less of the combined old memory length. Keep recent_notes_to_keep copied verbatim from the provided recent notes."
+    },
+    "game_state": "\n  1. LOOKUP TABLES:\n   • \"H\" (Hexes): Array where Index = HexID. Value = Resource+Num.\n     Example: H[1]=\"W12\" -> Hex 1 is Wood 12.\n   • \"N\" (Nodes): Array where Index = NodeID.\n     Format: [ [Neighbors], [HexIDs], Port? ]\n     Logic: To find yield of Node 10, check N[10]. Get HexIDs (e.g. [1,5]). Look up H[1] and H[5].\n\n2. CODES: W=Wood, B=Brick, S=Sheep, Wh=Wheat, O=Ore, D=Desert.\n          ?3=Any 3:1 port, X2=Specific Resource 2:1 port.\n\n3. STATE: \"bld\"=[NodeID, Owner, Type], \"rds\"=[[From,To], Owner].\n\n4. PLAYERS: \"res\"={Resource:Count}, \"dev\"={\"h\":[Your Hidden Cards], \"hidden_count\":OpponentHiddenCount, \"r\":[Revealed] (K=Knight)}, \n            \"stat\"=[\"LR\" (Longest Road), \"LA\" (Largest Army)].\n\n5. ROBBER: Located at HexID specified in \"meta.robber\". H[id] is blocked.\n\nJSON:\n{\"meta\":{\"curr\":\"Charlie\",\"phase\":\"NORMAL_PLAY\",\"turn_phase\":\"PLAYER_ACTIONS\",\"robber\":4,\"dice\":[1,3],\"vp_to_win\":5,\"dice_total\":4},\"H\":[\"\",\"W12\",\"S5\",\"W4\",\"S8\",\"B6\",\"W3\",\"Wh8\",\"B10\",\"W11\",\"D\",\"O3\",\"S4\",\"B10\",\"Wh9\",\"Wh6\",\"S11\",\"O5\",\"Wh9\",\"O2\"],\"N\":[null,[[2,9],[1]],[[1,3],[1],\"Wh2\"],[[2,4,11],[2,1],\"Wh2\"],[[3,5],[2]],[[4,6,13],[3,2]],[[5,7],[3],\"B2\"],[[6,15],[3],\"B2\"],[[9,18],[4],\"?3\"],[[8,10,1],[4,1],\"?3\"],[[9,11,20],[5,4,1]],[[10,12,3],[5,2,1]],[[11,13,22],[6,5,2]],[[12,14,5],[6,3,2]],[[13,15,24],[7,6,3]],[[14,16,7],[7,3]],[[15,26],[7],\"O2\"],[[18,28],[8],\"S2\"],[[17,19,8],[8,4]],[[18,20,30],[9,8,4]],[[19,21,10],[9,5,4]],[[20,22,32],[10,9,5]],[[21,23,12],[10,6,5]],[[22,24,34],[11,10,6]],[[23,25,14],[11,7,6]],[[24,26,36],[12,11,7]],[[25,27,16],[12,7],\"O2\"],[[26,38],[12]],[[29,17],[8],\"S2\"],[[28,30,39],[13,8]],[[29,31,19],[13,9,8]],[[30,32,41],[14,13,9]],[[31,33,21],[14,10,9]],[[32,34,43],[15,14,10]],[[33,35,23],[15,11,10]],[[34,36,45],[16,15,11]],[[35,37,25],[16,12,11]],[[36,38,47],[16,12],\"?3\"],[[37,27],[12],\"?3\"],[[40,29],[13]],[[39,41,48],[17,13],\"W2\"],[[40,42,31],[17,14,13]],[[41,43,50],[18,17,14]],[[42,44,33],[18,15,14]],[[43,45,52],[19,18,15]],[[44,46,35],[19,16,15]],[[45,47,54],[19,16]],[[46,37],[16]],[[49,40],[17],\"W2\"],[[48,50],[17]],[[49,51,42],[18,17],\"?3\"],[[50,52],[18],\"?3\"],[[51,53,44],[19,18]],[[52,54],[19],\"?3\"],[[53,46],[19],\"?3\"]],\"state\":{\"bld\":[[7,\"Charlie\",\"S\"],[9,\"Alice\",\"S\"],[12,\"Bob\",\"S\"],[14,\"Charlie\",\"S\"],[20,\"Alice\",\"S\"],[25,\"Alice\",\"S\"],[41,\"Charlie\",\"S\"],[43,\"Bob\",\"S\"]],\"rds\":[[[20,10],\"Alice\"],[[12,11],\"Bob\"],[[41,42],\"Charlie\"],[[14,15],\"Charlie\"],[[43,44],\"Bob\"],[[25,26],\"Alice\"],[[10,9],\"Alice\"],[[20,21],\"Alice\"],[[15,7],\"Charlie\"],[[11,3],\"Bob\"]]},\"players\":{\"Alice\":{\"vp\":3,\"res\":{\"W\":3,\"Wh\":1,\"S\":3}},\"Bob\":{\"vp\":2,\"res\":{\"W\":1,\"Wh\":1}},\"Charlie\":{\"vp\":3,\"res\":{\"W\":2,\"Wh\":1,\"S\":1},\"dev\":{\"hidden_count\":1,\"r\":[\"K\"]}}}}",
+    "memory_input": {
+      "existing_compacted_memory": "Bob's Brick production on H5 (B6) is restored after Charlie moved the robber to H4 (S8) to target Alice. Alice (3 VP) holds a Wood/Sheep surplus and the N9 (?3) port. Charlie (3 VP) secured the N7 Brick port (B2) and has one hidden Dev card. Alice and Charlie maintain a selective trade blockade against Bob, only trading with each other to enable major builds. Bob (2 VP) holds 2W/3Wh and needs Brick to settle N11 or reach the N3 Wheat port to achieve resource independence. Priority: Capitalize on restored Brick production to expand before the robber returns.",
+      "existing_relationship_updates": [
+        {
+          "note": "Alice: Reaffirmed trade blockade by refusing Bob's offer for Brick despite having a surplus of Wood.",
+          "timestamp": 1779086884.1697454
+        },
+        {
+          "note": "Charlie: Slight softening of blockade by trading Wheat to Bob, though still refusing to trade Brick.",
+          "timestamp": 1779087173.8343852
+        },
+        {
+          "note": "Alice/Charlie: Strategic alliance confirmed; they trade to enable each other's settlements (N7) while excluding Bob.",
+          "timestamp": 1779087438.0507364
+        },
+        {
+          "note": "Charlie: Betrayed the hard blockade to trade Wheat to Alice, prioritizing his own expansion over the pact against Bob.",
+          "timestamp": 1779087438.0507376
+        },
+        {
+          "note": "Alice: Remains hostile, prioritizing blocking Bob's growth even when sharing negative effects of the robber.",
+          "timestamp": 1779087438.050738
+        },
+        {
+          "note": "Alice/Charlie: Alliance is strained; Charlie blocked Alice's Sheep (H4) despite their previous trade cooperation.",
+          "timestamp": 1779087680.8058314
+        }
+      ],
+      "old_notes_to_compact": [
+        "Charlie built on Node 7 (Brick Port). Alice and Charlie's trade directly enabled this. Charlie is now at 3 VP and has a strong resource engine.",
+        "Charlie has the Brick port (Node 7) and a hidden dev card. Alice and Charlie's 'blockade' is porous when it benefits them. My Brick production on Hex 5 is open, so I need to capitalize on this before the robber moves back.",
+        "Alice rolled a 12, giving her one Wood. She is still bitter about the robber on Hex 4 (Sheep 8).",
+        "Alice and Charlie are both at 3 VP. Alice is low on brick. My 6-brick is currently unblocked.",
+        "I have strong Wheat production (Nodes 43) and decent Brick (Node 12). Need to watch Alice and Charlie's alliance as they both sit at 3 VP.",
+        "Targeting Node 3 (Wheat Port) to leverage my 5-wheat hand and future production. Need 1 Brick for the road [11,3] and then a full settlement kit.",
+        "Traded 4 Wheat for 1 Brick via bank. Current resources: 2 Wood, 1 Wheat, 1 Brick. Goal: Build road [11, 3] to reach Wheat Port.",
+        "Building road to Node 3 (Wheat Port). Next turn needs 1 Wood, 1 Brick, 1 Sheep, 1 Wheat for the settlement."
+      ],
+      "recent_notes_to_keep": [
+        "Road to Node 3 (Wheat Port) is complete. Missing 1 Brick and 1 Sheep for the settlement. Node 3 is verified open and provides a 2:1 Wheat port.",
+        "Roll of 4 gave Charlie 2 Wood and Alice 1 Sheep. Both are at 3 VP. I am still at 2 VP and need Sheep/Brick."
+      ],
+      "relevant_chat": [
+        {
+          "from": "Alice",
+          "message": "Fair enough, Charlie. I figured you and Bob were starting to get a little too comfortable together anyway.",
+          "response_id": "Alice:91",
+          "request_number": 91,
+          "response_type": "reaction",
+          "audio_path": "replay_audio/response_0091_player_1_Alice.wav"
+        },
+        {
+          "from": "Alice",
+          "message": "Alright, Charlie. Since you're being 'reasonable' now, I'll take that wheat. It's better than letting this wood sit around while you and Bob plot.",
+          "response_id": "Alice:92",
+          "request_number": 92,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0092_player_1_Alice.wav"
+        },
+        {
+          "from": "Bob",
+          "message": "Funny how quickly the 'blockade' melts away when you two need something from each other. I see how it is.",
+          "response_id": "Bob:88",
+          "request_number": 88,
+          "response_type": "reaction",
+          "audio_path": "replay_audio/response_0088_player_2_Bob.wav"
+        },
+        {
+          "from": "Bob",
+          "message": "Must be nice having Alice as a personal supplier, Charlie. That port is going to make you very dangerous.",
+          "response_id": "Bob:89",
+          "request_number": 89,
+          "response_type": "reaction",
+          "audio_path": "replay_audio/response_0089_player_2_Bob.wav"
+        },
+        {
+          "from": "Bob",
+          "message": "Well, since the 'dry' brick market seems to be the only thing you two can agree on, let's see if the dice have a better sense of humor than this alliance.",
+          "response_id": "Bob:93",
+          "request_number": 93,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0093_player_2_Bob.wav"
+        },
+        {
+          "from": "Bob",
+          "message": "Charlie, you've got that fancy new port but looking a bit thin on the wheat to actually use it. How about two stacks of grain for just one of your bricks? Help me, help you.",
+          "response_id": "Bob:94",
+          "request_number": 94,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0094_player_2_Bob.wav"
+        },
+        {
+          "from": "Charlie",
+          "message": "Like I told Alice, Bob, the brick market is empty. I don't have any to trade.",
+          "response_id": "Charlie:100",
+          "request_number": 100,
+          "response_type": "reaction",
+          "audio_path": "replay_audio/response_0100_player_3_Charlie.wav"
+        },
+        {
+          "from": "Bob",
+          "message": "If you won't trade, the bank will. It's a steep price, but I've got grain to spare.",
+          "response_id": "Bob:95",
+          "request_number": 95,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0095_player_2_Bob.wav"
+        },
+        {
+          "from": "Bob",
+          "message": "The bank's rates are highway robbery, but at least the road is getting built. One step closer to making all this grain actually useful.",
+          "response_id": "Bob:96",
+          "request_number": 96,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0096_player_2_Bob.wav"
+        },
+        {
+          "from": "Bob",
+          "message": "The road is down. It's a bit of a trek to the coast, but that wheat is going to start paying for itself soon enough. Your turn, Alice.",
+          "response_id": "Bob:97",
+          "request_number": 97,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0097_player_2_Bob.wav"
+        },
+        {
+          "from": "Charlie",
+          "message": "Sorry Alice, you're just getting a bit too far ahead with that new port. I need to slow that sheep production down a little.",
+          "response_id": "Charlie:92",
+          "request_number": 92,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0092_player_3_Charlie.wav"
+        },
+        {
+          "from": "Charlie",
+          "message": "Alice, you've got plenty of wood and I've got some prime wheat if you're looking to build another settlement soon. How about a fair swap?",
+          "response_id": "Charlie:93",
+          "request_number": 93,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0093_player_3_Charlie.wav"
+        },
+        {
+          "from": "Charlie",
+          "message": "Thanks for the wood, Alice. This brick port should make things a bit more interesting for me.",
+          "response_id": "Charlie:94",
+          "request_number": 94,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0094_player_3_Charlie.wav"
+        },
+        {
+          "from": "Charlie",
+          "message": "Well, at least the robber is staying away from my hexes for once. Good luck dealing with that, Alice.",
+          "response_id": "Charlie:95",
+          "request_number": 95,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0095_player_3_Charlie.wav"
+        },
+        {
+          "from": "Alice",
+          "message": "Don't get too comfortable, Charlie. That port makes you a much bigger target than I ever was.",
+          "response_id": "Alice:94",
+          "request_number": 94,
+          "response_type": "reaction",
+          "audio_path": "replay_audio/response_0094_player_1_Alice.wav"
+        },
+        {
+          "from": "Alice",
+          "message": "Alright, let's see if the dice are any kinder to me than you've been, Charlie. I'd really like that Sheep 8 back.",
+          "response_id": "Alice:95",
+          "request_number": 95,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0095_player_1_Alice.wav"
+        },
+        {
+          "from": "Alice",
+          "message": "Charlie, you've got that shiny new brick port and I've still got plenty of wood. How about we keep the wheels of commerce turning? My wood for one of your bricks?",
+          "response_id": "Alice:96",
+          "request_number": 96,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0096_player_1_Alice.wav"
+        },
+        {
+          "from": "Charlie",
+          "message": "I'd love to help, Alice, but I actually don't have any brick right now.",
+          "response_id": "Charlie:97",
+          "request_number": 97,
+          "response_type": "reaction",
+          "audio_path": "replay_audio/response_0097_player_3_Charlie.wav"
+        },
+        {
+          "from": "Alice",
+          "message": "Well, looks like the brick market is as dry as the desert. Good luck everyone.",
+          "response_id": "Alice:97",
+          "request_number": 97,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0097_player_1_Alice.wav"
+        },
+        {
+          "from": "Charlie",
+          "message": "Let's see if we can get some actual production going. Good luck everyone.",
+          "response_id": "Charlie:104",
+          "request_number": 104,
+          "response_type": "active_turn",
+          "audio_path": "replay_audio/response_0104_player_3_Charlie.wav"
+        }
+      ]
+    },
+    "output_requirements": {
+      "format": "valid JSON only",
+      "schema": {
+        "compacted_memory": "string",
+        "recent_notes_to_keep": [
+          "string"
+        ],
+        "relationship_updates": [
+          "string"
+        ],
+        "discarded_as_irrelevant": [
+          "string"
+        ]
+      }
+    }
+  }
+}

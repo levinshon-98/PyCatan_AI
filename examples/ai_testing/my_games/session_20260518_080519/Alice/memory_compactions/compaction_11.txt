@@ -1,0 +1,60 @@
+Memory Compaction #11 for Alice
+Time: 2026-05-18T09:55:20.219738
+
+=== BEFORE: Existing Long-Term Summary ===
+Alice (Nodes 20, 25) successfully acquired the resources (1W, 1B, 1S, 1Wh) for her next settlement on Node 9 (3:1 port) after recent rolls of 8 and 4. Bob remains a rival (Nodes 12, 43); he is resource-rich in Wood but potentially low on Wheat following a trade with Charlie. Charlie (Nodes 14, 41) has shifted from a stable ally to a more neutral party, recently trading Wheat to Bob for a Sheep after Alice declined his Wood-for-Sheep offers. Alice is currently feigning a Wheat shortage to the table to protect her lead on Node 9. Next goal: Build on Node 9 and then target Ore for potential city upgrades.
+
+=== BEFORE: Old Notes Compacted ===
+- Charlie and Bob traded 1 Wheat for 1 Sheep. I have 3W, 1B, 4S, 1Wh; I am ready to build a settlement on Node 9 on my next turn. Charlie is becoming more willing to trade with Bob when I decline his offers.
+- I have 3 Wood, 1 Brick, 4 Sheep, and 1 Wheat. I am moving to build a settlement on Node 9 immediately. Charlie and Bob's trade suggests they are coordinating more as I stay defensive.
+- I have the resources for a settlement on Node 9. Rolling now to see if I can get extra resources before building.
+- Built settlement on Node 9, gaining a 3:1 port and increasing Sheep/Wood production. Current resources after build: 3 Wood, 3 Sheep. Next goal: connect Node 9 to Node 8 or seek Ore for cities.
+- Settlement 9 secured. Next target: Node 18 for Brick (10) and Sheep (8). Need 1 Wood and 1 Brick for the road.
+- Roll of 9 gave Bob 2 Wheat and Charlie 1 Wheat. Bob and Charlie are definitely helping each other more now. I have 3 Wood and 3 Sheep; still need Brick for my next road toward Node 18.
+- Charlie has 1 brick (from roll 6) and is holding it for himself. Bob is desperate for brick to leave his starting area. I have 3 Wood and 3 Sheep; I need 1 Brick to build toward the Sheep 8/Brick 10 spot at Node 18.
+- Bob is actively searching for brick. Charlie confirmed he has one but won't trade it. I have 0 brick and need it for my road to Node 18.
+
+=== BEFORE: Recent Notes Kept Verbatim ===
+- Bob is frustrated by the robber on the 6 (Brick). I currently have 3 Wood and 3 Sheep. I need to secure Brick (from a roll of 10 or 8/4/6 if the robber moves) to reach Node 18. Bob and Charlie's cooperation is increasing.
+- Charlie rolled a 7. I have 3 Wood and 3 Sheep. The robber is currently on 5 (Brick 6), which is my main source of brick. Charlie needs wood; I have plenty, making me a target for the robber.
+
+=== BEFORE: Relevant Chat Considered ===
+- Bob: Tough luck on the wheat, Alice. I'm in the same boat. Charlie, you've got plenty of wood already, but if you want to swap a brick for some of mine to help your road, I'm open to it.
+- Bob: It seems the dice and the table are equally quiet for me this round. Good luck with the wheat search, Alice—I'm still looking for a way out of the woods myself.
+- Charlie: Alice, I know you've got a few sheep over there. I've got plenty of wood if you're looking to extend a road or something.
+- Alice: I'm swimming in wood already, Charlie, but thanks for the offer. I think I'll hang onto my sheep for now.
+- Charlie: I'm just one piece short of where I want to be. Your turn, Alice.
+- Alice: Let's see what the dice have to say. Hopefully something better than more wood.
+- Alice: Finally, a little bit of progress. That 3:1 port should make things a bit smoother for me.
+- Alice: I'm glad that 3:1 port is finally mine. I'll pass the dice for now and see what the next round brings.
+- Bob: Alice, I see you're building up quite the collection of wood and sheep, but a little wheat goes a long way for those settlements. How about a fair swap for one of your bricks?
+- Alice: I'd help you out if I could, Bob, but I don't have any brick right now.
+- Bob: Tough crowd. Alice, you're losing just as much brick as I am with that robber sitting on the 6, but I guess you'd rather we both stall than help me out. I'll pass for now.
+- Charlie: Finally, a good number! That wheat was definitely overdue.
+- Charlie: Sorry Bob, I'm actually in the same boat—if I give up my brick, I'm just as stuck as you are. I'll have to pass.
+- Charlie: Alright, let's see if we can keep the momentum going. Big numbers, please!
+- Charlie: Bob, I know you're looking for a way out of the woods. I've got some wheat here if you're willing to part with that sheep.
+- Bob: You know what, Charlie? That's a fair deal. I'll take the wheat. It’s better than staring at these trees all day.
+- Bob: Alright, let's see if the dice are feeling more generous than you two today. I could really use a change in the weather.
+- Bob: Charlie, you've been reasonable before. I'm stuck behind these trees and could use a single brick to get moving. Wheat for brick?
+- Charlie: I'd love to help you out, Bob, but that's my only brick and I'm planning to use it very soon. If you had some wood or maybe another sheep, we might be able to talk.
+- Charlie: Let's see if the dice can bring some wood my way.
+
+=== AFTER: New Long-Term Summary ===
+Alice successfully built on Node 9, securing a 3:1 port and increasing Sheep/Wood production. Current resources: 3W, 3S. Immediate goal: Reach Node 18 (Brick 10, Sheep 8) to diversify production and utilize the port. Alice currently lacks Brick due to the Robber on Hex 5 (Brick 6). Bob is resource-rich in Wood but desperate for Brick to expand. Charlie holds at least 1 Brick but refused to trade it to Bob, signaling he has his own expansion plans. Bob and Charlie are coordinating trades (Wheat for Sheep) to bypass Alice, who is maintaining a defensive posture by withholding resources.
+
+=== AFTER: Fallback Status ===
+used=False
+reason=(none)
+
+=== AFTER: Relationship Updates ===
+["Bob is openly resentful of Alice's lead and lack of trade assistance, viewing her as the cause of his stall.", "Charlie and Bob have established a functional trading partnership, though Charlie remains self-interested regarding his"]
+
+=== AFTER: Discarded As Irrelevant ===
+["Specific dice roll outcomes for Wheat", "Completed building on Node 9", "Repeated resource counts", "Vague wishes for dice luck"]
+
+=== RAW LLM RESPONSE PREVIEW ===
+{"compacted_memory":"Alice successfully built on Node 9, securing a 3:1 port and increasing Sheep/Wood production. Current resources: 3W, 3S. Immediate goal: Reach Node 18 (Brick 10, Sheep 8) to diversify production and utilize the port. Alice currently lacks Brick due to the Robber on Hex 5 (Brick 6). Bob is resource-rich in Wood but desperate for Brick to expand. Charlie holds at least 1 Brick but refused to trade it to Bob, signaling he has his own expansion plans. Bob and Charlie are coordinating trades (Wheat for Sheep) to bypass Alice, who is maintaining a defensive posture by withholding resources.","recent_notes_to_keep":["Bob is frustrated by the robber on the 6 (Brick). I currently have 3 Wood and 3 Sheep. I need to secure Brick (from a roll of 10 or 8/4/6 if the robber moves) to reach Node 18. Bob and Charlie's cooperation is increasing.","Charlie rolled a 7. I have 3 Wood and 3 Sheep. The robber is currently on 5 (Brick 6), which is my main source of brick. Charlie needs wood; I have plenty, making me a target for the robber."],"discarded_as_irrelevant":["Specific dice roll outcomes for Wheat","Completed building on Node 9","Repeated resource counts","Vague wishes for dice luck"],"relationship_updates":["Bob is openly resentful of Alice's lead and lack of trade assistance, viewing her as the cause of his stall.","Charlie and Bob have established a functional trading partnership, though Charlie remains self-interested regarding his limited Brick."]}
+
+JSON artifact:
+examples\ai_testing\my_games\session_20260518_080519\Alice\memory_compactions\compaction_11.json

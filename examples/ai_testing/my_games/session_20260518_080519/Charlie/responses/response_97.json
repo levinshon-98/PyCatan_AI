@@ -1,0 +1,23 @@
+{
+  "request_number": 97,
+  "timestamp": "2026-05-18T09:58:12.591644",
+  "player_name": "Charlie",
+  "type": "final",
+  "success": true,
+  "raw_content": "{\n  \"internal_thinking\": \"Alice is offering a trade for Brick, likely because she knows I just settled on the Brick port. However, I actually don't have any Brick in my hand right now (just 1 Sheep and my hidden Knight). I need to let her know I'm empty-handed so she looks elsewhere or waits.\",\n  \"note_to_self\": \"Alice is looking for Brick. I have the Brick port (N7) but currently have 0 Brick. Hand: 1 Sheep, 1 Hidden Knight.\",\n  \"say_outloud\": \"I'd love to help, Alice, but I actually don't have any brick right now.\"\n}",
+  "parsed": {
+    "internal_thinking": "Alice is offering a trade for Brick, likely because she knows I just settled on the Brick port. However, I actually don't have any Brick in my hand right now (just 1 Sheep and my hidden Knight). I need to let her know I'm empty-handed so she looks elsewhere or waits.",
+    "note_to_self": "Alice is looking for Brick. I have the Brick port (N7) but currently have 0 Brick. Hand: 1 Sheep, 1 Hidden Knight.",
+    "say_outloud": "I'd love to help, Alice, but I actually don't have any brick right now."
+  },
+  "model": "google/gemini-3-flash-preview",
+  "tokens": {
+    "prompt": 2686,
+    "completion": 131,
+    "thinking": 0,
+    "total": 2817
+  },
+  "finish_reason": null,
+  "latency_seconds": 0.0,
+  "error": null
+}
